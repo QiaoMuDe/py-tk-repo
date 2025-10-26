@@ -670,10 +670,9 @@ class AdvancedTextEditor:
 
             # 计算行号区域宽度 (根据行号位数动态调整宽度)
             max_line_number = total_lines
-            # 根据行号位数计算宽度：个位数15像素, 两位数25像素, 三位数35像素, 以此类推
-            # 增加额外空间确保行号能完整显示
+            # 根据行号位数计算宽度：增加每数字宽度和额外空间确保行号能完整显示
             digits = len(str(max_line_number))
-            line_number_width = max(35, digits * 12 + 10)
+            line_number_width = max(40, digits * 13 + 10)
             self.line_numbers.config(width=line_number_width)
 
             # 设置字体
