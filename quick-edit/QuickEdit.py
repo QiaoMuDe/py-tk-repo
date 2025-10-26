@@ -14,15 +14,25 @@ from idlelib.percolator import Percolator
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10
 
+# 主窗口-高
+MainWindowHeight = 800
+
+# 主窗口-宽
+MainWindowWidth = 900
+
+# 限制撤销操作数量
+MaxUndo = 20
+
+
 class AdvancedTextEditor:
     def __init__(self, root):
         self.root = root
         self.root.title("文本编辑器")
-        self.root.geometry("900x800")
+        self.root.geometry(f"{MainWindowWidth}x{MainWindowHeight}")
         self.center_window()
 
         # 初始化变量
-        self.current_file = None # 当前打开的文件路径
+        self.current_file = None  # 当前打开的文件路径
         self.font_family = "Arial"  # 默认字体
         self.font_size = 12  # 默认字体大小
         self.font_bold = False  # 默认不加粗
@@ -30,7 +40,7 @@ class AdvancedTextEditor:
         self.font_underline = False  # 默认无下划线
         self.toolbar_visible = True  # 工具栏默认显示
         self.show_line_numbers = True  # 行号显示状态, 默认显示
-        self.encoding = "UTF-8" # 默认编码
+        self.encoding = "UTF-8"  # 默认编码
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
@@ -240,8 +250,8 @@ class AdvancedTextEditor:
 
         # 如果获取的宽高为1, 则使用初始设置的几何尺寸
         if width <= 1 or height <= 1:
-            width = 900
-            height = 800
+            width = MainWindowWidth
+            height = MainWindowHeight
 
         # 获取屏幕的宽度和高度
         screen_width = self.root.winfo_screenwidth()
@@ -397,8 +407,7 @@ class AdvancedTextEditor:
             insertbackground="black",
             selectbackground="lightblue",
             selectforeground="black",
-            # 优化大文件处理
-            maxundo=50,  # 限制撤销操作数量
+            maxundo=MaxUndo,
         )
 
         # 设置行号区域样式
@@ -625,7 +634,7 @@ class AdvancedTextEditor:
             self.root.after(50, self.update_line_numbers)
 
     def update_line_numbers(self, event=None):
-        """更新行号显示 (仅可见区域)"""
+        """更新行号显示"""
         # 清除之前的行号
         self.line_numbers.delete("all")
 
@@ -681,6 +690,7 @@ class AdvancedTextEditor:
                     pass
         except Exception as e:
             # 忽略错误, 保持程序稳定
+            print(f"Error in update_line_numbers: {e}")
             pass
 
     def create_toolbar(self):
@@ -1204,30 +1214,6 @@ class AdvancedTextEditor:
 
         # 返回新的换行符类型
         return new_ending
-
-    def load_large_file(self, file_path):
-        """读取大文件内容"""
-        try:
-            # 清空现有内容
-            self.text_area.delete(1.0, tk.END)
-
-            # 显示加载状态
-            self.left_status.config(text=f"正在加载文件: {file_path}")
-            self.root.update_idletasks()
-
-            # 直接读取整个文件内容
-            with open(file_path, "r", encoding=self.encoding) as f:
-                content = f.read()
-
-            # 插入全部内容
-            self.text_area.insert(tk.END, content)
-
-            # 更新总行数
-            self.total_lines = len(content.split("\n"))
-
-            return content
-        except Exception as e:
-            raise e
 
     def open_file(self):
         """打开文件"""
@@ -1905,13 +1891,13 @@ class FindDialog:
         find_frame.columnconfigure(1, weight=1)
         find_frame.columnconfigure(2, weight=1)
 
-        self.find_button = ttk.Button(find_frame, text="下一个", command=self.find_next)
-        self.find_button.grid(row=0, column=0, padx=(0, 2), sticky=tk.W + tk.E)
-
         self.find_prev_button = ttk.Button(
             find_frame, text="上一个", command=self.find_previous
         )
-        self.find_prev_button.grid(row=0, column=1, padx=(2, 2), sticky=tk.W + tk.E)
+        self.find_prev_button.grid(row=0, column=0, padx=(2, 2), sticky=tk.W + tk.E)
+
+        self.find_button = ttk.Button(find_frame, text="下一个", command=self.find_next)
+        self.find_button.grid(row=0, column=1, padx=(0, 2), sticky=tk.W + tk.E)
 
         self.find_all_button = ttk.Button(
             find_frame, text="查找全部", command=self.find_all
@@ -1927,7 +1913,7 @@ class FindDialog:
         replace_frame.columnconfigure(1, weight=1)
 
         self.replace_once_button = ttk.Button(
-            replace_frame, text="替换一次", command=self.replace_once
+            replace_frame, text="替换", command=self.replace_once
         )
         self.replace_once_button.grid(row=0, column=0, padx=(0, 2), sticky=tk.W + tk.E)
 
@@ -2319,372 +2305,6 @@ class FindDialog:
         # 设置光标位置
         self.text_widget.mark_set(tk.INSERT, start_idx)
         self.text_widget.focus_set()
-
-
-class LargeFileSearcher:
-    """大文件查找器, 用于处理大文件的增量查找"""
-
-    def __init__(self, file_path, text_widget, encoding="utf-8"):
-        self.file_path = file_path
-        self.text_widget = text_widget
-        self.encoding = encoding
-        self.file_content_lines = []
-        self.total_lines = 0
-        self.chunk_size = 8192  # 8KB chunks
-        self.matches = []
-        self.is_searching = False
-        self.cancel_search = False
-
-        # 如果是大文件, 预先加载行信息
-        if file_path and os.path.exists(file_path):
-            self._load_file_info()
-
-    def _load_file_info(self):
-        """加载文件信息但不加载全部内容"""
-        try:
-            # 使用chardet检测文件编码
-            with open(self.file_path, "rb") as f:
-                raw_data = f.read(10000)  # 读取前10KB用于编码检测
-                result = chardet.detect(raw_data)
-                detected_encoding = result["encoding"]
-
-                # 如果检测到的编码更可靠, 则使用检测到的编码
-                if result["confidence"] > 0.7:  # 置信度大于70%
-                    self.encoding = detected_encoding
-
-            # 只读取行数信息, 不加载全部内容到内存
-            with open(
-                self.file_path, "r", encoding=self.encoding, errors="ignore"
-            ) as f:
-                line_count = 0
-                for line in f:
-                    line_count += 1
-                self.total_lines = line_count
-        except Exception as e:
-            print(f"加载文件信息时出错: {e}")
-
-    def search_in_loaded_content(
-        self, search_term, search_type="normal", match_case=True, whole_word=False
-    ):
-        """在已加载的内容中查找"""
-        # 清除之前的高亮
-        self.text_widget.tag_remove("found", "1.0", tk.END)
-        self.text_widget.tag_remove("current_match", "1.0", tk.END)
-
-        if not search_term:
-            return []
-
-        matches = []
-        start_pos = "1.0"
-
-        try:
-            # 根据查找类型选择不同的查找方式
-            if search_type == "regex":
-                # 正则表达式查找
-                flags = 0 if match_case else re.IGNORECASE
-                pattern = search_term
-                if whole_word:
-                    pattern = r"\b" + re.escape(search_term) + r"\b"
-
-                content = self.text_widget.get("1.0", tk.END + "-1c")
-                for match in re.finditer(pattern, content, flags):
-                    start_idx = self.text_widget.index(f"1.0+{match.start()}c")
-                    end_idx = self.text_widget.index(f"1.0+{match.end()}c")
-                    matches.append((start_idx, end_idx))
-            else:
-                # 普通查找或完整匹配查找
-                while True:
-                    if self.cancel_search:
-                        return []
-
-                    if whole_word and search_type == "whole":
-                        # 完整单词匹配
-                        pattern = r"\b" + re.escape(search_term) + r"\b"
-                        content = self.text_widget.get(start_pos, tk.END)
-                        match = re.search(
-                            pattern, content, re.IGNORECASE if not match_case else 0
-                        )
-                        if not match:
-                            break
-                        # 计算实际位置
-                        line_offset = content[: match.start()].count("\n")
-                        char_offset = (
-                            len(content[: match.start()].split("\n")[-1])
-                            if "\n" in content[: match.start()]
-                            else match.start()
-                        )
-
-                        current_line = int(start_pos.split(".")[0]) + line_offset
-                        if line_offset == 0:
-                            current_col = int(start_pos.split(".")[1]) + char_offset
-                        else:
-                            current_col = char_offset
-
-                        start_idx = f"{current_line}.{current_col}"
-                        end_idx = f"{current_line}.{current_col + len(search_term)}"
-                    else:
-                        # 普通查找
-                        start_idx = self.text_widget.search(
-                            search_term, start_pos, tk.END, nocase=not match_case
-                        )
-                        if not start_idx:
-                            break
-                        end_idx = f"{start_idx}+{len(search_term)}c"
-
-                    matches.append((start_idx, end_idx))
-                    start_pos = f"{end_idx}+1c"
-        except Exception as e:
-            messagebox.showerror("查找错误", f"查找过程中发生错误: {str(e)}")
-            return []
-
-        # 保存匹配结果
-        self.matches = matches
-
-        # 高亮所有匹配项
-        for start_idx, end_idx in matches:
-            self.text_widget.tag_add("found", start_idx, end_idx)
-
-        # 使用主题管理器的颜色配置
-        theme = (
-            self.theme_manager.get_current_theme()
-            if hasattr(self, "theme_manager")
-            else None
-        )
-        if theme is None and hasattr(self.text_widget.master.master, "theme_manager"):
-            theme = self.text_widget.master.master.theme_manager.get_current_theme()
-
-        if theme:
-            self.text_widget.tag_configure(
-                "found", background=theme["found_bg"], foreground=theme["found_fg"]
-            )
-            self.text_widget.tag_configure(
-                "current_match",
-                background=theme["current_match_bg"],
-                foreground=theme["current_match_fg"],
-            )
-        else:
-            # 默认颜色配置
-            self.text_widget.tag_configure(
-                "found", background="yellow", foreground="black"
-            )
-            self.text_widget.tag_configure(
-                "current_match", background="orange", foreground="black"
-            )
-
-        return matches
-
-    def search_in_file(
-        self, search_term, search_type="normal", match_case=True, whole_word=False
-    ):
-        """在整个文件中查找 (增量查找)"""
-        # 清除之前的高亮
-        self.text_widget.tag_remove("found", "1.0", tk.END)
-        self.text_widget.tag_remove("current_match", "1.0", tk.END)
-
-        if not search_term:
-            return []
-
-        self.is_searching = True
-        self.cancel_search = False
-        matches = []
-
-        try:
-            # 获取文件大小用于进度计算
-            file_size = (
-                os.path.getsize(self.file_path)
-                if self.file_path and os.path.exists(self.file_path)
-                else 0
-            )
-            processed_size = 0
-
-            # 根据查找类型选择不同的查找方式
-            if search_type == "regex":
-                # 正则表达式查找
-                flags = 0 if match_case else re.IGNORECASE
-                pattern = search_term
-                if whole_word:
-                    pattern = r"\b" + re.escape(search_term) + r"\b"
-
-                # 编译正则表达式以提高性能
-                compiled_pattern = re.compile(pattern, flags)
-
-                # 分块读取文件进行查找
-                with open(
-                    self.file_path, "r", encoding=self.encoding, errors="ignore"
-                ) as f:
-                    content = ""
-                    line_offset = 0
-
-                    while True:
-                        if self.cancel_search:
-                            break
-
-                        chunk = f.read(self.chunk_size)
-                        if not chunk:
-                            break
-
-                        # 更新已处理大小
-                        processed_size += len(chunk.encode(self.encoding))
-
-                        content += chunk
-
-                        # 查找匹配项
-                        for match in compiled_pattern.finditer(content):
-                            if self.cancel_search:
-                                break
-
-                            # 计算实际行号和列号
-                            match_start = match.start()
-                            match_end = match.end()
-
-                            # 计算匹配项在文件中的实际位置
-                            lines_up_to_match = content[:match_start].count("\n")
-                            line_number = line_offset + lines_up_to_match + 1
-
-                            if "\n" in content[:match_start]:
-                                last_newline = content[:match_start].rfind("\n")
-                                col_number = match_start - last_newline - 1
-                            else:
-                                col_number = match_start
-
-                            start_idx = f"{line_number}.{col_number}"
-                            end_idx = f"{line_number}.{col_number + (match_end - match_start)}"
-                            matches.append((start_idx, end_idx))
-
-                        # 保留部分内容以处理跨块匹配
-                        if len(content) > self.chunk_size:
-                            # 保留最后可能包含部分匹配的内容
-                            last_newline = content.rfind("\n", -self.chunk_size)
-                            if last_newline != -1:
-                                line_offset += content[:last_newline].count("\n") + 1
-                                content = content[last_newline + 1 :]
-
-                                # 更新进度
-                        if file_size > 0 and hasattr(self, "parent_dialog"):
-                            progress = min(100, (processed_size / file_size) * 100)
-                            self.parent_dialog.progress_var.set(progress)
-
-            else:
-                # 普通查找或完整匹配查找
-                search_flags = 0 if match_case else re.IGNORECASE
-
-                # 分块读取文件进行查找
-                with open(
-                    self.file_path, "r", encoding=self.encoding, errors="ignore"
-                ) as f:
-                    content = ""
-                    line_offset = 0
-
-                    while True:
-                        if self.cancel_search:
-                            break
-
-                        chunk = f.read(self.chunk_size)
-                        if not chunk:
-                            break
-
-                        # 更新已处理大小
-                        processed_size += len(chunk.encode(self.encoding))
-
-                        content += chunk
-
-                        # 查找匹配项
-                        pattern = search_term
-                        if whole_word and search_type == "whole":
-                            pattern = r"\b" + re.escape(search_term) + r"\b"
-
-                        # 使用正则表达式进行查找
-                        compiled_pattern = re.compile(pattern, search_flags)
-                        for match in compiled_pattern.finditer(content):
-                            if self.cancel_search:
-                                break
-
-                            # 计算实际行号和列号
-                            match_start = match.start()
-                            match_end = match.end()
-
-                            # 计算匹配项在文件中的实际位置
-                            lines_up_to_match = content[:match_start].count("\n")
-                            line_number = line_offset + lines_up_to_match + 1
-
-                            if "\n" in content[:match_start]:
-                                last_newline = content[:match_start].rfind("\n")
-                                col_number = match_start - last_newline - 1
-                            else:
-                                col_number = match_start
-
-                            start_idx = f"{line_number}.{col_number}"
-                            end_idx = f"{line_number}.{col_number + (match_end - match_start)}"
-                            matches.append((start_idx, end_idx))
-
-                        # 保留部分内容以处理跨块匹配
-                        if len(content) > self.chunk_size:
-                            # 保留最后可能包含部分匹配的内容
-                            last_newline = content.rfind("\n", -self.chunk_size)
-                            if last_newline != -1:
-                                line_offset += content[:last_newline].count("\n") + 1
-                                content = content[last_newline + 1 :]
-        except Exception as e:
-            messagebox.showerror("查找错误", f"查找过程中发生错误: {str(e)}")
-            return []
-        finally:
-            self.is_searching = False
-
-        # 保存匹配结果
-        self.matches = matches
-
-        # 高亮所有匹配项 (仅在当前可见区域)
-        self.highlight_matches_in_view()
-
-        return matches
-
-    def highlight_matches_in_view(self):
-        """高亮当前视图中的匹配项"""
-        # 获取当前可见区域
-        try:
-            first_line = int(self.text_widget.index("@0,0").split(".")[0])
-            last_line = int(
-                self.text_widget.index(f"@0,{self.text_widget.winfo_height()}").split(
-                    "."
-                )[0]
-            )
-
-            # 高亮在可见区域内的匹配项
-            for start_idx, end_idx in self.matches:
-                start_line = int(start_idx.split(".")[0])
-                if first_line <= start_line <= last_line:
-                    self.text_widget.tag_add("found", start_idx, end_idx)
-        except Exception:
-            # 如果无法获取可见区域, 高亮所有匹配项
-            for start_idx, end_idx in self.matches:
-                self.text_widget.tag_add("found", start_idx, end_idx)
-
-        # 使用主题管理器的颜色配置
-        theme = (
-            self.theme_manager.get_current_theme()
-            if hasattr(self, "theme_manager")
-            else None
-        )
-        if theme is None and hasattr(self.text_widget.master.master, "theme_manager"):
-            theme = self.text_widget.master.master.theme_manager.get_current_theme()
-
-        if theme:
-            self.text_widget.tag_configure(
-                "found", background=theme["found_bg"], foreground=theme["found_fg"]
-            )
-            self.text_widget.tag_configure(
-                "current_match",
-                background=theme["current_match_bg"],
-                foreground=theme["current_match_fg"],
-            )
-        else:
-            # 默认颜色配置
-            self.text_widget.tag_configure(
-                "found", background="yellow", foreground="black"
-            )
-            self.text_widget.tag_configure(
-                "current_match", background="orange", foreground="black"
-            )
 
 
 class ThemeManager:
