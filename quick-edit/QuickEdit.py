@@ -1490,7 +1490,7 @@ class AdvancedTextEditor:
         # 创建字体选择对话框
         font_dialog = tk.Toplevel(self.root)
         font_dialog.title("选择字体")
-        font_dialog.geometry("400x500")
+        font_dialog.geometry("500x600")  # 调整窗口大小以容纳示例文字
         font_dialog.resizable(True, True)
         font_dialog.transient(self.root)
         font_dialog.grab_set()  # 模态对话框
@@ -1499,11 +1499,11 @@ class AdvancedTextEditor:
         current_label = tk.Label(
             font_dialog, text=f"当前字体: {self.font_family}", font=("Arial", 10)
         )
-        current_label.pack(pady=10)
+        current_label.pack(pady=5)
 
         # 创建滚动条和列表框
         frame = tk.Frame(font_dialog)
-        frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
         scrollbar = tk.Scrollbar(frame)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
@@ -1531,6 +1531,15 @@ class AdvancedTextEditor:
                 font_listbox.selection_set(0)
                 font_listbox.see(0)
 
+        # 实时预览字体函数
+        def preview_font(event=None):
+            selection = font_listbox.curselection()
+            if selection:
+                selected_font = font_listbox.get(selection[0])
+                # 更新示例文字的字体
+                sample_text.config(font=(selected_font, self.font_size))
+                current_label.config(text=f"当前字体: {selected_font}")
+
         # 双击选择字体
         def on_font_select(event=None):
             selection = font_listbox.curselection()
@@ -1543,6 +1552,28 @@ class AdvancedTextEditor:
 
         # 绑定双击事件
         font_listbox.bind("<Double-Button-1>", on_font_select)
+        
+        # 绑定选择变化事件，实现实时预览
+        font_listbox.bind("<<ListboxSelect>>", preview_font)
+
+        # 示例文字框架
+        sample_frame = tk.LabelFrame(font_dialog, text="字体预览", padx=10, pady=10)
+        sample_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
+
+        # 示例文字
+        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
+        sample_text.pack(fill=tk.BOTH, expand=True)
+        
+        # 插入示例文字内容
+        sample_content = """这是字体预览示例文字。
+The quick brown fox jumps over the lazy dog.
+0123456789
+"""
+        sample_text.insert(tk.END, sample_content)
+        sample_text.config(state=tk.DISABLED)  # 设为只读
+        
+        # 应用当前字体到示例文字
+        sample_text.config(font=(self.font_family, self.font_size))
 
         # 按钮框架
         button_frame = tk.Frame(font_dialog)
@@ -1568,16 +1599,122 @@ class AdvancedTextEditor:
 
     def choose_font_size(self):
         """选择字体大小"""
-        size_str = simpledialog.askstring(
-            "选择字体大小", f"当前大小: {self.font_size}\n请输入新字体大小:"
+        # 创建字体大小设置对话框
+        size_dialog = tk.Toplevel(self.root)
+        size_dialog.title("设置字体大小")
+        size_dialog.geometry("500x400")  # 调整窗口大小以容纳示例文字
+        size_dialog.resizable(True, True)  # 允许调整大小
+        size_dialog.transient(self.root)
+        size_dialog.grab_set()  # 模态对话框
+
+        # 居中显示对话框
+        size_dialog.update_idletasks()
+        x = (size_dialog.winfo_screenwidth() // 2) - (size_dialog.winfo_width() // 2)
+        y = (size_dialog.winfo_screenheight() // 2) - (size_dialog.winfo_height() // 2)
+        size_dialog.geometry(f"+{x}+{y}")
+
+        # 当前字体大小标签
+        current_label = tk.Label(
+            size_dialog, text=f"当前字体大小: {self.font_size}", font=("Arial", 10)
         )
-        if size_str:
+        current_label.pack(pady=5)
+
+        # 字体大小变量
+        size_var = tk.StringVar(value=str(self.font_size))
+        
+        # 输入框框架
+        input_frame = tk.Frame(size_dialog)
+        input_frame.pack(pady=5)
+
+        # 减少按钮
+        def decrease_size():
             try:
-                self.font_size = int(size_str)
-                self.update_font()
-                self.save_config()
+                current_size = int(size_var.get())
+                if current_size > 1:  # 最小字体大小为1
+                    new_size = current_size - 1
+                    size_var.set(str(new_size))
+                    self.font_size = new_size
+                    self.update_font()
+                    current_label.config(text=f"当前字体大小: {self.font_size}")
+                    # 更新示例文字的字体大小
+                    sample_text.config(font=(self.font_family, new_size))
+            except ValueError:
+                pass
+
+        decrease_btn = tk.Button(input_frame, text="-", command=decrease_size, width=3)
+        decrease_btn.pack(side=tk.LEFT, padx=5)
+
+        # 输入框
+        size_entry = tk.Entry(input_frame, textvariable=size_var, width=10, justify="center")
+        size_entry.pack(side=tk.LEFT, padx=5)
+
+        # 增加按钮
+        def increase_size():
+            try:
+                current_size = int(size_var.get())
+                if current_size < 100:  # 最大字体大小为100
+                    new_size = current_size + 1
+                    size_var.set(str(new_size))
+                    self.font_size = new_size
+                    self.update_font()
+                    current_label.config(text=f"当前字体大小: {self.font_size}")
+                    # 更新示例文字的字体大小
+                    sample_text.config(font=(self.font_family, new_size))
+            except ValueError:
+                pass
+
+        increase_btn = tk.Button(input_frame, text="+", command=increase_size, width=3)
+        increase_btn.pack(side=tk.LEFT, padx=5)
+
+        # 示例文字框架
+        sample_frame = tk.LabelFrame(size_dialog, text="字体预览", padx=10, pady=10)
+        sample_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+
+        # 示例文字
+        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
+        sample_text.pack(fill=tk.BOTH, expand=True)
+        
+        # 插入示例文字内容
+        sample_content = """这是字体预览示例文字。
+The quick brown fox jumps over the lazy dog.
+0123456789
+"""
+        sample_text.insert(tk.END, sample_content)
+        sample_text.config(state=tk.DISABLED)  # 设为只读
+        
+        # 应用当前字体大小到示例文字
+        sample_text.config(font=(self.font_family, self.font_size))
+
+        # 按钮框架
+        button_frame = tk.Frame(size_dialog)
+        button_frame.pack(pady=10)
+
+        # 确定按钮
+        def apply_size():
+            try:
+                new_size = int(size_var.get())
+                if 1 <= new_size <= 100:  # 限制字体大小范围
+                    self.font_size = new_size
+                    self.update_font()
+                    self.save_config()
+                    size_dialog.destroy()
+                else:
+                    messagebox.showerror("错误", "字体大小必须在1-100之间")
             except ValueError:
                 messagebox.showerror("错误", "请输入有效的数字")
+
+        ok_button = tk.Button(button_frame, text="确定", command=apply_size, width=10)
+        ok_button.pack(side=tk.LEFT, padx=5)
+
+        # 取消按钮
+        cancel_button = tk.Button(
+            button_frame, text="取消", command=size_dialog.destroy, width=10
+        )
+        cancel_button.pack(side=tk.LEFT, padx=5)
+
+        # 绑定回车键确认
+        size_entry.bind("<Return>", lambda event: apply_size())
+        size_entry.focus_set()
 
     def toggle_bold(self):
         """切换粗体"""
