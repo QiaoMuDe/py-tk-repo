@@ -24,6 +24,18 @@ MainWindowWidth = 900
 MaxUndo = 20
 
 
+def format_file_size(size_bytes):
+    """将字节大小转换为人性化的显示格式"""
+    if size_bytes < 1024:
+        return f"{size_bytes} B"
+    elif size_bytes < 1024 * 1024:
+        return f"{size_bytes / 1024:.1f} KB"
+    elif size_bytes < 1024 * 1024 * 1024:
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
+    else:
+        return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+
 class AdvancedTextEditor:
     def __init__(self, root):
         self.root = root
@@ -1228,6 +1240,20 @@ class AdvancedTextEditor:
 
         if file_path:
             try:
+                # 检查文件大小
+                file_size = os.path.getsize(file_path)
+                if file_size > MaxFileSize:
+                    formatted_size = format_file_size(file_size)
+                    max_size = format_file_size(MaxFileSize)
+                    messagebox.showerror(
+                        "文件过大",
+                        f"无法打开文件: {os.path.basename(file_path)}\n"
+                        f"文件大小: {formatted_size}\n"
+                        f"超过最大允许大小: {max_size}\n"
+                        f"请使用其他专业编辑器打开此文件。",
+                    )
+                    return
+
                 # 检测文件编码和换行符类型
                 self.encoding, self.line_ending = (
                     self.detect_file_encoding_and_line_ending(file_path)
@@ -1616,6 +1642,20 @@ class AdvancedTextEditor:
     def open_file_by_path(self, file_path):
         """通过文件路径打开文件"""
         try:
+            # 检查文件大小
+            file_size = os.path.getsize(file_path)
+            if file_size > MaxFileSize:
+                formatted_size = format_file_size(file_size)
+                max_size = format_file_size(MaxFileSize)
+                messagebox.showerror(
+                    "文件过大",
+                    f"无法打开文件: {os.path.basename(file_path)}\n"
+                    f"文件大小: {formatted_size}\n"
+                    f"超过最大允许大小: {max_size}\n"
+                    f"请使用其他专业编辑器打开此文件。",
+                )
+                return
+
             # 检测文件编码和换行符类型
             self.encoding, self.line_ending = self.detect_file_encoding_and_line_ending(
                 file_path
