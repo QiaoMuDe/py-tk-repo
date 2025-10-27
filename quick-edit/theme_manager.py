@@ -300,6 +300,3 @@ class ThemeManager:
             self.editor.right_status.config(
                 bg=theme["statusbar_bg"], fg=theme["statusbar_fg"]
             )
-
-        # 重新应用语法高亮
-        self.editor._apply_simple_syntax_highlighting()

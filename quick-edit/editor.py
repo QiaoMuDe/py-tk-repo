@@ -1361,7 +1361,7 @@ class AdvancedTextEditor:
 
         file_path = filedialog.askopenfilename(
             defaultextension=".txt",
-            filetypes=[("All Files", "*.*"), ("Text Files", "*.txt")],
+            filetypes=[("All Files", "*.*")],
         )
 
         if file_path:
@@ -1481,7 +1481,7 @@ class AdvancedTextEditor:
 
         file_path = filedialog.asksaveasfilename(
             defaultextension=".txt",
-            filetypes=[("All Files", "*.*"), ("Text Files", "*.txt")],
+            filetypes=[("All Files", "*.*")],
         )
 
         if file_path:
