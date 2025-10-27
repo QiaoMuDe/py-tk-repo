@@ -20,7 +20,7 @@ def test_theme_config():
     print("切换后主题:", editor.current_theme)
     
     # 检查配置文件是否创建并包含正确的主题设置
-    config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+    config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
     print("配置文件路径:", config_file)
     if os.path.exists(config_file):
         with open(config_file, "r", encoding="utf-8") as f:

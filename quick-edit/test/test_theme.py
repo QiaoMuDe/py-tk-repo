@@ -16,7 +16,7 @@ def test_theme_saving():
     editor.change_theme("dark")
     
     # 检查配置文件是否创建并包含正确的主题设置
-    config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+    config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
     if os.path.exists(config_file):
         with open(config_file, "r", encoding="utf-8") as f:
             config = json.load(f)

@@ -851,7 +851,7 @@ class AdvancedTextEditor:
 
     def load_config(self):
         """加载配置文件"""
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
         if os.path.exists(config_file):
             try:
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -883,7 +883,7 @@ class AdvancedTextEditor:
             "current_theme": self.current_theme,
         }
 
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
         try:
             with open(config_file, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)

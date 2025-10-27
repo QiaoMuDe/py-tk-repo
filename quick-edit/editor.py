@@ -17,7 +17,7 @@ from theme_manager import ThemeManager
 from utils import format_file_size, center_window
 
 # 文件大小限制
-MaxFileSize = 1024 * 1024 * 10
+MaxFileSize = 1024 * 1024 * 12
 
 # 主窗口-高
 MainWindowHeight = 800
@@ -45,10 +45,16 @@ class AdvancedTextEditor:
         self.font_underline = False  # 默认无下划线
         self.toolbar_visible = True  # 工具栏默认显示
         self.show_line_numbers = True  # 行号显示状态, 默认显示
+        self.syntax_highlighting_enabled = True  # 语法高亮显示状态, 默认启用
         self.encoding = "UTF-8"  # 默认编码
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
+        
+        # 异步文件读取相关属性
+        self.file_read_thread = None
+        self.file_read_cancelled = False
+        self.progress_window = None
 
         # 加载配置文件
         self.load_config()
@@ -145,6 +151,13 @@ class AdvancedTextEditor:
             # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
             # 这种情况下的错误可以忽略，避免干扰用户体验
             pass
+
+    def is_python_file(self, file_path):
+        """判断是否为Python文件"""
+        if not file_path:
+            return False
+        _, ext = os.path.splitext(file_path)
+        return ext.lower() in [".py", ".pyw"]
 
     def check_unsaved_changes(self):
         """检查是否有未保存的更改"""
@@ -437,6 +450,13 @@ class AdvancedTextEditor:
             command=self.toggle_line_numbers,
             variable=self.show_line_numbers_var,
         )
+        # 语法高亮显示选项
+        self.syntax_highlighting_var = tk.BooleanVar(value=self.syntax_highlighting_enabled)
+        settings_menu.add_checkbutton(
+            label="语法高亮",
+            command=self.toggle_syntax_highlighting,
+            variable=self.syntax_highlighting_var,
+        )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
@@ -461,6 +481,25 @@ class AdvancedTextEditor:
             self.left_status.config(text="行号显示已关闭, 下次打开文件时将隐藏行号")
 
         # 保存行号显示状态到配置文件
+        self.save_config()
+
+    def toggle_syntax_highlighting(self):
+        """切换语法高亮显示"""
+        if self.syntax_highlighting_var.get():
+            # 开启语法高亮
+            self.syntax_highlighting_enabled = True
+            self.left_status.config(text="语法高亮已开启")
+            # 为当前打开的文件应用语法高亮
+            if self.current_file and self.is_python_file(self.current_file):
+                self.apply_syntax_highlighting()
+        else:
+            # 关闭语法高亮
+            self.syntax_highlighting_enabled = False
+            self.left_status.config(text="语法高亮已关闭")
+            # 移除当前文件的语法高亮
+            self.remove_syntax_highlighting()
+
+        # 保存语法高亮显示状态到配置文件
         self.save_config()
 
     def change_theme(self, theme_name):
@@ -721,7 +760,7 @@ class AdvancedTextEditor:
 
     def load_config(self):
         """加载配置文件"""
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
         if os.path.exists(config_file):
             try:
                 with open(config_file, "r", encoding="utf-8") as f:
@@ -734,6 +773,8 @@ class AdvancedTextEditor:
                     self.toolbar_visible = config.get("toolbar_visible", True)
                     # 加载行号显示状态
                     self.show_line_numbers = config.get("show_line_numbers", True)
+                    # 加载语法高亮显示状态
+                    self.syntax_highlighting_enabled = config.get("syntax_highlighting_enabled", True)
                     # 加载主题配置
                     self.current_theme = config.get("current_theme", "light")
 
@@ -750,10 +791,11 @@ class AdvancedTextEditor:
             "font_underline": self.font_underline,
             "toolbar_visible": self.toolbar_visible,
             "show_line_numbers": self.show_line_numbers,
+            "syntax_highlighting_enabled": self.syntax_highlighting_enabled,
             "current_theme": self.current_theme,
         }
 
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config")
+        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
         try:
             with open(config_file, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
@@ -1119,6 +1161,67 @@ class AdvancedTextEditor:
             if not file_path:
                 return
 
+        # 重置取消标志
+        self.file_read_cancelled = False
+        
+        # 创建进度窗口
+        self._create_progress_window()
+        
+        # 在新线程中读取文件
+        self.file_read_thread = threading.Thread(
+            target=self._async_read_file, 
+            args=(file_path,),
+            daemon=True
+        )
+        self.file_read_thread.start()
+
+    def _create_progress_window(self):
+        """创建文件读取进度窗口"""
+        if self.progress_window and self.progress_window.winfo_exists():
+            self.progress_window.lift()
+            return
+
+        self.progress_window = tk.Toplevel(self.root)
+        self.progress_window.title("正在打开文件...")
+        self.progress_window.geometry("300x100")
+        self.progress_window.resizable(False, False)
+        self.progress_window.transient(self.root)
+        center_window(self.progress_window, 300, 100)
+        
+        # 设置为模态窗口，但允许主窗口响应
+        self.progress_window.grab_set()
+        
+        # 添加标签和进度条
+        label = ttk.Label(self.progress_window, text="正在读取文件内容...")
+        label.pack(pady=10)
+        
+        self.progress_bar = ttk.Progressbar(self.progress_window, mode='indeterminate')
+        self.progress_bar.pack(fill=tk.X, padx=20, pady=10)
+        self.progress_bar.start()
+        
+        # 添加取消按钮
+        cancel_button = ttk.Button(self.progress_window, text="取消", 
+                                  command=self._cancel_file_read)
+        cancel_button.pack(pady=5)
+        
+        # 处理窗口关闭事件
+        self.progress_window.protocol("WM_DELETE_WINDOW", self._cancel_file_read)
+
+    def _cancel_file_read(self):
+        """取消文件读取"""
+        self.file_read_cancelled = True
+        if self.progress_window and self.progress_window.winfo_exists():
+            self.progress_window.destroy()
+            self.progress_window = None
+
+    def _close_progress_window(self):
+        """关闭进度窗口"""
+        if self.progress_window and self.progress_window.winfo_exists():
+            self.progress_window.destroy()
+        self.progress_window = None
+
+    def _async_read_file(self, file_path):
+        """异步读取文件内容"""
         try:
             # 检查文件大小
             file_size = os.path.getsize(file_path)
@@ -1132,32 +1235,55 @@ class AdvancedTextEditor:
                     f"超过最大允许大小: {max_size}\n"
                     f"请使用其他专业编辑器打开此文件。",
                 )
+                self.root.after(0, self._close_progress_window)
                 return
 
             # 检测文件编码和换行符类型
-            self.encoding, self.line_ending = (
-                self.detect_file_encoding_and_line_ending(file_path)
-            )
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(file_path)
+            
+            # 分块读取文件内容以避免内存问题
+            content_chunks = []
+            chunk_size = 8192  # 8KB chunks
+            
+            with open(file_path, "r", encoding=encoding) as file:
+                while not self.file_read_cancelled:
+                    chunk = file.read(chunk_size)
+                    if not chunk:
+                        break
+                    content_chunks.append(chunk)
+                    
+            if self.file_read_cancelled:
+                self.root.after(0, self._close_progress_window)
+                return
+                
+            content = ''.join(content_chunks)
+            
+            # 在主线程中更新UI
+            self.root.after(0, self._finish_open_file, file_path, content, encoding, line_ending)
+        except Exception as e:
+            self.root.after(0, self._handle_file_read_error, str(e))
 
-            # 直接读取文件内容
-            with open(file_path, "r", encoding=self.encoding) as file:
-                content = file.read()
-
+    def _finish_open_file(self, file_path, content, encoding, line_ending):
+        """完成文件打开过程"""
+        try:
+            # 关闭进度窗口
+            self._close_progress_window()
+            
+            if self.file_read_cancelled:
+                return
+                
             self.text_area.delete(1.0, tk.END) # 清空文本
-            self.text_area.insert(1.0, content)  # 插入新内容
+            
+            # 分块插入内容以避免GUI冻结
+            self._insert_content_in_chunks(content)
             
             # 更新总行数
             self.total_lines = content.count("\n") + 1  # 计算总行数
+            self.encoding = encoding
+            self.line_ending = line_ending
             self.current_file = file_path  # 更新当前文件路径
             self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
             self.text_area.edit_modified(False)  # 重置修改标志
-
-            # 检查文件扩展名, 如果是Python文件则应用语法高亮
-            _, ext = os.path.splitext(file_path)
-            if ext.lower() in [".py", ".pyw"]:
-                self.apply_syntax_highlighting()
-            else:
-                self.remove_syntax_highlighting()
 
             # 如果处于只读模式, 设置文本区域为只读
             if self.readonly_mode:
@@ -1167,8 +1293,45 @@ class AdvancedTextEditor:
 
             # 更新状态栏
             self.update_statusbar()
+            
+            # 延迟应用语法高亮以减少卡顿
+            self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件: {str(e)}")
+            
+    def _delayed_apply_syntax_highlighting(self, file_path):
+        """延迟应用语法高亮"""
+        try:
+            # 检查是否启用了语法高亮并且是Python文件
+            if self.syntax_highlighting_enabled and self.is_python_file(file_path):
+                self.apply_syntax_highlighting()
+            else:
+                self.remove_syntax_highlighting()
+        except Exception as e:
+            # 忽略语法高亮错误, 不影响文件打开
+            pass
+
+    def _insert_content_in_chunks(self, content, chunk_size=10000):
+        """分块插入内容以避免GUI冻结"""
+        # 对于小文件，直接插入
+        if len(content) <= chunk_size:
+            self.text_area.insert(1.0, content)
+            return
+            
+        # 对于大文件，分块插入
+        start = 0
+        while start < len(content):
+            end = min(start + chunk_size, len(content))
+            chunk = content[start:end]
+            self.text_area.insert(f"1.0 + {start} chars", chunk)
+            start = end
+            # 允许GUI更新
+            self.root.update_idletasks()
+
+    def _handle_file_read_error(self, error_message):
+        """处理文件读取错误"""
+        self._close_progress_window()
+        messagebox.showerror("错误", f"无法打开文件: {error_message}")
 
     def save_file(self):
         """保存文件"""
@@ -1212,9 +1375,8 @@ class AdvancedTextEditor:
                 f"文件已成功保存！\n编码格式: {self.encoding}\n换行符格式: {self.line_ending}",
             )
 
-            # 检查文件扩展名, 如果是Python文件则应用语法高亮
-            _, ext = os.path.splitext(file_path)
-            if ext.lower() in [".py", ".pyw"]:
+            # 检查是否启用了语法高亮并且是Python文件
+            if self.syntax_highlighting_enabled and self.is_python_file(file_path):
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
