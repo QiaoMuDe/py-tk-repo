@@ -1,3 +1,6 @@
+import os
+
+
 def format_file_size(size_bytes):
     """将字节大小转换为人性化的显示格式"""
     if size_bytes < 1024:
@@ -34,3 +37,19 @@ def center_window(window, default_width=None, default_height=None):
 
     # 设置窗口位置和尺寸
     window.geometry(f"{width}x{height}+{x}+{y}")
+
+
+def is_supported_file(supported_extensions , file_path) :
+    """检查文件扩展名是否在支持的列表中
+    
+    Args:
+        supported_extensions (list): 支持的文件扩展名列表
+        file_path (str): 文件路径
+        
+    Returns:
+        bool: 如果文件扩展名在支持列表中返回True，否则返回False
+    """
+    if not file_path:
+        return False
+    _, ext = os.path.splitext(file_path)
+    return ext.lower() in supported_extensions

@@ -14,7 +14,7 @@ from idlelib.percolator import Percolator
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
-from utils import format_file_size, center_window
+from utils import format_file_size, center_window, is_supported_file
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 12
@@ -27,6 +27,12 @@ MainWindowWidth = 900
 
 # 限制撤销操作数量
 MaxUndo = 20
+
+# 支持的文件后缀列表
+SupportedExtensions = [
+    ".py",
+    ".pyw",
+]
 
 
 class AdvancedTextEditor:
@@ -50,7 +56,7 @@ class AdvancedTextEditor:
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
-        
+
         # 异步文件读取相关属性
         self.file_read_thread = None
         self.file_read_cancelled = False
@@ -137,27 +143,11 @@ class AdvancedTextEditor:
     def remove_syntax_highlighting(self):
         """移除语法高亮"""
         try:
-            # 安全地移除idlelib语法高亮
-            if (
-                hasattr(self, "percolator")
-                and hasattr(self, "color_delegator")
-                and hasattr(self, "text_area")
-                and self.text_area.winfo_exists()
-                and self.color_delegator in self.percolator.filters
-            ):
-                self.percolator.removefilter(self.color_delegator)
+            # 移除idlelib语法高亮
+            self.percolator.removefilter(self.color_delegator)
         except Exception:
             # 捕获所有异常但不中断程序
-            # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
-            # 这种情况下的错误可以忽略，避免干扰用户体验
             pass
-
-    def is_python_file(self, file_path):
-        """判断是否为Python文件"""
-        if not file_path:
-            return False
-        _, ext = os.path.splitext(file_path)
-        return ext.lower() in [".py", ".pyw"]
 
     def check_unsaved_changes(self):
         """检查是否有未保存的更改"""
@@ -451,7 +441,9 @@ class AdvancedTextEditor:
             variable=self.show_line_numbers_var,
         )
         # 语法高亮显示选项
-        self.syntax_highlighting_var = tk.BooleanVar(value=self.syntax_highlighting_enabled)
+        self.syntax_highlighting_var = tk.BooleanVar(
+            value=self.syntax_highlighting_enabled
+        )
         settings_menu.add_checkbutton(
             label="语法高亮",
             command=self.toggle_syntax_highlighting,
@@ -490,7 +482,9 @@ class AdvancedTextEditor:
             self.syntax_highlighting_enabled = True
             self.left_status.config(text="语法高亮已开启")
             # 为当前打开的文件应用语法高亮
-            if self.current_file and self.is_python_file(self.current_file):
+            if self.current_file and is_supported_file(
+                SupportedExtensions, self.current_file
+            ):
                 self.apply_syntax_highlighting()
         else:
             # 关闭语法高亮
@@ -774,7 +768,9 @@ class AdvancedTextEditor:
                     # 加载行号显示状态
                     self.show_line_numbers = config.get("show_line_numbers", True)
                     # 加载语法高亮显示状态
-                    self.syntax_highlighting_enabled = config.get("syntax_highlighting_enabled", True)
+                    self.syntax_highlighting_enabled = config.get(
+                        "syntax_highlighting_enabled", True
+                    )
                     # 加载主题配置
                     self.current_theme = config.get("current_theme", "light")
 
@@ -1156,22 +1152,20 @@ class AdvancedTextEditor:
                 defaultextension=".txt",
                 filetypes=[("All Files", "*.*")],
             )
-            
+
             # 如果用户取消选择文件，则返回
             if not file_path:
                 return
 
         # 重置取消标志
         self.file_read_cancelled = False
-        
+
         # 创建进度窗口
         self._create_progress_window()
-        
+
         # 在新线程中读取文件
         self.file_read_thread = threading.Thread(
-            target=self._async_read_file, 
-            args=(file_path,),
-            daemon=True
+            target=self._async_read_file, args=(file_path,), daemon=True
         )
         self.file_read_thread.start()
 
@@ -1187,23 +1181,24 @@ class AdvancedTextEditor:
         self.progress_window.resizable(False, False)
         self.progress_window.transient(self.root)
         center_window(self.progress_window, 300, 100)
-        
+
         # 设置为模态窗口，但允许主窗口响应
         self.progress_window.grab_set()
-        
+
         # 添加标签和进度条
         label = ttk.Label(self.progress_window, text="正在读取文件内容...")
         label.pack(pady=10)
-        
-        self.progress_bar = ttk.Progressbar(self.progress_window, mode='indeterminate')
+
+        self.progress_bar = ttk.Progressbar(self.progress_window, mode="indeterminate")
         self.progress_bar.pack(fill=tk.X, padx=20, pady=10)
         self.progress_bar.start()
-        
+
         # 添加取消按钮
-        cancel_button = ttk.Button(self.progress_window, text="取消", 
-                                  command=self._cancel_file_read)
+        cancel_button = ttk.Button(
+            self.progress_window, text="取消", command=self._cancel_file_read
+        )
         cancel_button.pack(pady=5)
-        
+
         # 处理窗口关闭事件
         self.progress_window.protocol("WM_DELETE_WINDOW", self._cancel_file_read)
 
@@ -1240,26 +1235,28 @@ class AdvancedTextEditor:
 
             # 检测文件编码和换行符类型
             encoding, line_ending = self.detect_file_encoding_and_line_ending(file_path)
-            
+
             # 分块读取文件内容以避免内存问题
             content_chunks = []
             chunk_size = 8192  # 8KB chunks
-            
+
             with open(file_path, "r", encoding=encoding) as file:
                 while not self.file_read_cancelled:
                     chunk = file.read(chunk_size)
                     if not chunk:
                         break
                     content_chunks.append(chunk)
-                    
+
             if self.file_read_cancelled:
                 self.root.after(0, self._close_progress_window)
                 return
-                
-            content = ''.join(content_chunks)
-            
+
+            content = "".join(content_chunks)
+
             # 在主线程中更新UI
-            self.root.after(0, self._finish_open_file, file_path, content, encoding, line_ending)
+            self.root.after(
+                0, self._finish_open_file, file_path, content, encoding, line_ending
+            )
         except Exception as e:
             self.root.after(0, self._handle_file_read_error, str(e))
 
@@ -1268,15 +1265,15 @@ class AdvancedTextEditor:
         try:
             # 关闭进度窗口
             self._close_progress_window()
-            
+
             if self.file_read_cancelled:
                 return
-                
-            self.text_area.delete(1.0, tk.END) # 清空文本
-            
+
+            self.text_area.delete(1.0, tk.END)  # 清空文本
+
             # 分块插入内容以避免GUI冻结
             self._insert_content_in_chunks(content)
-            
+
             # 更新总行数
             self.total_lines = content.count("\n") + 1  # 计算总行数
             self.encoding = encoding
@@ -1293,17 +1290,19 @@ class AdvancedTextEditor:
 
             # 更新状态栏
             self.update_statusbar()
-            
+
             # 延迟应用语法高亮以减少卡顿
             self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件: {str(e)}")
-            
+
     def _delayed_apply_syntax_highlighting(self, file_path):
         """延迟应用语法高亮"""
         try:
             # 检查是否启用了语法高亮并且是Python文件
-            if self.syntax_highlighting_enabled and self.is_python_file(file_path):
+            if self.syntax_highlighting_enabled and is_supported_file(
+                SupportedExtensions, file_path
+            ):
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
@@ -1317,7 +1316,7 @@ class AdvancedTextEditor:
         if len(content) <= chunk_size:
             self.text_area.insert(1.0, content)
             return
-            
+
         # 对于大文件，分块插入
         start = 0
         while start < len(content):
@@ -1376,7 +1375,9 @@ class AdvancedTextEditor:
             )
 
             # 检查是否启用了语法高亮并且是Python文件
-            if self.syntax_highlighting_enabled and self.is_python_file(file_path):
+            if self.syntax_highlighting_enabled and is_supported_file(
+                SupportedExtensions, file_path
+            ):
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
@@ -1820,8 +1821,6 @@ The quick brown fox jumps over the lazy dog.
                     messagebox.showinfo("提示", "拖拽的是目录, 请拖拽文件以打开")
                 else:
                     messagebox.showwarning("警告", "无法识别拖拽的项目")
-
-
 
     def toggle_readonly_mode(self):
         """切换只读模式"""
