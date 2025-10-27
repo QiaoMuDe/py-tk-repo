@@ -82,166 +82,48 @@ class AdvancedTextEditor:
         # 启用拖拽支持
         self.enable_drag_and_drop()
 
+        # 初始化语法高亮器
+        self.color_delegator = ColorDelegator()
+        # 自定义标签定义，采用Monokai Dimmed配色方案
+        self.color_delegator.tagdefs['COMMENT'] = {'foreground': '#999999'}     # 灰色注释 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['KEYWORD'] = {'foreground': '#AE81FF'}     # 紫色关键字 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['BUILTIN'] = {'foreground': '#F92672'}     # 粉红色内置函数 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['STRING'] = {'foreground': '#A6E22E'}      # 绿色字符串 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['DEFINITION'] = {'foreground': '#F92672'}  # 粉红色内置函数 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['SYNC'] = {'foreground': '#CCCCCC'}        # 浅灰色同步标记 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['TODO'] = {'foreground': '#FD971F'}        # 橙黄色待办事项 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['ERROR'] = {'foreground': '#F92672'}       # 粉红色错误标记 (Monokai Dimmed风格)
+        self.color_delegator.tagdefs['hit'] = {'foreground': '#66D9EF'}         # 天蓝色匹配标记 (Monokai Dimmed风格)
+        self.percolator = Percolator(self.text_area)
+
     def apply_syntax_highlighting(self):
         """应用语法高亮"""
         try:
-            # 使用更安全的方式应用语法高亮
-            self.root.after(100, self._safe_apply_syntax_highlighting)
+            # 移除现有的语法高亮
+            self.remove_syntax_highlighting()
+
+            # 应用idlelib语法高亮
+            self.percolator.insertfilter(self.color_delegator)
         except Exception as e:
             # 捕获所有异常并显示警告但不中断程序
             messagebox.showwarning("语法高亮警告", f"无法应用语法高亮: {str(e)}")
-
-    def _safe_apply_syntax_highlighting(self):
-        """安全地应用语法高亮, 避免与Tkinter命令冲突"""
-        try:
-            # 确保文本区域仍然存在且窗口未被销毁
-            if not hasattr(self, "text_area") or not self.text_area.winfo_exists():
-                return
-
-            # 检查窗口是否仍然存在
-            if not self.root.winfo_exists():
-                return
-
-            # 检查是否已经应用了语法高亮
-            if hasattr(self, "_syntax_highlighted") and self._syntax_highlighted:
-                # 检查内容是否发生变化
-                current_content = self.text_area.get("1.0", tk.END)
-                if (
-                    hasattr(self, "_last_content")
-                    and self._last_content == current_content
-                ):
-                    return  # 内容未变化, 无需重新应用语法高亮
-
-            # 使用更安全的方式实现语法高亮, 避免Percolator可能引起的冲突
-            self._apply_simple_syntax_highlighting()
-
-            # 标记已应用语法高亮并保存当前内容
-            self._syntax_highlighted = True
-            self._last_content = self.text_area.get("1.0", tk.END)
-        except tk.TclError as e:
-            # 如果出现Tkinter命令冲突, 显示警告但不中断程序
-            messagebox.showwarning("语法高亮警告", f"无法应用语法高亮: {str(e)}")
-        except Exception as e:
-            # 其他异常也显示警告但不中断程序
-            messagebox.showwarning(
-                "语法高亮警告", f"应用语法高亮时出现未知错误: {str(e)}"
-            )
-
-    def _apply_simple_syntax_highlighting(self):
-        """应用简化的语法高亮"""
-        # 定义Python关键字
-        python_keywords = {
-            "and",
-            "as",
-            "assert",
-            "break",
-            "class",
-            "continue",
-            "def",
-            "del",
-            "elif",
-            "else",
-            "except",
-            "exec",
-            "finally",
-            "for",
-            "from",
-            "global",
-            "if",
-            "import",
-            "in",
-            "is",
-            "lambda",
-            "not",
-            "or",
-            "pass",
-            "print",
-            "raise",
-            "return",
-            "try",
-            "while",
-            "with",
-            "yield",
-        }
-
-        # 清除之前的语法高亮
-        self.text_area.tag_remove("keyword", "1.0", tk.END)
-        self.text_area.tag_remove("string", "1.0", tk.END)
-        self.text_area.tag_remove("comment", "1.0", tk.END)
-        self.text_area.tag_remove("function", "1.0", tk.END)
-
-        # 使用固定颜色配置
-        self.text_area.tag_configure("keyword", foreground="#0000FF")  # 蓝色关键字
-        self.text_area.tag_configure("string", foreground="#008000")  # 绿色字符串
-        self.text_area.tag_configure("comment", foreground="#808080")  # 灰色注释
-        self.text_area.tag_configure("function", foreground="#FF00FF")  # 紫色函数名
-
-        # 获取全部文本内容
-        content = self.text_area.get("1.0", tk.END)
-        lines = content.split("\n")
-
-        # 简单的语法高亮实现
-        for i, line in enumerate(lines, 1):
-            # 高亮注释
-            if "#" in line:
-                pos = line.find("#")
-                start_idx = f"{i}.{pos}"
-                end_idx = f"{i}.{len(line)}"
-                self.text_area.tag_add("comment", start_idx, end_idx)
-
-            # 高亮字符串
-            in_string = False
-            string_char = None
-            for j, char in enumerate(line):
-                if char in ['"', "'"] and (j == 0 or line[j - 1] != "\\"):
-                    if not in_string:
-                        in_string = True
-                        string_char = char
-                        string_start = j
-                    elif char == string_char:
-                        in_string = False
-                        start_idx = f"{i}.{string_start}"
-                        end_idx = f"{i}.{j+1}"
-                        self.text_area.tag_add("string", start_idx, end_idx)
-
-            # 高亮关键字
-            words = line.split()
-            for word in words:
-                if word in python_keywords:
-                    # 查找关键字在行中的位置
-                    pos = line.find(word)
-                    while pos != -1:
-                        # 确保这是完整的单词而不是其他单词的一部分
-                        start_pos = pos
-                        end_pos = pos + len(word)
-                        # 检查前后字符是否为单词边界
-                        prev_char = line[start_pos - 1] if start_pos > 0 else " "
-                        next_char = line[end_pos] if end_pos < len(line) else " "
-                        if not (prev_char.isalnum() or prev_char == "_") and not (
-                            next_char.isalnum() or next_char == "_"
-                        ):
-                            start_idx = f"{i}.{start_pos}"
-                            end_idx = f"{i}.{end_pos}"
-                            self.text_area.tag_add("keyword", start_idx, end_idx)
-                        pos = line.find(word, pos + 1)
 
     def remove_syntax_highlighting(self):
         """移除语法高亮"""
         try:
-            # 安全地移除所有语法高亮标签
-            if hasattr(self, "text_area") and self.text_area.winfo_exists():
-                self.text_area.tag_remove("keyword", "1.0", tk.END)
-                self.text_area.tag_remove("string", "1.0", tk.END)
-                self.text_area.tag_remove("comment", "1.0", tk.END)
-                self.text_area.tag_remove("function", "1.0", tk.END)
-
-                # 重置语法高亮标记
-                self._syntax_highlighted = False
-                if hasattr(self, "_last_content"):
-                    delattr(self, "_last_content")
+            # 安全地移除idlelib语法高亮
+            if (hasattr(self, "percolator") and 
+                hasattr(self, "color_delegator") and 
+                hasattr(self, "text_area") and 
+                self.text_area.winfo_exists()):
+                # 检查过滤器是否已应用
+                if self.color_delegator in self.percolator.filters:
+                    self.percolator.removefilter(self.color_delegator)
         except Exception as e:
-            # 捕获所有异常并显示警告但不中断程序
-            messagebox.showwarning("语法高亮警告", f"移除语法高亮时出现错误: {str(e)}")
+            # 捕获所有异常但不中断程序
+            # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
+            # 这种情况下的错误可以忽略，避免干扰用户体验
+            pass
 
     def check_unsaved_changes(self):
         """检查是否有未保存的更改"""
@@ -1030,10 +912,6 @@ class AdvancedTextEditor:
             self.text_area.mark_set(tk.INSERT, f"{line_number}.0")
             self.text_area.see(f"{line_number}.0")
             self.text_area.focus_set()
-
-
-
-
 
     def on_encoding_click(self, event=None):
         """处理编码标签右键点击事件"""
