@@ -273,8 +273,12 @@ class AdvancedTextEditor:
         )  # 鼠标释放时更新行号
 
         # 绑定文本变化事件, 用于更新行号
-        self.text_area.bind("<KeyRelease>", lambda e: self.schedule_line_number_update(50))
-        self.text_area.bind("<<Modified>>", lambda e: self.schedule_line_number_update(50))
+        self.text_area.bind(
+            "<KeyRelease>", lambda e: self.schedule_line_number_update(50)
+        )
+        self.text_area.bind(
+            "<<Modified>>", lambda e: self.schedule_line_number_update(50)
+        )
 
         # 绑定窗口配置事件, 用于在窗口大小改变时更新行号
         self.root.bind("<Configure>", self.on_window_configure)
@@ -548,18 +552,18 @@ class AdvancedTextEditor:
     def schedule_line_number_update(self, delay=50):
         """调度行号更新，实现防抖动机制"""
         # 取消之前的计划任务
-        if hasattr(self, '_line_number_update_job'):
+        if hasattr(self, "_line_number_update_job"):
             self.root.after_cancel(self._line_number_update_job)
-        
+
         # 计划新的更新任务
         self._line_number_update_job = self.root.after(delay, self.update_line_numbers)
 
     def update_line_numbers(self, event=None):
         """更新行号显示"""
         # 如果没有启用行号显示，直接返回
-        if not getattr(self, 'show_line_numbers', True):
+        if not getattr(self, "show_line_numbers", True):
             return
-            
+
         # 清除之前的行号
         self.line_numbers.delete("all")
 
@@ -583,7 +587,10 @@ class AdvancedTextEditor:
 
             # 计算行号区域宽度 (根据行号位数动态调整宽度)
             # 只有当行数发生变化时才重新计算宽度
-            if not hasattr(self, '_cached_total_lines') or self._cached_total_lines != total_lines:
+            if (
+                not hasattr(self, "_cached_total_lines")
+                or self._cached_total_lines != total_lines
+            ):
                 max_line_number = total_lines
                 # 根据行号位数计算宽度：增加每数字宽度和额外空间确保行号能完整显示
                 digits = len(str(max_line_number))
@@ -597,7 +604,7 @@ class AdvancedTextEditor:
 
             # 设置字体 (如果字体发生变化则更新)
             current_font = (self.font_family, self.font_size)
-            if not hasattr(self, '_cached_font') or self._cached_font != current_font:
+            if not hasattr(self, "_cached_font") or self._cached_font != current_font:
                 self._cached_font = current_font
 
             # 绘制可见区域的行号
@@ -1298,7 +1305,7 @@ class AdvancedTextEditor:
             # 更新总行数
             self.total_lines = content.count("\n") + 1  # 计算总行数
             self.encoding = encoding
-            self.line_ending = line_ending # 更新换行符类型
+            self.line_ending = line_ending  # 更新换行符类型
             self.current_file = file_path  # 更新当前文件路径
             self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
             self.text_area.edit_modified(False)  # 重置修改标志
@@ -1331,21 +1338,41 @@ class AdvancedTextEditor:
             # 忽略语法高亮错误, 不影响文件打开
             pass
 
-    def _insert_content_in_chunks(self, content, chunk_size=10000):
-        """分块插入内容以避免GUI冻结"""
+    def _insert_content_in_chunks(self, content, chunk_size=50000, update_frequency=5):
+        """优化的分块插入方法
+
+        Args:
+            content: 要插入的内容
+            chunk_size: 每块的大小，默认50000字符
+            update_frequency: GUI更新频率，每N次插入后更新一次GUI
+        """
         # 对于小文件，直接插入
         if len(content) <= chunk_size:
             self.text_area.insert(1.0, content)
+            self.root.update_idletasks()
             return
 
-        # 对于大文件，分块插入
-        start = 0
-        while start < len(content):
-            end = min(start + chunk_size, len(content))
-            chunk = content[start:end]
-            self.text_area.insert(f"1.0 + {start} chars", chunk)
-            start = end
-            # 允许GUI更新
+        # 对于大文件，采用优化的分块插入策略
+        try:
+            # 1. 使用更大的块大小以减少插入次数
+            start = 0
+            update_counter = 0
+
+            while start < len(content):
+                end = min(start + chunk_size, len(content))
+                chunk = content[start:end]
+
+                # 2. 使用END标记进行追加插入，比计算位置更快
+                self.text_area.insert(tk.END, chunk)
+                start = end
+
+                # 3. 减少GUI更新频率，按设定频率更新GUI
+                update_counter += 1
+                if update_counter % update_frequency == 0:
+                    self.root.update_idletasks()
+
+        finally:
+            # 5. 刷新GUI
             self.root.update_idletasks()
 
     def _handle_file_read_error(self, error_message):
