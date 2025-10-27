@@ -81,19 +81,6 @@ class AdvancedTextEditor:
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
-
-        # 初始化语法高亮器
-        self.color_delegator = ColorDelegator()
-        # 自定义标签定义，采用Monokai Dimmed配色方案
-        self.color_delegator.tagdefs['COMMENT'] = {'foreground': '#999999'}     # 灰色注释 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['KEYWORD'] = {'foreground': '#AE81FF'}     # 紫色关键字 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['BUILTIN'] = {'foreground': '#F92672'}     # 粉红色内置函数 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['STRING'] = {'foreground': '#A6E22E'}      # 绿色字符串 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['DEFINITION'] = {'foreground': '#F92672'}  # 粉红色内置函数 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['SYNC'] = {'foreground': '#CCCCCC'}        # 浅灰色同步标记 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['TODO'] = {'foreground': '#FD971F'}        # 橙黄色待办事项 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['ERROR'] = {'foreground': '#F92672'}       # 粉红色错误标记 (Monokai Dimmed风格)
-        self.color_delegator.tagdefs['hit'] = {'foreground': '#66D9EF'}         # 天蓝色匹配标记 (Monokai Dimmed风格)
         self.percolator = Percolator(self.text_area)
 
     def apply_syntax_highlighting(self):
@@ -102,24 +89,58 @@ class AdvancedTextEditor:
             # 移除现有的语法高亮
             self.remove_syntax_highlighting()
 
+            # 初始化ColorDelegator以避免delegate冲突
+            self.color_delegator = ColorDelegator()
+            # 应用自定义标签定义，采用Monokai Dimmed配色方案
+            self.color_delegator.tagdefs["COMMENT"] = {
+                "foreground": "#999999"
+            }  # 灰色注释 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["KEYWORD"] = {
+                "foreground": "#AE81FF"
+            }  # 紫色关键字 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["BUILTIN"] = {
+                "foreground": "#F92672"
+            }  # 粉红色内置函数 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["STRING"] = {
+                "foreground": "#A6E22E"
+            }  # 绿色字符串 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["DEFINITION"] = {
+                "foreground": "#F92672"
+            }  # 粉红色内置函数 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["SYNC"] = {
+                "foreground": "#CCCCCC"
+            }  # 浅灰色同步标记 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["TODO"] = {
+                "foreground": "#FD971F"
+            }  # 橙黄色待办事项 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["ERROR"] = {
+                "foreground": "#F92672"
+            }  # 粉红色错误标记 (Monokai Dimmed风格)
+            self.color_delegator.tagdefs["hit"] = {
+                "foreground": "#66D9EF"
+            }  # 天蓝色匹配标记 (Monokai Dimmed风格)
+
             # 应用idlelib语法高亮
             self.percolator.insertfilter(self.color_delegator)
         except Exception as e:
-            # 捕获所有异常并显示警告但不中断程序
-            messagebox.showwarning("语法高亮警告", f"无法应用语法高亮: {str(e)}")
+            # 捕获所有异常但不中断程序
+            # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
+            # 这种情况下的错误可以忽略，避免干扰用户体验
+            pass
 
     def remove_syntax_highlighting(self):
         """移除语法高亮"""
         try:
             # 安全地移除idlelib语法高亮
-            if (hasattr(self, "percolator") and 
-                hasattr(self, "color_delegator") and 
-                hasattr(self, "text_area") and 
-                self.text_area.winfo_exists()):
-                # 检查过滤器是否已应用
-                if self.color_delegator in self.percolator.filters:
-                    self.percolator.removefilter(self.color_delegator)
-        except Exception as e:
+            if (
+                hasattr(self, "percolator")
+                and hasattr(self, "color_delegator")
+                and hasattr(self, "text_area")
+                and self.text_area.winfo_exists()
+                and self.color_delegator in self.percolator.filters
+            ):
+                self.percolator.removefilter(self.color_delegator)
+        except Exception:
             # 捕获所有异常但不中断程序
             # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
             # 这种情况下的错误可以忽略，避免干扰用户体验
