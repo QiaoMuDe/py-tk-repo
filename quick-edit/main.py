@@ -24,7 +24,7 @@ def main():
         # 检查文件是否存在
         if os.path.exists(file_path):
             # 文件存在, 打开它
-            app.open_file_by_path(file_path)
+            app.open_file(file_path)
         else:
             # 文件不存在, 创建新文件
             app.current_file = file_path

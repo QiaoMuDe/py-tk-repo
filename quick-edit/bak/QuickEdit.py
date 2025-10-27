@@ -1399,7 +1399,7 @@ class AdvancedTextEditor:
                 self.text_area.delete(1.0, tk.END)
                 self.text_area.insert(1.0, content)
                 # 更新总行数
-                self.total_lines = len(content.split("\n"))
+                self.total_lines = content.count("\n") + 1
                 self.current_file = file_path
                 self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
                 self.text_area.edit_modified(False)
@@ -1940,7 +1940,7 @@ The quick brown fox jumps over the lazy dog.
             self.text_area.delete(1.0, tk.END)
             self.text_area.insert(1.0, content)
             # 更新总行数
-            self.total_lines = len(content.split("\n"))
+            self.total_lines = content.count("\n") + 1
             self.current_file = file_path
             self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
             self.text_area.edit_modified(False)

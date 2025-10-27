@@ -1102,67 +1102,73 @@ class AdvancedTextEditor:
         # 返回新的换行符类型
         return new_ending
 
-    def open_file(self):
+    def open_file(self, file_path=None):
         """打开文件"""
         # 检查是否有未保存的更改
         if not self.check_unsaved_changes():
             return  # 用户取消操作
 
-        file_path = filedialog.askopenfilename(
-            defaultextension=".txt",
-            filetypes=[("All Files", "*.*")],
-        )
+        # 如果没有提供文件路径，则通过对话框选择
+        if not file_path:
+            file_path = filedialog.askopenfilename(
+                defaultextension=".txt",
+                filetypes=[("All Files", "*.*")],
+            )
+            
+            # 如果用户取消选择文件，则返回
+            if not file_path:
+                return
 
-        if file_path:
-            try:
-                # 检查文件大小
-                file_size = os.path.getsize(file_path)
-                if file_size > MaxFileSize:
-                    formatted_size = format_file_size(file_size)
-                    max_size = format_file_size(MaxFileSize)
-                    messagebox.showerror(
-                        "文件过大",
-                        f"无法打开文件: {os.path.basename(file_path)}\n"
-                        f"文件大小: {formatted_size}\n"
-                        f"超过最大允许大小: {max_size}\n"
-                        f"请使用其他专业编辑器打开此文件。",
-                    )
-                    return
-
-                # 检测文件编码和换行符类型
-                self.encoding, self.line_ending = (
-                    self.detect_file_encoding_and_line_ending(file_path)
+        try:
+            # 检查文件大小
+            file_size = os.path.getsize(file_path)
+            if file_size > MaxFileSize:
+                formatted_size = format_file_size(file_size)
+                max_size = format_file_size(MaxFileSize)
+                messagebox.showerror(
+                    "文件过大",
+                    f"无法打开文件: {os.path.basename(file_path)}\n"
+                    f"文件大小: {formatted_size}\n"
+                    f"超过最大允许大小: {max_size}\n"
+                    f"请使用其他专业编辑器打开此文件。",
                 )
+                return
 
-                # 直接读取文件内容 (移除了文件大小判断和分块加载逻辑)
-                with open(file_path, "r", encoding=self.encoding) as file:
-                    content = file.read()
+            # 检测文件编码和换行符类型
+            self.encoding, self.line_ending = (
+                self.detect_file_encoding_and_line_ending(file_path)
+            )
 
-                self.text_area.delete(1.0, tk.END)
-                self.text_area.insert(1.0, content)
-                # 更新总行数
-                self.total_lines = len(content.split("\n"))
-                self.current_file = file_path
-                self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
-                self.text_area.edit_modified(False)
+            # 直接读取文件内容
+            with open(file_path, "r", encoding=self.encoding) as file:
+                content = file.read()
 
-                # 检查文件扩展名, 如果是Python文件则应用语法高亮
-                _, ext = os.path.splitext(file_path)
-                if ext.lower() in [".py", ".pyw"]:
-                    self.apply_syntax_highlighting()
-                else:
-                    self.remove_syntax_highlighting()
+            self.text_area.delete(1.0, tk.END) # 清空文本
+            self.text_area.insert(1.0, content)  # 插入新内容
+            
+            # 更新总行数
+            self.total_lines = content.count("\n") + 1  # 计算总行数
+            self.current_file = file_path  # 更新当前文件路径
+            self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
+            self.text_area.edit_modified(False)  # 重置修改标志
 
-                # 如果处于只读模式, 设置文本区域为只读
-                if self.readonly_mode:
-                    self.text_area.config(state=tk.DISABLED)
-                else:
-                    self.text_area.config(state=tk.NORMAL)
+            # 检查文件扩展名, 如果是Python文件则应用语法高亮
+            _, ext = os.path.splitext(file_path)
+            if ext.lower() in [".py", ".pyw"]:
+                self.apply_syntax_highlighting()
+            else:
+                self.remove_syntax_highlighting()
 
-                # 更新状态栏
-                self.update_statusbar()
-            except Exception as e:
-                messagebox.showerror("错误", f"无法打开文件: {str(e)}")
+            # 如果处于只读模式, 设置文本区域为只读
+            if self.readonly_mode:
+                self.text_area.config(state=tk.DISABLED)
+            else:
+                self.text_area.config(state=tk.NORMAL)
+
+            # 更新状态栏
+            self.update_statusbar()
+        except Exception as e:
+            messagebox.showerror("错误", f"无法打开文件: {str(e)}")
 
     def save_file(self):
         """保存文件"""
@@ -1646,64 +1652,14 @@ The quick brown fox jumps over the lazy dog.
                 file_path = files[0]
                 # 检查是否为文件
                 if os.path.isfile(file_path):
-                    self.open_file_by_path(file_path)
+                    self.open_file(file_path)
                 elif os.path.isdir(file_path):
                     # 如果是目录, 显示提示
                     messagebox.showinfo("提示", "拖拽的是目录, 请拖拽文件以打开")
                 else:
                     messagebox.showwarning("警告", "无法识别拖拽的项目")
 
-    def open_file_by_path(self, file_path):
-        """通过文件路径打开文件"""
-        try:
-            # 检查文件大小
-            file_size = os.path.getsize(file_path)
-            if file_size > MaxFileSize:
-                formatted_size = format_file_size(file_size)
-                max_size = format_file_size(MaxFileSize)
-                messagebox.showerror(
-                    "文件过大",
-                    f"无法打开文件: {os.path.basename(file_path)}\n"
-                    f"文件大小: {formatted_size}\n"
-                    f"超过最大允许大小: {max_size}\n"
-                    f"请使用其他专业编辑器打开此文件。",
-                )
-                return
 
-            # 检测文件编码和换行符类型
-            self.encoding, self.line_ending = self.detect_file_encoding_and_line_ending(
-                file_path
-            )
-
-            # 直接读取文件内容 (移除了文件大小判断和分块加载逻辑)
-            with open(file_path, "r", encoding=self.encoding) as file:
-                content = file.read()
-
-            self.text_area.delete(1.0, tk.END)
-            self.text_area.insert(1.0, content)
-            # 更新总行数
-            self.total_lines = len(content.split("\n"))
-            self.current_file = file_path
-            self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
-            self.text_area.edit_modified(False)
-
-            # 检查文件扩展名, 如果是Python文件则应用语法高亮
-            _, ext = os.path.splitext(file_path)
-            if ext.lower() in [".py", ".pyw"]:
-                self.apply_syntax_highlighting()
-            else:
-                self.remove_syntax_highlighting()
-
-            # 如果处于只读模式, 设置文本区域为只读
-            if self.readonly_mode:
-                self.text_area.config(state=tk.DISABLED)
-            else:
-                self.text_area.config(state=tk.NORMAL)
-
-            # 更新状态栏
-            self.update_statusbar()
-        except Exception as e:
-            messagebox.showerror("错误", f"无法打开文件: {str(e)}")
 
     def toggle_readonly_mode(self):
         """切换只读模式"""
