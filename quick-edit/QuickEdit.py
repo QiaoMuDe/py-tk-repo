@@ -177,12 +177,11 @@ class AdvancedTextEditor:
         self.text_area.tag_remove("comment", "1.0", tk.END)
         self.text_area.tag_remove("function", "1.0", tk.END)
 
-        # 使用主题管理器的颜色配置
-        theme = self.theme_manager.get_current_theme()
-        self.text_area.tag_configure("keyword", foreground=theme["keyword_fg"])
-        self.text_area.tag_configure("string", foreground=theme["string_fg"])
-        self.text_area.tag_configure("comment", foreground=theme["comment_fg"])
-        self.text_area.tag_configure("function", foreground=theme["function_fg"])
+        # 使用固定颜色配置
+        self.text_area.tag_configure("keyword", foreground="#0000FF")  # 蓝色关键字
+        self.text_area.tag_configure("string", foreground="#008000")   # 绿色字符串
+        self.text_area.tag_configure("comment", foreground="#808080")  # 灰色注释
+        self.text_area.tag_configure("function", foreground="#FF00FF") # 紫色函数名
 
         # 获取全部文本内容
         content = self.text_area.get("1.0", tk.END)
@@ -2543,32 +2542,13 @@ class FindDialog:
             self.find_all_button.config(state=tk.NORMAL)
             return []
 
-            # 使用主题管理器的颜色配置
-        theme = (
-            self.theme_manager.get_current_theme()
-            if hasattr(self, "theme_manager")
-            else None
+            # 使用固定颜色配置替代主题管理器
+        self.text_widget.tag_configure(
+            "found", background="yellow", foreground="black"
         )
-        if theme is None and hasattr(self.text_widget.master.master, "theme_manager"):
-            theme = self.text_widget.master.master.theme_manager.get_current_theme()
-
-        if theme:
-            self.text_widget.tag_configure(
-                "found", background=theme["found_bg"], foreground=theme["found_fg"]
-            )
-            self.text_widget.tag_configure(
-                "current_match",
-                background=theme["current_match_bg"],
-                foreground=theme["current_match_fg"],
-            )
-        else:
-            # 默认颜色配置
-            self.text_widget.tag_configure(
-                "found", background="yellow", foreground="black"
-            )
-            self.text_widget.tag_configure(
-                "current_match", background="orange", foreground="black"
-            )
+        self.text_widget.tag_configure(
+            "current_match", background="orange", foreground="black"
+        )
 
         # 重置查找状态
         self.is_searching = False
@@ -2638,10 +2618,6 @@ class ThemeManager:
             "found_fg": "black",
             "current_match_bg": "orange",
             "current_match_fg": "black",
-            "keyword_fg": "orange",
-            "string_fg": "green",
-            "comment_fg": "red",
-            "function_fg": "blue",
             "menu_bg": "#f0f0f0",
             "menu_fg": "black",
             "menu_active_bg": "#316AC5",
@@ -2666,10 +2642,6 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ffa500",
             "current_match_fg": "#000000",
-            "keyword_fg": "#ff9966",
-            "string_fg": "#66cc66",
-            "comment_fg": "#ff6666",
-            "function_fg": "#6699ff",
             "menu_bg": "#3a3a3a",
             "menu_fg": "#ffffff",
             "menu_active_bg": "#094771",
@@ -2694,10 +2666,6 @@ class ThemeManager:
             "found_fg": "#003366",
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#003366",
-            "keyword_fg": "#cc6600",
-            "string_fg": "#009900",
-            "comment_fg": "#cc0000",
-            "function_fg": "#0066cc",
             "menu_bg": "#cce6ff",
             "menu_fg": "#003366",
             "menu_active_bg": "#003366",
@@ -2722,10 +2690,6 @@ class ThemeManager:
             "found_fg": "#5a4a3f",
             "current_match_bg": "#ff8c00",
             "current_match_fg": "#ffffff",
-            "keyword_fg": "#8b4513",
-            "string_fg": "#228b22",
-            "comment_fg": "#a0522d",
-            "function_fg": "#4b0082",
             "menu_bg": "#e6d5b8",
             "menu_fg": "#5a4a3f",
             "menu_active_bg": "#d0b895",
@@ -2750,10 +2714,6 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#000000",
-            "keyword_fg": "#009900",
-            "string_fg": "#006633",
-            "comment_fg": "#339933",
-            "function_fg": "#0066cc",
             "menu_bg": "#ccffcc",
             "menu_fg": "#006600",
             "menu_active_bg": "#006600",
@@ -2778,10 +2738,6 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ff9966",
             "current_match_fg": "#000000",
-            "keyword_fg": "#9900cc",
-            "string_fg": "#006699",
-            "comment_fg": "#9966cc",
-            "function_fg": "#009966",
             "menu_bg": "#e0d6f0",
             "menu_fg": "#330066",
             "menu_active_bg": "#6600cc",
@@ -2806,10 +2762,6 @@ class ThemeManager:
             "found_fg": "#d35400",
             "current_match_bg": "#e67e22",
             "current_match_fg": "#ffffff",
-            "keyword_fg": "#2980b9",
-            "string_fg": "#27ae60",
-            "comment_fg": "#7f8c8d",
-            "function_fg": "#8e44ad",
             "menu_bg": "#f5d1b0",
             "menu_fg": "#d35400",
             "menu_active_bg": "#e67e22",
@@ -2867,12 +2819,6 @@ class ThemeManager:
             background=theme["current_match_bg"],
             foreground=theme["current_match_fg"],
         )
-
-        # 应用语法高亮样式
-        self.editor.text_area.tag_configure("keyword", foreground=theme["keyword_fg"])
-        self.editor.text_area.tag_configure("string", foreground=theme["string_fg"])
-        self.editor.text_area.tag_configure("comment", foreground=theme["comment_fg"])
-        self.editor.text_area.tag_configure("function", foreground=theme["function_fg"])
 
         # 应用菜单样式
         try:
