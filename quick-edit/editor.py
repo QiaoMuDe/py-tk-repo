@@ -14,7 +14,7 @@ from idlelib.percolator import Percolator
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
-from utils import format_file_size
+from utils import format_file_size, center_window
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10
@@ -34,7 +34,7 @@ class AdvancedTextEditor:
         self.root = root
         self.root.title("文本编辑器")
         self.root.geometry(f"{MainWindowWidth}x{MainWindowHeight}")
-        self.center_window()
+        center_window(self.root, MainWindowWidth, MainWindowHeight)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -172,9 +172,9 @@ class AdvancedTextEditor:
 
         # 使用固定颜色配置
         self.text_area.tag_configure("keyword", foreground="#0000FF")  # 蓝色关键字
-        self.text_area.tag_configure("string", foreground="#008000")   # 绿色字符串
+        self.text_area.tag_configure("string", foreground="#008000")  # 绿色字符串
         self.text_area.tag_configure("comment", foreground="#808080")  # 灰色注释
-        self.text_area.tag_configure("function", foreground="#FF00FF") # 紫色函数名
+        self.text_area.tag_configure("function", foreground="#FF00FF")  # 紫色函数名
 
         # 获取全部文本内容
         content = self.text_area.get("1.0", tk.END)
@@ -242,31 +242,6 @@ class AdvancedTextEditor:
         except Exception as e:
             # 捕获所有异常并显示警告但不中断程序
             messagebox.showwarning("语法高亮警告", f"移除语法高亮时出现错误: {str(e)}")
-
-    def center_window(self):
-        """将窗口居中显示"""
-        # 确保窗口已经绘制完成
-        self.root.update_idletasks()
-
-        # 获取窗口的实际宽度和高度
-        width = self.root.winfo_width()
-        height = self.root.winfo_height()
-
-        # 如果获取的宽高为1, 则使用初始设置的几何尺寸
-        if width <= 1 or height <= 1:
-            width = MainWindowWidth
-            height = MainWindowHeight
-
-        # 获取屏幕的宽度和高度
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-
-        # 计算居中位置
-        x = (screen_width // 2) - (width // 2)
-        y = (screen_height // 2) - (height // 2)
-
-        # 设置窗口位置和尺寸
-        self.root.geometry(f"{width}x{height}+{x}+{y}")
 
     def check_unsaved_changes(self):
         """检查是否有未保存的更改"""
@@ -726,12 +701,16 @@ class AdvancedTextEditor:
         self.toolbar_buttons.append(save_as_btn)
 
         # 只读模式切换按钮
-        readonly_btn = ttk.Button(self.toolbar, text="只读模式", command=self.toggle_readonly_mode)
+        readonly_btn = ttk.Button(
+            self.toolbar, text="只读模式", command=self.toggle_readonly_mode
+        )
         readonly_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(readonly_btn)
 
         # 关闭文件按钮
-        close_file_btn = ttk.Button(self.toolbar, text="关闭文件", command=self.close_file)
+        close_file_btn = ttk.Button(
+            self.toolbar, text="关闭文件", command=self.close_file
+        )
         close_file_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(close_file_btn)
 
@@ -816,7 +795,7 @@ class AdvancedTextEditor:
             fg=theme["statusbar_fg"],
         )
         self.right_status.pack(side=tk.RIGHT, padx=5)
-        
+
         # 为状态栏绑定右键点击事件到智能菜单处理函数
         self.right_status.bind("<Button-3>", self.on_statusbar_right_click)
 
@@ -1000,33 +979,35 @@ class AdvancedTextEditor:
             line_ending_menu.tk_popup(event.x_root, event.y_root)
         finally:
             line_ending_menu.grab_release()
-    
+
     def on_statusbar_right_click(self, event=None):
         """处理状态栏右键点击事件，根据点击位置判断是编码部分还是换行符部分"""
         # 获取点击位置相对于标签的坐标
         x = event.x
-        
+
         # 获取当前显示的文本
         current_text = self.right_status.cget("text")
-        
+
         # 判断点击位置是在编码部分还是换行符部分
         # 文本格式为 "文件名 - 编码 | 换行符" 或 "编码 | 换行符"
         if " | " in current_text:
             # 找到分隔符的位置
             separator_pos = current_text.find(" | ")
-            
+
             # 计算编码部分和换行符部分的大致宽度比例
             # 这是一个简化的方法，实际的宽度取决于字体和字符
             encoding_part = current_text[:separator_pos]
-            line_ending_part = current_text[separator_pos + 3:]  # 跳过" | "
-            
+            line_ending_part = current_text[separator_pos + 3 :]  # 跳过" | "
+
             # 估算各部分的宽度比例（这是一个近似值）
             total_length = len(current_text)
-            encoding_ratio = len(encoding_part) / total_length if total_length > 0 else 0.5
-            
+            encoding_ratio = (
+                len(encoding_part) / total_length if total_length > 0 else 0.5
+            )
+
             # 获取标签的宽度
             width = self.right_status.winfo_width()
-            
+
             # 根据点击位置决定是编码部分还是换行符部分
             if x < width * encoding_ratio:
                 # 点击的是编码部分
@@ -1085,6 +1066,9 @@ class AdvancedTextEditor:
         # 居中显示对话框
         stats_window.transient(self.root)
         stats_window.grab_set()
+
+        # 使用通用居中显示函数
+        center_window(stats_window)
 
         # 获取当前主题配置
         theme = self.theme_manager.get_current_theme()
