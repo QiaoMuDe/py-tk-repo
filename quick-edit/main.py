@@ -8,6 +8,8 @@
 import tkinter as tk
 import tkinterdnd2
 from editor import AdvancedTextEditor
+import sys
+import os
 
 
 def main():

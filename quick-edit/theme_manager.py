@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import ttk
 
 class ThemeManager:
     """主题管理器类"""
