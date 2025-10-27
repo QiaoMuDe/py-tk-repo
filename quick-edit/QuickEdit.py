@@ -1031,32 +1031,176 @@ class AdvancedTextEditor:
         # 创建统计信息对话框
         stats_window = tk.Toplevel(self.root)
         stats_window.title("统计信息")
-        stats_window.geometry("300x200")
+        stats_window.geometry("400x300")
         stats_window.resizable(False, False)
 
         # 居中显示对话框
         stats_window.transient(self.root)
         stats_window.grab_set()
 
-        # 创建标签显示统计信息
-        tk.Label(stats_window, text=f"字符数: {char_count}", anchor="w").pack(
-            fill="x", padx=10, pady=5
+        # 获取当前主题配置
+        theme = self.theme_manager.get_current_theme()
+
+        # 设置窗口背景色
+        stats_window.configure(bg=theme["text_bg"])
+
+        # 创建标题框架
+        header_frame = tk.Frame(stats_window, bg=theme["toolbar_bg"], height=50)
+        header_frame.pack(fill=tk.X, padx=0, pady=0)
+        header_frame.pack_propagate(False)
+
+        # 标题标签
+        title_label = tk.Label(
+            header_frame,
+            text="文档统计信息",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, self.font_size + 2, "bold"),
         )
-        tk.Label(stats_window, text=f"行数: {line_count}", anchor="w").pack(
-            fill="x", padx=10, pady=5
+        title_label.pack(expand=True)
+
+        # 创建主要内容框架
+        main_frame = tk.Frame(stats_window, bg=theme["text_bg"])
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # 创建统计信息网格框架
+        stats_frame = tk.Frame(main_frame, bg=theme["text_bg"])
+        stats_frame.pack(fill=tk.BOTH, expand=True)
+
+        # 创建统计信息显示
+        # 第一行
+        char_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
+        char_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
+        tk.Label(
+            char_frame,
+            text="字符数",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, max(8, self.font_size - 3), "bold"),
+            anchor="center",
+        ).pack(fill=tk.X)
+        tk.Label(
+            char_frame,
+            text=str(char_count),
+            bg=theme["text_bg"],
+            fg=theme["text_fg"],
+            font=(self.font_family, max(10, self.font_size), "bold"),
+            anchor="center",
+            pady=10,
+        ).pack(fill=tk.BOTH, expand=True)
+
+        line_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
+        line_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
+        tk.Label(
+            line_frame,
+            text="行数",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, max(8, self.font_size - 3), "bold"),
+            anchor="center",
+        ).pack(fill=tk.X)
+        tk.Label(
+            line_frame,
+            text=str(line_count),
+            bg=theme["text_bg"],
+            fg=theme["text_fg"],
+            font=(self.font_family, max(10, self.font_size), "bold"),
+            anchor="center",
+            pady=10,
+        ).pack(fill=tk.BOTH, expand=True)
+
+        # 第二行
+        word_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
+        word_frame.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
+        tk.Label(
+            word_frame,
+            text="单词数",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, max(8, self.font_size - 3), "bold"),
+            anchor="center",
+        ).pack(fill=tk.X)
+        tk.Label(
+            word_frame,
+            text=str(word_count),
+            bg=theme["text_bg"],
+            fg=theme["text_fg"],
+            font=(self.font_family, max(10, self.font_size), "bold"),
+            anchor="center",
+            pady=10,
+        ).pack(fill=tk.BOTH, expand=True)
+
+        non_white_frame = tk.Frame(
+            stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"]
         )
-        tk.Label(stats_window, text=f"单词数: {word_count}", anchor="w").pack(
-            fill="x", padx=10, pady=5
+        non_white_frame.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        tk.Label(
+            non_white_frame,
+            text="非空白字符",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, max(8, self.font_size - 3), "bold"),
+            anchor="center",
+        ).pack(fill=tk.X)
+        tk.Label(
+            non_white_frame,
+            text=str(non_whitespace_count),
+            bg=theme["text_bg"],
+            fg=theme["text_fg"],
+            font=(self.font_family, max(10, self.font_size), "bold"),
+            anchor="center",
+            pady=10,
+        ).pack(fill=tk.BOTH, expand=True)
+
+        # 第三行（跨两列）
+        paragraph_frame = tk.Frame(
+            stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"]
+        )
+        paragraph_frame.grid(
+            row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew"
         )
         tk.Label(
-            stats_window, text=f"非空白字符数: {non_whitespace_count}", anchor="w"
-        ).pack(fill="x", padx=10, pady=5)
-        tk.Label(stats_window, text=f"段落数: {paragraph_count}", anchor="w").pack(
-            fill="x", padx=10, pady=5
-        )
+            paragraph_frame,
+            text="段落数",
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            font=(self.font_family, max(8, self.font_size - 3), "bold"),
+            anchor="center",
+        ).pack(fill=tk.X)
+        tk.Label(
+            paragraph_frame,
+            text=str(paragraph_count),
+            bg=theme["text_bg"],
+            fg=theme["text_fg"],
+            font=(self.font_family, max(10, self.font_size), "bold"),
+            anchor="center",
+            pady=10,
+        ).pack(fill=tk.BOTH, expand=True)
+
+        # 配置网格权重
+        stats_frame.columnconfigure(0, weight=1)
+        stats_frame.columnconfigure(1, weight=1)
+        stats_frame.rowconfigure(0, weight=1)
+        stats_frame.rowconfigure(1, weight=1)
+        stats_frame.rowconfigure(2, weight=1)
+
+        # 创建按钮框架
+        button_frame = tk.Frame(stats_window, bg=theme["text_bg"])
+        button_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
 
         # 添加关闭按钮
-        tk.Button(stats_window, text="关闭", command=stats_window.destroy).pack(pady=10)
+        close_button = tk.Button(
+            button_frame,
+            text="关闭",
+            command=stats_window.destroy,
+            bg=theme["toolbar_bg"],
+            fg=theme["toolbar_button_fg"],
+            activebackground=theme["toolbar_active_bg"],
+            activeforeground=theme["toolbar_button_fg"],
+            relief=tk.FLAT,
+            padx=20,
+        )
+        close_button.pack(side=tk.RIGHT)
 
     def on_encoding_click(self, event=None):
         """处理编码标签右键点击事件"""
@@ -1552,7 +1696,7 @@ class AdvancedTextEditor:
 
         # 绑定双击事件
         font_listbox.bind("<Double-Button-1>", on_font_select)
-        
+
         # 绑定选择变化事件，实现实时预览
         font_listbox.bind("<<ListboxSelect>>", preview_font)
 
@@ -1563,7 +1707,7 @@ class AdvancedTextEditor:
         # 示例文字
         sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
         sample_text.pack(fill=tk.BOTH, expand=True)
-        
+
         # 插入示例文字内容
         sample_content = """这是字体预览示例文字。
 The quick brown fox jumps over the lazy dog.
@@ -1571,7 +1715,7 @@ The quick brown fox jumps over the lazy dog.
 """
         sample_text.insert(tk.END, sample_content)
         sample_text.config(state=tk.DISABLED)  # 设为只读
-        
+
         # 应用当前字体到示例文字
         sample_text.config(font=(self.font_family, self.font_size))
 
@@ -1621,7 +1765,7 @@ The quick brown fox jumps over the lazy dog.
 
         # 字体大小变量
         size_var = tk.StringVar(value=str(self.font_size))
-        
+
         # 输入框框架
         input_frame = tk.Frame(size_dialog)
         input_frame.pack(pady=5)
@@ -1645,7 +1789,9 @@ The quick brown fox jumps over the lazy dog.
         decrease_btn.pack(side=tk.LEFT, padx=5)
 
         # 输入框
-        size_entry = tk.Entry(input_frame, textvariable=size_var, width=10, justify="center")
+        size_entry = tk.Entry(
+            input_frame, textvariable=size_var, width=10, justify="center"
+        )
         size_entry.pack(side=tk.LEFT, padx=5)
 
         # 增加按钮
@@ -1673,7 +1819,7 @@ The quick brown fox jumps over the lazy dog.
         # 示例文字
         sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
         sample_text.pack(fill=tk.BOTH, expand=True)
-        
+
         # 插入示例文字内容
         sample_content = """这是字体预览示例文字。
 The quick brown fox jumps over the lazy dog.
@@ -1681,7 +1827,7 @@ The quick brown fox jumps over the lazy dog.
 """
         sample_text.insert(tk.END, sample_content)
         sample_text.config(state=tk.DISABLED)  # 设为只读
-        
+
         # 应用当前字体大小到示例文字
         sample_text.config(font=(self.font_family, self.font_size))
 
