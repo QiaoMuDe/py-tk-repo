@@ -813,10 +813,9 @@ class AdvancedTextEditor:
             fg=theme["statusbar_fg"],
         )
         self.right_status.pack(side=tk.RIGHT, padx=5)
-        # 绑定点击事件
-        self.right_status.bind("<Button-1>", self.on_line_ending_click)
-        # 绑定右键点击事件
-        self.right_status.bind("<Button-3>", self.on_encoding_click)
+        
+        # 为状态栏绑定右键点击事件到智能菜单处理函数
+        self.right_status.bind("<Button-3>", self.on_statusbar_right_click)
 
         # 绑定光标移动事件更新状态栏
         self.text_area.bind("<<Modified>>", self.update_statusbar)
@@ -966,12 +965,75 @@ class AdvancedTextEditor:
             self.left_status.config(text="状态更新错误")
 
     def on_line_ending_click(self, event=None):
-        """处理换行符类型标签点击事件"""
+        """处理换行符类型标签左键点击事件"""
         # 在三种换行符格式之间循环切换
         new_ending = self.cycle_line_ending()
 
         # 显示提示信息
         messagebox.showinfo("换行符切换", f"换行符格式已切换为: {new_ending}")
+
+    def on_line_ending_right_click(self, event=None):
+        """处理换行符类型标签右键点击事件"""
+        # 创建换行符选择菜单
+        line_ending_menu = tk.Menu(self.root, tearoff=0)
+
+        # 换行符选项
+        line_endings = ["LF", "CRLF", "CR"]
+        line_ending_names = {
+            "LF": "Unix/Linux (LF)",
+            "CRLF": "Windows (CRLF)",
+            "CR": "Mac (CR)",
+        }
+
+        # 添加换行符选项到菜单
+        for ending in line_endings:
+            display_name = line_ending_names.get(ending, ending)
+            line_ending_menu.add_command(
+                label=display_name, command=lambda e=ending: self.set_line_ending(e)
+            )
+
+        # 显示菜单
+        try:
+            line_ending_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            line_ending_menu.grab_release()
+    
+    def on_statusbar_right_click(self, event=None):
+        """处理状态栏右键点击事件，根据点击位置判断是编码部分还是换行符部分"""
+        # 获取点击位置相对于标签的坐标
+        x = event.x
+        
+        # 获取当前显示的文本
+        current_text = self.right_status.cget("text")
+        
+        # 判断点击位置是在编码部分还是换行符部分
+        # 文本格式为 "文件名 - 编码 | 换行符" 或 "编码 | 换行符"
+        if " | " in current_text:
+            # 找到分隔符的位置
+            separator_pos = current_text.find(" | ")
+            
+            # 计算编码部分和换行符部分的大致宽度比例
+            # 这是一个简化的方法，实际的宽度取决于字体和字符
+            encoding_part = current_text[:separator_pos]
+            line_ending_part = current_text[separator_pos + 3:]  # 跳过" | "
+            
+            # 估算各部分的宽度比例（这是一个近似值）
+            total_length = len(current_text)
+            encoding_ratio = len(encoding_part) / total_length if total_length > 0 else 0.5
+            
+            # 获取标签的宽度
+            width = self.right_status.winfo_width()
+            
+            # 根据点击位置决定是编码部分还是换行符部分
+            if x < width * encoding_ratio:
+                # 点击的是编码部分
+                self.on_encoding_click(event)
+            else:
+                # 点击的是换行符部分
+                self.on_line_ending_right_click(event)
+        else:
+            # 如果没有找到分隔符，默认显示换行符菜单
+            self.on_line_ending_right_click(event)
 
     def go_to_line(self):
         """转到指定行"""
