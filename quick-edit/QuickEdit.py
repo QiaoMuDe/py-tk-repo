@@ -733,6 +733,16 @@ class AdvancedTextEditor:
         save_as_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(save_as_btn)
 
+        # 只读模式切换按钮
+        readonly_btn = ttk.Button(self.toolbar, text="只读模式", command=self.toggle_readonly_mode)
+        readonly_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(readonly_btn)
+
+        # 关闭文件按钮
+        close_file_btn = ttk.Button(self.toolbar, text="关闭文件", command=self.close_file)
+        close_file_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(close_file_btn)
+
         ttk.Separator(self.toolbar, orient=tk.VERTICAL).pack(
             side=tk.LEFT, fill=tk.Y, padx=4
         )
