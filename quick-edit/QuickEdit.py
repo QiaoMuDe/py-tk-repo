@@ -777,25 +777,6 @@ class AdvancedTextEditor:
         paste_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(paste_btn)
 
-        ttk.Separator(self.toolbar, orient=tk.VERTICAL).pack(
-            side=tk.LEFT, fill=tk.Y, padx=4
-        )
-
-        # 格式按钮
-        bold_btn = ttk.Button(self.toolbar, text="粗体", command=self.toggle_bold)
-        bold_btn.pack(side=tk.LEFT, padx=2, pady=2)
-        self.toolbar_buttons.append(bold_btn)
-
-        italic_btn = ttk.Button(self.toolbar, text="斜体", command=self.toggle_italic)
-        italic_btn.pack(side=tk.LEFT, padx=2, pady=2)
-        self.toolbar_buttons.append(italic_btn)
-
-        underline_btn = ttk.Button(
-            self.toolbar, text="下划线", command=self.toggle_underline
-        )
-        underline_btn.pack(side=tk.LEFT, padx=2, pady=2)
-        self.toolbar_buttons.append(underline_btn)
-
         # 应用当前主题到工具栏按钮
         self.theme_manager.apply_theme()
 
