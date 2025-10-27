@@ -538,9 +538,6 @@ class AdvancedTextEditor:
 
         # 帮助菜单
         help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(
-            label="统计信息", command=self.show_statistics, accelerator="Ctrl+T"
-        )
         help_menu.add_command(label="关于", command=self.show_about)
         menubar.add_cascade(label="帮助", menu=help_menu)
 
@@ -781,9 +778,6 @@ class AdvancedTextEditor:
             fg=theme["statusbar_fg"],
         )
         self.left_status.pack(side=tk.LEFT, padx=5)
-        # 为左侧状态栏绑定点击事件
-        self.left_status.bind("<Button-1>", self.on_left_status_click)
-        self.left_status.bind("<Button-3>", self.on_left_status_click)
 
         # 右侧状态信息 (编码和换行符类型), 使用主题背景色和前景色
         self.right_status = tk.Label(
@@ -821,7 +815,6 @@ class AdvancedTextEditor:
         self.root.bind("<Control-End>", lambda e: self.go_to_end())
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
-        self.root.bind("<Control-t>", lambda e: self.show_statistics())
 
     def load_config(self):
         """加载配置文件"""
@@ -1038,205 +1031,9 @@ class AdvancedTextEditor:
             self.text_area.see(f"{line_number}.0")
             self.text_area.focus_set()
 
-    def show_statistics(self):
-        """显示文件统计信息"""
-        # 获取文本内容
-        content = self.text_area.get("1.0", tk.END + "-1c")
 
-        # 计算统计信息
-        char_count = len(content)
-        line_count = content.count("\n") + 1
-        word_count = len(content.split())
 
-        # 计算非空白字符数
-        non_whitespace_count = len(
-            content.replace(" ", "").replace("\n", "").replace("\t", "")
-        )
 
-        # 计算段落数 (以空行分隔)
-        paragraphs = [p for p in content.split("\n\n") if p.strip()]
-        paragraph_count = len(paragraphs)
-
-        # 创建统计信息对话框
-        stats_window = tk.Toplevel(self.root)
-        stats_window.title("统计信息")
-        stats_window.geometry("400x300")
-        stats_window.resizable(False, False)
-
-        # 居中显示对话框
-        stats_window.transient(self.root)
-        stats_window.grab_set()
-
-        # 使用通用居中显示函数
-        center_window(stats_window)
-
-        # 获取当前主题配置
-        theme = self.theme_manager.get_current_theme()
-
-        # 设置窗口背景色
-        stats_window.configure(bg=theme["text_bg"])
-
-        # 创建标题框架
-        header_frame = tk.Frame(stats_window, bg=theme["toolbar_bg"], height=50)
-        header_frame.pack(fill=tk.X, padx=0, pady=0)
-        header_frame.pack_propagate(False)
-
-        # 标题标签
-        title_label = tk.Label(
-            header_frame,
-            text="文档统计信息",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, self.font_size + 2, "bold"),
-        )
-        title_label.pack(expand=True)
-
-        # 创建主要内容框架
-        main_frame = tk.Frame(stats_window, bg=theme["text_bg"])
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
-
-        # 创建统计信息网格框架
-        stats_frame = tk.Frame(main_frame, bg=theme["text_bg"])
-        stats_frame.pack(fill=tk.BOTH, expand=True)
-
-        # 创建统计信息显示
-        # 第一行
-        char_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
-        char_frame.grid(row=0, column=0, padx=5, pady=5, sticky="nsew")
-        tk.Label(
-            char_frame,
-            text="字符数",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, max(8, self.font_size - 3), "bold"),
-            anchor="center",
-        ).pack(fill=tk.X)
-        tk.Label(
-            char_frame,
-            text=str(char_count),
-            bg=theme["text_bg"],
-            fg=theme["text_fg"],
-            font=(self.font_family, max(10, self.font_size), "bold"),
-            anchor="center",
-            pady=10,
-        ).pack(fill=tk.BOTH, expand=True)
-
-        line_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
-        line_frame.grid(row=0, column=1, padx=5, pady=5, sticky="nsew")
-        tk.Label(
-            line_frame,
-            text="行数",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, max(8, self.font_size - 3), "bold"),
-            anchor="center",
-        ).pack(fill=tk.X)
-        tk.Label(
-            line_frame,
-            text=str(line_count),
-            bg=theme["text_bg"],
-            fg=theme["text_fg"],
-            font=(self.font_family, max(10, self.font_size), "bold"),
-            anchor="center",
-            pady=10,
-        ).pack(fill=tk.BOTH, expand=True)
-
-        # 第二行
-        word_frame = tk.Frame(stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"])
-        word_frame.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-        tk.Label(
-            word_frame,
-            text="单词数",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, max(8, self.font_size - 3), "bold"),
-            anchor="center",
-        ).pack(fill=tk.X)
-        tk.Label(
-            word_frame,
-            text=str(word_count),
-            bg=theme["text_bg"],
-            fg=theme["text_fg"],
-            font=(self.font_family, max(10, self.font_size), "bold"),
-            anchor="center",
-            pady=10,
-        ).pack(fill=tk.BOTH, expand=True)
-
-        non_white_frame = tk.Frame(
-            stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"]
-        )
-        non_white_frame.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-        tk.Label(
-            non_white_frame,
-            text="非空白字符",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, max(8, self.font_size - 3), "bold"),
-            anchor="center",
-        ).pack(fill=tk.X)
-        tk.Label(
-            non_white_frame,
-            text=str(non_whitespace_count),
-            bg=theme["text_bg"],
-            fg=theme["text_fg"],
-            font=(self.font_family, max(10, self.font_size), "bold"),
-            anchor="center",
-            pady=10,
-        ).pack(fill=tk.BOTH, expand=True)
-
-        # 第三行（跨两列）
-        paragraph_frame = tk.Frame(
-            stats_frame, relief=tk.RAISED, bd=1, bg=theme["text_bg"]
-        )
-        paragraph_frame.grid(
-            row=2, column=0, columnspan=2, padx=5, pady=5, sticky="nsew"
-        )
-        tk.Label(
-            paragraph_frame,
-            text="段落数",
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            font=(self.font_family, max(8, self.font_size - 3), "bold"),
-            anchor="center",
-        ).pack(fill=tk.X)
-        tk.Label(
-            paragraph_frame,
-            text=str(paragraph_count),
-            bg=theme["text_bg"],
-            fg=theme["text_fg"],
-            font=(self.font_family, max(10, self.font_size), "bold"),
-            anchor="center",
-            pady=10,
-        ).pack(fill=tk.BOTH, expand=True)
-
-        # 配置网格权重
-        stats_frame.columnconfigure(0, weight=1)
-        stats_frame.columnconfigure(1, weight=1)
-        stats_frame.rowconfigure(0, weight=1)
-        stats_frame.rowconfigure(1, weight=1)
-        stats_frame.rowconfigure(2, weight=1)
-
-        # 创建按钮框架
-        button_frame = tk.Frame(stats_window, bg=theme["text_bg"])
-        button_frame.pack(fill=tk.X, padx=20, pady=(0, 20))
-
-        # 添加关闭按钮
-        close_button = tk.Button(
-            button_frame,
-            text="关闭",
-            command=stats_window.destroy,
-            bg=theme["toolbar_bg"],
-            fg=theme["toolbar_button_fg"],
-            activebackground=theme["toolbar_active_bg"],
-            activeforeground=theme["toolbar_button_fg"],
-            relief=tk.FLAT,
-            padx=20,
-        )
-        close_button.pack(side=tk.RIGHT)
-
-    def on_left_status_click(self, event=None):
-        """处理左侧状态栏点击事件，显示统计信息"""
-        self.show_statistics()
 
     def on_encoding_click(self, event=None):
         """处理编码标签右键点击事件"""
