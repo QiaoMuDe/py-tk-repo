@@ -802,6 +802,9 @@ class AdvancedTextEditor:
             fg=theme["statusbar_fg"],
         )
         self.left_status.pack(side=tk.LEFT, padx=5)
+        # 为左侧状态栏绑定点击事件
+        self.left_status.bind("<Button-1>", self.on_left_status_click)
+        self.left_status.bind("<Button-3>", self.on_left_status_click)
 
         # 右侧状态信息 (编码和换行符类型), 使用主题背景色和前景色
         self.right_status = tk.Label(
@@ -1246,6 +1249,10 @@ class AdvancedTextEditor:
             padx=20,
         )
         close_button.pack(side=tk.RIGHT)
+
+    def on_left_status_click(self, event=None):
+        """处理左侧状态栏点击事件，显示统计信息"""
+        self.show_statistics()
 
     def on_encoding_click(self, event=None):
         """处理编码标签右键点击事件"""
