@@ -17,7 +17,7 @@ from theme_manager import ThemeManager
 from utils import format_file_size, center_window, is_supported_file
 
 # 文件大小限制
-MaxFileSize = 1024 * 1024 * 12
+MaxFileSize = 1024 * 1024 * 10
 
 # 主窗口-高
 MainWindowHeight = 800
