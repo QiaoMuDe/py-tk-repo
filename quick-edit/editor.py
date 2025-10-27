@@ -602,7 +602,6 @@ class AdvancedTextEditor:
 
             # 绘制可见区域的行号
             for i in range(first_visible, last_visible + 1):
-                # 计算行号的y坐标
                 # 使用dlineinfo方法获取更准确的行位置信息
                 dlineinfo = self.text_area.dlineinfo(f"{i}.0")
                 if dlineinfo:
@@ -1299,7 +1298,7 @@ class AdvancedTextEditor:
             # 更新总行数
             self.total_lines = content.count("\n") + 1  # 计算总行数
             self.encoding = encoding
-            self.line_ending = line_ending
+            self.line_ending = line_ending # 更新换行符类型
             self.current_file = file_path  # 更新当前文件路径
             self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
             self.text_area.edit_modified(False)  # 重置修改标志
