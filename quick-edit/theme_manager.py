@@ -7,28 +7,30 @@ class ThemeManager:
     # 预定义的主题
     THEMES = {
         "light": {
-            "name": "浅色主题",
-            "text_bg": "white",
-            "text_fg": "black",
-            "text_insert_bg": "black",
-            "text_select_bg": "lightblue",
-            "text_select_fg": "black",
-            "line_numbers_bg": "#f0f0f0",
-            "line_numbers_fg": "gray",
-            "found_bg": "yellow",
-            "found_fg": "black",
-            "current_match_bg": "orange",
-            "current_match_fg": "black",
-            "menu_bg": "#f0f0f0",
-            "menu_fg": "black",
-            "menu_active_bg": "#316AC5",
-            "menu_active_fg": "white",
-            "toolbar_bg": "#f0f0f0",
-            "toolbar_active_bg": "#d0d0d0",
-            "toolbar_pressed_bg": "#c0c0c0",
-            "toolbar_button_fg": "black",
-            "statusbar_bg": "#f0f0f0",
-            "statusbar_fg": "black",
+            "name": "浅色主题", # 主题名称
+            "text_bg": "white",  # 文本区域背景色
+            "text_fg": "black",  # 文本区域前景色
+            "text_insert_bg": "black",  # 插入点背景色
+            "text_select_bg": "lightblue",  # 选择区域背景色
+            "text_select_fg": "black",  # 选择区域前景色
+            "line_numbers_bg": "#f0f0f0",  # 行号区域背景色
+            "line_numbers_fg": "gray",  # 行号区域前景色
+            "found_bg": "yellow",  # 搜索结果背景色
+            "found_fg": "black",  # 搜索结果前景色 
+            "current_match_bg": "#ff9900",  # 当前匹配项背景色
+            "current_match_fg": "black",  # 当前匹配项前景色
+            "cursor_line_bg": "yellow",  # 光标所在行背景色
+            "hover_line_bg": "#e0e0e0",  # 悬停行背景色
+            "menu_bg": "#f0f0f0",  # 菜单背景色
+            "menu_fg": "black",  # 菜单前景色
+            "menu_active_bg": "lightblue",  # 激活菜单背景色
+            "menu_active_fg": "black",  # 激活菜单前景色
+            "toolbar_bg": "#f0f0f0",  # 工具栏背景色
+            "toolbar_active_bg": "#d0d0d0",  # 激活工具栏背景色
+            "toolbar_pressed_bg": "#b0b0b0",  # 按下工具栏背景色
+            "toolbar_button_fg": "black",  # 工具栏按钮前景色
+            "statusbar_bg": "#f0f0f0",  # 状态栏背景色
+            "statusbar_fg": "black",  # 状态栏前景色
         },
         "dark": {
             "name": "深色主题",
@@ -43,6 +45,8 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ffa500",
             "current_match_fg": "#000000",
+            "cursor_line_bg": "#3a3a3a",  # 光标所在行背景色
+            "hover_line_bg": "#3a3a3a",  # 悬停行背景色
             "menu_bg": "#3a3a3a",
             "menu_fg": "#ffffff",
             "menu_active_bg": "#094771",
@@ -56,27 +60,29 @@ class ThemeManager:
         },
         "blue": {
             "name": "蓝色主题",
-            "text_bg": "#e6f3ff",
-            "text_fg": "#003366",
-            "text_insert_bg": "#003366",
-            "text_select_bg": "#99ccff",
-            "text_select_fg": "#003366",
-            "line_numbers_bg": "#cce6ff",
-            "line_numbers_fg": "#0066cc",
+            "text_bg": "#f0f8ff",
+            "text_fg": "#000080",
+            "text_insert_bg": "#000080",
+            "text_select_bg": "#87ceeb",
+            "text_select_fg": "#000000",
+            "line_numbers_bg": "#e1ebf5",
+            "line_numbers_fg": "#191970",
             "found_bg": "#ffff99",
-            "found_fg": "#003366",
+            "found_fg": "#000080",
             "current_match_bg": "#ffcc66",
-            "current_match_fg": "#003366",
-            "menu_bg": "#cce6ff",
-            "menu_fg": "#003366",
-            "menu_active_bg": "#003366",
+            "current_match_fg": "#000000",
+            "cursor_line_bg": "#cce6ff",  # 光标所在行背景色
+            "hover_line_bg": "#cce6ff",  # 悬停行背景色
+            "menu_bg": "#e1ebf5",
+            "menu_fg": "#000080",
+            "menu_active_bg": "#4682b4",
             "menu_active_fg": "#ffffff",
-            "toolbar_bg": "#cce6ff",
-            "toolbar_active_bg": "#99ccff",
-            "toolbar_pressed_bg": "#6699cc",
-            "toolbar_button_fg": "#003366",
-            "statusbar_bg": "#cce6ff",
-            "statusbar_fg": "#003366",
+            "toolbar_bg": "#e1ebf5",
+            "toolbar_active_bg": "#b0c4de",
+            "toolbar_pressed_bg": "#708090",
+            "toolbar_button_fg": "#000080",
+            "statusbar_bg": "#4682b4",
+            "statusbar_fg": "#ffffff",
         },
         "parchment": {
             "name": "羊皮卷主题",
@@ -91,6 +97,8 @@ class ThemeManager:
             "found_fg": "#5a4a3f",
             "current_match_bg": "#ff8c00",
             "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#e6d5b8",  # 光标所在行背景色
+            "hover_line_bg": "#e6d5b8",  # 悬停行背景色
             "menu_bg": "#e6d5b8",
             "menu_fg": "#5a4a3f",
             "menu_active_bg": "#d0b895",
@@ -103,11 +111,11 @@ class ThemeManager:
             "statusbar_fg": "#5a4a3f",
         },
         "green": {
-            "name": "经典绿色主题",
-            "text_bg": "#e6ffe6",  # 更浅的绿色背景
-            "text_fg": "#006600",  # 深绿色文字
-            "text_insert_bg": "#006600",
-            "text_select_bg": "#99cc99",
+            "name": "经典绿色",
+            "text_bg": "#f0fff0",
+            "text_fg": "#006400",
+            "text_insert_bg": "#006400",
+            "text_select_bg": "#90ee90",
             "text_select_fg": "#000000",
             "line_numbers_bg": "#ccffcc",
             "line_numbers_fg": "#006600",
@@ -115,6 +123,8 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#000000",
+            "cursor_line_bg": "#ccffcc",  # 光标所在行背景色
+            "hover_line_bg": "#ccffcc",  # 悬停行背景色
             "menu_bg": "#ccffcc",
             "menu_fg": "#006600",
             "menu_active_bg": "#006600",
@@ -139,6 +149,8 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ff9966",
             "current_match_fg": "#000000",
+            "cursor_line_bg": "#e0d6f0",  # 光标所在行背景色
+            "hover_line_bg": "#e0d6f0",  # 悬停行背景色
             "menu_bg": "#e0d6f0",
             "menu_fg": "#330066",
             "menu_active_bg": "#6600cc",
@@ -163,6 +175,8 @@ class ThemeManager:
             "found_fg": "#d35400",
             "current_match_bg": "#e67e22",
             "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#f5d1b0",  # 光标所在行背景色
+            "hover_line_bg": "#f5d1b0",  # 悬停行背景色
             "menu_bg": "#f5d1b0",
             "menu_fg": "#d35400",
             "menu_active_bg": "#e67e22",
@@ -219,6 +233,16 @@ class ThemeManager:
             "current_match",
             background=theme["current_match_bg"],
             foreground=theme["current_match_fg"],
+        )
+        
+        # 应用光标所在行背景色样式
+        self.editor.text_area.tag_configure(
+            "cursor_line", background=theme["cursor_line_bg"]
+        )
+        
+        # 应用悬停行背景色样式
+        self.editor.text_area.tag_configure(
+            "hover_line", background=theme["hover_line_bg"]
         )
 
         # 应用菜单样式

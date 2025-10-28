@@ -242,6 +242,10 @@ class AdvancedTextEditor:
         # 根据配置决定是否显示行号
         if self.show_line_numbers:
             self.line_numbers.pack(side=tk.LEFT, fill=tk.Y)
+            
+            # 绑定鼠标事件用于悬停高亮
+            self.line_numbers.bind("<Motion>", self.on_line_number_hover)
+            self.line_numbers.bind("<Leave>", self.on_line_number_leave)
 
         # 创建文本区域和滚动条的容器
         text_container = tk.Frame(self.text_frame)
@@ -279,6 +283,13 @@ class AdvancedTextEditor:
         self.text_area.bind(
             "<<Modified>>", lambda e: self.schedule_line_number_update(50)
         )
+
+        # 绑定光标移动事件, 用于高亮光标所在行
+        self.text_area.bind("<KeyRelease>", self.highlight_cursor_line, add="+")
+        self.text_area.bind("<ButtonRelease>", self.highlight_cursor_line, add="+")
+        
+        # 绑定鼠标右键事件，用于显示上下文菜单
+        self.text_area.bind("<Button-3>", self.show_context_menu)
 
         # 绑定窗口配置事件, 用于在窗口大小改变时更新行号
         self.root.bind("<Configure>", self.on_window_configure)
@@ -851,6 +862,79 @@ class AdvancedTextEditor:
         # 更新行号显示
         self.update_line_numbers()
 
+    def highlight_cursor_line(self, event=None):
+        """高亮光标所在行"""
+        try:
+            # 移除之前的光标行高亮
+            self.text_area.tag_remove("cursor_line", "1.0", tk.END)
+            
+            # 获取光标当前位置
+            cursor_pos = self.text_area.index(tk.INSERT)
+            row, col = cursor_pos.split(".")
+            
+            # 为整行添加高亮标记（从行首到行尾+1字符，确保覆盖整行）
+            start_pos = f"{row}.0"
+            end_pos = f"{int(row)+1}.0"
+            self.text_area.tag_add("cursor_line", start_pos, end_pos)
+        except Exception as e:
+            # 忽略错误, 保持程序稳定
+            pass
+
+    def on_line_number_hover(self, event):
+        """处理行号区域鼠标悬停事件"""
+        # 获取鼠标在canvas中的y坐标
+        y = event.y
+        
+        # 获取文本区域中对应y坐标的行号
+        text_index = self.text_area.index(f"@0,{y}")
+        hovered_line = text_index.split('.')[0]
+        
+        # 高亮悬停行
+        self.highlight_hovered_line(hovered_line)
+
+    def on_line_number_leave(self, event):
+        """处理鼠标离开行号区域事件"""
+        # 移除悬停行高亮
+        self.text_area.tag_remove("hover_line", "1.0", tk.END)
+        # 移除行号区域的高亮矩形
+        self.line_numbers.delete("hover_highlight")
+
+    def highlight_hovered_line(self, line_number):
+        """高亮鼠标悬停的行"""
+        try:
+            # 移除之前的悬停行高亮
+            self.text_area.tag_remove("hover_line", "1.0", tk.END)
+            
+            # 移除行号区域之前的高亮矩形
+            self.line_numbers.delete("hover_highlight")
+            
+            # 获取当前主题的悬停行背景色
+            theme = self.theme_manager.get_current_theme()
+            hover_bg = theme.get("hover_line_bg", "#e0e0e0")
+            
+            # 获取行号区域的宽度
+            line_number_width = self.line_numbers.winfo_width()
+            
+            # 获取文本区域中该行的位置信息
+            dlineinfo = self.text_area.dlineinfo(f"{line_number}.0")
+            if dlineinfo:
+                y_pos = dlineinfo[1]  # y坐标
+                line_height = dlineinfo[3]  # 行高
+                
+                # 在行号区域绘制高亮矩形（覆盖整行宽度）
+                self.line_numbers.create_rectangle(
+                    0, y_pos, line_number_width, y_pos + line_height,
+                    fill=hover_bg, outline=hover_bg, tags="hover_highlight"
+                )
+            
+            # 为文本区域整行添加悬停高亮标记
+            start_pos = f"{line_number}.0"
+            end_pos = f"{line_number}.end"
+            self.text_area.tag_add("hover_line", start_pos, end_pos)
+        except Exception as e:
+            # 忽略错误, 保持程序稳定
+            pass
+
     def update_statusbar(self, event=None):
         """更新状态栏信息"""
         try:
@@ -868,6 +952,9 @@ class AdvancedTextEditor:
                 selected_char_count = len(selected_text)
                 # 计算选中的行数
                 selected_lines = selected_text.count("\n") + 1
+                
+                # 提升选择标记的优先级，确保选中内容背景色始终可见
+                self.text_area.tag_raise("sel")
             except tk.TclError:
                 selected = False
                 selected_char_count = 0
@@ -904,6 +991,9 @@ class AdvancedTextEditor:
 
             # 更新行号显示
             self.update_line_numbers()
+            
+            # 高亮光标所在行
+            self.highlight_cursor_line()
 
         except Exception as e:
             self.left_status.config(text="状态更新错误")
@@ -1969,6 +2059,48 @@ The quick brown fox jumps over the lazy dog.
         self.text_area.tag_configure("found", background="yellow", foreground="black")
 
         return matches
+
+    def show_context_menu(self, event):
+        """显示上下文菜单（鼠标右键菜单）"""
+        # 创建上下文菜单
+        context_menu = tk.Menu(self.root, tearoff=0)
+        
+        # 添加撤销和重做选项
+        context_menu.add_command(
+            label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
+        )
+        context_menu.add_command(
+            label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
+        )
+        context_menu.add_separator()
+        
+        # 添加剪切、复制、粘贴和全选选项
+        context_menu.add_command(
+            label="剪切", command=self.cut_text, accelerator="Ctrl+X"
+        )
+        context_menu.add_command(
+            label="复制", command=self.copy_text, accelerator="Ctrl+C"
+        )
+        context_menu.add_command(
+            label="粘贴", command=self.paste_text, accelerator="Ctrl+V"
+        )
+        context_menu.add_separator()
+        
+        context_menu.add_command(
+            label="全选", command=self.select_all, accelerator="Ctrl+A"
+        )
+        context_menu.add_separator()
+        
+        # 添加查找和替换选项
+        context_menu.add_command(
+            label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
+        )
+        context_menu.add_command(
+            label="替换", command=self.replace_text, accelerator="Ctrl+H"
+        )
+        
+        # 在鼠标位置显示菜单
+        context_menu.post(event.x_root, event.y_root)
 
     def show_about(self):
         """显示关于信息"""

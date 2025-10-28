@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import re
+import queue
 
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None):
@@ -26,6 +27,9 @@ class FindDialog:
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # 绑定窗口关闭事件，确保关闭时清除所有查找标记
+        self.dialog.protocol("WM_DELETE_WINDOW", self.on_dialog_close)
 
         # 居中显示
         self.center_window()
@@ -468,7 +472,7 @@ class FindDialog:
 
             # 使用固定颜色配置替代主题管理器
         self.text_widget.tag_configure(
-            "found", background="yellow", foreground="black"
+            "found", background="orange", foreground="black"
         )
         self.text_widget.tag_configure(
             "current_match", background="orange", foreground="black"
@@ -497,6 +501,9 @@ class FindDialog:
         # 高亮所有匹配项
         for start_idx, end_idx in self.matches:
             self.text_widget.tag_add("found", start_idx, end_idx)
+        
+        # 将查找标记提升到最顶层
+        self.text_widget.tag_raise("found")
 
     def highlight_current_match(self):
         """高亮当前匹配项"""
@@ -515,6 +522,9 @@ class FindDialog:
 
         # 高亮当前匹配项
         self.text_widget.tag_add("current_match", start_idx, end_idx)
+        
+        # 将当前匹配标记提升到最顶层
+        self.text_widget.tag_raise("current_match")
 
         # 滚动到可视区域
         self.text_widget.see(start_idx)
@@ -522,3 +532,12 @@ class FindDialog:
         # 设置光标位置
         self.text_widget.mark_set(tk.INSERT, start_idx)
         self.text_widget.focus_set()
+        
+    def on_dialog_close(self):
+        """处理对话框关闭事件，清除所有查找标记"""
+        # 清除所有查找相关的标记
+        self.text_widget.tag_remove("found", "1.0", tk.END)
+        self.text_widget.tag_remove("current_match", "1.0", tk.END)
+        
+        # 销毁对话框
+        self.dialog.destroy()
