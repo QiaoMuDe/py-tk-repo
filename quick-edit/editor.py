@@ -394,6 +394,12 @@ class AdvancedTextEditor:
         )
         edit_menu.add_separator()
         edit_menu.add_command(
+            label="向上翻页", command=self.page_up, accelerator="PgUp"
+        )
+        edit_menu.add_command(
+            label="向下翻页", command=self.page_down, accelerator="PgDn"
+        )
+        edit_menu.add_command(
             label="转到文件顶部", command=self.go_to_home, accelerator="Ctrl+Home"
         )
         edit_menu.add_command(
@@ -790,6 +796,9 @@ class AdvancedTextEditor:
         self.root.bind("<Control-End>", lambda e: self.go_to_end())
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
+        # 绑定PgUp和PgDn键用于页面滚动
+        self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
+        self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
 
     def load_config(self):
         """加载配置文件"""
@@ -1660,6 +1669,18 @@ class AdvancedTextEditor:
         """转到文件顶部"""
         self.text_area.see("1.0")
         self.text_area.mark_set(tk.INSERT, "1.0")
+        self.text_area.focus_set()
+        self.update_statusbar()
+
+    def page_up(self):
+        """向上翻页"""
+        self.text_area.yview_scroll(-1, "pages")
+        self.text_area.focus_set()
+        self.update_statusbar()
+
+    def page_down(self):
+        """向下翻页"""
+        self.text_area.yview_scroll(1, "pages")
         self.text_area.focus_set()
         self.update_statusbar()
 
