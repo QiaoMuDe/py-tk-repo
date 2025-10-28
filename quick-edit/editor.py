@@ -415,6 +415,8 @@ class AdvancedTextEditor:
         theme_menu.add_command(label="字体", command=self.choose_font)
         theme_menu.add_command(label="字体大小", command=self.choose_font_size)
         theme_menu.add_separator()
+        theme_menu.add_command(label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T")
+        theme_menu.add_separator()
         theme_menu.add_checkbutton(
             label="粗体",
             command=self.toggle_bold,
@@ -525,6 +527,36 @@ class AdvancedTextEditor:
         self.current_theme = theme_name
         # 保存主题配置
         self.save_config()
+
+    def cycle_theme(self):
+        """循环切换主题"""
+        # 定义主题列表，保持与菜单中一致的顺序
+        themes = [
+            "light",
+            "dark",
+            "blue",
+            "parchment",
+            "green",
+            "midnight_purple",
+            "sunset",
+        ]
+        
+        # 找到当前主题在列表中的位置
+        try:
+            current_index = themes.index(self.current_theme)
+            # 计算下一个主题的索引
+            next_index = (current_index + 1) % len(themes)
+            next_theme = themes[next_index]
+        except ValueError:
+            # 如果当前主题不在列表中，切换到第一个主题
+            next_theme = themes[0]
+        
+        # 切换到下一个主题
+        self.change_theme(next_theme)
+        
+        # 在状态栏显示切换信息
+        theme_name = self.theme_manager.THEMES[next_theme].get("name", next_theme)
+        self.left_status.config(text=f"主题已切换到: {theme_name}")
 
     def on_text_scroll(self, *args):
         """处理文本区域滚动事件"""
@@ -796,6 +828,7 @@ class AdvancedTextEditor:
         self.root.bind("<Control-End>", lambda e: self.go_to_end())
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
+        self.root.bind("<Control-t>", lambda e: self.cycle_theme())  # 循环切换主题
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
