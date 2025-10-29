@@ -4,6 +4,7 @@ import os
 import datetime
 import sys
 import json
+import shutil
 import chardet
 import tkinterdnd2
 import re
@@ -67,7 +68,7 @@ class AdvancedTextEditor:
         self.auto_save_var = tk.BooleanVar(value=self.auto_save_enabled)  # 自动保存菜单变量
         self.backup_enabled = False  # 默认关闭备份
         self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)  # 备份选项
-        self.save_lock = threading.RLock() # 线程安全锁
+        self.save_lock = threading.RLock()  # 线程安全锁
         self.is_saving = False
 
         # 异步文件读取相关属性
@@ -208,20 +209,29 @@ class AdvancedTextEditor:
         # 停止自动保存计时器
         self.stop_auto_save_timer()
 
+        # 取消正在进行的文件读取操作
+        self.file_read_cancelled = True
+
+        # 只需设置取消标志，daemon线程会在主程序退出时自动终止
+        # 不需要显式等待，因为这可能导致界面响应延迟
+
         # 使用公共方法检查并处理未保存的更改
         continue_operation, saved = self.check_and_handle_unsaved_changes("退出")
-        
+
         if not continue_operation:
             return  # 用户取消操作
-            
+
         # 检查窗口是否仍然存在再决定是否销毁
         if not self.root.winfo_exists():
             return
-            
+
         # 如果启用了备份功能，并且是保存后退出或文件未被修改且有打开的文件，清理备份文件
-        if self.backup_enabled and ((saved and self.current_file) or (self.current_file and not self.text_area.edit_modified())):
+        if self.backup_enabled and (
+            (saved and self.current_file)
+            or (self.current_file and not self.text_area.edit_modified())
+        ):
             self.cleanup_backup()
-            
+
         # 销毁窗口
         self.root.destroy()
 
@@ -546,6 +556,32 @@ class AdvancedTextEditor:
         # 保存配置
         self.save_config()
 
+    def format_auto_save_interval(self, interval):
+        """格式化自动保存间隔显示
+
+        Args:
+            interval: 自动保存间隔（秒）
+
+        Returns:
+            格式化后的间隔字符串（如"5分钟", "1小时30分钟"等）
+        """
+        if interval >= 3600:  # 1小时或以上
+            hours = interval // 3600
+            minutes = (interval % 3600) // 60
+            if minutes == 0:
+                return f"{hours}小时"
+            else:
+                return f"{hours}小时{minutes}分钟"
+        elif interval >= 60:  # 1分钟或以上
+            minutes = interval // 60
+            seconds = interval % 60
+            if seconds == 0:
+                return f"{minutes}分钟"
+            else:
+                return f"{minutes}分钟{seconds}秒"
+        else:  # 秒数
+            return f"{interval}秒"
+
     def toggle_auto_save(self):
         """切换自动保存功能的启用状态"""
         self.auto_save_enabled = self.auto_save_var.get()
@@ -553,18 +589,18 @@ class AdvancedTextEditor:
 
         if self.auto_save_enabled:
             self.start_auto_save_timer()
-            messagebox.showinfo(
-                "自动保存", f"已启用自动保存，间隔为{self.auto_save_interval}秒"
-            )
+            # 使用辅助方法格式化显示
+            display_interval = self.format_auto_save_interval(self.auto_save_interval)
+            messagebox.showinfo("自动保存", f"已启用自动保存，间隔为{display_interval}")
         else:
             self.stop_auto_save_timer()
             messagebox.showinfo("自动保存", "已关闭自动保存")
-            
+
     def toggle_backup(self):
         """切换备份功能的启用状态"""
         self.backup_enabled = self.backup_enabled_var.get()
         self.save_config()
-        
+
         status_text = "已启用副本备份" if self.backup_enabled else "已禁用副本备份"
         self.left_status.config(text=status_text)
 
@@ -650,58 +686,58 @@ class AdvancedTextEditor:
                 """设置滑块值并更新显示"""
                 slider.set(value)
                 update_value_label(value)
-            
+
             # 3秒按钮
             btn_3s = ttk.Button(
-                common_values_frame, 
-                text="3秒", 
+                common_values_frame,
+                text="3秒",
                 style="Small.TButton",
-                command=lambda: set_slider_value(3)
+                command=lambda: set_slider_value(3),
             )
             btn_3s.pack(side=tk.LEFT, padx=(0, 5))
-            
+
             # 5秒按钮
             btn_5s = ttk.Button(
-                common_values_frame, 
-                text="5秒", 
+                common_values_frame,
+                text="5秒",
                 style="Small.TButton",
-                command=lambda: set_slider_value(5)
+                command=lambda: set_slider_value(5),
             )
             btn_5s.pack(side=tk.LEFT, padx=(0, 5))
-            
+
             # 15秒按钮
             btn_15s = ttk.Button(
-                common_values_frame, 
-                text="15秒", 
+                common_values_frame,
+                text="15秒",
                 style="Small.TButton",
-                command=lambda: set_slider_value(15)
+                command=lambda: set_slider_value(15),
             )
             btn_15s.pack(side=tk.LEFT, padx=(0, 5))
-            
+
             # 30秒按钮
             btn_30s = ttk.Button(
-                common_values_frame, 
-                text="30秒", 
+                common_values_frame,
+                text="30秒",
                 style="Small.TButton",
-                command=lambda: set_slider_value(30)
+                command=lambda: set_slider_value(30),
             )
             btn_30s.pack(side=tk.LEFT, padx=(0, 5))
-            
+
             # 5分钟按钮
             btn_5m = ttk.Button(
-                common_values_frame, 
-                text="5分钟", 
+                common_values_frame,
+                text="5分钟",
                 style="Small.TButton",
-                command=lambda: set_slider_value(300)
+                command=lambda: set_slider_value(300),
             )
             btn_5m.pack(side=tk.LEFT, padx=(0, 5))
-            
+
             # 15分钟按钮
             btn_15m = ttk.Button(
-                common_values_frame, 
-                text="15分钟", 
+                common_values_frame,
+                text="15分钟",
                 style="Small.TButton",
-                command=lambda: set_slider_value(900)
+                command=lambda: set_slider_value(900),
             )
             btn_15m.pack(side=tk.LEFT)
 
@@ -764,7 +800,11 @@ class AdvancedTextEditor:
                     self.stop_auto_save_timer()
                     self.start_auto_save_timer()
                 dialog.destroy()
-                messagebox.showinfo("设置成功", f"自动保存间隔已设置为{interval}秒")
+                # 使用辅助方法格式化显示
+                display_interval = self.format_auto_save_interval(interval)
+                messagebox.showinfo(
+                    "设置成功", f"自动保存间隔已设置为{display_interval}"
+                )
 
             ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10)
             ok_button.pack(side=tk.RIGHT, padx=(5, 0))
@@ -1521,17 +1561,17 @@ class AdvancedTextEditor:
 
     def check_and_handle_unsaved_changes(self, operation_type="关闭"):
         """检查并处理未保存的更改
-        
+
         Args:
             operation_type (str): 操作类型，用于在对话框中显示（如"关闭"、"退出"等）
-            
+
         Returns:
             tuple: (是否继续操作, 是否已保存)
         """
         # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
         saved = False
-        
+
         # 情况1: 如果有打开的文件
         if self.current_file:
             # 情况1a: 打开文件且已被修改
@@ -1540,7 +1580,7 @@ class AdvancedTextEditor:
                 message = f"文档已被修改, 是否保存更改？"
                 if operation_type == "退出":
                     message = f"文档已被修改, 是否保存后再{operation_type}？"
-                    
+
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     self.save_file()
@@ -1556,7 +1596,7 @@ class AdvancedTextEditor:
                 message = f"文档有内容, 是否保存？"
                 if operation_type == "退出":
                     message = f"文档有内容, 是否保存后再{operation_type}？"
-                    
+
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     self.save_file()
@@ -1565,18 +1605,18 @@ class AdvancedTextEditor:
                     pass  # 不保存直接继续
                 else:  # 取消
                     return False, False  # 取消操作
-        
+
         return True, saved
-        
+
     # 文件操作方法
     def close_file(self):
         """关闭当前文件"""
         # 使用公共方法检查并处理未保存的更改
         continue_operation, saved = self.check_and_handle_unsaved_changes("关闭")
-        
+
         if not continue_operation:
             return  # 用户取消操作
-        
+
         # 只有在用户选择保存时才清理备份文件
         if saved and self.current_file and self.auto_save_enabled:
             self.cleanup_backup()
@@ -1722,12 +1762,12 @@ class AdvancedTextEditor:
             if os.path.exists(backup_file):
                 # 提示用户是否恢复备份
                 result = messagebox.askyesnocancel(
-                    "发现备份文件", 
+                    "发现备份文件",
                     f"检测到文件 '{os.path.basename(file_path)}' 的备份文件\n"
                     "您想要：\n"
                     "- 是：从备份文件恢复内容\n"
                     "- 否：打开原始文件并删除备份\n"
-                    "- 取消：取消打开文件操作"
+                    "- 取消：取消打开文件操作",
                 )
                 if result is None:  # 取消操作
                     self.current_file = None
@@ -1750,35 +1790,38 @@ class AdvancedTextEditor:
             target=self._async_read_file, args=(file_path,), daemon=True
         )
         self.file_read_thread.start()
-        
+
     def _handle_backup_restore(self):
         """处理备份文件恢复的回调方法"""
         if self.current_file:
             backup_file = self.current_file + ".bak"
             try:
                 # 检测备份文件的编码和换行符
-                encoding, line_ending = self.detect_file_encoding_and_line_ending(backup_file)
-                
+                encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                    backup_file
+                )
+
                 # 读取备份内容
                 with open(backup_file, "r", encoding=encoding) as f:
                     content = f.read()
-                
+
                 # 复用_finish_open_file方法来处理文件内容，避免代码重复
-                self._finish_open_file(self.current_file, content, encoding, line_ending)
-                
+                self._finish_open_file(
+                    self.current_file, content, encoding, line_ending
+                )
+
                 messagebox.showinfo("恢复成功", "已从备份文件恢复内容")
-                
+
                 # 恢复后删除备份文件
                 try:
                     os.remove(backup_file)
                 except Exception as e:
                     print(f"删除备份文件失败: {e}")
-                    
+
             except Exception as e:
                 messagebox.showerror("恢复失败", f"从备份文件恢复时出错: {str(e)}")
                 # 恢复失败后尝试打开原始文件
                 self.open_file(self.current_file)
-                
 
     def _create_progress_window(self):
         """创建文件读取进度窗口"""
@@ -1834,14 +1877,19 @@ class AdvancedTextEditor:
             if file_size > MaxFileSize:
                 formatted_size = format_file_size(file_size)
                 max_size = format_file_size(MaxFileSize)
-                messagebox.showerror(
-                    "文件过大",
-                    f"无法打开文件: {os.path.basename(file_path)}\n"
-                    f"文件大小: {formatted_size}\n"
-                    f"超过最大允许大小: {max_size}\n"
-                    f"请使用其他专业编辑器打开此文件。",
-                )
-                self.root.after(0, self._close_progress_window)
+
+                # 确保在主线程中显示错误消息
+                def show_error():
+                    messagebox.showerror(
+                        "文件过大",
+                        f"无法打开文件: {os.path.basename(file_path)}\n"
+                        f"文件大小: {formatted_size}\n"
+                        f"超过最大允许大小: {max_size}\n"
+                        f"请使用其他专业编辑器打开此文件。",
+                    )
+                    self._close_progress_window()
+
+                self.root.after(0, show_error)
                 return
 
             # 检测文件编码和换行符类型
@@ -1870,6 +1918,10 @@ class AdvancedTextEditor:
             )
         except Exception as e:
             self.root.after(0, self._handle_file_read_error, str(e))
+        finally:
+            # 确保即使发生异常也清理线程引用
+            if hasattr(self, "file_read_thread"):
+                self.file_read_thread = None
 
     def _finish_open_file(self, file_path, content, encoding, line_ending):
         """完成文件打开过程"""
@@ -1895,7 +1947,7 @@ class AdvancedTextEditor:
 
             # 检查是否存在备份文件
             self.check_backup_file()
-            
+
             # 如果启用了备份功能且存在备份文件，删除它
             # 这是处理用户选择"否"选项时的情况
             if self.backup_enabled:
@@ -1978,7 +2030,7 @@ class AdvancedTextEditor:
 
     def save_file(self, silent=False):
         """保存文件
-        
+
         Args:
             silent: 静默模式标志，为True时不显示消息提示，只更新状态栏
         """
@@ -1995,29 +2047,32 @@ class AdvancedTextEditor:
                 messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
             return False
 
-        if self.current_file:
-            try:
-                # 转换换行符格式
-                converted_content = self.convert_line_endings(content, self.line_ending)
-
-                with open(
-                    self.current_file, "w", encoding=self.encoding.lower(), newline=""
-                ) as file:
-                    file.write(converted_content)
-
-                # 在Tkinter事件循环中更新UI, 避免命令冲突
-                self.root.after(10, lambda: self._post_save_operations(self.current_file, silent))
-                return True
-            except Exception as e:
-                if not silent:
-                    messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
-                return False
-        else:
+        # 如果当前文件路径为空, 则调用save_as_file()方法(另存为)
+        if not self.current_file:
             return self.save_as_file()
+
+        #  保存文件 
+        try:
+            # 转换换行符格式
+            converted_content = self.convert_line_endings(content, self.line_ending)
+            with open(
+                self.current_file, "w", encoding=self.encoding.lower(), newline=""
+            ) as file:
+                file.write(converted_content)
+                
+            # 在Tkinter事件循环中更新UI, 避免命令冲突
+            self.root.after(
+                10, lambda: self._post_save_operations(self.current_file, silent)
+            )
+            return True
+        except Exception as e:
+            if not silent:
+                messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+            return False
 
     def _post_save_operations(self, file_path, silent=False):
         """保存文件后的操作
-        
+
         Args:
             file_path: 保存的文件路径
             silent: 静默模式标志
@@ -2049,6 +2104,7 @@ class AdvancedTextEditor:
                 self.auto_save_to_backup()
                 # 重置自动保存计时器，避免刚保存完又触发自动保存
                 self.start_auto_save_timer()
+                
         except Exception as e:
             messagebox.showerror("错误", f"保存后处理时出错: {str(e)}")
 
@@ -2094,7 +2150,7 @@ class AdvancedTextEditor:
             self.auto_save_var.set(self.auto_save_enabled)
         if hasattr(self, "backup_enabled_var"):
             self.backup_enabled_var.set(self.backup_enabled)
-        
+
         # 监听窗口焦点变化，失去焦点时自动保存
         self.root.bind("<FocusOut>", self.on_focus_out)
 
@@ -2132,26 +2188,30 @@ class AdvancedTextEditor:
 
         # 继续下一次自动保存计时
         self.start_auto_save_timer()
-        
+
     def async_auto_save(self):
         """异步执行自动保存操作"""
         # 使用锁确保同一时间只有一个保存操作
         with self.save_lock:
             if self.is_saving:
                 return
-                
+
             self.is_saving = True
             try:
                 # 执行保存操作
                 success = self.save_file(silent=True)
-                
+
                 # 更新UI状态（需要在主线程中执行）
                 if success:
-                    self.root.after(0, lambda: self.update_auto_save_status(True, "自动保存成功"))
+                    self.root.after(
+                        0, lambda: self.update_auto_save_status(True, "自动保存成功")
+                    )
             except Exception as e:
                 print(f"自动保存时出错: {str(e)}")
                 # 在主线程中显示错误
-                self.root.after(0, lambda: self.left_status.config(text=f"自动保存失败: {str(e)}"))
+                self.root.after(
+                    0, lambda: self.left_status.config(text=f"自动保存失败: {str(e)}")
+                )
             finally:
                 self.is_saving = False
 
@@ -2161,30 +2221,21 @@ class AdvancedTextEditor:
             return
 
         try:
-            # 确保current_file是有效的字符串
-            if not isinstance(self.current_file, str) or not self.current_file:
-                raise ValueError("无效的文件路径")
+            # 确保current_file是有效的字符串且文件存在
+            if not isinstance(self.current_file, str) or not self.current_file or not os.path.exists(self.current_file):
+                raise ValueError("无效的文件路径或文件不存在")
 
             # 构建备份文件路径
             backup_file = self.current_file + ".bak"
-            
+
             # 确保备份文件所在目录存在
             backup_dir = os.path.dirname(backup_file)
             if backup_dir and not os.path.exists(backup_dir):
                 os.makedirs(backup_dir, exist_ok=True)
 
-            # 获取当前文本内容
-            content = self.text_area.get("1.0", tk.END)
-
-            # 处理换行符
-            if self.line_ending == "CRLF":
-                content = content.replace("\n", "\r\n")
-            elif self.line_ending == "CR":
-                content = content.replace("\n", "\r")
-
-            # 直接写入备份文件
-            with open(backup_file, "w", encoding=self.encoding, newline="") as f:
-                f.write(content)
+            # 优化：直接复制已保存的文件到备份，避免重复读取和处理内容
+            # 使用shutil.copy2保留文件元数据
+            shutil.copy2(self.current_file, backup_file)
 
             # 更新最后自动保存时间
             self.last_auto_save_time = datetime.datetime.now()
@@ -2192,8 +2243,8 @@ class AdvancedTextEditor:
             # 在主线程更新状态栏
             self.root.after(0, self.update_auto_save_status, True, "自动保存完成")
         except Exception as e:
-            print(f"自动保存失败: {e}")
-            error_msg = f"自动保存失败: {str(e)}"
+            print(f"备份失败: {e}")
+            error_msg = f"备份失败: {str(e)}"
             self.root.after(
                 0,
                 self.update_auto_save_status,
@@ -2208,7 +2259,7 @@ class AdvancedTextEditor:
             # 获取当前主题的背景色，确保与状态栏保持一致
             theme = self.theme_manager.get_current_theme()
             bg_color = theme["statusbar_bg"]
-            
+
             if message:
                 # 根据消息类型使用不同的图标和颜色
                 if success:
@@ -2216,25 +2267,25 @@ class AdvancedTextEditor:
                     color = "green"  # 成功使用绿色
                 else:
                     temp_icon = "!"  # 错误标记
-                    color = "red"   # 错误使用红色
-                
+                    color = "red"  # 错误使用红色
+
                 # 构建临时消息文本
                 temp_text = f"自动保存: {temp_icon} {message}"
                 self.center_status.config(text=temp_text, fg=color, bg=bg_color)
-                
+
                 # 3秒后恢复正常的自动保存状态显示
                 self.root.after(3000, self.reset_center_status)
             else:
                 # 显示默认的自动保存状态
                 self.show_default_auto_save_status()
-        
+
         # 同时移除左侧状态栏中可能存在的自动保存信息（兼容旧版本）
         if hasattr(self, "left_status"):
             current_text = self.left_status.cget("text")
             # 移除左侧状态栏中的自动保存信息
             current_text = re.sub(r" \[自动保存:.*?\]", "", current_text)
             self.left_status.config(text=current_text)
-            
+
     def show_default_auto_save_status(self):
         """显示默认的自动保存状态"""
         if hasattr(self, "center_status"):
@@ -2242,7 +2293,7 @@ class AdvancedTextEditor:
             theme = self.theme_manager.get_current_theme()
             default_color = theme["statusbar_fg"]
             bg_color = theme["statusbar_bg"]
-            
+
             # 为不同状态设置不同的样式和图标
             if self.auto_save_enabled:
                 status_icon = "●"  # 实心圆点表示启用
@@ -2251,15 +2302,25 @@ class AdvancedTextEditor:
                     if self.last_auto_save_time
                     else "从未"
                 )
-                # 使用简洁的格式显示自动保存状态
-                auto_save_info = f"自动保存: {status_icon} {time_str}"
+
+                # 使用辅助方法格式化显示
+                display_interval = self.format_auto_save_interval(
+                    self.auto_save_interval
+                )
+
+                # 使用简洁的格式显示自动保存状态，包含间隔信息
+                auto_save_info = (
+                    f"自动保存: {status_icon} {time_str} (间隔{display_interval})"
+                )
             else:
                 status_icon = "○"  # 空心圆点表示禁用
                 auto_save_info = f"自动保存: {status_icon} 已禁用"
-            
+
             # 更新居中状态栏，同时设置前景色和背景色
-            self.center_status.config(text=auto_save_info, fg=default_color, bg=bg_color)
-            
+            self.center_status.config(
+                text=auto_save_info, fg=default_color, bg=bg_color
+            )
+
     def reset_center_status(self):
         """重置居中状态栏到默认状态"""
         self.show_default_auto_save_status()
@@ -2281,7 +2342,7 @@ class AdvancedTextEditor:
     def restore_from_backup(self):
         """从备份文件恢复"""
         # 只有在启用了备份功能时才尝试恢复备份文件
-        if  not self.backup_enabled or not self.current_file:
+        if not self.backup_enabled or not self.current_file:
             return False
 
         backup_file = self.current_file + ".bak"
