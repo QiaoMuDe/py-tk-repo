@@ -2089,9 +2089,11 @@ class AdvancedTextEditor:
 
     def setup_auto_save(self):
         """设置自动保存相关配置"""
-        # 初始化自动保存变量
-        self.auto_save_var = tk.BooleanVar(value=self.auto_save_enabled)
-        self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)
+        # 确保auto_save_var和backup_enabled_var变量已存在且值正确
+        if hasattr(self, "auto_save_var"):
+            self.auto_save_var.set(self.auto_save_enabled)
+        if hasattr(self, "backup_enabled_var"):
+            self.backup_enabled_var.set(self.backup_enabled)
         
         # 监听窗口焦点变化，失去焦点时自动保存
         self.root.bind("<FocusOut>", self.on_focus_out)
