@@ -1518,11 +1518,38 @@ class AdvancedTextEditor:
     def close_file(self):
         """关闭当前文件"""
         # 检查是否有未保存的更改
-        if not self.check_unsaved_changes():
-            return  # 用户取消操作
-
-        # 清理备份文件
-        self.cleanup_backup()
+        content = self.text_area.get(1.0, tk.END).strip()
+        saved = False
+        
+        # 情况1: 如果有打开的文件
+        if self.current_file:
+            # 情况1a: 打开文件且已被修改
+            if content and self.text_area.edit_modified():
+                result = messagebox.askyesnocancel(
+                    "保存确认", "文档已被修改, 是否保存更改？"
+                )
+                if result is True:  # 是, 保存
+                    self.save_file()
+                    saved = True
+                elif result is False:  # 否, 不保存
+                    pass  # 不保存直接继续
+                else:  # 取消
+                    return  # 取消操作
+        else:
+            # 情况2: 没有打开文件 (新建文件或直接输入内容)
+            if content:
+                result = messagebox.askyesnocancel("保存确认", "文档有内容, 是否保存？")
+                if result is True:  # 是, 保存
+                    self.save_file()
+                    saved = True
+                elif result is False:  # 否, 不保存
+                    pass  # 不保存直接继续
+                else:  # 取消
+                    return  # 取消操作
+        
+        # 只有在用户选择保存时才清理备份文件
+        if saved and self.current_file and self.auto_save_enabled:
+            self.cleanup_backup()
 
         # 清空文本区域
         self.text_area.delete(1.0, tk.END)
@@ -1658,6 +1685,30 @@ class AdvancedTextEditor:
             if not file_path:
                 return
 
+        # 检查是否存在备份文件并询问用户
+        self.current_file = file_path  # 临时设置current_file以便检查备份
+        if self.auto_save_enabled:
+            backup_file = file_path + ".bak"
+            if os.path.exists(backup_file):
+                # 提示用户是否恢复备份
+                result = messagebox.askyesnocancel(
+                    "发现备份文件", 
+                    f"检测到文件 '{os.path.basename(file_path)}' 的备份文件\n"
+                    "您想要：\n"
+                    "- 是：从备份文件恢复内容\n"
+                    "- 否：打开原始文件并删除备份\n"
+                    "- 取消：取消打开文件操作"
+                )
+                if result is None:  # 取消操作
+                    self.current_file = None
+                    return
+                elif result is True:  # 从备份恢复
+                    # 先保存当前current_file以便restore_from_backup使用
+                    # 然后在主线程中处理恢复
+                    self.root.after(0, self._handle_backup_restore)
+                    return
+                # 否：继续打开原始文件，并稍后删除备份
+
         # 重置取消标志
         self.file_read_cancelled = False
 
@@ -1669,6 +1720,75 @@ class AdvancedTextEditor:
             target=self._async_read_file, args=(file_path,), daemon=True
         )
         self.file_read_thread.start()
+        
+    def _handle_backup_restore(self):
+        """处理备份文件恢复的回调方法"""
+        if self.current_file:
+            # 先读取备份文件内容
+            backup_file = self.current_file + ".bak"
+            try:
+                # 使用现有的方法检测备份文件的编码和换行符
+                encoding, line_ending = self.detect_file_encoding_and_line_ending(backup_file)
+                self.encoding = encoding
+                
+                # 读取备份内容
+                with open(backup_file, "r", encoding=self.encoding) as f:
+                    content = f.read()
+                
+                # 检测换行符
+                if "\r\n" in content:
+                    self.line_ending = "CRLF"
+                elif "\r" in content:
+                    self.line_ending = "CR"
+                else:
+                    self.line_ending = "LF"
+                
+                # 处理换行符以匹配系统设置
+                if self.line_ending == "LF":
+                    content = content.replace("\r\n", "\n").replace("\r", "\n")
+                elif self.line_ending == "CRLF":
+                    content = (
+                        content.replace("\r\n", "\n")
+                        .replace("\r", "\n")
+                        .replace("\n", "\r\n")
+                    )
+                elif self.line_ending == "CR":
+                    content = (
+                        content.replace("\r\n", "\n")
+                        .replace("\r", "\n")
+                        .replace("\n", "\r")
+                    )
+                
+                # 清空文本区域并插入备份内容
+                self.text_area.delete("1.0", tk.END)
+                self.text_area.insert("1.0", content)
+                
+                # 更新UI
+                self.root.title(f"{os.path.basename(self.current_file)} - 文本编辑器")
+                self.update_line_numbers()
+                self.update_statusbar()
+                
+                # 应用语法高亮
+                _, ext = os.path.splitext(self.current_file)
+                if ext.lower() in [".py", ".pyw"]:
+                    self.apply_syntax_highlighting()
+                
+                # 标记为未修改
+                self.text_area.edit_modified(False)
+                
+                messagebox.showinfo("恢复成功", "已从备份文件恢复内容")
+                
+                # 恢复后删除备份文件
+                try:
+                    os.remove(backup_file)
+                except Exception as e:
+                    print(f"删除备份文件失败: {e}")
+                    
+            except Exception as e:
+                messagebox.showerror("恢复失败", f"从备份文件恢复时出错: {str(e)}")
+                # 恢复失败后尝试打开原始文件
+                self.open_file(self.current_file)
+                
 
     def _create_progress_window(self):
         """创建文件读取进度窗口"""
@@ -1785,6 +1905,16 @@ class AdvancedTextEditor:
 
             # 检查是否存在备份文件
             self.check_backup_file()
+            
+            # 如果启用了自动保存且存在备份文件，删除它
+            # 这是处理用户选择"否"选项时的情况
+            if self.auto_save_enabled:
+                backup_file = file_path + ".bak"
+                if os.path.exists(backup_file):
+                    try:
+                        os.remove(backup_file)
+                    except Exception as e:
+                        print(f"删除备份文件失败: {e}")
 
             # 如果处于只读模式, 设置文本区域为只读
             if self.readonly_mode:
@@ -1999,34 +2129,13 @@ class AdvancedTextEditor:
             if not isinstance(self.current_file, str) or not self.current_file:
                 raise ValueError("无效的文件路径")
 
-            # 确保路径中的目录存在
-            current_dir = os.path.dirname(self.current_file)
-            if current_dir:
-                # 处理可能的编码问题，确保目录存在
-                if not os.path.exists(current_dir):
-                    try:
-                        os.makedirs(current_dir, exist_ok=True)
-                        print(f"成功创建目录: {current_dir}")
-                    except Exception as e:
-                        print(f"创建目录失败: {e}")
-                        # 不抛出异常，尝试使用临时目录作为备选
-                        temp_dir = os.path.join(os.environ.get('TEMP', 'C:\\temp'), 'quick_edit_backup')
-                        os.makedirs(temp_dir, exist_ok=True)
-                        # 使用当前文件名在临时目录创建备份
-                        backup_file = os.path.join(temp_dir, os.path.basename(self.current_file) + ".bak")
-                        print(f"使用临时目录作为备份位置: {backup_file}")
-                    else:
-                        # 构建备份文件路径
-                        backup_file = self.current_file + ".bak"
-                else:
-                    # 构建备份文件路径
-                    backup_file = self.current_file + ".bak"
-            else:
-                # 如果没有目录部分，使用当前工作目录或临时目录
-                temp_dir = os.path.join(os.environ.get('TEMP', 'C:\\temp'), 'quick_edit_backup')
-                os.makedirs(temp_dir, exist_ok=True)
-                backup_file = os.path.join(temp_dir, os.path.basename(self.current_file) + ".bak")
-                print(f"使用临时目录作为备份位置: {backup_file}")
+            # 构建备份文件路径
+            backup_file = self.current_file + ".bak"
+            
+            # 确保备份文件所在目录存在
+            backup_dir = os.path.dirname(backup_file)
+            if backup_dir and not os.path.exists(backup_dir):
+                os.makedirs(backup_dir, exist_ok=True)
 
             # 获取当前文本内容
             content = self.text_area.get("1.0", tk.END)
@@ -2037,34 +2146,9 @@ class AdvancedTextEditor:
             elif self.line_ending == "CR":
                 content = content.replace("\n", "\r")
 
-            # 尝试使用更安全的文件操作方式，避免原子写入的问题
-            try:
-                # 直接写入备份文件
-                with open(backup_file, "w", encoding=self.encoding, newline="") as f:
-                    f.write(content)
-                print(f"成功保存备份文件: {backup_file}")
-            except Exception as e:
-                # 如果直接写入失败，尝试使用临时文件和移动操作
-                temp_backup = backup_file + ".tmp"
-                try:
-                    with open(temp_backup, "w", encoding=self.encoding, newline="") as f:
-                        f.write(content)
-                    
-                    # 使用shutil.move代替os.rename，更健壮
-                    import shutil
-                    # 先检查目标文件是否存在，如果存在尝试删除
-                    if os.path.exists(backup_file):
-                        try:
-                            os.remove(backup_file)
-                        except Exception:
-                            # 如果无法删除，尝试使用shutil.move的覆盖选项
-                            pass
-                    # 使用shutil.move进行移动操作
-                    shutil.move(temp_backup, backup_file)
-                    print(f"成功使用临时文件保存备份: {backup_file}")
-                except Exception as inner_e:
-                    print(f"所有备份方法都失败: {inner_e}")
-                    raise
+            # 直接写入备份文件
+            with open(backup_file, "w", encoding=self.encoding, newline="") as f:
+                f.write(content)
 
             # 更新最后自动保存时间
             self.last_auto_save_time = datetime.datetime.now()
