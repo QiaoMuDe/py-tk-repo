@@ -58,6 +58,15 @@ class AdvancedTextEditor:
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
 
+        # 自动保存相关变量
+        self.auto_save_enabled = False  # 默认关闭自动保存
+        self.auto_save_interval = 5  # 默认自动保存间隔5秒
+        self.auto_save_timer = None  # 自动保存计时器
+        self.last_auto_save_time = None  # 上次自动保存时间
+        self.auto_save_var = tk.BooleanVar(
+            value=self.auto_save_enabled
+        )  # 自动保存菜单变量
+
         # 异步文件读取相关属性
         self.file_read_thread = None
         self.file_read_cancelled = False
@@ -91,6 +100,9 @@ class AdvancedTextEditor:
 
         # 绑定快捷键
         self.bind_shortcuts()
+
+        # 设置自动保存功能
+        self.setup_auto_save()
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
@@ -486,6 +498,17 @@ class AdvancedTextEditor:
             command=self.toggle_syntax_highlighting,
             variable=self.syntax_highlighting_var,
         )
+        # 自动保存设置
+        settings_menu.add_separator()
+        settings_menu.add_checkbutton(
+            label="启用自动保存",
+            command=self.toggle_auto_save,
+            variable=self.auto_save_var,
+        )
+        settings_menu.add_command(
+            label="设置自动保存间隔...",
+            command=self.set_auto_save_interval,
+        )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
@@ -530,8 +553,241 @@ class AdvancedTextEditor:
             # 移除当前文件的语法高亮
             self.remove_syntax_highlighting()
 
-        # 保存语法高亮显示状态到配置文件
+        # 保存配置
         self.save_config()
+
+    def toggle_auto_save(self):
+        """切换自动保存功能的启用状态"""
+        self.auto_save_enabled = self.auto_save_var.get()
+        self.save_config()
+
+        if self.auto_save_enabled:
+            self.start_auto_save_timer()
+            messagebox.showinfo(
+                "自动保存", f"已启用自动保存，间隔为{self.auto_save_interval}秒"
+            )
+        else:
+            self.stop_auto_save_timer()
+            messagebox.showinfo("自动保存", "已关闭自动保存")
+
+    def set_auto_save_interval(self):
+        """设置自动保存间隔"""
+        try:
+            # 创建自定义对话框
+            dialog = tk.Toplevel(self.root)
+            dialog.title("设置自动保存间隔")
+            dialog.geometry("700x300")  # 增加窗口大小以更好地显示所有元素
+            dialog.resizable(False, False)
+            dialog.transient(self.root)
+            dialog.grab_set()
+
+            # 使用用户设置的字体
+            user_font = (self.font_family, 10, "bold")
+            user_font_bold = (self.font_family, 10, "bold")
+            user_font_small = (self.font_family, 10, "bold")
+
+            # 设置对话框样式
+            style = ttk.Style()
+            style.configure("AutoSaveDialog.TLabel", font=user_font)
+            style.configure("CurrentValue.TLabel", font=user_font_bold)
+            style.configure("Small.TButton", font=(self.font_family, 8))
+
+            # 居中显示对话框
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+            y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+            dialog.geometry(f"+{x}+{y}")
+
+            # 创建主框架
+            main_frame = ttk.Frame(dialog, padding="20")
+            main_frame.pack(fill=tk.BOTH, expand=True)
+
+            # 添加说明标签
+            title_label = ttk.Label(
+                main_frame, text="自动保存间隔设置", style="AutoSaveDialog.TLabel"
+            )
+            title_label.pack(pady=(0, 15))
+
+            # 添加说明标签
+            desc_label = ttk.Label(main_frame, text="请选择自动保存间隔时间:")
+            desc_label.pack(pady=(0, 10))
+
+            # 创建滑块框架
+            slider_frame = ttk.Frame(main_frame)
+            slider_frame.pack(fill=tk.X, pady=(0, 15))
+
+            # 当前值显示
+            current_value_label = ttk.Label(
+                slider_frame,
+                text=f"当前值: {self.auto_save_interval}秒({self.auto_save_interval}秒)",
+                style="CurrentValue.TLabel",
+            )
+            current_value_label.pack(pady=(0, 10))
+
+            # 滑块组件
+            slider = ttk.Scale(
+                slider_frame,
+                from_=3,  # 最小值3秒
+                to=3600,  # 最大值3600秒（1小时）
+                orient=tk.HORIZONTAL,
+                length=500,  # 增加滑块长度
+                value=self.auto_save_interval,
+            )
+            slider.pack(pady=(0, 5))
+
+            # 数值显示框架
+            value_frame = ttk.Frame(slider_frame)
+            value_frame.pack(fill=tk.X, pady=(10, 0))
+
+            # 最小值标签
+            min_label = ttk.Label(value_frame, text="3秒", foreground="gray")
+            min_label.pack(side=tk.LEFT)
+
+            # 常用值按钮框架
+            common_values_frame = ttk.Frame(value_frame)
+            common_values_frame.pack(side=tk.LEFT, padx=(20, 0))
+
+            # 添加常用值按钮
+            def set_slider_value(value):
+                """设置滑块值并更新显示"""
+                slider.set(value)
+                update_value_label(value)
+            
+            # 3秒按钮
+            btn_3s = ttk.Button(
+                common_values_frame, 
+                text="3秒", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(3)
+            )
+            btn_3s.pack(side=tk.LEFT, padx=(0, 5))
+            
+            # 5秒按钮
+            btn_5s = ttk.Button(
+                common_values_frame, 
+                text="5秒", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(5)
+            )
+            btn_5s.pack(side=tk.LEFT, padx=(0, 5))
+            
+            # 15秒按钮
+            btn_15s = ttk.Button(
+                common_values_frame, 
+                text="15秒", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(15)
+            )
+            btn_15s.pack(side=tk.LEFT, padx=(0, 5))
+            
+            # 30秒按钮
+            btn_30s = ttk.Button(
+                common_values_frame, 
+                text="30秒", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(30)
+            )
+            btn_30s.pack(side=tk.LEFT, padx=(0, 5))
+            
+            # 5分钟按钮
+            btn_5m = ttk.Button(
+                common_values_frame, 
+                text="5分钟", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(300)
+            )
+            btn_5m.pack(side=tk.LEFT, padx=(0, 5))
+            
+            # 15分钟按钮
+            btn_15m = ttk.Button(
+                common_values_frame, 
+                text="15分钟", 
+                style="Small.TButton",
+                command=lambda: set_slider_value(900)
+            )
+            btn_15m.pack(side=tk.LEFT)
+
+            # 最大值标签
+            max_label = ttk.Label(value_frame, text="60分钟", foreground="gray")
+            max_label.pack(side=tk.RIGHT)
+
+            # 实时更新当前值显示
+            def update_value_label(val):
+                # 将浮点数转换为整数
+                val = int(float(val))
+                display_val = val
+
+                # 根据数值大小调整显示单位
+                if val >= 3600:  # 1小时或以上
+                    hours = val // 3600
+                    minutes = (val % 3600) // 60
+                    if minutes == 0:
+                        display_val = f"{hours}小时"
+                    else:
+                        display_val = f"{hours}小时{minutes}分钟"
+                elif val >= 60:  # 1分钟或以上
+                    minutes = val // 60
+                    seconds = val % 60
+                    if seconds == 0:
+                        display_val = f"{minutes}分钟"
+                    else:
+                        display_val = f"{minutes}分钟{seconds}秒"
+                else:  # 秒数
+                    display_val = f"{val}秒"
+
+                current_value_label.config(text=f"当前值: {display_val}({val}秒)")
+
+            # 绑定滑块事件
+            slider.configure(command=update_value_label)
+
+            # 按钮框架
+            button_frame = ttk.Frame(main_frame)
+            button_frame.pack(fill=tk.X, pady=(10, 0))
+
+            # 添加提示信息
+            info_label = ttk.Label(
+                button_frame,
+                text="提示: 值越小保存越频繁，可能影响编辑器性能",
+                font=user_font_small,
+                foreground="gray",
+            )
+            info_label.pack(side=tk.LEFT, pady=(0, 5))
+
+            # 按钮子框架
+            buttons_frame = ttk.Frame(button_frame)
+            buttons_frame.pack(side=tk.RIGHT)
+
+            # 确定按钮
+            def on_ok():
+                interval = int(slider.get())
+                self.auto_save_interval = interval
+                self.save_config()
+                if self.auto_save_enabled:
+                    self.stop_auto_save_timer()
+                    self.start_auto_save_timer()
+                dialog.destroy()
+                messagebox.showinfo("设置成功", f"自动保存间隔已设置为{interval}秒")
+
+            ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10)
+            ok_button.pack(side=tk.RIGHT, padx=(5, 0))
+
+            # 取消按钮
+            def on_cancel():
+                dialog.destroy()
+
+            cancel_button = ttk.Button(
+                buttons_frame, text="取消", command=on_cancel, width=10
+            )
+            cancel_button.pack(side=tk.RIGHT)
+
+            # 初始化显示
+            update_value_label(self.auto_save_interval)
+
+            # 等待对话框关闭
+            dialog.wait_window()
+
+        except Exception as e:
+            messagebox.showerror("错误", f"设置自动保存间隔时出错: {str(e)}")
 
     def change_theme(self, theme_name):
         """切换主题"""
@@ -894,6 +1150,9 @@ class AdvancedTextEditor:
                     )
                     # 加载主题配置
                     self.current_theme = config.get("current_theme", "light")
+                    # 加载自动保存配置
+                    self.auto_save_enabled = config.get("auto_save_enabled", False)
+                    self.auto_save_interval = config.get("auto_save_interval", 5)
 
                 # 同步更新字体样式变量的状态
                 if hasattr(self, "bold_var"):
@@ -921,6 +1180,8 @@ class AdvancedTextEditor:
             "show_line_numbers": self.show_line_numbers,
             "syntax_highlighting_enabled": self.syntax_highlighting_enabled,
             "current_theme": self.current_theme,
+            "auto_save_enabled": self.auto_save_enabled,
+            "auto_save_interval": self.auto_save_interval,
         }
 
         config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
@@ -1495,6 +1756,9 @@ class AdvancedTextEditor:
             self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
             self.text_area.edit_modified(False)  # 重置修改标志
 
+            # 检查是否存在备份文件
+            self.check_backup_file()
+
             # 如果处于只读模式, 设置文本区域为只读
             if self.readonly_mode:
                 self.text_area.config(state=tk.DISABLED)
@@ -1614,6 +1878,10 @@ class AdvancedTextEditor:
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
+
+            # 如果启用了自动保存，同时更新备份文件
+            if self.auto_save_enabled and self.current_file:
+                self.auto_save_to_backup()
         except Exception as e:
             messagebox.showerror("错误", f"保存后处理时出错: {str(e)}")
 
@@ -1649,11 +1917,216 @@ class AdvancedTextEditor:
 
                 # 在Tkinter事件循环中更新UI, 避免命令冲突
                 self.root.after(10, self._post_save_operations, file_path)
+
+                # 同时更新备份文件
+                if self.auto_save_enabled:
+                    self.auto_save_to_backup()
             except Exception as e:
                 messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
 
+    def setup_auto_save(self):
+        """设置自动保存功能"""
+        # 监听窗口焦点变化，失去焦点时自动保存
+        self.root.bind("<FocusOut>", self.on_focus_out)
+
+        # 监听文本变化，用于智能保存策略
+        self.text_area.bind("<<Modified>>", self.on_text_modified)
+
+        # 如果配置中启用了自动保存，则启动计时器
+        if self.auto_save_enabled:
+            self.start_auto_save_timer()
+
+    def start_auto_save_timer(self):
+        """启动自动保存计时器"""
+        if self.auto_save_timer:
+            self.root.after_cancel(self.auto_save_timer)
+
+        if self.auto_save_enabled:
+            self.auto_save_timer = self.root.after(
+                self.auto_save_interval * 1000, self.perform_auto_save
+            )
+
+    def stop_auto_save_timer(self):
+        """停止自动保存计时器"""
+        if self.auto_save_timer:
+            self.root.after_cancel(self.auto_save_timer)
+            self.auto_save_timer = None
+
+    def perform_auto_save(self):
+        """执行自动保存操作"""
+        if not self.auto_save_enabled or not self.current_file or self.readonly_mode:
+            return
+
+        # 检查文件是否有修改
+        if self.text_area.edit_modified():
+            # 在后台线程执行保存
+            import threading
+
+            save_thread = threading.Thread(target=self.auto_save_to_backup)
+            save_thread.daemon = True
+            save_thread.start()
+
+        # 重新启动计时器
+        self.start_auto_save_timer()
+
+    def auto_save_to_backup(self):
+        """自动保存到备份文件"""
+        if not self.current_file:
+            return
+
+        backup_file = self.current_file + ".bak"
+
+        try:
+            # 获取当前文本内容
+            content = self.text_area.get("1.0", tk.END)
+
+            # 处理换行符
+            if self.line_ending == "CRLF":
+                content = content.replace("\n", "\r\n")
+            elif self.line_ending == "CR":
+                content = content.replace("\n", "\r")
+
+            # 使用原子写入方式更新备份文件
+            temp_backup = backup_file + ".tmp"
+            with open(temp_backup, "w", encoding=self.encoding, newline="") as f:
+                f.write(content)
+
+            # 原子重命名，确保文件完整性
+            import os
+
+            if os.path.exists(backup_file):
+                os.remove(backup_file)
+            os.rename(temp_backup, backup_file)
+
+            # 更新最后自动保存时间
+            import datetime
+
+            self.last_auto_save_time = datetime.datetime.now()
+
+            # 在主线程更新状态栏
+            self.root.after(0, self.update_auto_save_status, True, "自动保存完成")
+        except Exception as e:
+            print(f"自动保存失败: {e}")
+            self.root.after(
+                0,
+                self.update_auto_save_status,
+                False,
+                f"自动保存失败: {str(e)[:20]}...",
+            )
+
+    def update_auto_save_status(self, success, message):
+        """更新状态栏显示自动保存状态"""
+        import re
+
+        if hasattr(self, "status_var"):
+            current_status = self.status_var.get()
+            # 移除之前的自动保存信息
+            current_status = re.sub(r"\[自动保存:.*?\] ", "", current_status)
+
+            # 添加新的自动保存信息
+            if self.auto_save_enabled:
+                time_str = (
+                    self.last_auto_save_time.strftime("%H:%M:%S")
+                    if self.last_auto_save_time
+                    else "从未"
+                )
+                current_status = f"[自动保存: 已启用 - {time_str}] {current_status}"
+            else:
+                current_status = f"[自动保存: 已禁用] {current_status}"
+
+            self.status_var.set(current_status)
+
+            # 显示临时消息
+            if message:
+                temp_status = f"[自动保存: {message}] {current_status}"
+                self.status_var.set(temp_status)
+                # 3秒后恢复原来的状态
+                self.root.after(3000, lambda: self.status_var.set(current_status))
+
+    def on_focus_out(self, event=None):
+        """窗口失去焦点时触发自动保存"""
+        if self.auto_save_enabled and self.current_file and not self.readonly_mode:
+            self.perform_auto_save()
+
+    def on_text_modified(self, event=None):
+        """文本修改时的处理"""
+        # 重置修改标志
+        self.text_area.edit_modified(False)
+
+    def check_backup_file(self):
+        """检查是否存在备份文件"""
+        if not self.current_file:
+            return False
+
+        import os
+
+        backup_file = self.current_file + ".bak"
+        return os.path.exists(backup_file)
+
+    def restore_from_backup(self):
+        """从备份文件恢复"""
+        if not self.current_file:
+            return False
+
+        import os
+
+        backup_file = self.current_file + ".bak"
+        if not os.path.exists(backup_file):
+            messagebox.showinfo("恢复失败", "没有找到备份文件")
+            return False
+
+        try:
+            # 读取备份文件内容
+            with open(backup_file, "r", encoding=self.encoding) as f:
+                content = f.read()
+
+            # 处理换行符
+            if self.line_ending == "LF":
+                content = content.replace("\r\n", "\n").replace("\r", "\n")
+            elif self.line_ending == "CRLF":
+                content = (
+                    content.replace("\r\n", "\n")
+                    .replace("\r", "\n")
+                    .replace("\n", "\r\n")
+                )
+            elif self.line_ending == "CR":
+                content = (
+                    content.replace("\r\n", "\n")
+                    .replace("\r", "\n")
+                    .replace("\n", "\r")
+                )
+
+            # 清空当前文本并插入备份内容
+            self.text_area.delete("1.0", tk.END)
+            self.text_area.insert("1.0", content)
+
+            # 更新UI
+            self.update_line_numbers()
+            self.update_statusbar()
+
+            messagebox.showinfo("恢复成功", "已从备份文件恢复内容")
+            return True
+        except Exception as e:
+            messagebox.showerror("恢复失败", f"从备份文件恢复时出错: {e}")
+            return False
+
+    def cleanup_backup(self):
+        """清理备份文件（正常退出时）"""
+        if self.current_file:
+            import os
+
+            backup_file = self.current_file + ".bak"
+            if os.path.exists(backup_file):
+                try:
+                    os.remove(backup_file)
+                except Exception as e:
+                    print(f"清理备份文件失败: {e}")
+
     def exit_app(self):
         """退出应用程序"""
+        # 停止自动保存计时器
+        self.stop_auto_save_timer()
+
         # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
 
@@ -1668,12 +2141,17 @@ class AdvancedTextEditor:
                     self.save_file()
                     # 保存后检查窗口是否仍然存在再决定是否销毁
                     if self.root.winfo_exists():
+                        # 如果保存成功，清理备份文件
+                        self.cleanup_backup()
                         self.root.destroy()
                 elif result is False:  # 否, 直接退出
+                    # 不保存直接退出时，保留备份文件（如果有）
                     self.root.destroy()
                 # 如果点击取消, 则不执行任何操作, 继续留在编辑器中
             else:
                 # 情况1b: 打开文件但未被修改, 直接退出
+                # 未修改时清理备份文件
+                self.cleanup_backup()
                 self.root.destroy()
         else:
             # 情况2: 没有打开文件 (新建文件或直接输入内容)
