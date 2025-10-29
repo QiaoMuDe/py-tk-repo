@@ -2145,7 +2145,7 @@ class AdvancedTextEditor:
                 
                 # 更新UI状态（需要在主线程中执行）
                 if success:
-                    self.root.after(0, lambda: self.update_auto_save_status())
+                    self.root.after(0, lambda: self.update_auto_save_status(True, "自动保存成功"))
             except Exception as e:
                 print(f"自动保存时出错: {str(e)}")
                 # 在主线程中显示错误
