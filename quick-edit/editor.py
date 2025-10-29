@@ -19,7 +19,8 @@ from theme_manager import ThemeManager
 from utils import format_file_size, center_window, is_supported_file
 
 # 文件大小限制
-MaxFileSize = 1024 * 1024 * 10
+MaxFileSize = 1024 * 1024 * 10 # 最大文件大小限制
+SmallFileSizeThreshold = 1024 * 100     # 打开文件显示进度条的最低触发大小
 
 # 主窗口-高
 MainWindowHeight = 800
@@ -1757,12 +1758,17 @@ class AdvancedTextEditor:
         # 重置取消标志
         self.file_read_cancelled = False
 
-        # 创建进度窗口
-        self._create_progress_window()
+        # 检查文件大小，如果小于100KB则不显示进度窗口
+        file_size = os.path.getsize(file_path)
+        show_progress = file_size >= SmallFileSizeThreshold
+
+        # 创建进度窗口（仅对大文件）
+        if show_progress:
+            self._create_progress_window()
 
         # 在新线程中读取文件
         self.file_read_thread = threading.Thread(
-            target=self._async_read_file, args=(file_path,), daemon=True
+            target=self._async_read_file, args=(file_path, show_progress), daemon=True
         )
         self.file_read_thread.start()
 
@@ -1846,7 +1852,7 @@ class AdvancedTextEditor:
             self.progress_window.destroy()
         self.progress_window = None
 
-    def _async_read_file(self, file_path):
+    def _async_read_file(self, file_path, show_progress=True):
         """异步读取文件内容"""
         try:
             # 检查文件大小
@@ -1864,7 +1870,8 @@ class AdvancedTextEditor:
                         f"超过最大允许大小: {max_size}\n"
                         f"请使用其他专业编辑器打开此文件。",
                     )
-                    self._close_progress_window()
+                    if show_progress:
+                        self._close_progress_window()
 
                 self.root.after(0, show_error)
                 return
@@ -1884,7 +1891,8 @@ class AdvancedTextEditor:
                     content_chunks.append(chunk)
 
             if self.file_read_cancelled:
-                self.root.after(0, self._close_progress_window)
+                if show_progress:
+                    self.root.after(0, self._close_progress_window)
                 return
 
             content = "".join(content_chunks)
