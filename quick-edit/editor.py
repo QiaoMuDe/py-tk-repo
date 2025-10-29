@@ -36,6 +36,12 @@ SupportedExtensions = [
     ".pyw",
 ]
 
+# 配置文件名
+ConfigFileName = ".quick_edit_config.json"
+
+# 配置文件路径
+ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
+
 
 class AdvancedTextEditor:
     def __init__(self, root):
@@ -1179,10 +1185,9 @@ class AdvancedTextEditor:
 
     def load_config(self):
         """加载配置文件"""
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
-        if os.path.exists(config_file):
+        if os.path.exists(ConfigFilePath):
             try:
-                with open(config_file, "r", encoding="utf-8") as f:
+                with open(ConfigFilePath, "r", encoding="utf-8") as f:
                     config = json.load(f)
                     self.font_family = config.get("font_family", "Arial")
                     self.font_size = config.get("font_size", 12)
@@ -1245,9 +1250,8 @@ class AdvancedTextEditor:
             "backup_enabled": self.backup_enabled,
         }
 
-        config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
         try:
-            with open(config_file, "w", encoding="utf-8") as f:
+            with open(ConfigFilePath, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
         except Exception as e:
             print(f"保存配置文件时出错: {e}")
