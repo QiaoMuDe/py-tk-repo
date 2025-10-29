@@ -19,8 +19,8 @@ from theme_manager import ThemeManager
 from utils import format_file_size, center_window, is_supported_file
 
 # 文件大小限制
-MaxFileSize = 1024 * 1024 * 10 # 最大文件大小限制
-SmallFileSizeThreshold = 1024 * 100     # 打开文件显示进度条的最低触发大小
+MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
+SmallFileSizeThreshold = 1024 * 100  # 打开文件显示进度条的最低触发大小
 
 # 主窗口-高
 MainWindowHeight = 800
@@ -31,25 +31,37 @@ MainWindowWidth = 900
 # 限制撤销操作数量
 MaxUndo = 50
 
-# 支持的文件后缀列表
-SupportedExtensions = [
-    ".py",
-    ".pyw",
-]
-
 # 配置文件名
 ConfigFileName = ".quick_edit_config.json"
 
 # 配置文件路径
 ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 
+# 支持的文件后缀列表
+SupportedExtensions = [
+    ".py",
+    ".pyw",
+]
+
 
 class AdvancedTextEditor:
     def __init__(self, root):
         self.root = root
         self.root.title("QuickEdit")
-        self.root.geometry(f"{MainWindowWidth}x{MainWindowHeight}")
-        center_window(self.root, MainWindowWidth, MainWindowHeight)
+
+        # 初始化配置属性
+        self.max_file_size = MaxFileSize  # 最大文件大小限制
+        self.small_file_size_threshold = (
+            SmallFileSizeThreshold  # 打开文件显示进度条的最低触发大小
+        )
+        self.main_window_height = MainWindowHeight  # 主窗口高度
+        self.main_window_width = MainWindowWidth  # 主窗口宽度
+        self.max_undo = MaxUndo  # 限制撤销操作数量
+        self.config_file_name = ConfigFileName  # 配置文件名
+        self.config_file_path = ConfigFilePath  # 配置文件路径
+
+        self.root.geometry(f"{self.main_window_width}x{self.main_window_height}")
+        center_window(self.root, self.main_window_width, self.main_window_height)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -301,7 +313,7 @@ class AdvancedTextEditor:
             insertbackground="black",
             selectbackground="lightblue",
             selectforeground="black",
-            maxundo=MaxUndo,
+            maxundo=self.max_undo,
         )
 
         # 设置行号区域样式
@@ -601,7 +613,7 @@ class AdvancedTextEditor:
     def open_config_file(self):
         """打开配置文件"""
         # 检查配置文件是否存在
-        if not os.path.exists(ConfigFilePath):
+        if not os.path.exists(self.config_file_path):
             # 如果配置文件不存在，复用save_config方法创建完整的配置文件
             try:
                 self.save_config()
@@ -610,7 +622,7 @@ class AdvancedTextEditor:
                 return
 
         # 调用open_file方法打开配置文件
-        self.open_file(ConfigFilePath)
+        self.open_file(self.config_file_path)
 
     def set_auto_save_interval(self):
         """设置自动保存间隔"""
@@ -1251,9 +1263,9 @@ class AdvancedTextEditor:
 
     def load_config(self):
         """加载配置文件"""
-        if os.path.exists(ConfigFilePath):
+        if os.path.exists(self.config_file_path):
             try:
-                with open(ConfigFilePath, "r", encoding="utf-8") as f:
+                with open(self.config_file_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
                     self.font_family = config.get("font_family", "Arial")
                     self.font_size = config.get("font_size", 12)
@@ -1275,6 +1287,24 @@ class AdvancedTextEditor:
                     self.auto_save_interval = config.get("auto_save_interval", 5)
                     # 加载备份配置
                     self.backup_enabled = config.get("backup_enabled", True)
+                    # 加载新的配置属性
+                    self.max_file_size = config.get("max_file_size", MaxFileSize)
+                    self.small_file_size_threshold = config.get(
+                        "small_file_size_threshold", SmallFileSizeThreshold
+                    )
+                    self.main_window_height = config.get(
+                        "main_window_height", MainWindowHeight
+                    )  # 高度
+                    self.main_window_width = config.get(
+                        "main_window_width", MainWindowWidth
+                    )  # 宽度
+                    self.max_undo = config.get("max_undo", MaxUndo)  # 最大撤销次数
+                    self.config_file_name = config.get(
+                        "config_file_name", ConfigFileName
+                    )
+                    self.config_file_path = config.get(
+                        "config_file_path", ConfigFilePath
+                    )
 
                 # 同步更新字体样式变量的状态
                 if hasattr(self, "bold_var"):
@@ -1314,10 +1344,17 @@ class AdvancedTextEditor:
             "auto_save_enabled": self.auto_save_enabled,
             "auto_save_interval": self.auto_save_interval,
             "backup_enabled": self.backup_enabled,
+            "max_file_size": self.max_file_size,
+            "small_file_size_threshold": self.small_file_size_threshold,
+            "main_window_height": self.main_window_height,
+            "main_window_width": self.main_window_width,
+            "max_undo": self.max_undo,
+            "config_file_name": self.config_file_name,
+            "config_file_path": self.config_file_path,
         }
 
         try:
-            with open(ConfigFilePath, "w", encoding="utf-8") as f:
+            with open(self.config_file_path, "w", encoding="utf-8") as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
         except Exception as e:
             print(f"保存配置文件时出错: {e}")
@@ -1760,7 +1797,7 @@ class AdvancedTextEditor:
 
         # 检查文件大小，如果小于100KB则不显示进度窗口
         file_size = os.path.getsize(file_path)
-        show_progress = file_size >= SmallFileSizeThreshold
+        show_progress = file_size >= self.small_file_size_threshold
 
         # 创建进度窗口（仅对大文件）
         if show_progress:
@@ -1857,9 +1894,9 @@ class AdvancedTextEditor:
         try:
             # 检查文件大小
             file_size = os.path.getsize(file_path)
-            if file_size > MaxFileSize:
+            if file_size > self.max_file_size:
                 formatted_size = format_file_size(file_size)
-                max_size = format_file_size(MaxFileSize)
+                max_size = format_file_size(self.max_file_size)
 
                 # 确保在主线程中显示错误消息
                 def show_error():
