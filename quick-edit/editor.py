@@ -37,6 +37,9 @@ ConfigFileName = ".quick_edit_config.json"
 # 配置文件路径
 ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 
+# 图标文件路径
+IconFilePath = "./icos/QuickEdit.ico"
+
 # 支持的文件后缀列表
 SupportedExtensions = [
     ".py",
@@ -60,8 +63,12 @@ class AdvancedTextEditor:
         self.config_file_name = ConfigFileName  # 配置文件名
         self.config_file_path = ConfigFilePath  # 配置文件路径
 
-        self.root.geometry(f"{self.main_window_width}x{self.main_window_height}")
+        # 设置窗口大小和位置
         center_window(self.root, self.main_window_width, self.main_window_height)
+
+        # 设置窗口图标
+        if os.path.exists(IconFilePath):  # 如果图标文件存在
+            self.root.iconbitmap(IconFilePath)  
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径

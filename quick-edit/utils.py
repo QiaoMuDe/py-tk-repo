@@ -15,8 +15,6 @@ def format_file_size(size_bytes):
 
 def center_window(window, default_width=None, default_height=None):
     """将窗口居中显示"""
-    # 确保窗口已经绘制完成
-    window.update_idletasks()
 
     # 获取窗口的实际宽度和高度
     width = window.winfo_width()
