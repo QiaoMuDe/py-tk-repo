@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog, font
 import os
+import datetime
 import sys
 import json
 import chardet
@@ -1917,10 +1918,6 @@ class AdvancedTextEditor:
 
                 # 在Tkinter事件循环中更新UI, 避免命令冲突
                 self.root.after(10, self._post_save_operations, file_path)
-
-                # 同时更新备份文件
-                if self.auto_save_enabled:
-                    self.auto_save_to_backup()
             except Exception as e:
                 messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
 
@@ -1992,15 +1989,11 @@ class AdvancedTextEditor:
                 f.write(content)
 
             # 原子重命名，确保文件完整性
-            import os
-
             if os.path.exists(backup_file):
                 os.remove(backup_file)
             os.rename(temp_backup, backup_file)
 
             # 更新最后自动保存时间
-            import datetime
-
             self.last_auto_save_time = datetime.datetime.now()
 
             # 在主线程更新状态栏
@@ -2055,20 +2048,18 @@ class AdvancedTextEditor:
 
     def check_backup_file(self):
         """检查是否存在备份文件"""
-        if not self.current_file:
+        # 只有在启用了自动保存功能时才检查备份文件
+        if not self.auto_save_enabled or not self.current_file:
             return False
-
-        import os
 
         backup_file = self.current_file + ".bak"
         return os.path.exists(backup_file)
 
     def restore_from_backup(self):
         """从备份文件恢复"""
-        if not self.current_file:
+        # 只有在启用了自动保存功能时才尝试恢复备份文件
+        if not self.auto_save_enabled or not self.current_file:
             return False
-
-        import os
 
         backup_file = self.current_file + ".bak"
         if not os.path.exists(backup_file):
@@ -2112,15 +2103,16 @@ class AdvancedTextEditor:
 
     def cleanup_backup(self):
         """清理备份文件（正常退出时）"""
-        if self.current_file:
-            import os
+        # 只有在启用了自动保存功能时才清理备份文件
+        if not self.auto_save_enabled or not self.current_file:
+            return
 
-            backup_file = self.current_file + ".bak"
-            if os.path.exists(backup_file):
-                try:
-                    os.remove(backup_file)
-                except Exception as e:
-                    print(f"清理备份文件失败: {e}")
+        backup_file = self.current_file + ".bak"
+        if os.path.exists(backup_file):
+            try:
+                os.remove(backup_file)
+            except Exception as e:
+                print(f"清理备份文件失败: {e}")
 
     def exit_app(self):
         """退出应用程序"""
