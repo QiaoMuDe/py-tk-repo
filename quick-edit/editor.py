@@ -46,7 +46,7 @@ ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 class AdvancedTextEditor:
     def __init__(self, root):
         self.root = root
-        self.root.title("文本编辑器")
+        self.root.title("QuickEdit")
         self.root.geometry(f"{MainWindowWidth}x{MainWindowHeight}")
         center_window(self.root, MainWindowWidth, MainWindowHeight)
 
@@ -71,7 +71,9 @@ class AdvancedTextEditor:
         self.auto_save_interval = 5  # 默认自动保存间隔5秒
         self.auto_save_timer = None  # 自动保存计时器
         self.last_auto_save_time = None  # 上次自动保存时间
-        self.auto_save_var = tk.BooleanVar(value=self.auto_save_enabled)  # 自动保存菜单变量
+        self.auto_save_var = tk.BooleanVar(
+            value=self.auto_save_enabled
+        )  # 自动保存菜单变量
         self.backup_enabled = False  # 默认关闭备份
         self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)  # 备份选项
         self.save_lock = threading.RLock()  # 线程安全锁
@@ -172,43 +174,22 @@ class AdvancedTextEditor:
             # 捕获所有异常但不中断程序
             pass
 
-    def check_unsaved_changes(self):
-        """检查是否有未保存的更改"""
-        # 检查文本框是否有内容
-        content = self.text_area.get(1.0, tk.END).strip()
-
-        # 情况1: 如果有打开的文件
-        if self.current_file:
-            # 情况1a: 打开文件且已被修改
-            if content and self.text_area.edit_modified():
-                result = messagebox.askyesnocancel(
-                    "保存确认", "文档已被修改, 是否保存更改？"
-                )
-                if result is True:  # 是, 保存
-                    self.save_file()
-                    return True  # 继续操作
-                elif result is False:  # 否, 不保存
-                    return True  # 继续操作
-                else:  # 取消
-                    return False  # 取消操作
-            else:
-                # 情况1b: 打开文件但未被修改
-                return True  # 继续操作
-        else:
-            # 情况2: 没有打开文件 (新建文件或直接输入内容)
-            if content:
-                # 情况2a: 有内容
-                result = messagebox.askyesnocancel("保存确认", "文档有内容, 是否保存？")
-                if result is True:  # 是, 保存
-                    self.save_file()
-                    return True  # 继续操作
-                elif result is False:  # 否, 不保存
-                    return True  # 继续操作
-                else:  # 取消
-                    return False  # 取消操作
-            else:
-                # 情况2b: 没有内容
-                return True  # 继续操作
+    def _reset_file_state(self):
+        """重置文件状态的辅助方法，用于close_file和new_file"""
+        # 清空文本区域
+        self.text_area.delete(1.0, tk.END)
+        # 重置文件状态
+        self.current_file = None
+        self.root.title("QuickEdit")
+        # 重置编码和换行符为默认值
+        self.encoding = "UTF-8"
+        self.line_ending = "LF"
+        # 重置修改状态
+        self.text_area.edit_modified(False)
+        # 移除可能存在的语法高亮
+        self.remove_syntax_highlighting()
+        # 更新状态栏
+        self.update_statusbar()
 
     def on_closing(self):
         """处理窗口关闭事件"""
@@ -615,7 +596,7 @@ class AdvancedTextEditor:
 
         status_text = "已启用副本备份" if self.backup_enabled else "已禁用副本备份"
         self.left_status.config(text=status_text)
-    
+
     def open_config_file(self):
         """打开配置文件"""
         # 检查配置文件是否存在
@@ -626,7 +607,7 @@ class AdvancedTextEditor:
             except Exception as e:
                 messagebox.showerror("错误", f"创建配置文件失败: {str(e)}")
                 return
-        
+
         # 调用open_file方法打开配置文件
         self.open_file(ConfigFilePath)
 
@@ -831,7 +812,8 @@ class AdvancedTextEditor:
                 # 使用辅助方法格式化显示
                 display_interval = self.format_auto_save_interval(interval)
                 messagebox.showinfo(
-                    "设置成功", f"自动保存间隔已设置为{display_interval}")
+                    "设置成功", f"自动保存间隔已设置为{display_interval}"
+                )
 
             ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10)
             ok_button.pack(side=tk.RIGHT, padx=(5, 0))
@@ -1646,25 +1628,8 @@ class AdvancedTextEditor:
         if saved and self.current_file and self.auto_save_enabled:
             self.cleanup_backup()
 
-        # 清空文本区域
-        self.text_area.delete(1.0, tk.END)
-
-        # 重置文件状态
-        self.current_file = None
-        self.root.title("文本编辑器")
-
-        # 重置编码和换行符为默认值
-        self.encoding = "UTF-8"
-        self.line_ending = "LF"
-
-        # 重置修改状态
-        self.text_area.edit_modified(False)
-
-        # 移除可能存在的语法高亮
-        self.remove_syntax_highlighting()
-
-        # 更新状态栏
-        self.update_statusbar()
+        # 使用辅助方法重置文件状态
+        self._reset_file_state()
 
         # 显示提示信息
         messagebox.showinfo("文件关闭", "文件已成功关闭")
@@ -1672,25 +1637,17 @@ class AdvancedTextEditor:
     def new_file(self):
         """新建文件"""
         # 检查是否有未保存的更改
-        if not self.check_unsaved_changes():
+        continue_operation, _ = self.check_and_handle_unsaved_changes("新建")
+        if not continue_operation:
             return  # 用户取消操作
 
         # 清理备份文件
         self.cleanup_backup()
 
-        self.text_area.delete(1.0, tk.END)
-        self.current_file = None
-        self.root.title("文本编辑器")
-
-        # 重置编码和换行符为默认值
-        self.encoding = "UTF-8"
-        self.line_ending = "LF"
-
-        # 重置修改状态
-        self.text_area.edit_modified(False)
-
-        # 移除可能存在的语法高亮
-        self.remove_syntax_highlighting()
+        # 使用辅助方法重置文件状态
+        self._reset_file_state()
+        # 移除状态栏更新，因为_reset_file_state已经包含了这一步
+        pass
 
     def detect_file_encoding_and_line_ending(self, file_path):
         """检测文件编码和换行符类型"""
@@ -1766,7 +1723,8 @@ class AdvancedTextEditor:
     def open_file(self, file_path=None):
         """打开文件"""
         # 检查是否有未保存的更改
-        if not self.check_unsaved_changes():
+        continue_operation, _ = self.check_and_handle_unsaved_changes("打开")
+        if not continue_operation:
             return  # 用户取消操作
 
         # 如果没有提供文件路径，则通过对话框选择
@@ -1837,11 +1795,13 @@ class AdvancedTextEditor:
 
                 messagebox.showinfo("恢复成功", "已从备份文件恢复内容")
 
-                # 恢复后删除备份文件
-                try:
-                    os.remove(backup_file)
-                except Exception as e:
-                    print(f"删除备份文件失败: {e}")
+                # 只有在文件存在时才删除
+                if os.path.exists(backup_file):
+                    # 恢复后删除备份文件
+                    try:
+                        os.remove(backup_file)
+                    except Exception as e:
+                        print(f"删除备份文件失败: {e}")
 
             except Exception as e:
                 messagebox.showerror("恢复失败", f"从备份文件恢复时出错: {str(e)}")
@@ -1967,7 +1927,7 @@ class AdvancedTextEditor:
             self.encoding = encoding
             self.line_ending = line_ending  # 更新换行符类型
             self.current_file = file_path  # 更新当前文件路径
-            self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
+            self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
             self.text_area.edit_modified(False)  # 重置修改标志
 
             # 检查是否存在备份文件
@@ -2060,7 +2020,7 @@ class AdvancedTextEditor:
             file_path: 目标文件路径
             content: 要保存的内容
             update_current_file: 是否更新当前文件路径
-        
+
         Returns:
             bool: 保存是否成功
         """
@@ -2071,15 +2031,39 @@ class AdvancedTextEditor:
                 file_path, "w", encoding=self.encoding.lower(), newline=""
             ) as file:
                 file.write(converted_content)
-            
+
             # 如果需要，更新当前文件路径和窗口标题
             if update_current_file:
                 self.current_file = file_path
-                self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
-                
+                self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
+
             return True, None
         except Exception as e:
             return False, str(e)
+
+    def _check_save_conditions(self, silent=False):
+        """检查保存条件的辅助方法
+
+        Args:
+            silent: 静默模式标志
+
+        Returns:
+            tuple: (是否可以保存, 内容)
+        """
+        # 检查是否处于只读模式
+        if self.readonly_mode:
+            if not silent:
+                messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
+            return False, None
+
+        # 检查文本框是否有内容
+        content = self.text_area.get(1.0, tk.END).strip()
+        if not content:
+            if not silent:
+                messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
+            return False, None
+
+        return True, content
 
     def save_file(self, silent=False):
         """保存文件
@@ -2087,17 +2071,9 @@ class AdvancedTextEditor:
         Args:
             silent: 静默模式标志，为True时不显示消息提示，只更新状态栏
         """
-        # 检查是否处于只读模式
-        if self.readonly_mode:
-            if not silent:
-                messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
-            return False
-
-        # 检查文本框是否有内容
-        content = self.text_area.get(1.0, tk.END).strip()
-        if not content:
-            if not silent:
-                messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
+        # 调用辅助方法检查保存条件
+        can_save, content = self._check_save_conditions(silent)
+        if not can_save:
             return False
 
         # 如果当前文件路径为空, 则调用save_as_file()方法(另存为)
@@ -2106,7 +2082,7 @@ class AdvancedTextEditor:
 
         # 调用辅助方法保存文件
         success, error_msg = self._save_content_to_file(self.current_file, content)
-        
+
         if success:
             # 在Tkinter事件循环中更新UI, 避免命令冲突
             self.root.after(
@@ -2152,21 +2128,15 @@ class AdvancedTextEditor:
                 self.auto_save_to_backup()
                 # 重置自动保存计时器，避免刚保存完又触发自动保存
                 self.start_auto_save_timer()
-                
+
         except Exception as e:
             messagebox.showerror("错误", f"保存后处理时出错: {str(e)}")
 
     def save_as_file(self):
         """另存为文件"""
-        # 检查是否处于只读模式
-        if self.readonly_mode:
-            messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
-            return
-
-        # 检查文本框是否有内容
-        content = self.text_area.get(1.0, tk.END).strip()
-        if not content:
-            messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
+        # 调用辅助方法检查保存条件
+        can_save, content = self._check_save_conditions()
+        if not can_save:
             return
 
         file_path = filedialog.asksaveasfilename(
@@ -2176,8 +2146,10 @@ class AdvancedTextEditor:
 
         if file_path:
             # 调用辅助方法保存文件，并更新当前文件路径
-            success, error_msg = self._save_content_to_file(file_path, content, update_current_file=True)
-            
+            success, error_msg = self._save_content_to_file(
+                file_path, content, update_current_file=True
+            )
+
             if success:
                 # 在Tkinter事件循环中更新UI, 避免命令冲突
                 self.root.after(10, self._post_save_operations, file_path)
@@ -2263,7 +2235,11 @@ class AdvancedTextEditor:
 
         try:
             # 确保current_file是有效的字符串且文件存在
-            if not isinstance(self.current_file, str) or not self.current_file or not os.path.exists(self.current_file):
+            if (
+                not isinstance(self.current_file, str)
+                or not self.current_file
+                or not os.path.exists(self.current_file)
+            ):
                 raise ValueError("无效的文件路径或文件不存在")
 
             # 构建备份文件路径
@@ -3016,7 +2992,8 @@ The quick brown fox jumps over the lazy dog.
             files = self.root.tk.splitlist(event.data)
             if files:
                 # 检查是否有未保存的更改
-                if not self.check_unsaved_changes():
+                continue_operation, _ = self.check_and_handle_unsaved_changes("打开")
+                if not continue_operation:
                     return  # 用户取消操作
 
                 # 只处理第一个文件
@@ -3190,7 +3167,7 @@ The quick brown fox jumps over the lazy dog.
     def show_about(self):
         """显示关于信息"""
         messagebox.showinfo(
-            "关于文本编辑器",
+            "关于QuickEdit",
             "功能特点:\n"
             "- 文件操作: 新建、打开、保存、另存为、关闭文件\n"
             "- 编码支持: UTF-8、UTF-16、GBK、GB2312、ASCII、ISO-8859-1\n"
