@@ -1172,9 +1172,15 @@ class AdvancedTextEditor:
                     self.underline_var.set(self.font_underline)
                 if hasattr(self, "overstrike_var"):
                     self.overstrike_var.set(self.font_overstrike)
+                # 同步更新自动保存菜单变量的状态
+                if hasattr(self, "auto_save_var"):
+                    self.auto_save_var.set(self.auto_save_enabled)
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
+        else:
+            # 配置文件不存在，保存默认配置
+            self.save_config()
 
     def save_config(self):
         """保存配置文件"""
