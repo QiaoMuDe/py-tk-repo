@@ -243,7 +243,7 @@ class AdvancedTextEditor:
         # 根据配置决定是否显示行号
         if self.show_line_numbers:
             self.line_numbers.pack(side=tk.LEFT, fill=tk.Y)
-            
+
             # 绑定鼠标事件用于悬停高亮
             self.line_numbers.bind("<Motion>", self.on_line_number_hover)
             self.line_numbers.bind("<Leave>", self.on_line_number_leave)
@@ -288,7 +288,7 @@ class AdvancedTextEditor:
         # 绑定光标移动事件, 用于高亮光标所在行
         self.text_area.bind("<KeyRelease>", self.highlight_cursor_line, add="+")
         self.text_area.bind("<ButtonRelease>", self.highlight_cursor_line, add="+")
-        
+
         # 绑定鼠标右键事件，用于显示上下文菜单
         self.text_area.bind("<Button-3>", self.show_context_menu)
 
@@ -416,14 +416,16 @@ class AdvancedTextEditor:
         theme_menu.add_command(label="字体", command=self.choose_font)
         theme_menu.add_command(label="字体大小", command=self.choose_font_size)
         theme_menu.add_separator()
-        theme_menu.add_command(label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T")
+        theme_menu.add_command(
+            label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T"
+        )
         theme_menu.add_separator()
         # 初始化字体样式变量
         self.bold_var = tk.BooleanVar(value=self.font_bold)
         self.italic_var = tk.BooleanVar(value=self.font_italic)
         self.underline_var = tk.BooleanVar(value=self.font_underline)
         self.overstrike_var = tk.BooleanVar(value=self.font_overstrike)
-        
+
         theme_menu.add_checkbutton(
             label="粗体",
             command=self.toggle_bold,
@@ -552,7 +554,7 @@ class AdvancedTextEditor:
             "midnight_purple",
             "sunset",
         ]
-        
+
         # 找到当前主题在列表中的位置
         try:
             current_index = themes.index(self.current_theme)
@@ -562,10 +564,10 @@ class AdvancedTextEditor:
         except ValueError:
             # 如果当前主题不在列表中，切换到第一个主题
             next_theme = themes[0]
-        
+
         # 切换到下一个主题
         self.change_theme(next_theme)
-        
+
         # 在状态栏显示切换信息
         theme_name = self.theme_manager.THEMES[next_theme].get("name", next_theme)
         self.left_status.config(text=f"主题已切换到: {theme_name}")
@@ -779,30 +781,26 @@ class AdvancedTextEditor:
         paste_btn = ttk.Button(self.toolbar, text="粘贴", command=self.paste_text)
         paste_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(paste_btn)
-        
+
         # 添加分隔线
         sep = ttk.Separator(self.toolbar, orient=tk.VERTICAL)
         sep.pack(side=tk.LEFT, padx=5, fill=tk.Y)
-        
+
         # 字体效果按钮
-        bold_btn = ttk.Button(
-            self.toolbar, text="加粗", command=self.toggle_bold
-        )
+        bold_btn = ttk.Button(self.toolbar, text="加粗", command=self.toggle_bold)
         bold_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(bold_btn)
-        
-        italic_btn = ttk.Button(
-            self.toolbar, text="斜体", command=self.toggle_italic
-        )
+
+        italic_btn = ttk.Button(self.toolbar, text="斜体", command=self.toggle_italic)
         italic_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(italic_btn)
-        
+
         underline_btn = ttk.Button(
             self.toolbar, text="下划线", command=self.toggle_underline
         )
         underline_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(underline_btn)
-        
+
         overstrike_btn = ttk.Button(
             self.toolbar, text="删除线", command=self.toggle_overstrike
         )
@@ -896,15 +894,15 @@ class AdvancedTextEditor:
                     )
                     # 加载主题配置
                     self.current_theme = config.get("current_theme", "light")
-                
+
                 # 同步更新字体样式变量的状态
-                if hasattr(self, 'bold_var'):
+                if hasattr(self, "bold_var"):
                     self.bold_var.set(self.font_bold)
-                if hasattr(self, 'italic_var'):
+                if hasattr(self, "italic_var"):
                     self.italic_var.set(self.font_italic)
-                if hasattr(self, 'underline_var'):
+                if hasattr(self, "underline_var"):
                     self.underline_var.set(self.font_underline)
-                if hasattr(self, 'overstrike_var'):
+                if hasattr(self, "overstrike_var"):
                     self.overstrike_var.set(self.font_overstrike)
 
             except Exception as e:
@@ -942,15 +940,15 @@ class AdvancedTextEditor:
             weight="bold" if self.font_bold else "normal",
             slant="italic" if self.font_italic else "roman",
             underline=self.font_underline,
-            overstrike=self.font_overstrike
+            overstrike=self.font_overstrike,
         )
-        
+
         # 应用字体到文本区域
         self.text_area.config(font=font_config)
-        
+
         # 刷新UI确保样式正确应用
         self.text_area.update_idletasks()
-        
+
         # 更新行号显示
         self.update_line_numbers()
 
@@ -959,11 +957,11 @@ class AdvancedTextEditor:
         try:
             # 移除之前的光标行高亮
             self.text_area.tag_remove("cursor_line", "1.0", tk.END)
-            
+
             # 获取光标当前位置
             cursor_pos = self.text_area.index(tk.INSERT)
             row, col = cursor_pos.split(".")
-            
+
             # 为整行添加高亮标记（从行首到行尾+1字符，确保覆盖整行）
             start_pos = f"{row}.0"
             end_pos = f"{int(row)+1}.0"
@@ -976,11 +974,11 @@ class AdvancedTextEditor:
         """处理行号区域鼠标悬停事件"""
         # 获取鼠标在canvas中的y坐标
         y = event.y
-        
+
         # 获取文本区域中对应y坐标的行号
         text_index = self.text_area.index(f"@0,{y}")
-        hovered_line = text_index.split('.')[0]
-        
+        hovered_line = text_index.split(".")[0]
+
         # 高亮悬停行
         self.highlight_hovered_line(hovered_line)
 
@@ -996,29 +994,34 @@ class AdvancedTextEditor:
         try:
             # 移除之前的悬停行高亮
             self.text_area.tag_remove("hover_line", "1.0", tk.END)
-            
+
             # 移除行号区域之前的高亮矩形
             self.line_numbers.delete("hover_highlight")
-            
+
             # 获取当前主题的悬停行背景色
             theme = self.theme_manager.get_current_theme()
             hover_bg = theme.get("hover_line_bg", "#e0e0e0")
-            
+
             # 获取行号区域的宽度
             line_number_width = self.line_numbers.winfo_width()
-            
+
             # 获取文本区域中该行的位置信息
             dlineinfo = self.text_area.dlineinfo(f"{line_number}.0")
             if dlineinfo:
                 y_pos = dlineinfo[1]  # y坐标
                 line_height = dlineinfo[3]  # 行高
-                
+
                 # 在行号区域绘制高亮矩形（覆盖整行宽度）
                 self.line_numbers.create_rectangle(
-                    0, y_pos, line_number_width, y_pos + line_height,
-                    fill=hover_bg, outline=hover_bg, tags="hover_highlight"
+                    0,
+                    y_pos,
+                    line_number_width,
+                    y_pos + line_height,
+                    fill=hover_bg,
+                    outline=hover_bg,
+                    tags="hover_highlight",
                 )
-            
+
             # 为文本区域整行添加悬停高亮标记
             start_pos = f"{line_number}.0"
             end_pos = f"{line_number}.end"
@@ -1044,7 +1047,7 @@ class AdvancedTextEditor:
                 selected_char_count = len(selected_text)
                 # 计算选中的行数
                 selected_lines = selected_text.count("\n") + 1
-                
+
                 # 提升选择标记的优先级，确保选中内容背景色始终可见
                 self.text_area.tag_raise("sel")
             except tk.TclError:
@@ -1083,7 +1086,7 @@ class AdvancedTextEditor:
 
             # 更新行号显示
             self.update_line_numbers()
-            
+
             # 高亮光标所在行
             self.highlight_cursor_line()
 
@@ -2006,32 +2009,190 @@ The quick brown fox jumps over the lazy dog.
         size_entry.focus_set()
 
     def toggle_bold(self):
-        """切换粗体"""
-        self.font_bold = not self.font_bold
-        self.bold_var.set(self.font_bold)  # 同步更新菜单项状态
-        self.update_font()
-        self.save_config()
+        """切换粗体 - 如果有选中文本则只应用到选中部分，否则更新全局设置"""
+        # 检查是否有选中文本
+        try:
+            selected_text = self.text_area.tag_ranges(tk.SEL)
+            if selected_text:  # 如果有选中文本
+                # 获取选中文本的开始和结束位置
+                start, end = selected_text
+
+                # 获取当前选中区域的字体配置
+                current_tags = self.text_area.tag_names(start)
+
+                # 判断是否已经是粗体
+                is_bold = any(tag.startswith("bold_") for tag in current_tags)
+
+                if is_bold:  # 如果已经是粗体，则移除粗体效果
+                    for tag in current_tags:
+                        if tag.startswith("bold_"):
+                            self.text_area.tag_remove(tag, start, end)
+                else:  # 否则添加粗体效果
+                    # 创建或获取粗体标签
+                    bold_tag = "bold_tag"
+                    if bold_tag not in self.text_area.tag_names():
+                        # 配置粗体标签的字体样式
+                        bold_font = font.Font(
+                            self.text_area, self.text_area.cget("font")
+                        )
+                        bold_font.configure(weight="bold")
+                        self.text_area.tag_configure(bold_tag, font=bold_font)
+
+                    # 应用粗体标签到选中文本
+                    self.text_area.tag_add(bold_tag, start, end)
+            else:  # 如果没有选中文本，更新全局设置
+                self.font_bold = not self.font_bold
+                self.bold_var.set(self.font_bold)  # 同步更新菜单项状态
+                self.update_font()
+                self.save_config()
+        except Exception as e:
+            print(f"应用粗体效果时出错: {e}")
+            # 如果出错，回退到全局设置更新
+            self.font_bold = not self.font_bold
+            self.bold_var.set(self.font_bold)
+            self.update_font()
+            self.save_config()
 
     def toggle_italic(self):
-        """切换斜体"""
-        self.font_italic = not self.font_italic
-        self.italic_var.set(self.font_italic)  # 同步更新菜单项状态
-        self.update_font()
-        self.save_config()
+        """切换斜体 - 如果有选中文本则只应用到选中部分，否则更新全局设置"""
+        # 检查是否有选中文本
+        try:
+            selected_text = self.text_area.tag_ranges(tk.SEL)
+            if selected_text:  # 如果有选中文本
+                # 获取选中文本的开始和结束位置
+                start, end = selected_text
+
+                # 获取当前选中区域的字体配置
+                current_tags = self.text_area.tag_names(start)
+
+                # 判断是否已经是斜体
+                is_italic = any(tag.startswith("italic_") for tag in current_tags)
+
+                if is_italic:  # 如果已经是斜体，则移除斜体效果
+                    for tag in current_tags:
+                        if tag.startswith("italic_"):
+                            self.text_area.tag_remove(tag, start, end)
+                else:  # 否则添加斜体效果
+                    # 创建或获取斜体标签
+                    italic_tag = "italic_tag"
+                    if italic_tag not in self.text_area.tag_names():
+                        # 配置斜体标签的字体样式
+                        italic_font = font.Font(
+                            self.text_area, self.text_area.cget("font")
+                        )
+                        italic_font.configure(slant="italic")
+                        self.text_area.tag_configure(italic_tag, font=italic_font)
+
+                    # 应用斜体标签到选中文本
+                    self.text_area.tag_add(italic_tag, start, end)
+            else:  # 如果没有选中文本，更新全局设置
+                self.font_italic = not self.font_italic
+                self.italic_var.set(self.font_italic)  # 同步更新菜单项状态
+                self.update_font()
+                self.save_config()
+        except Exception as e:
+            print(f"应用斜体效果时出错: {e}")
+            # 如果出错，回退到全局设置更新
+            self.font_italic = not self.font_italic
+            self.italic_var.set(self.font_italic)
+            self.update_font()
+            self.save_config()
 
     def toggle_underline(self):
-        """切换下划线"""
-        self.font_underline = not self.font_underline
-        self.underline_var.set(self.font_underline)  # 同步更新菜单项状态
-        self.update_font()
-        self.save_config()
-        
+        """切换下划线 - 如果有选中文本则只应用到选中部分，否则更新全局设置"""
+        # 检查是否有选中文本
+        try:
+            selected_text = self.text_area.tag_ranges(tk.SEL)
+            if selected_text:  # 如果有选中文本
+                # 获取选中文本的开始和结束位置
+                start, end = selected_text
+
+                # 获取当前选中区域的字体配置
+                current_tags = self.text_area.tag_names(start)
+
+                # 判断是否已经有下划线
+                is_underlined = any(
+                    tag.startswith("underline_") for tag in current_tags
+                )
+
+                if is_underlined:  # 如果已经有下划线，则移除下划线效果
+                    for tag in current_tags:
+                        if tag.startswith("underline_"):
+                            self.text_area.tag_remove(tag, start, end)
+                else:  # 否则添加下划线效果
+                    # 创建或获取下划线标签
+                    underline_tag = "underline_tag"
+                    if underline_tag not in self.text_area.tag_names():
+                        # 配置下划线标签的字体样式
+                        underline_font = font.Font(
+                            self.text_area, self.text_area.cget("font")
+                        )
+                        underline_font.configure(underline=1)
+                        self.text_area.tag_configure(underline_tag, font=underline_font)
+
+                    # 应用下划线标签到选中文本
+                    self.text_area.tag_add(underline_tag, start, end)
+            else:  # 如果没有选中文本，更新全局设置
+                self.font_underline = not self.font_underline
+                self.underline_var.set(self.font_underline)  # 同步更新菜单项状态
+                self.update_font()
+                self.save_config()
+        except Exception as e:
+            print(f"应用下划线效果时出错: {e}")
+            # 如果出错，回退到全局设置更新
+            self.font_underline = not self.font_underline
+            self.underline_var.set(self.font_underline)
+            self.update_font()
+            self.save_config()
+
     def toggle_overstrike(self):
-        """切换删除线"""
-        self.font_overstrike = not self.font_overstrike
-        self.overstrike_var.set(self.font_overstrike)  # 同步更新菜单项状态
-        self.update_font()
-        self.save_config()
+        """切换删除线 - 如果有选中文本则只应用到选中部分，否则更新全局设置"""
+        # 检查是否有选中文本
+        try:
+            selected_text = self.text_area.tag_ranges(tk.SEL)
+            if selected_text:  # 如果有选中文本
+                # 获取选中文本的开始和结束位置
+                start, end = selected_text
+
+                # 获取当前选中区域的字体配置
+                current_tags = self.text_area.tag_names(start)
+
+                # 判断是否已经有删除线
+                is_overstruck = any(
+                    tag.startswith("overstrike_") for tag in current_tags
+                )
+
+                if is_overstruck:  # 如果已经有删除线，则删除删除线效果
+                    for tag in current_tags:
+                        if tag.startswith("overstrike_"):
+                            self.text_area.tag_remove(tag, start, end)
+                else:  # 否则添加删除线效果
+                    # 创建或获取删除线标签
+                    overstrike_tag = "overstrike_tag"
+                    if overstrike_tag not in self.text_area.tag_names():
+                        # 配置删除线标签的字体样式
+                        overstrike_font = font.Font(
+                            self.text_area, self.text_area.cget("font")
+                        )
+                        overstrike_font.configure(overstrike=1)
+                        self.text_area.tag_configure(
+                            overstrike_tag, font=overstrike_font
+                        )
+
+                    # 应用删除线标签到选中文本
+                    self.text_area.tag_add(overstrike_tag, start, end)
+            else:  # 如果没有选中文本，更新全局设置
+                self.font_overstrike = not self.font_overstrike
+                self.overstrike_var.set(self.font_overstrike)  # 同步更新菜单项状态
+                self.update_font()
+                self.save_config()
+        except Exception as e:
+            print(f"应用删除线效果时出错: {e}")
+            # 如果出错，回退到全局设置更新
+            self.font_overstrike = not self.font_overstrike
+            self.overstrike_var.set(self.font_overstrike)
+            self.update_font()
+            self.save_config()
 
     # 帮助方法
     def toggle_toolbar(self):
@@ -2178,7 +2339,7 @@ The quick brown fox jumps over the lazy dog.
         """显示上下文菜单（鼠标右键菜单）"""
         # 创建上下文菜单
         context_menu = tk.Menu(self.root, tearoff=0)
-        
+
         # 添加撤销和重做选项
         context_menu.add_command(
             label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
@@ -2187,7 +2348,7 @@ The quick brown fox jumps over the lazy dog.
             label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
         )
         context_menu.add_separator()
-        
+
         # 添加剪切、复制、粘贴和全选选项
         context_menu.add_command(
             label="剪切", command=self.cut_text, accelerator="Ctrl+X"
@@ -2199,12 +2360,12 @@ The quick brown fox jumps over the lazy dog.
             label="粘贴", command=self.paste_text, accelerator="Ctrl+V"
         )
         context_menu.add_separator()
-        
+
         context_menu.add_command(
             label="全选", command=self.select_all, accelerator="Ctrl+A"
         )
         context_menu.add_separator()
-        
+
         # 添加查找和替换选项
         context_menu.add_command(
             label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
@@ -2213,7 +2374,7 @@ The quick brown fox jumps over the lazy dog.
             label="替换", command=self.replace_text, accelerator="Ctrl+H"
         )
         context_menu.add_separator()
-        
+
         # 添加字体效果选项
         context_menu.add_checkbutton(
             label="粗体", command=self.toggle_bold, variable=self.bold_var
@@ -2227,7 +2388,7 @@ The quick brown fox jumps over the lazy dog.
         context_menu.add_checkbutton(
             label="删除线", command=self.toggle_overstrike, variable=self.overstrike_var
         )
-        
+
         # 在鼠标位置显示菜单
         context_menu.post(event.x_root, event.y_root)
 
