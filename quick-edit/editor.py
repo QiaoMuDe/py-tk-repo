@@ -64,9 +64,11 @@ class AdvancedTextEditor:
         self.auto_save_interval = 5  # 默认自动保存间隔5秒
         self.auto_save_timer = None  # 自动保存计时器
         self.last_auto_save_time = None  # 上次自动保存时间
-        self.auto_save_var = tk.BooleanVar(
-            value=self.auto_save_enabled
-        )  # 自动保存菜单变量
+        self.auto_save_var = tk.BooleanVar(value=self.auto_save_enabled)  # 自动保存菜单变量
+        self.backup_enabled = False  # 默认关闭备份
+        self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)  # 备份选项
+        self.save_lock = threading.RLock() # 线程安全锁
+        self.is_saving = False
 
         # 异步文件读取相关属性
         self.file_read_thread = None
@@ -216,8 +218,8 @@ class AdvancedTextEditor:
         if not self.root.winfo_exists():
             return
             
-        # 如果是保存后退出或文件未被修改且有打开的文件，清理备份文件
-        if (saved and self.current_file) or (self.current_file and not self.text_area.edit_modified()):
+        # 如果启用了备份功能，并且是保存后退出或文件未被修改且有打开的文件，清理备份文件
+        if self.backup_enabled and ((saved and self.current_file) or (self.current_file and not self.text_area.edit_modified())):
             self.cleanup_backup()
             
         # 销毁窗口
@@ -490,6 +492,13 @@ class AdvancedTextEditor:
             label="设置自动保存间隔...",
             command=self.set_auto_save_interval,
         )
+        # 备份选项
+        self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)
+        settings_menu.add_checkbutton(
+            label="开启副本备份",
+            command=self.toggle_backup,
+            variable=self.backup_enabled_var,
+        )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
@@ -550,6 +559,14 @@ class AdvancedTextEditor:
         else:
             self.stop_auto_save_timer()
             messagebox.showinfo("自动保存", "已关闭自动保存")
+            
+    def toggle_backup(self):
+        """切换备份功能的启用状态"""
+        self.backup_enabled = self.backup_enabled_var.get()
+        self.save_config()
+        
+        status_text = "已启用副本备份" if self.backup_enabled else "已禁用副本备份"
+        self.left_status.config(text=status_text)
 
     def set_auto_save_interval(self):
         """设置自动保存间隔"""
@@ -1144,6 +1161,8 @@ class AdvancedTextEditor:
                     # 加载自动保存配置
                     self.auto_save_enabled = config.get("auto_save_enabled", False)
                     self.auto_save_interval = config.get("auto_save_interval", 5)
+                    # 加载备份配置
+                    self.backup_enabled = config.get("backup_enabled", True)
 
                 # 同步更新字体样式变量的状态
                 if hasattr(self, "bold_var"):
@@ -1157,6 +1176,9 @@ class AdvancedTextEditor:
                 # 同步更新自动保存菜单变量的状态
                 if hasattr(self, "auto_save_var"):
                     self.auto_save_var.set(self.auto_save_enabled)
+                # 同步更新备份选项菜单变量的状态
+                if hasattr(self, "backup_enabled_var"):
+                    self.backup_enabled_var.set(self.backup_enabled)
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
@@ -1179,6 +1201,7 @@ class AdvancedTextEditor:
             "current_theme": self.current_theme,
             "auto_save_enabled": self.auto_save_enabled,
             "auto_save_interval": self.auto_save_interval,
+            "backup_enabled": self.backup_enabled,
         }
 
         config_file = os.path.join(os.path.expanduser("~"), ".quick_edit_config.json")
@@ -1694,7 +1717,7 @@ class AdvancedTextEditor:
 
         # 检查是否存在备份文件并询问用户
         self.current_file = file_path  # 临时设置current_file以便检查备份
-        if self.auto_save_enabled:
+        if self.backup_enabled:
             backup_file = file_path + ".bak"
             if os.path.exists(backup_file):
                 # 提示用户是否恢复备份
@@ -1731,57 +1754,17 @@ class AdvancedTextEditor:
     def _handle_backup_restore(self):
         """处理备份文件恢复的回调方法"""
         if self.current_file:
-            # 先读取备份文件内容
             backup_file = self.current_file + ".bak"
             try:
-                # 使用现有的方法检测备份文件的编码和换行符
+                # 检测备份文件的编码和换行符
                 encoding, line_ending = self.detect_file_encoding_and_line_ending(backup_file)
-                self.encoding = encoding
                 
                 # 读取备份内容
-                with open(backup_file, "r", encoding=self.encoding) as f:
+                with open(backup_file, "r", encoding=encoding) as f:
                     content = f.read()
                 
-                # 检测换行符
-                if "\r\n" in content:
-                    self.line_ending = "CRLF"
-                elif "\r" in content:
-                    self.line_ending = "CR"
-                else:
-                    self.line_ending = "LF"
-                
-                # 处理换行符以匹配系统设置
-                if self.line_ending == "LF":
-                    content = content.replace("\r\n", "\n").replace("\r", "\n")
-                elif self.line_ending == "CRLF":
-                    content = (
-                        content.replace("\r\n", "\n")
-                        .replace("\r", "\n")
-                        .replace("\n", "\r\n")
-                    )
-                elif self.line_ending == "CR":
-                    content = (
-                        content.replace("\r\n", "\n")
-                        .replace("\r", "\n")
-                        .replace("\n", "\r")
-                    )
-                
-                # 清空文本区域并插入备份内容
-                self.text_area.delete("1.0", tk.END)
-                self.text_area.insert("1.0", content)
-                
-                # 更新UI
-                self.root.title(f"{os.path.basename(self.current_file)} - 文本编辑器")
-                self.update_line_numbers()
-                self.update_statusbar()
-                
-                # 应用语法高亮
-                _, ext = os.path.splitext(self.current_file)
-                if ext.lower() in [".py", ".pyw"]:
-                    self.apply_syntax_highlighting()
-                
-                # 标记为未修改
-                self.text_area.edit_modified(False)
+                # 复用_finish_open_file方法来处理文件内容，避免代码重复
+                self._finish_open_file(self.current_file, content, encoding, line_ending)
                 
                 messagebox.showinfo("恢复成功", "已从备份文件恢复内容")
                 
@@ -1913,9 +1896,9 @@ class AdvancedTextEditor:
             # 检查是否存在备份文件
             self.check_backup_file()
             
-            # 如果启用了自动保存且存在备份文件，删除它
+            # 如果启用了备份功能且存在备份文件，删除它
             # 这是处理用户选择"否"选项时的情况
-            if self.auto_save_enabled:
+            if self.backup_enabled:
                 backup_file = file_path + ".bak"
                 if os.path.exists(backup_file):
                     try:
@@ -1993,18 +1976,24 @@ class AdvancedTextEditor:
         self._close_progress_window()
         messagebox.showerror("错误", f"无法打开文件: {error_message}")
 
-    def save_file(self):
-        """保存文件"""
+    def save_file(self, silent=False):
+        """保存文件
+        
+        Args:
+            silent: 静默模式标志，为True时不显示消息提示，只更新状态栏
+        """
         # 检查是否处于只读模式
         if self.readonly_mode:
-            messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
-            return
+            if not silent:
+                messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
+            return False
 
         # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
         if not content:
-            messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
-            return
+            if not silent:
+                messagebox.showinfo("提示", "文本框中没有内容, 请先输入内容再保存。")
+            return False
 
         if self.current_file:
             try:
@@ -2017,23 +2006,35 @@ class AdvancedTextEditor:
                     file.write(converted_content)
 
                 # 在Tkinter事件循环中更新UI, 避免命令冲突
-                self.root.after(10, self._post_save_operations, self.current_file)
+                self.root.after(10, lambda: self._post_save_operations(self.current_file, silent))
+                return True
             except Exception as e:
-                messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+                if not silent:
+                    messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+                return False
         else:
-            self.save_as_file()
+            return self.save_as_file()
 
-    def _post_save_operations(self, file_path):
-        """保存文件后的操作"""
+    def _post_save_operations(self, file_path, silent=False):
+        """保存文件后的操作
+        
+        Args:
+            file_path: 保存的文件路径
+            silent: 静默模式标志
+        """
         try:
             # 更新修改状态
             self.text_area.edit_modified(False)
 
             # 显示保存成功消息
-            messagebox.showinfo(
-                "保存成功",
-                f"文件已成功保存！\n编码格式: {self.encoding}\n换行符格式: {self.line_ending}",
-            )
+            if not silent:
+                messagebox.showinfo(
+                    "保存成功",
+                    f"文件已成功保存！\n编码格式: {self.encoding}\n换行符格式: {self.line_ending}",
+                )
+            else:
+                # 静默模式下，只在状态栏显示简短信息
+                self.update_statusbar()
 
             # 检查是否启用了语法高亮并且是Python文件
             if self.syntax_highlighting_enabled and is_supported_file(
@@ -2043,8 +2044,8 @@ class AdvancedTextEditor:
             else:
                 self.remove_syntax_highlighting()
 
-            # 如果启用了自动保存，同时更新备份文件
-            if self.auto_save_enabled and self.current_file:
+            # 如果启用了备份功能，更新备份文件
+            if self.backup_enabled and self.current_file:
                 self.auto_save_to_backup()
                 # 重置自动保存计时器，避免刚保存完又触发自动保存
                 self.start_auto_save_timer()
@@ -2087,7 +2088,11 @@ class AdvancedTextEditor:
                 messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
 
     def setup_auto_save(self):
-        """设置自动保存功能"""
+        """设置自动保存相关配置"""
+        # 初始化自动保存变量
+        self.auto_save_var = tk.BooleanVar(value=self.auto_save_enabled)
+        self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)
+        
         # 监听窗口焦点变化，失去焦点时自动保存
         self.root.bind("<FocusOut>", self.on_focus_out)
 
@@ -2118,17 +2123,39 @@ class AdvancedTextEditor:
 
         # 检查文件是否有修改
         if self.text_area.edit_modified():
-            # 在后台线程执行保存
-            save_thread = threading.Thread(target=self.auto_save_to_backup)
+            # 创建异步线程执行保存
+            save_thread = threading.Thread(target=self.async_auto_save)
             save_thread.daemon = True
             save_thread.start()
 
-        # 重新启动计时器
+        # 继续下一次自动保存计时
         self.start_auto_save_timer()
+        
+    def async_auto_save(self):
+        """异步执行自动保存操作"""
+        # 使用锁确保同一时间只有一个保存操作
+        with self.save_lock:
+            if self.is_saving:
+                return
+                
+            self.is_saving = True
+            try:
+                # 执行保存操作
+                success = self.save_file(silent=True)
+                
+                # 更新UI状态（需要在主线程中执行）
+                if success:
+                    self.root.after(0, lambda: self.update_auto_save_status())
+            except Exception as e:
+                print(f"自动保存时出错: {str(e)}")
+                # 在主线程中显示错误
+                self.root.after(0, lambda: self.left_status.config(text=f"自动保存失败: {str(e)}"))
+            finally:
+                self.is_saving = False
 
     def auto_save_to_backup(self):
-        """自动保存到备份文件"""
-        if not self.current_file:
+        """保存到备份文件"""
+        if not self.current_file or not self.backup_enabled:
             return
 
         try:
@@ -2242,8 +2269,8 @@ class AdvancedTextEditor:
 
     def check_backup_file(self):
         """检查是否存在备份文件"""
-        # 只有在启用了自动保存功能时才检查备份文件
-        if not self.auto_save_enabled or not self.current_file:
+        # 只有在启用了备份功能时才检查备份文件
+        if not self.backup_enabled or not self.current_file:
             return False
 
         backup_file = self.current_file + ".bak"
@@ -2251,8 +2278,8 @@ class AdvancedTextEditor:
 
     def restore_from_backup(self):
         """从备份文件恢复"""
-        # 只有在启用了自动保存功能时才尝试恢复备份文件
-        if not self.auto_save_enabled or not self.current_file:
+        # 只有在启用了备份功能时才尝试恢复备份文件
+        if  not self.backup_enabled or not self.current_file:
             return False
 
         backup_file = self.current_file + ".bak"
@@ -2297,8 +2324,8 @@ class AdvancedTextEditor:
 
     def cleanup_backup(self):
         """清理备份文件（正常退出时）"""
-        # 只有在启用了自动保存功能时才清理备份文件
-        if not self.auto_save_enabled or not self.current_file:
+        # 只有在启用了备份功能时才清理备份文件
+        if not self.backup_enabled or not self.current_file:
             return
 
         backup_file = self.current_file + ".bak"
