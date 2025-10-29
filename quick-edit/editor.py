@@ -28,7 +28,7 @@ MainWindowHeight = 800
 MainWindowWidth = 900
 
 # 限制撤销操作数量
-MaxUndo = 20
+MaxUndo = 50
 
 # 支持的文件后缀列表
 SupportedExtensions = [
@@ -1127,7 +1127,7 @@ class AdvancedTextEditor:
         # 左侧状态信息, 使用主题背景色和前景色
         self.left_status = tk.Label(
             self.statusbar_frame,
-            text="就绪 - 第1行, 第1列",
+            text="就绪 | 第1行 | 第1列",
             anchor=tk.W,
             bg=theme["statusbar_bg"],
             fg=theme["statusbar_fg"],
@@ -1198,14 +1198,14 @@ class AdvancedTextEditor:
 
             if self.text_area.edit_modified():
                 if selected:
-                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
+                    status_text = f"{status_prefix}已修改 | 第{row}行 | 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
                 else:
-                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符"
+                    status_text = f"{status_prefix}已修改 | 第{row}行 | 第{col}列 | {char_count}个字符"
             else:
                 if selected:
-                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
+                    status_text = f"{status_prefix}就绪 | 第{row}行 | 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
                 else:
-                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符"
+                    status_text = f"{status_prefix}就绪 | 第{row}行 | 第{col}列 | {char_count}个字符"
 
             self.left_status.config(text=status_text)
 
@@ -1214,7 +1214,7 @@ class AdvancedTextEditor:
                 file_info = f"{self.encoding} | {self.line_ending}"
                 if self.current_file:
                     file_name = os.path.basename(self.current_file)
-                    right_text = f"{file_name} - {file_info}"
+                    right_text = f"{file_name} | {file_info}"
                 else:
                     right_text = file_info
                 self.right_status.config(text=right_text)
