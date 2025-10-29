@@ -417,20 +417,25 @@ class AdvancedTextEditor:
         theme_menu.add_separator()
         theme_menu.add_command(label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T")
         theme_menu.add_separator()
+        # 初始化字体样式变量
+        self.bold_var = tk.BooleanVar(value=self.font_bold)
+        self.italic_var = tk.BooleanVar(value=self.font_italic)
+        self.underline_var = tk.BooleanVar(value=self.font_underline)
+        
         theme_menu.add_checkbutton(
             label="粗体",
             command=self.toggle_bold,
-            variable=tk.BooleanVar(value=self.font_bold),
+            variable=self.bold_var,
         )
         theme_menu.add_checkbutton(
             label="斜体",
             command=self.toggle_italic,
-            variable=tk.BooleanVar(value=self.font_italic),
+            variable=self.italic_var,
         )
         theme_menu.add_checkbutton(
             label="下划线",
             command=self.toggle_underline,
-            variable=tk.BooleanVar(value=self.font_underline),
+            variable=self.underline_var,
         )
         # 主题选择子菜单
         theme_submenu = tk.Menu(theme_menu, tearoff=0)
@@ -854,6 +859,14 @@ class AdvancedTextEditor:
                     )
                     # 加载主题配置
                     self.current_theme = config.get("current_theme", "light")
+                
+                # 同步更新字体样式变量的状态
+                if hasattr(self, 'bold_var'):
+                    self.bold_var.set(self.font_bold)
+                if hasattr(self, 'italic_var'):
+                    self.italic_var.set(self.font_italic)
+                if hasattr(self, 'underline_var'):
+                    self.underline_var.set(self.font_underline)
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
@@ -881,26 +894,22 @@ class AdvancedTextEditor:
 
     def update_font(self):
         """更新字体设置"""
-        font_style = "normal"
-        if self.font_bold and self.font_italic:
-            font_style = "bold italic"
-        elif self.font_bold:
-            font_style = "bold"
-        elif self.font_italic:
-            font_style = "italic"
-
-        font = (self.font_family, self.font_size, font_style)
-
-        # 为选中文本应用格式, 或者设置全局字体
-        try:
-            self.text_area.tag_add("font", "sel.first", "sel.last")
-            self.text_area.tag_configure(
-                "font", font=font, underline=self.font_underline
-            )
-        except:
-            # 如果没有选中文本, 设置全局字体
-            self.text_area.config(font=font)
-
+        # 使用tkinter的font模块创建字体对象
+        # 创建字体对象，直接设置所有样式属性
+        font_config = font.Font(
+            family=self.font_family,
+            size=self.font_size,
+            weight="bold" if self.font_bold else "normal",
+            slant="italic" if self.font_italic else "roman",
+            underline=self.font_underline
+        )
+        
+        # 应用字体到文本区域
+        self.text_area.config(font=font_config)
+        
+        # 刷新UI确保样式正确应用
+        self.text_area.update_idletasks()
+        
         # 更新行号显示
         self.update_line_numbers()
 
@@ -1958,18 +1967,21 @@ The quick brown fox jumps over the lazy dog.
     def toggle_bold(self):
         """切换粗体"""
         self.font_bold = not self.font_bold
+        self.bold_var.set(self.font_bold)  # 同步更新菜单项状态
         self.update_font()
         self.save_config()
 
     def toggle_italic(self):
         """切换斜体"""
         self.font_italic = not self.font_italic
+        self.italic_var.set(self.font_italic)  # 同步更新菜单项状态
         self.update_font()
         self.save_config()
 
     def toggle_underline(self):
         """切换下划线"""
         self.font_underline = not self.font_underline
+        self.underline_var.set(self.font_underline)  # 同步更新菜单项状态
         self.update_font()
         self.save_config()
 
