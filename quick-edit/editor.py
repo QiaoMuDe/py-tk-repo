@@ -779,6 +779,35 @@ class AdvancedTextEditor:
         paste_btn = ttk.Button(self.toolbar, text="粘贴", command=self.paste_text)
         paste_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(paste_btn)
+        
+        # 添加分隔线
+        sep = ttk.Separator(self.toolbar, orient=tk.VERTICAL)
+        sep.pack(side=tk.LEFT, padx=5, fill=tk.Y)
+        
+        # 字体效果按钮
+        bold_btn = ttk.Button(
+            self.toolbar, text="加粗", command=self.toggle_bold
+        )
+        bold_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(bold_btn)
+        
+        italic_btn = ttk.Button(
+            self.toolbar, text="斜体", command=self.toggle_italic
+        )
+        italic_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(italic_btn)
+        
+        underline_btn = ttk.Button(
+            self.toolbar, text="下划线", command=self.toggle_underline
+        )
+        underline_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(underline_btn)
+        
+        overstrike_btn = ttk.Button(
+            self.toolbar, text="删除线", command=self.toggle_overstrike
+        )
+        overstrike_btn.pack(side=tk.LEFT, padx=2, pady=2)
+        self.toolbar_buttons.append(overstrike_btn)
 
         # 应用当前主题到工具栏按钮
         self.theme_manager.apply_theme()
@@ -2182,6 +2211,21 @@ The quick brown fox jumps over the lazy dog.
         )
         context_menu.add_command(
             label="替换", command=self.replace_text, accelerator="Ctrl+H"
+        )
+        context_menu.add_separator()
+        
+        # 添加字体效果选项
+        context_menu.add_checkbutton(
+            label="粗体", command=self.toggle_bold, variable=self.bold_var
+        )
+        context_menu.add_checkbutton(
+            label="斜体", command=self.toggle_italic, variable=self.italic_var
+        )
+        context_menu.add_checkbutton(
+            label="下划线", command=self.toggle_underline, variable=self.underline_var
+        )
+        context_menu.add_checkbutton(
+            label="删除线", command=self.toggle_overstrike, variable=self.overstrike_var
         )
         
         # 在鼠标位置显示菜单
