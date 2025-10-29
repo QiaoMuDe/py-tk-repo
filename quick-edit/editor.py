@@ -193,7 +193,11 @@ class AdvancedTextEditor:
         self.text_area.delete(1.0, tk.END)
         # 重置文件状态
         self.current_file = None
-        self.root.title("QuickEdit")
+        # 根据只读模式状态设置窗口标题
+        if self.readonly_mode:
+            self.root.title("[只读模式] QuickEdit")
+        else:
+            self.root.title("QuickEdit")
         # 重置编码和换行符为默认值
         self.encoding = "UTF-8"
         self.line_ending = "LF"
@@ -1205,7 +1209,7 @@ class AdvancedTextEditor:
 
             # 构建左侧状态信息
             if self.readonly_mode:
-                status_prefix = "[只读模式] "
+                status_prefix = "只读模式 | "
             else:
                 status_prefix = ""
 
@@ -1648,6 +1652,11 @@ class AdvancedTextEditor:
     # 文件操作方法
     def close_file(self):
         """关闭当前文件"""
+        # 检查是否处于只读模式
+        if self.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，请先关闭只读模式再关闭文件")
+            return
+
         # 使用公共方法检查并处理未保存的更改
         continue_operation, saved = self.check_and_handle_unsaved_changes("关闭")
 
@@ -1964,7 +1973,11 @@ class AdvancedTextEditor:
             self.encoding = encoding
             self.line_ending = line_ending  # 更新换行符类型
             self.current_file = file_path  # 更新当前文件路径
-            self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
+            # 根据只读模式状态设置窗口标题
+            if self.readonly_mode:
+                self.root.title(f"[只读模式] {os.path.basename(file_path)} - QuickEdit")
+            else:
+                self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
             self.text_area.edit_modified(False)  # 重置修改标志
 
             # 检查是否存在备份文件
@@ -2072,7 +2085,11 @@ class AdvancedTextEditor:
             # 如果需要，更新当前文件路径和窗口标题
             if update_current_file:
                 self.current_file = file_path
-                self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
+                # 根据只读模式状态设置窗口标题
+                if self.readonly_mode:
+                    self.root.title(f"[只读模式] {os.path.basename(file_path)} - QuickEdit")
+                else:
+                    self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
 
             return True, None
         except Exception as e:
@@ -3054,6 +3071,19 @@ The quick brown fox jumps over the lazy dog.
             self.text_area.config(state=tk.DISABLED)
         else:
             self.text_area.config(state=tk.NORMAL)
+
+        # 更新窗口标题以显示只读模式状态
+        if self.current_file:
+            file_name = os.path.basename(self.current_file)
+            if self.readonly_mode:
+                self.root.title(f"[只读模式] {file_name} - QuickEdit")
+            else:
+                self.root.title(f"{file_name} - QuickEdit")
+        else:
+            if self.readonly_mode:
+                self.root.title("[只读模式] QuickEdit")
+            else:
+                self.root.title("QuickEdit")
 
         # 更新状态栏提示
         self.update_statusbar()
