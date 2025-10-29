@@ -515,6 +515,12 @@ class AdvancedTextEditor:
             command=self.toggle_backup,
             variable=self.backup_enabled_var,
         )
+        # 查看配置文件选项
+        settings_menu.add_separator()
+        settings_menu.add_command(
+            label="查看配置",
+            command=self.open_config_file,
+        )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
@@ -609,6 +615,20 @@ class AdvancedTextEditor:
 
         status_text = "已启用副本备份" if self.backup_enabled else "已禁用副本备份"
         self.left_status.config(text=status_text)
+    
+    def open_config_file(self):
+        """打开配置文件"""
+        # 检查配置文件是否存在
+        if not os.path.exists(ConfigFilePath):
+            # 如果配置文件不存在，复用save_config方法创建完整的配置文件
+            try:
+                self.save_config()
+            except Exception as e:
+                messagebox.showerror("错误", f"创建配置文件失败: {str(e)}")
+                return
+        
+        # 调用open_file方法打开配置文件
+        self.open_file(ConfigFilePath)
 
     def set_auto_save_interval(self):
         """设置自动保存间隔"""
