@@ -208,6 +208,40 @@ class AdvancedTextEditor:
         # 更新状态栏
         self.update_statusbar()
 
+    def update_title_based_on_content(self):
+        """根据文本框内容更新窗口标题"""
+        # 获取文本框内容
+        content = self.text_area.get("1.0", tk.END + "-1c")
+        
+        # 如果没有打开文件
+        if not self.current_file:
+            # 如果文本框为空，使用程序名称作为标题
+            if not content or content.isspace():
+                if self.readonly_mode:
+                    self.root.title("[只读模式] QuickEdit")
+                else:
+                    self.root.title("QuickEdit")
+            # 如果文本框有内容，显示"未保存 - QuickEdit"
+            else:
+                if self.readonly_mode:
+                    self.root.title("[只读模式] 未保存 - QuickEdit")
+                else:
+                    self.root.title("未保存 - QuickEdit")
+        # 如果已经打开了文件
+        else:
+            file_name = os.path.basename(self.current_file)
+            # 根据只读模式状态和修改状态设置窗口标题
+            if self.readonly_mode:
+                if self.text_area.edit_modified():
+                    self.root.title(f"[只读模式] *{file_name} - QuickEdit")
+                else:
+                    self.root.title(f"[只读模式] {file_name} - QuickEdit")
+            else:
+                if self.text_area.edit_modified():
+                    self.root.title(f"*{file_name} - QuickEdit")
+                else:
+                    self.root.title(f"{file_name} - QuickEdit")
+
     def on_closing(self):
         """处理窗口关闭事件"""
         # 停止自动保存计时器
@@ -605,6 +639,9 @@ class AdvancedTextEditor:
         else:
             self.stop_auto_save_timer()
             messagebox.showinfo("自动保存", "已关闭自动保存")
+        
+        # 更新状态栏显示
+        self.show_default_auto_save_status()
 
     def toggle_backup(self):
         """切换备份功能的启用状态"""
@@ -1184,6 +1221,9 @@ class AdvancedTextEditor:
 
     def update_statusbar(self, event=None):
         """更新状态栏信息"""
+        # 根据文本内容更新窗口标题
+        self.update_title_based_on_content()
+        
         try:
             # 获取光标位置
             cursor_pos = self.text_area.index(tk.INSERT)
@@ -2224,6 +2264,9 @@ class AdvancedTextEditor:
         # 如果配置中启用了自动保存，则启动计时器
         if self.auto_save_enabled:
             self.start_auto_save_timer()
+        
+        # 更新状态栏显示
+        self.show_default_auto_save_status()
 
     def start_auto_save_timer(self):
         """启动自动保存计时器"""
