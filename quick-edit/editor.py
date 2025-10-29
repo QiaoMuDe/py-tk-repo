@@ -1994,9 +1994,40 @@ class AdvancedTextEditor:
         if not self.current_file:
             return
 
-        backup_file = self.current_file + ".bak"
-
         try:
+            # 确保current_file是有效的字符串
+            if not isinstance(self.current_file, str) or not self.current_file:
+                raise ValueError("无效的文件路径")
+
+            # 确保路径中的目录存在
+            current_dir = os.path.dirname(self.current_file)
+            if current_dir:
+                # 处理可能的编码问题，确保目录存在
+                if not os.path.exists(current_dir):
+                    try:
+                        os.makedirs(current_dir, exist_ok=True)
+                        print(f"成功创建目录: {current_dir}")
+                    except Exception as e:
+                        print(f"创建目录失败: {e}")
+                        # 不抛出异常，尝试使用临时目录作为备选
+                        temp_dir = os.path.join(os.environ.get('TEMP', 'C:\\temp'), 'quick_edit_backup')
+                        os.makedirs(temp_dir, exist_ok=True)
+                        # 使用当前文件名在临时目录创建备份
+                        backup_file = os.path.join(temp_dir, os.path.basename(self.current_file) + ".bak")
+                        print(f"使用临时目录作为备份位置: {backup_file}")
+                    else:
+                        # 构建备份文件路径
+                        backup_file = self.current_file + ".bak"
+                else:
+                    # 构建备份文件路径
+                    backup_file = self.current_file + ".bak"
+            else:
+                # 如果没有目录部分，使用当前工作目录或临时目录
+                temp_dir = os.path.join(os.environ.get('TEMP', 'C:\\temp'), 'quick_edit_backup')
+                os.makedirs(temp_dir, exist_ok=True)
+                backup_file = os.path.join(temp_dir, os.path.basename(self.current_file) + ".bak")
+                print(f"使用临时目录作为备份位置: {backup_file}")
+
             # 获取当前文本内容
             content = self.text_area.get("1.0", tk.END)
 
@@ -2006,15 +2037,34 @@ class AdvancedTextEditor:
             elif self.line_ending == "CR":
                 content = content.replace("\n", "\r")
 
-            # 使用原子写入方式更新备份文件
-            temp_backup = backup_file + ".tmp"
-            with open(temp_backup, "w", encoding=self.encoding, newline="") as f:
-                f.write(content)
-
-            # 原子重命名，确保文件完整性
-            if os.path.exists(backup_file):
-                os.remove(backup_file)
-            os.rename(temp_backup, backup_file)
+            # 尝试使用更安全的文件操作方式，避免原子写入的问题
+            try:
+                # 直接写入备份文件
+                with open(backup_file, "w", encoding=self.encoding, newline="") as f:
+                    f.write(content)
+                print(f"成功保存备份文件: {backup_file}")
+            except Exception as e:
+                # 如果直接写入失败，尝试使用临时文件和移动操作
+                temp_backup = backup_file + ".tmp"
+                try:
+                    with open(temp_backup, "w", encoding=self.encoding, newline="") as f:
+                        f.write(content)
+                    
+                    # 使用shutil.move代替os.rename，更健壮
+                    import shutil
+                    # 先检查目标文件是否存在，如果存在尝试删除
+                    if os.path.exists(backup_file):
+                        try:
+                            os.remove(backup_file)
+                        except Exception:
+                            # 如果无法删除，尝试使用shutil.move的覆盖选项
+                            pass
+                    # 使用shutil.move进行移动操作
+                    shutil.move(temp_backup, backup_file)
+                    print(f"成功使用临时文件保存备份: {backup_file}")
+                except Exception as inner_e:
+                    print(f"所有备份方法都失败: {inner_e}")
+                    raise
 
             # 更新最后自动保存时间
             self.last_auto_save_time = datetime.datetime.now()
@@ -2023,11 +2073,12 @@ class AdvancedTextEditor:
             self.root.after(0, self.update_auto_save_status, True, "自动保存完成")
         except Exception as e:
             print(f"自动保存失败: {e}")
+            error_msg = f"自动保存失败: {str(e)}"
             self.root.after(
                 0,
                 self.update_auto_save_status,
                 False,
-                f"自动保存失败: {str(e)[:20]}...",
+                error_msg[:30] + "..." if len(error_msg) > 30 else error_msg,
             )
 
     def update_auto_save_status(self, success, message):
