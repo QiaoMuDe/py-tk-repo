@@ -206,50 +206,22 @@ class AdvancedTextEditor:
         # 停止自动保存计时器
         self.stop_auto_save_timer()
 
-        # 检查文本框是否有内容
-        content = self.text_area.get(1.0, tk.END).strip()
-
-        # 情况1: 如果有打开的文件
-        if self.current_file:
-            # 情况1a: 打开文件且已被修改, 询问用户是否保存
-            if content and self.text_area.edit_modified():
-                result = messagebox.askyesnocancel(
-                    "退出确认", "文档已被修改, 是否保存后再退出？"
-                )
-                if result is True:  # 是, 保存并退出
-                    self.save_file()
-                    # 保存后检查窗口是否仍然存在再决定是否销毁
-                    if self.root.winfo_exists():
-                        # 如果保存成功，清理备份文件
-                        self.cleanup_backup()
-                        self.root.destroy()
-                elif result is False:  # 否, 直接退出
-                    # 不保存直接退出时，保留备份文件（如果有）
-                    self.root.destroy()
-                # 如果点击取消, 则不执行任何操作, 继续留在编辑器中
-            else:
-                # 情况1b: 打开文件但未被修改, 直接退出
-                # 未修改时清理备份文件
-                self.cleanup_backup()
-                self.root.destroy()
-        else:
-            # 情况2: 没有打开文件 (新建文件或直接输入内容)
-            if content:
-                # 情况2a: 有内容, 询问用户是否保存
-                result = messagebox.askyesnocancel(
-                    "退出确认", "文档有内容, 是否保存后再退出？"
-                )
-                if result is True:  # 是, 保存并退出
-                    self.save_file()
-                    # 保存后检查窗口是否仍然存在再决定是否销毁
-                    if self.root.winfo_exists():
-                        self.root.destroy()
-                elif result is False:  # 否, 直接退出
-                    self.root.destroy()
-                # 如果点击取消, 则不执行任何操作, 继续留在编辑器中
-            else:
-                # 情况2b: 没有内容, 直接退出
-                self.root.destroy()
+        # 使用公共方法检查并处理未保存的更改
+        continue_operation, saved = self.check_and_handle_unsaved_changes("退出")
+        
+        if not continue_operation:
+            return  # 用户取消操作
+            
+        # 检查窗口是否仍然存在再决定是否销毁
+        if not self.root.winfo_exists():
+            return
+            
+        # 如果是保存后退出或文件未被修改且有打开的文件，清理备份文件
+        if (saved and self.current_file) or (self.current_file and not self.text_area.edit_modified()):
+            self.cleanup_backup()
+            
+        # 销毁窗口
+        self.root.destroy()
 
     def create_widgets(self):
         """创建主要控件"""
@@ -1096,6 +1068,16 @@ class AdvancedTextEditor:
         )
         self.left_status.pack(side=tk.LEFT, padx=5)
 
+        # 中间自动保存状态标签, 使用主题背景色和前景色
+        self.center_status = tk.Label(
+            self.statusbar_frame,
+            text="",
+            anchor=tk.CENTER,
+            bg=theme["statusbar_bg"],
+            fg=theme["statusbar_fg"],
+        )
+        self.center_status.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
+
         # 右侧状态信息 (编码和换行符类型), 使用主题背景色和前景色
         self.right_status = tk.Label(
             self.statusbar_frame,
@@ -1514,10 +1496,16 @@ class AdvancedTextEditor:
             "换行符切换", f"换行符格式已从 {old_name} 切换为: {new_name}"
         )
 
-    # 文件操作方法
-    def close_file(self):
-        """关闭当前文件"""
-        # 检查是否有未保存的更改
+    def check_and_handle_unsaved_changes(self, operation_type="关闭"):
+        """检查并处理未保存的更改
+        
+        Args:
+            operation_type (str): 操作类型，用于在对话框中显示（如"关闭"、"退出"等）
+            
+        Returns:
+            tuple: (是否继续操作, 是否已保存)
+        """
+        # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
         saved = False
         
@@ -1525,27 +1513,46 @@ class AdvancedTextEditor:
         if self.current_file:
             # 情况1a: 打开文件且已被修改
             if content and self.text_area.edit_modified():
-                result = messagebox.askyesnocancel(
-                    "保存确认", "文档已被修改, 是否保存更改？"
-                )
+                title = f"{operation_type}确认"
+                message = f"文档已被修改, 是否保存更改？"
+                if operation_type == "退出":
+                    message = f"文档已被修改, 是否保存后再{operation_type}？"
+                    
+                result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     self.save_file()
                     saved = True
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
-                    return  # 取消操作
+                    return False, False  # 取消操作
         else:
             # 情况2: 没有打开文件 (新建文件或直接输入内容)
             if content:
-                result = messagebox.askyesnocancel("保存确认", "文档有内容, 是否保存？")
+                title = f"{operation_type}确认"
+                message = f"文档有内容, 是否保存？"
+                if operation_type == "退出":
+                    message = f"文档有内容, 是否保存后再{operation_type}？"
+                    
+                result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     self.save_file()
                     saved = True
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
-                    return  # 取消操作
+                    return False, False  # 取消操作
+        
+        return True, saved
+        
+    # 文件操作方法
+    def close_file(self):
+        """关闭当前文件"""
+        # 使用公共方法检查并处理未保存的更改
+        continue_operation, saved = self.check_and_handle_unsaved_changes("关闭")
+        
+        if not continue_operation:
+            return  # 用户取消操作
         
         # 只有在用户选择保存时才清理备份文件
         if saved and self.current_file and self.auto_save_enabled:
@@ -2167,32 +2174,66 @@ class AdvancedTextEditor:
 
     def update_auto_save_status(self, success, message):
         """更新状态栏显示自动保存状态"""
-        import re
-
-        if hasattr(self, "status_var"):
-            current_status = self.status_var.get()
-            # 移除之前的自动保存信息
-            current_status = re.sub(r"\[自动保存:.*?\] ", "", current_status)
-
-            # 添加新的自动保存信息
+        # 如果有临时消息（如保存完成或失败）
+        if hasattr(self, "center_status"):
+            # 获取当前主题的背景色，确保与状态栏保持一致
+            theme = self.theme_manager.get_current_theme()
+            bg_color = theme["statusbar_bg"]
+            
+            if message:
+                # 根据消息类型使用不同的图标和颜色
+                if success:
+                    temp_icon = "✓"  # 成功标记
+                    color = "green"  # 成功使用绿色
+                else:
+                    temp_icon = "!"  # 错误标记
+                    color = "red"   # 错误使用红色
+                
+                # 构建临时消息文本
+                temp_text = f"自动保存: {temp_icon} {message}"
+                self.center_status.config(text=temp_text, fg=color, bg=bg_color)
+                
+                # 3秒后恢复正常的自动保存状态显示
+                self.root.after(3000, self.reset_center_status)
+            else:
+                # 显示默认的自动保存状态
+                self.show_default_auto_save_status()
+        
+        # 同时移除左侧状态栏中可能存在的自动保存信息（兼容旧版本）
+        if hasattr(self, "left_status"):
+            current_text = self.left_status.cget("text")
+            # 移除左侧状态栏中的自动保存信息
+            current_text = re.sub(r" \[自动保存:.*?\]", "", current_text)
+            self.left_status.config(text=current_text)
+            
+    def show_default_auto_save_status(self):
+        """显示默认的自动保存状态"""
+        if hasattr(self, "center_status"):
+            # 获取当前主题的前景色和背景色，确保与状态栏保持一致
+            theme = self.theme_manager.get_current_theme()
+            default_color = theme["statusbar_fg"]
+            bg_color = theme["statusbar_bg"]
+            
+            # 为不同状态设置不同的样式和图标
             if self.auto_save_enabled:
+                status_icon = "●"  # 实心圆点表示启用
                 time_str = (
                     self.last_auto_save_time.strftime("%H:%M:%S")
                     if self.last_auto_save_time
                     else "从未"
                 )
-                current_status = f"[自动保存: 已启用 - {time_str}] {current_status}"
+                # 使用简洁的格式显示自动保存状态
+                auto_save_info = f"自动保存: {status_icon} {time_str}"
             else:
-                current_status = f"[自动保存: 已禁用] {current_status}"
-
-            self.status_var.set(current_status)
-
-            # 显示临时消息
-            if message:
-                temp_status = f"[自动保存: {message}] {current_status}"
-                self.status_var.set(temp_status)
-                # 3秒后恢复原来的状态
-                self.root.after(3000, lambda: self.status_var.set(current_status))
+                status_icon = "○"  # 空心圆点表示禁用
+                auto_save_info = f"自动保存: {status_icon} 已禁用"
+            
+            # 更新居中状态栏，同时设置前景色和背景色
+            self.center_status.config(text=auto_save_info, fg=default_color, bg=bg_color)
+            
+    def reset_center_status(self):
+        """重置居中状态栏到默认状态"""
+        self.show_default_auto_save_status()
 
     def on_focus_out(self, event=None):
         """窗口失去焦点时触发自动保存"""

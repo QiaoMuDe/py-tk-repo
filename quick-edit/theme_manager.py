@@ -324,3 +324,11 @@ class ThemeManager:
             self.editor.right_status.config(
                 bg=theme["statusbar_bg"], fg=theme["statusbar_fg"]
             )
+        # 应用居中状态栏样式（自动保存状态）
+        if hasattr(self.editor, "center_status"):
+            self.editor.center_status.config(
+                bg=theme["statusbar_bg"], fg=theme["statusbar_fg"]
+            )
+            # 如果编辑器有重置居中状态栏的方法，调用它以确保状态一致
+            if hasattr(self.editor, "reset_center_status"):
+                self.editor.reset_center_status()
