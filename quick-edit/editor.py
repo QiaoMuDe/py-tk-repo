@@ -49,6 +49,7 @@ class AdvancedTextEditor:
         self.font_bold = False  # 默认不加粗
         self.font_italic = False  # 默认不斜体
         self.font_underline = False  # 默认无下划线
+        self.font_overstrike = False  # 默认无删除线
         self.toolbar_visible = True  # 工具栏默认显示
         self.show_line_numbers = True  # 行号显示状态, 默认显示
         self.syntax_highlighting_enabled = True  # 语法高亮显示状态, 默认启用
@@ -421,6 +422,7 @@ class AdvancedTextEditor:
         self.bold_var = tk.BooleanVar(value=self.font_bold)
         self.italic_var = tk.BooleanVar(value=self.font_italic)
         self.underline_var = tk.BooleanVar(value=self.font_underline)
+        self.overstrike_var = tk.BooleanVar(value=self.font_overstrike)
         
         theme_menu.add_checkbutton(
             label="粗体",
@@ -436,6 +438,11 @@ class AdvancedTextEditor:
             label="下划线",
             command=self.toggle_underline,
             variable=self.underline_var,
+        )
+        theme_menu.add_checkbutton(
+            label="删除线",
+            command=self.toggle_overstrike,
+            variable=self.overstrike_var,
         )
         # 主题选择子菜单
         theme_submenu = tk.Menu(theme_menu, tearoff=0)
@@ -850,6 +857,7 @@ class AdvancedTextEditor:
                     self.font_bold = config.get("font_bold", False)
                     self.font_italic = config.get("font_italic", False)
                     self.font_underline = config.get("font_underline", False)
+                    self.font_overstrike = config.get("font_overstrike", False)
                     self.toolbar_visible = config.get("toolbar_visible", True)
                     # 加载行号显示状态
                     self.show_line_numbers = config.get("show_line_numbers", True)
@@ -867,6 +875,8 @@ class AdvancedTextEditor:
                     self.italic_var.set(self.font_italic)
                 if hasattr(self, 'underline_var'):
                     self.underline_var.set(self.font_underline)
+                if hasattr(self, 'overstrike_var'):
+                    self.overstrike_var.set(self.font_overstrike)
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
@@ -879,6 +889,7 @@ class AdvancedTextEditor:
             "font_bold": self.font_bold,
             "font_italic": self.font_italic,
             "font_underline": self.font_underline,
+            "font_overstrike": self.font_overstrike,
             "toolbar_visible": self.toolbar_visible,
             "show_line_numbers": self.show_line_numbers,
             "syntax_highlighting_enabled": self.syntax_highlighting_enabled,
@@ -901,7 +912,8 @@ class AdvancedTextEditor:
             size=self.font_size,
             weight="bold" if self.font_bold else "normal",
             slant="italic" if self.font_italic else "roman",
-            underline=self.font_underline
+            underline=self.font_underline,
+            overstrike=self.font_overstrike
         )
         
         # 应用字体到文本区域
@@ -1982,6 +1994,13 @@ The quick brown fox jumps over the lazy dog.
         """切换下划线"""
         self.font_underline = not self.font_underline
         self.underline_var.set(self.font_underline)  # 同步更新菜单项状态
+        self.update_font()
+        self.save_config()
+        
+    def toggle_overstrike(self):
+        """切换删除线"""
+        self.font_overstrike = not self.font_overstrike
+        self.overstrike_var.set(self.font_overstrike)  # 同步更新菜单项状态
         self.update_font()
         self.save_config()
 
