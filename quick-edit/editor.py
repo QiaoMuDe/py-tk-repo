@@ -1165,6 +1165,69 @@ class AdvancedTextEditor:
         # 绑定选中事件
         self.text_area.bind("<<Selection>>", self.update_statusbar)
 
+    def update_statusbar(self, event=None):
+        """更新状态栏信息"""
+        try:
+            # 获取光标位置
+            cursor_pos = self.text_area.index(tk.INSERT)
+            row, col = cursor_pos.split(".")
+
+            # 获取总字符数
+            char_count = len(self.text_area.get("1.0", tk.END + "-1c"))
+
+            # 检查是否有选中文本
+            try:
+                selected_text = self.text_area.selection_get()
+                selected = True
+                selected_char_count = len(selected_text)
+                # 计算选中的行数
+                selected_lines = selected_text.count("\n") + 1
+
+                # 提升选择标记的优先级，确保选中内容背景色始终可见
+                self.text_area.tag_raise("sel")
+            except tk.TclError:
+                selected = False
+                selected_char_count = 0
+                selected_lines = 0
+
+            # 构建左侧状态信息
+            if self.readonly_mode:
+                status_prefix = "[只读模式] "
+            else:
+                status_prefix = ""
+
+            if self.text_area.edit_modified():
+                if selected:
+                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
+                else:
+                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符"
+            else:
+                if selected:
+                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
+                else:
+                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符"
+
+            self.left_status.config(text=status_text)
+
+            # 更新右侧状态信息 (编码和换行符类型)
+            if hasattr(self, "encoding") and hasattr(self, "line_ending"):
+                file_info = f"{self.encoding} | {self.line_ending}"
+                if self.current_file:
+                    file_name = os.path.basename(self.current_file)
+                    right_text = f"{file_name} - {file_info}"
+                else:
+                    right_text = file_info
+                self.right_status.config(text=right_text)
+
+            # 更新行号显示
+            self.update_line_numbers()
+
+            # 高亮光标所在行
+            self.highlight_cursor_line()
+
+        except Exception as e:
+            self.left_status.config(text="状态更新错误")
+
     def bind_shortcuts(self):
         """绑定快捷键"""
         self.root.bind("<Control-n>", lambda e: self.new_file())
@@ -1357,77 +1420,6 @@ class AdvancedTextEditor:
         except Exception as e:
             # 忽略错误, 保持程序稳定
             pass
-
-    def update_statusbar(self, event=None):
-        """更新状态栏信息"""
-        try:
-            # 获取光标位置
-            cursor_pos = self.text_area.index(tk.INSERT)
-            row, col = cursor_pos.split(".")
-
-            # 获取总字符数
-            char_count = len(self.text_area.get("1.0", tk.END + "-1c"))
-
-            # 检查是否有选中文本
-            try:
-                selected_text = self.text_area.selection_get()
-                selected = True
-                selected_char_count = len(selected_text)
-                # 计算选中的行数
-                selected_lines = selected_text.count("\n") + 1
-
-                # 提升选择标记的优先级，确保选中内容背景色始终可见
-                self.text_area.tag_raise("sel")
-            except tk.TclError:
-                selected = False
-                selected_char_count = 0
-                selected_lines = 0
-
-            # 构建左侧状态信息
-            if self.readonly_mode:
-                status_prefix = "[只读模式] "
-            else:
-                status_prefix = ""
-
-            if self.text_area.edit_modified():
-                if selected:
-                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
-                else:
-                    status_text = f"{status_prefix}已修改 - 第{row}行, 第{col}列 | {char_count}个字符"
-            else:
-                if selected:
-                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符 | 已选择{selected_char_count}个字符({selected_lines}行)"
-                else:
-                    status_text = f"{status_prefix}就绪 - 第{row}行, 第{col}列 | {char_count}个字符"
-
-            self.left_status.config(text=status_text)
-
-            # 更新右侧状态信息 (编码和换行符类型)
-            if hasattr(self, "encoding") and hasattr(self, "line_ending"):
-                file_info = f"{self.encoding} | {self.line_ending}"
-                if self.current_file:
-                    file_name = os.path.basename(self.current_file)
-                    right_text = f"{file_name} - {file_info}"
-                else:
-                    right_text = file_info
-                self.right_status.config(text=right_text)
-
-            # 更新行号显示
-            self.update_line_numbers()
-
-            # 高亮光标所在行
-            self.highlight_cursor_line()
-
-        except Exception as e:
-            self.left_status.config(text="状态更新错误")
-
-    def on_line_ending_click(self, event=None):
-        """处理换行符类型标签左键点击事件"""
-        # 在三种换行符格式之间循环切换
-        new_ending = self.cycle_line_ending()
-
-        # 显示提示信息
-        messagebox.showinfo("换行符切换", f"换行符格式已切换为: {new_ending}")
 
     def on_line_ending_right_click(self, event=None):
         """处理换行符类型标签右键点击事件"""
