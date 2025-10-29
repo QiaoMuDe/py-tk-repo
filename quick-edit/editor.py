@@ -203,6 +203,9 @@ class AdvancedTextEditor:
 
     def on_closing(self):
         """处理窗口关闭事件"""
+        # 停止自动保存计时器
+        self.stop_auto_save_timer()
+
         # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
 
@@ -217,12 +220,17 @@ class AdvancedTextEditor:
                     self.save_file()
                     # 保存后检查窗口是否仍然存在再决定是否销毁
                     if self.root.winfo_exists():
+                        # 如果保存成功，清理备份文件
+                        self.cleanup_backup()
                         self.root.destroy()
                 elif result is False:  # 否, 直接退出
+                    # 不保存直接退出时，保留备份文件（如果有）
                     self.root.destroy()
                 # 如果点击取消, 则不执行任何操作, 继续留在编辑器中
             else:
                 # 情况1b: 打开文件但未被修改, 直接退出
+                # 未修改时清理备份文件
+                self.cleanup_backup()
                 self.root.destroy()
         else:
             # 情况2: 没有打开文件 (新建文件或直接输入内容)
@@ -1507,6 +1515,9 @@ class AdvancedTextEditor:
         if not self.check_unsaved_changes():
             return  # 用户取消操作
 
+        # 清理备份文件
+        self.cleanup_backup()
+
         # 清空文本区域
         self.text_area.delete(1.0, tk.END)
 
@@ -1517,6 +1528,9 @@ class AdvancedTextEditor:
         # 重置编码和换行符为默认值
         self.encoding = "UTF-8"
         self.line_ending = "LF"
+
+        # 重置修改状态
+        self.text_area.edit_modified(False)
 
         # 移除可能存在的语法高亮
         self.remove_syntax_highlighting()
@@ -1533,6 +1547,9 @@ class AdvancedTextEditor:
         if not self.check_unsaved_changes():
             return  # 用户取消操作
 
+        # 清理备份文件
+        self.cleanup_backup()
+
         self.text_area.delete(1.0, tk.END)
         self.current_file = None
         self.root.title("文本编辑器")
@@ -1540,6 +1557,9 @@ class AdvancedTextEditor:
         # 重置编码和换行符为默认值
         self.encoding = "UTF-8"
         self.line_ending = "LF"
+
+        # 重置修改状态
+        self.text_area.edit_modified(False)
 
         # 移除可能存在的语法高亮
         self.remove_syntax_highlighting()
@@ -1883,6 +1903,8 @@ class AdvancedTextEditor:
             # 如果启用了自动保存，同时更新备份文件
             if self.auto_save_enabled and self.current_file:
                 self.auto_save_to_backup()
+                # 重置自动保存计时器，避免刚保存完又触发自动保存
+                self.start_auto_save_timer()
         except Exception as e:
             messagebox.showerror("错误", f"保存后处理时出错: {str(e)}")
 
@@ -1926,9 +1948,6 @@ class AdvancedTextEditor:
         # 监听窗口焦点变化，失去焦点时自动保存
         self.root.bind("<FocusOut>", self.on_focus_out)
 
-        # 监听文本变化，用于智能保存策略
-        self.text_area.bind("<<Modified>>", self.on_text_modified)
-
         # 如果配置中启用了自动保存，则启动计时器
         if self.auto_save_enabled:
             self.start_auto_save_timer()
@@ -1957,8 +1976,6 @@ class AdvancedTextEditor:
         # 检查文件是否有修改
         if self.text_area.edit_modified():
             # 在后台线程执行保存
-            import threading
-
             save_thread = threading.Thread(target=self.auto_save_to_backup)
             save_thread.daemon = True
             save_thread.start()
@@ -2040,11 +2057,6 @@ class AdvancedTextEditor:
         """窗口失去焦点时触发自动保存"""
         if self.auto_save_enabled and self.current_file and not self.readonly_mode:
             self.perform_auto_save()
-
-    def on_text_modified(self, event=None):
-        """文本修改时的处理"""
-        # 重置修改标志
-        self.text_area.edit_modified(False)
 
     def check_backup_file(self):
         """检查是否存在备份文件"""
