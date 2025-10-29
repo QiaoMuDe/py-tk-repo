@@ -796,6 +796,8 @@ class AdvancedTextEditor:
                 interval = int(slider.get())
                 self.auto_save_interval = interval
                 self.save_config()
+                # 更新状态栏显示
+                self.show_default_auto_save_status()
                 if self.auto_save_enabled:
                     self.stop_auto_save_timer()
                     self.start_auto_save_timer()
@@ -803,8 +805,7 @@ class AdvancedTextEditor:
                 # 使用辅助方法格式化显示
                 display_interval = self.format_auto_save_interval(interval)
                 messagebox.showinfo(
-                    "设置成功", f"自动保存间隔已设置为{display_interval}"
-                )
+                    "设置成功", f"自动保存间隔已设置为{display_interval}")
 
             ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10)
             ok_button.pack(side=tk.RIGHT, padx=(5, 0))
@@ -2028,6 +2029,34 @@ class AdvancedTextEditor:
         self._close_progress_window()
         messagebox.showerror("错误", f"无法打开文件: {error_message}")
 
+    def _save_content_to_file(self, file_path, content, update_current_file=False):
+        """将内容保存到指定文件路径的辅助方法
+
+        Args:
+            file_path: 目标文件路径
+            content: 要保存的内容
+            update_current_file: 是否更新当前文件路径
+        
+        Returns:
+            bool: 保存是否成功
+        """
+        try:
+            # 转换换行符格式
+            converted_content = self.convert_line_endings(content, self.line_ending)
+            with open(
+                file_path, "w", encoding=self.encoding.lower(), newline=""
+            ) as file:
+                file.write(converted_content)
+            
+            # 如果需要，更新当前文件路径和窗口标题
+            if update_current_file:
+                self.current_file = file_path
+                self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
+                
+            return True, None
+        except Exception as e:
+            return False, str(e)
+
     def save_file(self, silent=False):
         """保存文件
 
@@ -2051,23 +2080,18 @@ class AdvancedTextEditor:
         if not self.current_file:
             return self.save_as_file()
 
-        #  保存文件 
-        try:
-            # 转换换行符格式
-            converted_content = self.convert_line_endings(content, self.line_ending)
-            with open(
-                self.current_file, "w", encoding=self.encoding.lower(), newline=""
-            ) as file:
-                file.write(converted_content)
-                
+        # 调用辅助方法保存文件
+        success, error_msg = self._save_content_to_file(self.current_file, content)
+        
+        if success:
             # 在Tkinter事件循环中更新UI, 避免命令冲突
             self.root.after(
                 10, lambda: self._post_save_operations(self.current_file, silent)
             )
             return True
-        except Exception as e:
+        else:
             if not silent:
-                messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+                messagebox.showerror("错误", f"保存文件时出错: {error_msg}")
             return False
 
     def _post_save_operations(self, file_path, silent=False):
@@ -2127,21 +2151,14 @@ class AdvancedTextEditor:
         )
 
         if file_path:
-            try:
-                # 转换换行符格式
-                converted_content = self.convert_line_endings(content, self.line_ending)
-
-                with open(
-                    file_path, "w", encoding=self.encoding.lower(), newline=""
-                ) as file:
-                    file.write(converted_content)
-                    self.current_file = file_path
-                    self.root.title(f"{os.path.basename(file_path)} - 文本编辑器")
-
+            # 调用辅助方法保存文件，并更新当前文件路径
+            success, error_msg = self._save_content_to_file(file_path, content, update_current_file=True)
+            
+            if success:
                 # 在Tkinter事件循环中更新UI, 避免命令冲突
                 self.root.after(10, self._post_save_operations, file_path)
-            except Exception as e:
-                messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+            else:
+                messagebox.showerror("错误", f"保存文件时出错: {error_msg}")
 
     def setup_auto_save(self):
         """设置自动保存相关配置"""
