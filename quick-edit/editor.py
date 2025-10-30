@@ -481,10 +481,13 @@ class AdvancedTextEditor:
 
     def create_menu(self):
         """创建菜单栏"""
-        menubar = tk.Menu(self.root)
+        # 定义菜单字体
+        menu_font = ("Microsoft YaHei UI", 10)
+        
+        menubar = tk.Menu(self.root, font=menu_font)
 
         # 文件菜单
-        file_menu = tk.Menu(menubar, tearoff=0)
+        file_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         file_menu.add_command(label="新建", command=self.new_file, accelerator="Ctrl+N")
         file_menu.add_command(
             label="打开", command=self.open_file, accelerator="Ctrl+O"
@@ -500,7 +503,7 @@ class AdvancedTextEditor:
         )
         file_menu.add_separator()
         # 添加编码选择子菜单
-        encoding_submenu = tk.Menu(file_menu, tearoff=0)
+        encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font)
         encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
         for enc in encodings:
             encoding_submenu.add_command(
@@ -508,7 +511,7 @@ class AdvancedTextEditor:
             )
         file_menu.add_cascade(label="编码", menu=encoding_submenu)
         # 添加换行符选择子菜单
-        line_ending_submenu = tk.Menu(file_menu, tearoff=0)
+        line_ending_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font)
         line_endings = [
             ("Linux (LF)", "LF"),
             ("Windows (CRLF)", "CRLF"),
@@ -532,7 +535,7 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="文件", menu=file_menu)
 
         # 编辑菜单
-        edit_menu = tk.Menu(menubar, tearoff=0)
+        edit_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         edit_menu.add_command(
             label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
         )
@@ -577,7 +580,7 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="编辑", menu=edit_menu)
 
         # 主题菜单
-        theme_menu = tk.Menu(menubar, tearoff=0)
+        theme_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         theme_menu.add_command(label="字体", command=self.choose_font)
         theme_menu.add_command(label="字体大小", command=self.choose_font_size)
         theme_menu.add_separator()
@@ -612,7 +615,7 @@ class AdvancedTextEditor:
             variable=self.overstrike_var,
         )
         # 主题选择子菜单
-        theme_submenu = tk.Menu(theme_menu, tearoff=0)
+        theme_submenu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
         themes = [
             ("浅色主题", "light"),
             ("深色主题", "dark"),
@@ -630,7 +633,7 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="主题", menu=theme_menu)
 
         # 语法高亮菜单
-        syntax_menu = tk.Menu(menubar, tearoff=0)
+        syntax_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         # 语法高亮显示选项
         self.syntax_highlighting_var = tk.BooleanVar(
             value=self.syntax_highlighting_enabled
@@ -653,7 +656,7 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="语法高亮", menu=syntax_menu)
 
         # 设置菜单
-        settings_menu = tk.Menu(menubar, tearoff=0)
+        settings_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         self.toolbar_var = tk.BooleanVar(value=self.toolbar_visible)
         settings_menu.add_checkbutton(
             label="显示工具栏", command=self.toggle_toolbar, variable=self.toolbar_var
@@ -708,7 +711,7 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
-        help_menu = tk.Menu(menubar, tearoff=0)
+        help_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         help_menu.add_command(label="关于", command=self.show_about, accelerator="F1")
         menubar.add_cascade(label="帮助", menu=help_menu)
 
