@@ -895,19 +895,15 @@ class AdvancedTextEditor:
             dialog.transient(self.root)
             dialog.grab_set()
 
-            # 使用用户设置的字体
-            user_font = (self.font_family, 10, "bold")
-            user_font_bold = (self.font_family, 10, "bold")
-            user_font_small = (self.font_family, 10, "bold")
-
             # 设置对话框样式
             style = ttk.Style()
-            style.configure("AutoSaveDialog.TLabel", font=user_font)
-            style.configure("CurrentValue.TLabel", font=user_font_bold)
-            style.configure("Small.TButton", font=(self.font_family, 8))
+            style.configure("CurrentValue.TLabel", font=("Microsoft YaHei UI", 15, "bold"))
+            style.configure("Small.TButton", font=("Microsoft YaHei UI", 10, "bold"))
+            style.configure("TLabel", font=("Microsoft YaHei UI", 12, "bold"))
+            style.configure("Button.TButton", font= ("Microsoft YaHei UI", 12, "bold"))
 
             # 居中显示对话框
-            center_window(dialog, 700, 300)
+            center_window(dialog, 750, 270)
 
             # 设置窗口图标
             set_window_icon(dialog)
@@ -917,13 +913,7 @@ class AdvancedTextEditor:
             main_frame.pack(fill=tk.BOTH, expand=True)
 
             # 添加说明标签
-            title_label = ttk.Label(
-                main_frame, text="自动保存间隔设置", style="AutoSaveDialog.TLabel"
-            )
-            title_label.pack(pady=(0, 15))
-
-            # 添加说明标签
-            desc_label = ttk.Label(main_frame, text="请选择自动保存间隔时间:")
+            desc_label = ttk.Label(main_frame, text="请选择自动保存间隔时间:", style="CurrentValue.TLabel")
             desc_label.pack(pady=(0, 10))
 
             # 创建滑块框架
@@ -934,7 +924,7 @@ class AdvancedTextEditor:
             current_value_label = ttk.Label(
                 slider_frame,
                 text=f"当前值: {self.auto_save_interval}秒({self.auto_save_interval}秒)",
-                style="CurrentValue.TLabel",
+                style="TLabel",
             )
             current_value_label.pack(pady=(0, 10))
 
@@ -1062,7 +1052,7 @@ class AdvancedTextEditor:
             info_label = ttk.Label(
                 button_frame,
                 text="提示: 值越小保存越频繁，可能影响编辑器性能",
-                font=user_font_small,
+                style="TLabel",
                 foreground="gray",
             )
             info_label.pack(side=tk.LEFT, pady=(0, 5))
@@ -1088,7 +1078,8 @@ class AdvancedTextEditor:
                     "设置成功", f"自动保存间隔已设置为{display_interval}"
                 )
 
-            ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10)
+            # 使用之前定义的Button.TButton样式
+            ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10, style="Button.TButton")
             ok_button.pack(side=tk.RIGHT, padx=(5, 0))
 
             # 取消按钮
@@ -1096,7 +1087,7 @@ class AdvancedTextEditor:
                 dialog.destroy()
 
             cancel_button = ttk.Button(
-                buttons_frame, text="取消", command=on_cancel, width=10
+                buttons_frame, text="取消", command=on_cancel, width=10, style="Button.TButton"
             )
             cancel_button.pack(side=tk.RIGHT)
 

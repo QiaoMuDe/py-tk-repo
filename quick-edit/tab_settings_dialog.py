@@ -20,30 +20,20 @@ class TabSettingsDialog:
         self.result_tab_width = current_tab_width
         self.result_use_spaces = use_spaces_for_tabs
 
-        # 获取父窗口的字体信息
-        try:
-            # 尝试从父窗口获取字体配置
-            if hasattr(parent, "text_widget") and parent.text_widget:
-                font_config = parent.text_widget["font"]
-                if isinstance(font_config, tuple) and len(font_config) >= 1:
-                    self.font_family = font_config[0]
-                else:
-                    import tkinter.font as tkfont
-                    f = tkfont.Font(font=font_config)
-                    self.font_family = f.actual()["family"]
-            elif hasattr(parent, "font_family"):
-                self.font_family = parent.font_family
-            else:
-                self.font_family = "Microsoft YaHei UI"
-        except:
-            self.font_family = "Microsoft YaHei UI"
-
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("制表符设置")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
+        
+        # 设置对话框样式
+        style = ttk.Style()
+        style.configure("TLabel", font=("Microsoft YaHei UI", 12, "bold"))
+        style.configure("TButton", font=("Microsoft YaHei UI", 12))
+        style.configure("TCheckbutton", font=("Microsoft YaHei UI", 12))
+        style.configure("TEntry", font=("Microsoft YaHei UI", 12))
+        style.configure("TLabelframe", font=("Microsoft YaHei UI", 12, "bold"))
 
         # 创建UI
         self.create_ui()
@@ -52,7 +42,7 @@ class TabSettingsDialog:
         set_window_icon(self.dialog)
 
         # 居中显示对话框
-        center_window(self.dialog, 500, 520)
+        center_window(self.dialog, 500, 550)
 
     def create_ui(self):
         """创建对话框UI"""
@@ -64,7 +54,7 @@ class TabSettingsDialog:
         title_label = ttk.Label(
             main_frame,
             text="制表符设置",
-            font=(self.font_family, 12, "bold")
+            font=("Microsoft YaHei UI", 15, "bold")
         )
         title_label.pack(pady=(0, 20))
 
@@ -76,7 +66,7 @@ class TabSettingsDialog:
         width_frame = ttk.Frame(tab_width_frame)
         width_frame.pack(fill=tk.X)
 
-        ttk.Label(width_frame, text="制表符宽度 (2-8个字符):").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(width_frame, text="制表符宽度 (2-8个字符):", style="TLabel").pack(side=tk.LEFT, padx=(0, 10))
 
         # 宽度变量
         self.tab_width_var = tk.StringVar(value=str(self.current_tab_width))
@@ -86,7 +76,8 @@ class TabSettingsDialog:
             width_frame,
             textvariable=self.tab_width_var,
             width=5,
-            justify=tk.CENTER
+            justify=tk.CENTER,
+            style="TEntry"
         )
         self.tab_width_entry.pack(side=tk.LEFT)
 
@@ -94,7 +85,7 @@ class TabSettingsDialog:
         common_widths_frame = ttk.Frame(tab_width_frame)
         common_widths_frame.pack(fill=tk.X, pady=(10, 0))
 
-        ttk.Label(common_widths_frame, text="常用宽度:").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(common_widths_frame, text="常用宽度:", style="TLabel").pack(side=tk.LEFT, padx=(0, 10))
 
         # 常用宽度按钮
         for width in [2, 4, 8]:
@@ -102,7 +93,8 @@ class TabSettingsDialog:
                 common_widths_frame,
                 text=str(width),
                 width=3,
-                command=lambda w=width: self.tab_width_var.set(str(w))
+                command=lambda w=width: self.tab_width_var.set(str(w)),
+                style="TButton"
             )
             btn.pack(side=tk.LEFT, padx=2)
 
@@ -116,7 +108,8 @@ class TabSettingsDialog:
             behavior_frame,
             text="使用空格替代制表符",
             variable=self.use_spaces_var,
-            command=self.on_use_spaces_toggled
+            command=self.on_use_spaces_toggled,
+            style="TCheckbutton"
         )
         spaces_checkbox.pack(anchor=tk.W, pady=5)
 
@@ -128,7 +121,7 @@ class TabSettingsDialog:
         self.preview_text = tk.Text(
             preview_frame,
             height=5,
-            font=(self.font_family, 10),
+            font=("Microsoft YaHei UI", 12),
             wrap=tk.NONE,
             state=tk.DISABLED
         )
@@ -145,7 +138,8 @@ class TabSettingsDialog:
         info_label = ttk.Label(
             button_frame,
             text="提示: 更改将应用于新输入的文本",
-            foreground="gray"
+            foreground="gray",
+            font=("Microsoft YaHei UI", 10)
         )
         info_label.pack(side=tk.LEFT)
 
@@ -158,7 +152,8 @@ class TabSettingsDialog:
             right_button_frame,
             text="确定",
             width=10,
-            command=self.on_ok
+            command=self.on_ok,
+            style="TButton"
         )
         ok_button.pack(side=tk.RIGHT, padx=(5, 0))
 
@@ -167,7 +162,8 @@ class TabSettingsDialog:
             right_button_frame,
             text="取消",
             width=10,
-            command=self.on_cancel
+            command=self.on_cancel,
+            style="TButton"
         )
         cancel_button.pack(side=tk.RIGHT)
 
@@ -240,13 +236,15 @@ class TabSettingsDialog:
                 ttk.Label(
                     error_window,
                     text="制表符宽度必须在2到8之间",
-                    padding=20
+                    padding=20,
+                    style="TLabel"
                 ).pack()
                 
                 ttk.Button(
                     error_window,
                     text="确定",
-                    command=error_window.destroy
+                    command=error_window.destroy,
+                    style="TButton"
                 ).pack(pady=10)
                 
                 # 居中错误窗口
@@ -265,13 +263,15 @@ class TabSettingsDialog:
             ttk.Label(
                 error_window,
                 text="请输入有效的数字",
-                padding=20
+                padding=20,
+                style="TLabel"
             ).pack()
             
             ttk.Button(
                 error_window,
                 text="确定",
-                command=error_window.destroy
+                command=error_window.destroy,
+                style="TButton"
             ).pack(pady=10)
             
             # 居中错误窗口
