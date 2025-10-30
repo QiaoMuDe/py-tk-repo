@@ -120,11 +120,11 @@ class AdvancedTextEditor:
         # 加载配置文件
         self.load_config()
 
-        # 创建主框架
-        self.create_widgets()
-
         # 初始化主题管理器
         self.theme_manager = ThemeManager(self)
+
+        # 创建主框架
+        self.create_widgets()
 
         self.create_menu()
         # 创建工具栏
@@ -1391,6 +1391,9 @@ class AdvancedTextEditor:
         )
         self.statusbar_frame.pack(fill=tk.X, side=tk.BOTTOM)
 
+        # 创建独立的状态栏字体配置
+        statusbar_font = font.Font(family="Microsoft YaHei UI", size=10)
+
         # 左侧状态信息, 使用主题背景色和前景色
         self.left_status = tk.Label(
             self.statusbar_frame,
@@ -1398,6 +1401,7 @@ class AdvancedTextEditor:
             anchor=tk.W,
             bg=theme["statusbar_bg"],
             fg=theme["statusbar_fg"],
+            font=statusbar_font,
         )
         self.left_status.pack(side=tk.LEFT, padx=5)
 
@@ -1408,6 +1412,7 @@ class AdvancedTextEditor:
             anchor=tk.CENTER,
             bg=theme["statusbar_bg"],
             fg=theme["statusbar_fg"],
+            font=statusbar_font,
         )
         self.center_status.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=10)
 
@@ -1419,6 +1424,7 @@ class AdvancedTextEditor:
             cursor="hand2",
             bg=theme["statusbar_bg"],
             fg=theme["statusbar_fg"],
+            font=statusbar_font,
         )
         self.right_status.pack(side=tk.RIGHT, padx=5)
 
