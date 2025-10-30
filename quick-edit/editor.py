@@ -1980,23 +1980,25 @@ class AdvancedTextEditor:
             return "UTF-8", "LF"  # 默认值
 
         try:
-            # 检测编码
+            # 只读取一次文件，同时用于编码检测和换行符检测
             with open(file_path, "rb") as file:
-                raw_data = file.read(10000)  # 只读取前10KB用于检测
+                # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
+                # 这样可以提高性能，尤其是对于大文件
+                raw_data = file.read(1024)  # 只读取前1KB用于检测
+                
+                # 检测编码
                 if raw_data:
                     result = chardet.detect(raw_data)
                     encoding = result["encoding"] if result["encoding"] else "UTF-8"
                 else:
                     encoding = "UTF-8"
-
-            # 检测换行符类型
-            with open(file_path, "rb") as file:
-                content = file.read(10000)  # 只读取前10KB用于检测
-                if b"\r\n" in content:
+                
+                # 检测换行符类型
+                if b"\r\n" in raw_data:
                     line_ending = "CRLF"
-                elif b"\n" in content:
+                elif b"\n" in raw_data:
                     line_ending = "LF"
-                elif b"\r" in content:
+                elif b"\r" in raw_data:
                     line_ending = "CR"
                 else:
                     line_ending = "LF"  # 默认
@@ -2146,10 +2148,10 @@ class AdvancedTextEditor:
 
         self.progress_window = tk.Toplevel(self.root)
         self.progress_window.title("正在打开文件...")
-        self.progress_window.geometry("300x100")
         self.progress_window.resizable(False, False)
         self.progress_window.transient(self.root)
         center_window(self.progress_window, 300, 100)
+        set_window_icon(self.progress_window)
 
         # 设置为模态窗口，但允许主窗口响应
         self.progress_window.grab_set()
@@ -2709,25 +2711,15 @@ class AdvancedTextEditor:
             return False
 
         try:
+            # 检测备份文件的编码和换行符
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(backup_file)
+
             # 读取备份文件内容
-            with open(backup_file, "r", encoding=self.encoding) as f:
+            with open(backup_file, "r", encoding=encoding) as f:
                 content = f.read()
 
-            # 处理换行符
-            if self.line_ending == "LF":
-                content = content.replace("\r\n", "\n").replace("\r", "\n")
-            elif self.line_ending == "CRLF":
-                content = (
-                    content.replace("\r\n", "\n")
-                    .replace("\r", "\n")
-                    .replace("\n", "\r\n")
-                )
-            elif self.line_ending == "CR":
-                content = (
-                    content.replace("\r\n", "\n")
-                    .replace("\r", "\n")
-                    .replace("\n", "\r")
-                )
+            # 使用现有的convert_line_endings方法处理换行符
+            content = self.convert_line_endings(content, self.line_ending)
 
             # 清空当前文本并插入备份内容
             self.text_area.delete("1.0", tk.END)
