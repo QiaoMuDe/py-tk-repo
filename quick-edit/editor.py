@@ -639,15 +639,20 @@ class AdvancedTextEditor:
         settings_menu.add_command(
             label="查看配置",
             command=self.open_config_file,
+            accelerator="Ctrl+Shift+C"
         )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
         # 帮助菜单
         help_menu = tk.Menu(menubar, tearoff=0)
-        help_menu.add_command(label="关于", command=self.show_about)
+        help_menu.add_command(label="关于", command=self.show_about, accelerator="F1")
         menubar.add_cascade(label="帮助", menu=help_menu)
 
         self.root.config(menu=menubar)
+        
+        # 绑定快捷键
+        self.root.bind("<Control-Shift-C>", lambda event: self.open_config_file())
+        self.root.bind("<F1>", lambda event: self.show_about())
 
     def toggle_line_numbers(self):
         """切换行号显示"""
