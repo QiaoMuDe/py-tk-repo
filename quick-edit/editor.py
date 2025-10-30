@@ -49,7 +49,10 @@ ConfigFileName = ".quick_edit_config.json"
 # 配置文件路径
 ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 
-
+# 窗口标题显示格式常量
+WINDOW_TITLE_FILENAME_ONLY = "filename_only"  # 仅文件名
+WINDOW_TITLE_FULL_PATH = "full_path"  # 完整文件路径
+WINDOW_TITLE_FILE_AND_DIRECTORY = "file_and_directory"  # 文件和目录
 
 
 class AdvancedTextEditor:
@@ -111,6 +114,9 @@ class AdvancedTextEditor:
         # 制表符相关设置
         self.tab_width = 4  # 默认制表符宽度
         self.use_spaces_for_tabs = False  # 默认不使用空格替代制表符
+        
+        # 窗口标题显示格式选项
+        self.window_title_format = WINDOW_TITLE_FILENAME_ONLY  # 默认仅显示文件名
 
         # 异步文件读取相关属性
         self.file_read_thread = None
@@ -228,6 +234,25 @@ class AdvancedTextEditor:
         # 更新状态栏
         self.update_statusbar()
 
+    def get_window_title_display_name(self):
+        """获取窗口标题显示名称"""
+        # 如果没有打开文件，返回None
+        if not self.current_file:
+            return None
+            
+        # 根据不同的显示格式设置标题
+        if self.window_title_format == WINDOW_TITLE_FULL_PATH:
+            # 完整文件路径
+            return self.current_file
+        elif self.window_title_format == WINDOW_TITLE_FILE_AND_DIRECTORY:
+            # 文件和目录
+            directory = os.path.dirname(self.current_file)
+            file_name = os.path.basename(self.current_file)
+            return f"{file_name} - {directory}"
+        else:
+            # 仅文件名（默认）
+            return os.path.basename(self.current_file)
+    
     def update_title_based_on_content(self):
         """根据文本框内容更新窗口标题"""
         # 获取文本框内容
@@ -249,18 +274,20 @@ class AdvancedTextEditor:
                     self.root.title("未保存 - QuickEdit")
         # 如果已经打开了文件
         else:
-            file_name = os.path.basename(self.current_file)
+            # 获取显示名称
+            display_name = self.get_window_title_display_name()
+            
             # 根据只读模式状态和修改状态设置窗口标题
             if self.readonly_mode:
                 if self.text_area.edit_modified():
-                    self.root.title(f"[只读模式] *{file_name} - QuickEdit")
+                    self.root.title(f"[只读模式] *{display_name} - QuickEdit")
                 else:
-                    self.root.title(f"[只读模式] {file_name} - QuickEdit")
+                    self.root.title(f"[只读模式] {display_name} - QuickEdit")
             else:
                 if self.text_area.edit_modified():
-                    self.root.title(f"*{file_name} - QuickEdit")
+                    self.root.title(f"*{display_name} - QuickEdit")
                 else:
-                    self.root.title(f"{file_name} - QuickEdit")
+                    self.root.title(f"{display_name} - QuickEdit")
 
     def on_closing(self):
         """处理窗口关闭事件"""
@@ -701,6 +728,29 @@ class AdvancedTextEditor:
             command=self.open_tab_settings_dialog
         )
         
+        # 窗口标题显示选项
+        title_format_menu = tk.Menu(settings_menu, tearoff=0, font=menu_font)
+        self.window_title_format_var = tk.StringVar(value=self.window_title_format)
+        title_format_menu.add_radiobutton(
+            label="仅文件名",
+            variable=self.window_title_format_var,
+            value=WINDOW_TITLE_FILENAME_ONLY,
+            command=self.set_window_title_format
+        )
+        title_format_menu.add_radiobutton(
+            label="完整文件路径",
+            variable=self.window_title_format_var,
+            value=WINDOW_TITLE_FULL_PATH,
+            command=self.set_window_title_format
+        )
+        title_format_menu.add_radiobutton(
+            label="文件和目录",
+            variable=self.window_title_format_var,
+            value=WINDOW_TITLE_FILE_AND_DIRECTORY,
+            command=self.set_window_title_format
+        )
+        settings_menu.add_cascade(label="窗口标题显示", menu=title_format_menu)
+        
         # 查看配置文件选项
         settings_menu.add_separator()
         settings_menu.add_command(
@@ -856,6 +906,17 @@ class AdvancedTextEditor:
                 
         except Exception as e:
             messagebox.showerror("错误", f"设置制表符时出错: {str(e)}")
+    
+    def set_window_title_format(self):
+        """设置窗口标题显示格式"""
+        # 更新内部状态
+        self.window_title_format = self.window_title_format_var.get()
+        
+        # 保存配置
+        self.save_config()
+        
+        # 更新窗口标题
+        self.update_title_based_on_content()
     
     def apply_tab_settings(self):
         """应用制表符设置到文本区域"""
@@ -1570,6 +1631,8 @@ class AdvancedTextEditor:
                     # 加载制表符设置
                     self.tab_width = config.get("tab_width", 4)
                     self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
+                    # 加载窗口标题显示格式选项
+                    self.window_title_format = config.get("window_title_format", WINDOW_TITLE_FILENAME_ONLY)
                     # 加载新的配置属性
                     self.max_file_size = config.get("max_file_size", MaxFileSize)
                     self.small_file_size_threshold = config.get(
@@ -1634,6 +1697,7 @@ class AdvancedTextEditor:
             "word_wrap_enabled": self.word_wrap_enabled,
             "tab_width": self.tab_width,
             "use_spaces_for_tabs": self.use_spaces_for_tabs,
+            "window_title_format": self.window_title_format,
             "max_file_size": self.max_file_size,
             "small_file_size_threshold": self.small_file_size_threshold,
             "main_window_height": self.main_window_height,
