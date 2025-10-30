@@ -1,4 +1,6 @@
 import os
+import tkinter as tk
+from tkinter import font
 
 # 图标文件路径
 ICON_FILE_PATH = "./icos/QuickEdit.ico"
@@ -96,3 +98,30 @@ def is_binary_file(file_path=None, sample_data=None, sample_size=1024):
     except Exception:
         # 如果读取文件出错，保守地认为可能是二进制文件
         return True
+
+
+def get_custom_font_from_parent(parent_widget, custom_size=12):
+    """从父窗口获取字体配置，并设置自定义的字体大小
+    
+    Args:
+        parent_widget: 父窗口部件对象
+        custom_size: 自定义的字体大小
+        
+    Returns:
+        tuple or None: 字体配置元组(font_name, size, weight, slant)，如果无法获取则返回None
+    """
+    try:
+        # 获取父窗口的字体配置
+        parent_font = parent_widget.option_get("font", "")
+        if parent_font:
+            # 解析字体配置，获取字体名称和样式
+            font_config = tk.font.Font(font=parent_font)
+            font_name = font_config.actual()["family"]
+            font_weight = font_config.actual()["weight"]
+            font_slant = font_config.actual()["slant"]
+            # 返回新的字体配置，使用自定义大小
+            return (font_name, custom_size, font_weight, font_slant)
+    except Exception:
+        # 如果获取字体配置失败，返回None
+        pass
+    return None

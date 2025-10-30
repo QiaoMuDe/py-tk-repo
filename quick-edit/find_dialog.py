@@ -2,13 +2,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 import queue
-from utils import set_window_icon, center_window
+from utils import set_window_icon, center_window, get_custom_font_from_parent
 
 class FindDialog:
-    def __init__(self, parent, text_widget, file_path=None):
+    def __init__(self, parent, text_widget, file_path=None, selected_text=""):
         self.parent = parent
         self.text_widget = text_widget
         self.file_path = file_path
+        self.selected_text = selected_text  # 接收选中文本
         self.matches = []
         self.current_match_index = -1
         self.is_searching = False  # 标记是否正在进行查找操作
@@ -35,7 +36,7 @@ class FindDialog:
         self.dialog.protocol("WM_DELETE_WINDOW", self.on_dialog_close)
 
         # 居中显示
-        center_window(self.dialog, 500, 350)
+        center_window(self.dialog, 500, 360)
 
         # 创建界面元素
         self.create_widgets()
@@ -60,17 +61,37 @@ class FindDialog:
         ttk.Label(main_frame, text="查找内容:").grid(
             row=0, column=0, columnspan=3, sticky=tk.W, pady=(0, 5)
         )
-        self.search_entry = ttk.Entry(main_frame, width=50)
+        # 使用最小的多行文本输入框代替单行输入框，提升性能
+        # 使用通用函数获取自定义字体配置
+        custom_font = get_custom_font_from_parent(self.parent, custom_size=18)
+        
+        # 创建查找输入框
+        if custom_font:
+            self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=custom_font)
+        else:
+            # 直接设置一个默认字体和大小，确保字体大小能够生效
+            self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+        
         self.search_entry.grid(
             row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)
         )
+        # 如果有选中文本，设置为查找输入框的初始内容
+        if self.selected_text:
+            self.search_entry.insert(tk.END, self.selected_text)
         self.search_entry.focus()
 
         # 替换内容标签和输入框
         ttk.Label(main_frame, text="替换为:").grid(
             row=2, column=0, columnspan=3, sticky=tk.W, pady=(0, 5)
         )
-        self.replace_entry = ttk.Entry(main_frame, width=50)
+        # 使用最小的多行文本输入框代替单行输入框，提升性能
+        # 应用相同的字体配置到替换输入框
+        if custom_font:
+            self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=custom_font)
+        else:
+            # 直接设置一个默认字体和大小，确保字体大小能够生效
+            self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+        
         self.replace_entry.grid(
             row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)
         )
@@ -158,12 +179,19 @@ class FindDialog:
 
     def bind_events(self):
         """绑定事件"""
-        self.search_entry.bind("<Return>", lambda e: self.find_next())
-        self.search_entry.bind("<KP_Enter>", lambda e: self.find_next())
+        # 多行文本框需要不同的绑定方式
+        # 防止在多行文本框中按Enter键插入换行符并触发查找
+        def handle_enter(event):
+            self.find_next()
+            return "break"
+        
+        self.search_entry.bind("<Return>", handle_enter)
+        self.search_entry.bind("<KP_Enter>", handle_enter)
 
     def find_next(self):
         """查找下一个匹配项"""
-        search_term = self.search_entry.get()
+        # 从多行文本框获取内容
+        search_term = self.search_entry.get("1.0", tk.END).strip()
         if not search_term:
             messagebox.showwarning("查找", "请输入要查找的内容")
             return
@@ -202,7 +230,8 @@ class FindDialog:
 
     def find_previous(self):
         """查找上一个匹配项"""
-        search_term = self.search_entry.get()
+        # 从多行文本框获取内容
+        search_term = self.search_entry.get("1.0", tk.END).strip()
         if not search_term:
             messagebox.showwarning("查找", "请输入要查找的内容")
             return
@@ -241,7 +270,8 @@ class FindDialog:
 
     def find_all(self):
         """查找全部匹配项"""
-        search_term = self.search_entry.get()
+        # 从多行文本框获取内容
+        search_term = self.search_entry.get("1.0", tk.END).strip()
         if not search_term:
             messagebox.showwarning("查找", "请输入要查找的内容")
             return
@@ -269,8 +299,9 @@ class FindDialog:
 
     def replace_once(self):
         """替换当前匹配项"""
-        search_term = self.search_entry.get()
-        replace_term = self.replace_entry.get() if self.replace_entry else ""
+        # 从多行文本框获取内容
+        search_term = self.search_entry.get("1.0", tk.END).strip()
+        replace_term = self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
 
         if not search_term:
             messagebox.showwarning("替换", "请输入要查找的内容")
@@ -307,8 +338,9 @@ class FindDialog:
 
     def replace_all(self):
         """替换所有匹配项"""
-        search_term = self.search_entry.get()
-        replace_term = self.replace_entry.get() if self.replace_entry else ""
+        # 从多行文本框获取内容
+        search_term = self.search_entry.get("1.0", tk.END).strip()
+        replace_term = self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
 
         if not search_term:
             messagebox.showwarning("替换", "请输入要查找的内容")

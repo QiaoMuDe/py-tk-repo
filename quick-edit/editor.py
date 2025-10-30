@@ -3416,7 +3416,9 @@ The quick brown fox jumps over the lazy dog.
 
     def show_find_dialog(self):
         """显示查找对话框"""
-        FindDialog(self.root, self.text_area, self.current_file)
+        # 获取文本区域中选中的文本
+        selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST) if self.text_area.tag_ranges(tk.SEL) else ""
+        FindDialog(self.root, self.text_area, self.current_file, selected_text)
 
     def advanced_find_text(
         self, search_term, search_type="normal", match_case=True, whole_word=False
