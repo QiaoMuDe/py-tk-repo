@@ -270,7 +270,8 @@ class EnhancedSyntaxHighlighter:
         else:
             self._queue_highlight_update()
 
-        self.text_widget.edit_modified(False)
+        # 不再重置修改状态，让编辑器自己处理修改状态的检测和重置
+        # 这样可以确保状态栏正确显示"已修改"状态，并且自动保存功能能够正常工作
 
     def _on_mouse_release(self, event=None):
         """
