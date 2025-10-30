@@ -13,7 +13,7 @@ import queue
 
 # 导入我们创建的模块
 from find_dialog import FindDialog
-from theme_manager import ThemeManager
+from theme_manager import ThemeManager,DEFAULT_CURSOR ,CURSOR_STYLES
 from utils import format_file_size, center_window, set_window_icon, is_binary_file
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
@@ -118,6 +118,9 @@ class AdvancedTextEditor:
         # 窗口标题显示格式选项
         self.window_title_format = WINDOW_TITLE_FILENAME_ONLY  # 默认仅显示文件名
 
+        # 光标样式配置
+        self.cursor_style = DEFAULT_CURSOR  # 默认光标样式
+
         # 异步文件读取相关属性
         self.file_read_thread = None
         self.file_read_cancelled = False
@@ -148,6 +151,9 @@ class AdvancedTextEditor:
 
         # 应用当前主题 (在创建所有UI组件后应用)
         self.theme_manager.set_theme(self.current_theme)
+        
+        # 应用光标样式设置
+        self.apply_cursor_styles()
 
         # 绑定快捷键
         self.bind_shortcuts()
@@ -657,6 +663,22 @@ class AdvancedTextEditor:
                 label=label, command=lambda t=theme_name: self.change_theme(t)
             )
         theme_menu.add_cascade(label="主题", menu=theme_submenu)
+        
+        # 光标样式设置子菜单
+        cursor_menu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
+        self.cursor_style_vars = {}  # 存储光标样式变量
+        
+        # 全局光标样式选项
+        for cursor_style in CURSOR_STYLES:
+            var = tk.BooleanVar(value=(self.cursor_style == cursor_style))
+            self.cursor_style_vars[cursor_style] = var
+            cursor_menu.add_checkbutton(
+                label=cursor_style,
+                variable=var,
+                command=lambda s=cursor_style: self.set_cursor_style(s)
+            )
+        
+        theme_menu.add_cascade(label="光标样式", menu=cursor_menu)
         menubar.add_cascade(label="主题", menu=theme_menu)
 
         # 语法高亮菜单
@@ -766,6 +788,29 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="帮助", menu=help_menu)
 
         self.root.config(menu=menubar)
+        
+    def apply_cursor_styles(self):
+        """应用光标样式设置"""
+        # 应用全局光标样式到文本区域和状态栏
+        self.text_area.config(cursor=self.cursor_style)
+        self.right_status.config(cursor=self.cursor_style)
+        
+    def set_cursor_style(self, cursor_style):
+        """设置全局光标样式"""
+        # 更新配置
+        self.cursor_style = cursor_style
+        
+        # 更新文本区域和状态栏的光标样式
+        self.text_area.config(cursor=cursor_style)
+        self.right_status.config(cursor=cursor_style)
+        
+        # 更新光标样式变量状态
+        for style in CURSOR_STYLES:
+            if style in self.cursor_style_vars:
+                self.cursor_style_vars[style].set(style == cursor_style)
+        
+        # 保存配置
+        self.save_config()
         
         # 绑定快捷键
         self.root.bind("<Control-Shift-C>", lambda event: self.open_config_file())
@@ -1633,6 +1678,8 @@ class AdvancedTextEditor:
                     self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
                     # 加载窗口标题显示格式选项
                     self.window_title_format = config.get("window_title_format", WINDOW_TITLE_FILENAME_ONLY)
+                    # 加载光标样式配置
+                    self.cursor_style = config.get("cursor_style", DEFAULT_CURSOR)
                     # 加载新的配置属性
                     self.max_file_size = config.get("max_file_size", MaxFileSize)
                     self.small_file_size_threshold = config.get(
@@ -1698,6 +1745,7 @@ class AdvancedTextEditor:
             "tab_width": self.tab_width,
             "use_spaces_for_tabs": self.use_spaces_for_tabs,
             "window_title_format": self.window_title_format,
+            "cursor_style": self.cursor_style,
             "max_file_size": self.max_file_size,
             "small_file_size_threshold": self.small_file_size_threshold,
             "main_window_height": self.main_window_height,

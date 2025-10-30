@@ -1,6 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
 
+# 定义可用的光标样式
+CURSOR_STYLES = [
+    "arrow", "xterm", "watch", "hand2", "question_arrow", 
+    "sb_h_double_arrow", "sb_v_double_arrow", "fleur",
+    "crosshair", "plus", "pencil", "pirate", "heart",
+    "spider", "spraycan", "target", "tcross", "trek",
+    "dotbox", "exchange", "sizing", "top_left_arrow"
+]
+
+# 默认光标样式
+DEFAULT_CURSOR = "arrow"
+
 class ThemeManager:
     """主题管理器类"""
 
