@@ -10,13 +10,13 @@ import tkinterdnd2
 import re
 import threading
 import queue
-from idlelib.colorizer import ColorDelegator
-from idlelib.percolator import Percolator
 
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
-from utils import format_file_size, center_window, is_supported_file
+from utils import format_file_size, center_window
+# 只导入EnhancedSyntaxHighlighter，get_all_languages在需要时再导入
+from enhanced_syntax_highlighter import EnhancedSyntaxHighlighter
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
@@ -39,13 +39,6 @@ ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 
 # 图标文件路径
 IconFilePath = "./icos/QuickEdit.ico"
-
-# 支持的文件后缀列表
-SupportedExtensions = [
-    ".py",
-    ".pyw",
-]
-
 
 class AdvancedTextEditor:
     def __init__(self, root):
@@ -85,6 +78,11 @@ class AdvancedTextEditor:
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
+        
+        # 增强版语法高亮相关属性
+        self.enhanced_highlighter = None  # 增强版语法高亮器实例
+        self.current_lexer = "python"  # 当前使用的词法分析器
+        self.current_style = "monokai"  # 当前使用的样式
 
         # 自动保存相关变量
         self.auto_save_enabled = False  # 默认关闭自动保存
@@ -103,7 +101,7 @@ class AdvancedTextEditor:
         self.file_read_thread = None
         self.file_read_cancelled = False
         self.progress_window = None
-
+        
         # 加载配置文件
         self.load_config()
 
@@ -138,58 +136,50 @@ class AdvancedTextEditor:
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
-        self.percolator = Percolator(self.text_area)
-
+    
     def apply_syntax_highlighting(self):
         """应用语法高亮"""
         try:
             # 移除现有的语法高亮
             self.remove_syntax_highlighting()
 
-            # 初始化ColorDelegator以避免delegate冲突
-            self.color_delegator = ColorDelegator()
-            # 应用自定义标签定义，采用Monokai Dimmed配色方案
-            self.color_delegator.tagdefs["COMMENT"] = {
-                "foreground": "#999999"
-            }  # 灰色注释 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["KEYWORD"] = {
-                "foreground": "#AE81FF"
-            }  # 紫色关键字 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["BUILTIN"] = {
-                "foreground": "#F92672"
-            }  # 粉红色内置函数 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["STRING"] = {
-                "foreground": "#A6E22E"
-            }  # 绿色字符串 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["DEFINITION"] = {
-                "foreground": "#F92672"
-            }  # 粉红色内置函数 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["SYNC"] = {
-                "foreground": "#CCCCCC"
-            }  # 浅灰色同步标记 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["TODO"] = {
-                "foreground": "#FD971F"
-            }  # 橙黄色待办事项 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["ERROR"] = {
-                "foreground": "#F92672"
-            }  # 粉红色错误标记 (Monokai Dimmed风格)
-            self.color_delegator.tagdefs["hit"] = {
-                "foreground": "#66D9EF"
-            }  # 天蓝色匹配标记 (Monokai Dimmed风格)
-
-            # 应用idlelib语法高亮
-            self.percolator.insertfilter(self.color_delegator)
+            # 如果启用了语法高亮，使用增强版语法高亮器
+            if self.syntax_highlighting_enabled:
+                # 销毁现有的增强版语法高亮器
+                if self.enhanced_highlighter:
+                    self.enhanced_highlighter.destroy()
+                # 创建新的增强版语法高亮器
+                self.enhanced_highlighter = EnhancedSyntaxHighlighter(
+                    self.text_area,
+                    lexer_name=self.current_lexer,
+                    style_name=self.current_style,
+                    delay_update=200  # 增加延迟以减少启动时的负载
+                )
+                
+                # 延迟触发高亮更新，避免在UI初始化期间进行大量计算
+                # 这样可以让菜单和工具栏先显示出来
+                self.text_area.after(500, self._delayed_highlight_update)
         except Exception as e:
             # 捕获所有异常但不中断程序
-            # 在打开新文件或拖拽文件等操作中可能会出现临时性的状态不一致
-            # 这种情况下的错误可以忽略，避免干扰用户体验
             pass
+    
+    def _delayed_highlight_update(self):
+        """延迟执行的高亮更新，避免阻塞UI初始化"""
+        if hasattr(self, 'enhanced_highlighter') and self.enhanced_highlighter:
+            try:
+                self.enhanced_highlighter.update_highlighting()
+            except Exception:
+                # 忽略可能的错误
+                pass
 
     def remove_syntax_highlighting(self):
         """移除语法高亮"""
         try:
-            # 移除idlelib语法高亮
-            self.percolator.removefilter(self.color_delegator)
+            # 如果使用了增强版语法高亮器
+            if self.enhanced_highlighter:
+                # 销毁增强版语法高亮器
+                self.enhanced_highlighter.destroy()
+                self.enhanced_highlighter = None
         except Exception:
             # 捕获所有异常但不中断程序
             pass
@@ -257,9 +247,6 @@ class AdvancedTextEditor:
         # 取消正在进行的文件读取操作
         self.file_read_cancelled = True
 
-        # 只需设置取消标志，daemon线程会在主程序退出时自动终止
-        # 不需要显式等待，因为这可能导致界面响应延迟
-
         # 使用公共方法检查并处理未保存的更改
         continue_operation, saved = self.check_and_handle_unsaved_changes("退出")
 
@@ -277,6 +264,9 @@ class AdvancedTextEditor:
         ):
             self.cleanup_backup()
 
+        # 清理语法高亮器资源
+        self.remove_syntax_highlighting()
+        
         # 销毁窗口
         self.root.destroy()
 
@@ -364,6 +354,52 @@ class AdvancedTextEditor:
         # 设置行号区域样式
         self.line_numbers.config(bg="#f0f0f0", highlightthickness=0)
 
+    def open_language_dialog(self):
+        """打开语言选择对话框"""
+        # 获取当前选中的语言
+        current_language = self.language_var.get()
+        
+        # 创建语言选择对话框
+        dialog = LanguageDialog(self.root, current_language)
+        
+        # 等待对话框关闭
+        self.root.wait_window(dialog.dialog)
+        
+        # 获取选中的语言
+        selected_language = dialog.get_selected_language()
+        
+        # 如果用户选择了语言
+        if selected_language:
+            # 更新语言变量
+            self.language_var.set(selected_language)
+            # 调用change_language方法更新语法高亮
+            self.change_language()
+    
+    def change_language(self):
+        """更改语法高亮语言"""
+        try:
+            selected_language = self.language_var.get()
+            # 动态导入get_all_languages函数
+            from enhanced_syntax_highlighter import get_all_languages
+            # 获取语言别名映射
+            languages = get_all_languages()
+            language_aliases = dict(languages)
+            
+            # 更新当前词法分析器
+            if selected_language in language_aliases:
+                self.current_lexer = language_aliases[selected_language]
+            else:
+                self.current_lexer = selected_language.lower()
+            
+            # 如果有增强版语法高亮器实例，更新其词法分析器
+            if self.enhanced_highlighter:
+                self.enhanced_highlighter.set_lexer(self.current_lexer)
+                
+            # 更新状态栏
+            self.left_status.config(text=f"语法高亮语言已更改为: {selected_language}")
+        except Exception as e:
+            self.left_status.config(text=f"更改语言时出错: {str(e)}")
+    
     def create_menu(self):
         """创建菜单栏"""
         menubar = tk.Menu(self.root)
@@ -527,15 +563,6 @@ class AdvancedTextEditor:
             command=self.toggle_line_numbers,
             variable=self.show_line_numbers_var,
         )
-        # 语法高亮显示选项
-        self.syntax_highlighting_var = tk.BooleanVar(
-            value=self.syntax_highlighting_enabled
-        )
-        settings_menu.add_checkbutton(
-            label="语法高亮",
-            command=self.toggle_syntax_highlighting,
-            variable=self.syntax_highlighting_var,
-        )
         # 自动保存设置
         settings_menu.add_separator()
         settings_menu.add_checkbutton(
@@ -561,6 +588,33 @@ class AdvancedTextEditor:
             command=self.open_config_file,
         )
         menubar.add_cascade(label="设置", menu=settings_menu)
+
+        # 语法高亮菜单
+        syntax_menu = tk.Menu(menubar, tearoff=0)
+        # 语法高亮显示选项
+        self.syntax_highlighting_var = tk.BooleanVar(
+            value=self.syntax_highlighting_enabled
+        )
+        syntax_menu.add_checkbutton(
+            label="启用语法高亮",
+            command=self.toggle_syntax_highlighting,
+            variable=self.syntax_highlighting_var,
+        )
+        syntax_menu.add_separator()
+        
+        # 简单的选择语言菜单项，点击时打开语言选择对话框
+        syntax_menu.add_command(label="选择语言", command=self.open_language_dialog)
+        self.language_var = tk.StringVar(value="Python")
+        
+        # 条件导入pygments.styles，延迟加载样式列表
+        try:
+            import pygments.styles
+            styles = sorted(pygments.styles.get_all_styles())
+        except Exception:
+            # 如果出错，使用默认样式列表
+            styles = ['monokai', 'default', 'vim', 'native', 'solarized-dark']
+        
+        menubar.add_cascade(label="语法高亮", menu=syntax_menu)
 
         # 帮助菜单
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -593,9 +647,9 @@ class AdvancedTextEditor:
             self.syntax_highlighting_enabled = True
             self.left_status.config(text="语法高亮已开启")
             # 为当前打开的文件应用语法高亮
-            if self.current_file and is_supported_file(
-                SupportedExtensions, self.current_file
-            ):
+            if self.current_file:
+                # 默认使用自动检测模式
+                self.current_lexer = "auto"
                 self.apply_syntax_highlighting()
         else:
             # 关闭语法高亮
@@ -1311,7 +1365,7 @@ class AdvancedTextEditor:
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
-
+        
     def load_config(self):
         """加载配置文件"""
         if os.path.exists(self.config_file_path):
@@ -1375,6 +1429,7 @@ class AdvancedTextEditor:
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
+                # 如果出错，则使用默认配置
         else:
             # 配置文件不存在，保存默认配置
             self.save_config()
@@ -2057,10 +2112,11 @@ class AdvancedTextEditor:
     def _delayed_apply_syntax_highlighting(self, file_path):
         """延迟应用语法高亮"""
         try:
-            # 检查是否启用了语法高亮并且是Python文件
-            if self.syntax_highlighting_enabled and is_supported_file(
-                SupportedExtensions, file_path
-            ):
+            # 检查是否启用了语法高亮
+            if self.syntax_highlighting_enabled:
+                # 默认使用自动检测模式
+                self.current_lexer = "auto"
+                
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
@@ -2216,10 +2272,11 @@ class AdvancedTextEditor:
                 # 静默模式下，只在状态栏显示简短信息
                 self.update_statusbar()
 
-            # 检查是否启用了语法高亮并且是Python文件
-            if self.syntax_highlighting_enabled and is_supported_file(
-                SupportedExtensions, file_path
-            ):
+            # 检查是否启用了语法高亮
+            if self.syntax_highlighting_enabled:
+                # 默认使用自动检测模式
+                self.current_lexer = "auto"
+                
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
@@ -3294,3 +3351,196 @@ The quick brown fox jumps over the lazy dog.
             "- 格式设置: 字体、大小、粗体、斜体、下划线\n"
             "- 快捷键支持\n\n",
         )
+
+class LanguageDialog:
+    """语言选择对话框，允许用户搜索和选择语法高亮语言"""
+    
+    def __init__(self, parent, current_language="Python"):
+        """初始化语言选择对话框
+        
+        Args:
+            parent: 父窗口
+            current_language: 当前选中的语言
+        """
+        self.parent = parent
+        self.current_language = current_language
+        self.selected_language = None
+        self.all_languages = []  # 存储所有语言列表
+        self.language_aliases = {}  # 存储语言别名映射
+        
+        # 创建对话框
+        self.dialog = tk.Toplevel(parent)
+        self.dialog.title("选择语言")
+        self.dialog.geometry("500x450")
+        self.dialog.resizable(True, True)
+        self.dialog.transient(parent)
+        self.dialog.grab_set()  # 模态对话框
+        
+        # 创建UI
+        self.create_ui()
+        
+        # 居中显示对话框
+        self.dialog.update_idletasks()
+        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
+        self.dialog.geometry(f"+{x}+{y}")
+    
+    def create_ui(self):
+        """创建对话框UI"""
+        # 当前语言标签
+        current_label = tk.Label(
+            self.dialog, 
+            text=f"当前语言: {self.current_language}", 
+            font=("Arial", 10)
+        )
+        current_label.pack(pady=10, padx=10, anchor=tk.W)
+        
+        # 搜索框架
+        search_frame = tk.Frame(self.dialog)
+        search_frame.pack(fill=tk.X, padx=10, pady=5)
+        
+        # 搜索标签
+        search_label = tk.Label(search_frame, text="搜索:", font=("Arial", 10))
+        search_label.pack(side=tk.LEFT, padx=(0, 5))
+        
+        # 搜索输入框
+        self.search_var = tk.StringVar()
+        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, font=("Arial", 10))
+        self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # 搜索按钮
+        search_button = tk.Button(search_frame, text="搜索", command=self.search_languages, font=("Arial", 10), width=8)
+        search_button.pack(side=tk.LEFT, padx=5)
+        
+        # 查看全部按钮
+        view_all_button = tk.Button(search_frame, text="查看全部", command=self.show_all_languages, font=("Arial", 10), width=8)
+        view_all_button.pack(side=tk.LEFT)
+        
+        # 绑定回车键触发搜索
+        self.search_entry.bind("<Return>", lambda event: self.search_languages())
+        
+        # 创建滚动条和列表框
+        list_frame = tk.Frame(self.dialog)
+        list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+        
+        # 垂直滚动条
+        vscrollbar = tk.Scrollbar(list_frame)
+        vscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # 语言列表框
+        self.language_listbox = tk.Listbox(
+            list_frame, 
+            yscrollcommand=vscrollbar.set,
+            font=("Arial", 10),
+            selectmode=tk.SINGLE
+        )
+        self.language_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        vscrollbar.config(command=self.language_listbox.yview)
+        
+        # 加载语言（在后台加载以避免阻塞）
+        self.dialog.after(100, self.load_languages)
+        
+        # 双击选择语言
+        self.language_listbox.bind("<Double-Button-1>", self.on_language_select)
+        
+        # 按钮框架
+        button_frame = tk.Frame(self.dialog)
+        button_frame.pack(pady=10)
+        
+        # 确定按钮
+        ok_button = tk.Button(
+            button_frame, 
+            text="确定", 
+            command=self.on_language_select,
+            width=10,
+            font=("Arial", 10)
+        )
+        ok_button.pack(side=tk.LEFT, padx=5)
+        
+        # 取消按钮
+        cancel_button = tk.Button(
+            button_frame, 
+            text="取消", 
+            command=self.dialog.destroy,
+            width=10,
+            font=("Arial", 10)
+        )
+        cancel_button.pack(side=tk.LEFT, padx=5)
+    
+    def load_languages(self):
+        """加载语言列表"""
+        try:
+            # 动态导入get_all_languages函数
+            from enhanced_syntax_highlighter import get_all_languages
+            # 获取所有支持的语言
+            languages_data = get_all_languages()
+            
+            # 提取语言名称和别名映射
+            self.all_languages = sorted([lang for lang, _ in languages_data])
+            self.language_aliases = dict(languages_data)
+            
+            # 显示所有语言
+            self.show_all_languages()
+        except Exception as e:
+            # 如果出错，显示错误信息
+            self.language_listbox.delete(0, tk.END)
+            self.language_listbox.insert(tk.END, f"加载语言失败: {str(e)}")
+            self.language_listbox.config(state="disabled")
+    
+    def show_all_languages(self):
+        """显示所有语言"""
+        self._update_listbox(self.all_languages)
+    
+    def search_languages(self):
+        """根据搜索关键字过滤语言"""
+        keyword = self.search_var.get().lower().strip()
+        if not keyword:
+            self.show_all_languages()
+            return
+        
+        # 过滤匹配的语言
+        filtered_languages = [lang for lang in self.all_languages 
+                            if keyword in lang.lower()]
+        self._update_listbox(filtered_languages)
+    
+    def _update_listbox(self, languages):
+        """更新列表框内容
+        
+        Args:
+            languages: 要显示的语言列表
+        """
+        self.language_listbox.delete(0, tk.END)
+        
+        # 添加语言到列表框
+        for lang in languages:
+            self.language_listbox.insert(tk.END, lang)
+            
+        # 尝试选中当前语言
+        if self.current_language in languages:
+            index = languages.index(self.current_language)
+            self.language_listbox.selection_set(index)
+            self.language_listbox.see(index)
+        elif languages:
+            # 如果当前语言不在列表中，默认选中第一个
+            self.language_listbox.selection_set(0)
+            self.language_listbox.see(0)
+    
+    def on_language_select(self, event=None):
+        """处理语言选择
+        
+        Args:
+            event: 事件对象
+        """
+        selection = self.language_listbox.curselection()
+        if selection:
+            self.selected_language = self.language_listbox.get(selection[0])
+            self.dialog.destroy()
+    
+    def get_selected_language(self):
+        """获取选中的语言
+        
+        Returns:
+            str: 选中的语言名称，取消时返回None
+        """
+        return self.selected_language
