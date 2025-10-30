@@ -17,7 +17,7 @@
 
 import tkinter as tk
 import pygments
-from pygments.lexers import get_lexer_by_name, guess_lexer
+from pygments.lexers import get_lexer_by_name, guess_lexer, get_all_lexers
 from pygments.styles import get_style_by_name
 from pygments.token import Token
 import threading
@@ -575,6 +575,26 @@ class EnhancedSyntaxHighlighter:
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=0.5)  # 等待工作线程结束
 
+def get_all_languages():
+    """
+    获取Pygments支持的所有语言及其别名
+    
+    返回:
+        list: 包含(语言名称, 别名)元组的列表
+    """
+    languages = []
+    seen_aliases = set()
+    for name, aliases, _, _ in pygments.lexers.get_all_lexers():
+        # 添加语言名称和主要别名
+        alias = aliases[0] if aliases else name.lower()
+        # 避免重复的别名
+        if alias not in seen_aliases:
+            languages.append((name, alias))
+            seen_aliases.add(alias)
+    # 按名称排序
+    languages.sort(key=lambda x: x[0])
+    return languages
+
 # 测试用的简单应用示例
 if __name__ == "__main__":
     def create_demo_app():
@@ -590,22 +610,6 @@ if __name__ == "__main__":
         # 创建控制框架
         control_frame = tk.Frame(root)
         control_frame.pack(fill=tk.X, padx=5, pady=5)
-        
-        # 获取所有支持的语言
-        def get_all_languages():
-            """获取Pygments支持的所有语言及其别名"""
-            languages = []
-            seen_aliases = set()
-            for name, aliases, _, _ in pygments.lexers.get_all_lexers():
-                # 添加语言名称和主要别名
-                alias = aliases[0] if aliases else name.lower()
-                # 避免重复的别名
-                if alias not in seen_aliases:
-                    languages.append((name, alias))
-                    seen_aliases.add(alias)
-            # 按名称排序
-            languages.sort(key=lambda x: x[0])
-            return languages
         
         # 获取所有语言
         languages = get_all_languages()
