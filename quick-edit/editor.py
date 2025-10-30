@@ -315,18 +315,37 @@ class AdvancedTextEditor:
         # 创建垂直滚动条
         self.scrollbar = tk.Scrollbar(text_container, orient=tk.VERTICAL)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # 创建水平滚动条
+        self.hscrollbar = tk.Scrollbar(text_container, orient=tk.HORIZONTAL)
+        # 初始时隐藏水平滚动条，因为默认启用了文本自动换行
+        # self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
         # 创建文本区域
         self.text_area = tk.Text(
             text_container,
-            wrap=tk.WORD,
+            wrap=tk.WORD,  # 设置为按单词换行
             undo=True,
             yscrollcommand=self.on_text_scroll_with_line_numbers,
+            xscrollcommand=self.hscrollbar.set  # 关联水平滚动条
         )
         self.text_area.pack(fill=tk.BOTH, expand=True)
 
         # 将滚动条与文本区域关联
         self.scrollbar.config(command=self.on_text_scroll)
+        self.hscrollbar.config(command=self.text_area.xview)
+        
+        # 根据配置设置文本区域的换行属性和水平滚动条状态
+        if hasattr(self, 'word_wrap_enabled'):
+            if self.word_wrap_enabled:
+                self.text_area.config(wrap=tk.WORD)
+                self.hscrollbar.pack_forget()  # 隐藏水平滚动条
+            else:
+                self.text_area.config(wrap=tk.NONE)
+                self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)  # 显示水平滚动条
+        else:
+            # 如果还没有加载配置，使用默认值
+            self.word_wrap_enabled = True
 
         # 绑定滚动事件
         self.text_area.bind("<MouseWheel>", self.on_mouse_wheel)
@@ -395,6 +414,30 @@ class AdvancedTextEditor:
             # 直接将选中的语言传递给change_language方法
             self.change_language(selected_language)
 
+    def toggle_word_wrap(self):
+        """切换文本自动换行功能
+        
+        当启用时，文本将在窗口边缘自动换行，水平滚动条隐藏；当禁用时，文本将水平滚动，水平滚动条显示。
+        切换后会保存配置到配置文件。
+        """
+        # 切换换行状态
+        self.word_wrap_enabled = not self.word_wrap_enabled
+        
+        # 根据状态设置文本框的wrap属性和水平滚动条的显示状态
+        if self.word_wrap_enabled:
+            self.text_area.config(wrap=tk.WORD)
+            self.hscrollbar.pack_forget()  # 隐藏水平滚动条
+        else:
+            self.text_area.config(wrap=tk.NONE)
+            self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)  # 显示水平滚动条
+        
+        # 更新状态栏显示
+        status = "已启用" if self.word_wrap_enabled else "已禁用"
+        self.left_status.config(text=f"文本自动换行: {status}")
+        
+        # 保存配置到配置文件
+        self.save_config()
+        
     def change_language(self, selected_language=None):
         """更改语法高亮语言
 
@@ -615,6 +658,13 @@ class AdvancedTextEditor:
             label="显示行号",
             command=self.toggle_line_numbers,
             variable=self.show_line_numbers_var,
+        )
+        # 文本自动换行选项
+        self.word_wrap_var = tk.BooleanVar(value=self.word_wrap_enabled)
+        settings_menu.add_checkbutton(
+            label="启用文本自动换行",
+            command=self.toggle_word_wrap,
+            variable=self.word_wrap_var
         )
         # 自动保存设置
         settings_menu.add_separator()
@@ -1420,6 +1470,8 @@ class AdvancedTextEditor:
                     self.auto_save_interval = config.get("auto_save_interval", 5)
                     # 加载备份配置
                     self.backup_enabled = config.get("backup_enabled", True)
+                    # 加载文本自动换行配置
+                    self.word_wrap_enabled = config.get("word_wrap_enabled", True)
                     # 加载新的配置属性
                     self.max_file_size = config.get("max_file_size", MaxFileSize)
                     self.small_file_size_threshold = config.get(
@@ -1454,6 +1506,9 @@ class AdvancedTextEditor:
                 # 同步更新备份选项菜单变量的状态
                 if hasattr(self, "backup_enabled_var"):
                     self.backup_enabled_var.set(self.backup_enabled)
+                # 同步更新文本自动换行菜单变量的状态
+                if hasattr(self, "word_wrap_var"):
+                    self.word_wrap_var.set(self.word_wrap_enabled)
 
             except Exception as e:
                 print(f"加载配置文件时出错: {e}")
@@ -1478,6 +1533,7 @@ class AdvancedTextEditor:
             "auto_save_enabled": self.auto_save_enabled,
             "auto_save_interval": self.auto_save_interval,
             "backup_enabled": self.backup_enabled,
+            "word_wrap_enabled": self.word_wrap_enabled,
             "max_file_size": self.max_file_size,
             "small_file_size_threshold": self.small_file_size_threshold,
             "main_window_height": self.main_window_height,
