@@ -101,6 +101,9 @@ class AdvancedTextEditor:
         self.file_read_thread = None
         self.file_read_cancelled = False
         self.progress_window = None
+
+        # 默认词法分析器为自动检测
+        self.current_lexer = "auto"
         
         # 加载配置文件
         self.load_config()
@@ -148,23 +151,24 @@ class AdvancedTextEditor:
                 # 销毁现有的增强版语法高亮器
                 if self.enhanced_highlighter:
                     self.enhanced_highlighter.destroy()
+
                 # 创建新的增强版语法高亮器
                 self.enhanced_highlighter = EnhancedSyntaxHighlighter(
-                    self.text_area,
-                    lexer_name=self.current_lexer,
-                    style_name=self.current_style,
+                    self.text_area, # 文本框组件
+                    lexer_name=self.current_lexer, # 词法分析器名称
+                    style_name=self.current_style, # 样式名称
                     delay_update=200  # 增加延迟以减少启动时的负载
                 )
                 
-                # 延迟触发高亮更新，避免在UI初始化期间进行大量计算
+                # 延迟触发高亮更新, 避免在UI初始化期间进行大量计算
                 # 这样可以让菜单和工具栏先显示出来
-                self.text_area.after(500, self._delayed_highlight_update)
+                self.text_area.after(300, self._delayed_highlight_update)
         except Exception as e:
             # 捕获所有异常但不中断程序
             pass
     
     def _delayed_highlight_update(self):
-        """延迟执行的高亮更新，避免阻塞UI初始化"""
+        """延迟执行的高亮更新, 避免阻塞UI初始化"""
         if hasattr(self, 'enhanced_highlighter') and self.enhanced_highlighter:
             try:
                 self.enhanced_highlighter.update_highlighting()
@@ -348,7 +352,7 @@ class AdvancedTextEditor:
             insertbackground="black",
             selectbackground="lightblue",
             selectforeground="black",
-            maxundo=self.max_undo,
+            maxundo=self.max_undo, # 最大撤销次数
         )
 
         # 设置行号区域样式
@@ -606,13 +610,7 @@ class AdvancedTextEditor:
         syntax_menu.add_command(label="选择语言", command=self.open_language_dialog)
         self.language_var = tk.StringVar(value="Python")
         
-        # 条件导入pygments.styles，延迟加载样式列表
-        try:
-            import pygments.styles
-            styles = sorted(pygments.styles.get_all_styles())
-        except Exception:
-            # 如果出错，使用默认样式列表
-            styles = ['monokai', 'default', 'vim', 'native', 'solarized-dark']
+
         
         menubar.add_cascade(label="语法高亮", menu=syntax_menu)
 
@@ -648,15 +646,12 @@ class AdvancedTextEditor:
             self.left_status.config(text="语法高亮已开启")
             # 为当前打开的文件应用语法高亮
             if self.current_file:
-                # 默认使用自动检测模式
-                self.current_lexer = "auto"
                 self.apply_syntax_highlighting()
         else:
             # 关闭语法高亮
             self.syntax_highlighting_enabled = False
             self.left_status.config(text="语法高亮已关闭")
-            # 移除当前文件的语法高亮
-            self.remove_syntax_highlighting()
+            self.remove_syntax_highlighting() # 移除高亮
 
         # 保存配置
         self.save_config()
@@ -2114,9 +2109,6 @@ class AdvancedTextEditor:
         try:
             # 检查是否启用了语法高亮
             if self.syntax_highlighting_enabled:
-                # 默认使用自动检测模式
-                self.current_lexer = "auto"
-                
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
@@ -2274,9 +2266,6 @@ class AdvancedTextEditor:
 
             # 检查是否启用了语法高亮
             if self.syntax_highlighting_enabled:
-                # 默认使用自动检测模式
-                self.current_lexer = "auto"
-                
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()

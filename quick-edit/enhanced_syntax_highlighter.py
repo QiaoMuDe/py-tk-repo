@@ -55,10 +55,10 @@ class EnhancedSyntaxHighlighter:
         self.style = get_style_by_name(style_name)
 
         # 性能优化设置
-        self.enable_optimizations = kwargs.get("enable_optimizations", True)
+        self.enable_optimizations = kwargs.get("enable_optimizations", True)  # 是否启用性能优化
         self.delay_update = kwargs.get("delay_update", 100)  # 延迟更新时间（毫秒）
-        self.incremental_update = kwargs.get("incremental_update", True)
-        self.max_lines_for_full_update = kwargs.get("max_lines_for_full_update", 5000)
+        self.incremental_update = kwargs.get("incremental_update", True)  # 是否启用增量更新
+        self.max_lines_for_full_update = kwargs.get("max_lines_for_full_update", 5000) # 最大行数触发全量更新
 
         # 状态变量
         self._updating = False
@@ -534,14 +534,28 @@ class EnhancedSyntaxHighlighter:
         """
         销毁高亮器，清理资源
         """
+        # 设置停止事件
         self._stop_event.set()
+        
+        # 取消更新计时器
         if self._update_timer:
             try:
                 self.text_widget.after_cancel(self._update_timer)
             except:
                 pass
+                
+        # 等待工作线程结束
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=0.5)  # 等待工作线程结束
+            
+        # 清理所有高亮标签（保留'sel'选中样式）
+        try:
+            for tag in self.text_widget.tag_names():
+                if tag != "sel":
+                    self.text_widget.tag_remove(tag, "1.0", tk.END)
+                    self.text_widget.tag_delete(tag)
+        except Exception as e:
+            print(f"清理标签时出错: {e}")
 
 
 # 缓存语言列表，避免重复加载
