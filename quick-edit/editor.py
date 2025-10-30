@@ -15,8 +15,12 @@ import queue
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
 from utils import format_file_size, center_window
+
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
-from enhanced_syntax_highlighter import EnhancedSyntaxHighlighter, get_lexer_name_by_filename
+from enhanced_syntax_highlighter import (
+    EnhancedSyntaxHighlighter,
+    get_lexer_name_by_filename,
+)
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
@@ -40,6 +44,7 @@ ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 # 图标文件路径
 IconFilePath = "./icos/QuickEdit.ico"
 
+
 class AdvancedTextEditor:
     def __init__(self, root):
         self.root = root
@@ -61,7 +66,7 @@ class AdvancedTextEditor:
 
         # 设置窗口图标
         if os.path.exists(IconFilePath):  # 如果图标文件存在
-            self.root.iconbitmap(IconFilePath)  
+            self.root.iconbitmap(IconFilePath)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -78,7 +83,7 @@ class AdvancedTextEditor:
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
-        
+
         # 增强版语法高亮相关属性
         self.enhanced_highlighter = None  # 增强版语法高亮器实例
         self.current_lexer = "auto"  # 当前使用的词法分析器
@@ -101,7 +106,7 @@ class AdvancedTextEditor:
         self.file_read_thread = None
         self.file_read_cancelled = False
         self.progress_window = None
-        
+
         # 加载配置文件
         self.load_config()
 
@@ -136,7 +141,7 @@ class AdvancedTextEditor:
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
-    
+
     def apply_syntax_highlighting(self):
         """应用语法高亮"""
         try:
@@ -149,24 +154,31 @@ class AdvancedTextEditor:
                 if self.enhanced_highlighter:
                     self.enhanced_highlighter.destroy()
 
+                # 获取词法分析器名称
+                lexer_name = get_lexer_name_by_filename(self.current_file)
+                # 更新current_lexer变量，使语言选择对话框正确显示当前语言
+                self.current_lexer = lexer_name
+                # 更新language_var以保持菜单和状态同步
+                self.language_var.set(lexer_name)
+
                 # 创建新的增强版语法高亮器
                 self.enhanced_highlighter = EnhancedSyntaxHighlighter(
-                    self.text_area, # 文本框组件
-                    lexer_name=get_lexer_name_by_filename(self.current_file), # 词法分析器名称
-                    style_name=self.current_style, # 样式名称
-                    delay_update=200  # 增加延迟以减少启动时的负载
+                    self.text_area,  # 文本框组件
+                    lexer_name=lexer_name,  # 词法分析器名称
+                    style_name=self.current_style,  # 样式名称
+                    delay_update=200,  # 增加延迟以减少启动时的负载
                 )
-                
+
                 # 延迟触发高亮更新, 避免在UI初始化期间进行大量计算
                 # 这样可以让菜单和工具栏先显示出来
                 self.text_area.after(300, self._delayed_highlight_update)
         except Exception as e:
             # 捕获所有异常但不中断程序
             pass
-    
+
     def _delayed_highlight_update(self):
         """延迟执行的高亮更新, 避免阻塞UI初始化"""
-        if hasattr(self, 'enhanced_highlighter') and self.enhanced_highlighter:
+        if hasattr(self, "enhanced_highlighter") and self.enhanced_highlighter:
             try:
                 self.enhanced_highlighter.update_highlighting()
             except Exception:
@@ -210,7 +222,7 @@ class AdvancedTextEditor:
         """根据文本框内容更新窗口标题"""
         # 获取文本框内容
         content = self.text_area.get("1.0", tk.END + "-1c")
-        
+
         # 如果没有打开文件
         if not self.current_file:
             # 如果文本框为空，使用程序名称作为标题
@@ -267,7 +279,7 @@ class AdvancedTextEditor:
 
         # 清理语法高亮器资源
         self.remove_syntax_highlighting()
-        
+
         # 销毁窗口
         self.root.destroy()
 
@@ -349,7 +361,7 @@ class AdvancedTextEditor:
             insertbackground="black",
             selectbackground="lightblue",
             selectforeground="black",
-            maxundo=self.max_undo, # 最大撤销次数
+            maxundo=self.max_undo,  # 最大撤销次数
         )
 
         # 设置行号区域样式
@@ -357,50 +369,60 @@ class AdvancedTextEditor:
 
     def open_language_dialog(self):
         """打开语言选择对话框"""
-        # 获取当前选中的语言
-        current_language = self.language_var.get()
-        
+        # 使用当前的词法分析器作为当前语言
+        current_language = self.current_lexer
+
         # 创建语言选择对话框
         dialog = LanguageDialog(self.root, current_language)
-        
+
         # 等待对话框关闭
         self.root.wait_window(dialog.dialog)
-        
+
         # 获取选中的语言
         selected_language = dialog.get_selected_language()
-        
+
         # 如果用户选择了语言
         if selected_language:
             # 更新语言变量
             self.language_var.set(selected_language)
-            # 调用change_language方法更新语法高亮
-            self.change_language()
-    
-    def change_language(self):
-        """更改语法高亮语言"""
+            # 直接将选中的语言传递给change_language方法
+            self.change_language(selected_language)
+
+    def change_language(self, selected_language=None):
+        """更改语法高亮语言
+
+        Args:
+            selected_language: 要选择的语言名称，如果为None则从language_var获取
+        """
         try:
-            selected_language = self.language_var.get()
+            # 如果没有提供语言，则从language_var获取
+            target_language = (
+                selected_language
+                if selected_language is not None
+                else self.language_var.get()
+            )
             # 动态导入get_all_languages函数
             from enhanced_syntax_highlighter import get_all_languages
+
             # 获取语言别名映射
             languages = get_all_languages()
             language_aliases = dict(languages)
-            
+
             # 更新当前词法分析器
-            if selected_language in language_aliases:
-                self.current_lexer = language_aliases[selected_language]
+            if target_language in language_aliases:
+                self.current_lexer = language_aliases[target_language]
             else:
-                self.current_lexer = selected_language.lower()
-            
+                self.current_lexer = target_language.lower()
+
             # 如果有增强版语法高亮器实例，更新其词法分析器
             if self.enhanced_highlighter:
                 self.enhanced_highlighter.set_lexer(self.current_lexer)
-                
+
             # 更新状态栏
             self.left_status.config(text=f"语法高亮语言已更改为: {selected_language}")
         except Exception as e:
             self.left_status.config(text=f"更改语言时出错: {str(e)}")
-    
+
     def create_menu(self):
         """创建菜单栏"""
         menubar = tk.Menu(self.root)
@@ -551,6 +573,29 @@ class AdvancedTextEditor:
         theme_menu.add_cascade(label="主题", menu=theme_submenu)
         menubar.add_cascade(label="主题", menu=theme_menu)
 
+         # 语法高亮菜单
+        syntax_menu = tk.Menu(menubar, tearoff=0)
+        # 语法高亮显示选项
+        self.syntax_highlighting_var = tk.BooleanVar(
+            value=self.syntax_highlighting_enabled
+        )
+        syntax_menu.add_checkbutton(
+            label="启用语法高亮",
+            command=self.toggle_syntax_highlighting,
+            variable=self.syntax_highlighting_var,
+        )
+        syntax_menu.add_separator()
+
+        # 选择语言菜单项，点击时打开语言选择对话框，添加Ctrl+L快捷键
+        syntax_menu.add_command(
+            label="选择语言", command=self.open_language_dialog, accelerator="Ctrl+L"
+        )
+        # 绑定Ctrl+L快捷键到open_language_dialog方法
+        self.root.bind("<Control-l>", lambda event: self.open_language_dialog())
+        self.language_var = tk.StringVar(value=self.current_lexer)
+
+        menubar.add_cascade(label="语法高亮", menu=syntax_menu)
+
         # 设置菜单
         settings_menu = tk.Menu(menubar, tearoff=0)
         self.toolbar_var = tk.BooleanVar(value=self.toolbar_visible)
@@ -590,27 +635,6 @@ class AdvancedTextEditor:
         )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
-        # 语法高亮菜单
-        syntax_menu = tk.Menu(menubar, tearoff=0)
-        # 语法高亮显示选项
-        self.syntax_highlighting_var = tk.BooleanVar(
-            value=self.syntax_highlighting_enabled
-        )
-        syntax_menu.add_checkbutton(
-            label="启用语法高亮",
-            command=self.toggle_syntax_highlighting,
-            variable=self.syntax_highlighting_var,
-        )
-        syntax_menu.add_separator()
-        
-        # 简单的选择语言菜单项，点击时打开语言选择对话框
-        syntax_menu.add_command(label="选择语言", command=self.open_language_dialog)
-        self.language_var = tk.StringVar(value="Python")
-        
-
-        
-        menubar.add_cascade(label="语法高亮", menu=syntax_menu)
-
         # 帮助菜单
         help_menu = tk.Menu(menubar, tearoff=0)
         help_menu.add_command(label="关于", command=self.show_about)
@@ -648,7 +672,7 @@ class AdvancedTextEditor:
             # 关闭语法高亮
             self.syntax_highlighting_enabled = False
             self.left_status.config(text="语法高亮已关闭")
-            self.remove_syntax_highlighting() # 移除高亮
+            self.remove_syntax_highlighting()  # 移除高亮
 
         # 保存配置
         self.save_config()
@@ -692,7 +716,7 @@ class AdvancedTextEditor:
         else:
             self.stop_auto_save_timer()
             messagebox.showinfo("自动保存", "已关闭自动保存")
-        
+
         # 更新状态栏显示
         self.show_default_auto_save_status()
 
@@ -1276,7 +1300,7 @@ class AdvancedTextEditor:
         """更新状态栏信息"""
         # 根据文本内容更新窗口标题
         self.update_title_based_on_content()
-        
+
         try:
             # 获取光标位置
             cursor_pos = self.text_area.index(tk.INSERT)
@@ -1357,7 +1381,7 @@ class AdvancedTextEditor:
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
-        
+
     def load_config(self):
         """加载配置文件"""
         if os.path.exists(self.config_file_path):
@@ -2179,7 +2203,9 @@ class AdvancedTextEditor:
                 self.current_file = file_path
                 # 根据只读模式状态设置窗口标题
                 if self.readonly_mode:
-                    self.root.title(f"[只读模式] {os.path.basename(file_path)} - QuickEdit")
+                    self.root.title(
+                        f"[只读模式] {os.path.basename(file_path)} - QuickEdit"
+                    )
                 else:
                     self.root.title(f"{os.path.basename(file_path)} - QuickEdit")
 
@@ -2314,7 +2340,7 @@ class AdvancedTextEditor:
         # 如果配置中启用了自动保存，则启动计时器
         if self.auto_save_enabled:
             self.start_auto_save_timer()
-        
+
         # 更新状态栏显示
         self.show_default_auto_save_status()
 
@@ -3338,22 +3364,50 @@ The quick brown fox jumps over the lazy dog.
             "- 快捷键支持\n\n",
         )
 
+
 class LanguageDialog:
     """语言选择对话框，允许用户搜索和选择语法高亮语言"""
-    
-    def __init__(self, parent, current_language="Python"):
+
+    def __init__(self, parent, current_language=None):
         """初始化语言选择对话框
-        
+
         Args:
             parent: 父窗口
             current_language: 当前选中的语言
         """
         self.parent = parent
-        self.current_language = current_language
+        # 如果没有提供当前语言，默认使用"auto"
+        self.current_language = (
+            current_language if current_language is not None else "auto"
+        )
         self.selected_language = None
         self.all_languages = []  # 存储所有语言列表
         self.language_aliases = {}  # 存储语言别名映射
+
+        # 获取父窗口的字体名称，使用固定字体大小
+        try:
+            # 尝试从父窗口获取字体配置
+            if hasattr(parent, 'text_widget') and parent.text_widget:
+                # 获取文本部件的字体
+                font_config = parent.text_widget['font']
+                # 如果是元组格式 (family, size)
+                if isinstance(font_config, tuple) and len(font_config) >= 1:
+                    self.font_family = font_config[0]
+                else:
+                    # 尝试解析字体配置字符串
+                    import tkinter.font as tkfont
+                    f = tkfont.Font(font=font_config)
+                    self.font_family = f.actual()['family']
+            else:
+                # 默认字体名称
+                self.font_family = "Arial"
+        except:
+            # 出错时使用默认字体
+            self.font_family = "Arial"
         
+        # 固定字体大小为10
+        self.font_size = 10
+
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("选择语言")
@@ -3361,147 +3415,186 @@ class LanguageDialog:
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
-        
+
         # 创建UI
         self.create_ui()
-        
+
         # 居中显示对话框
         self.dialog.update_idletasks()
         x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
         y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
         self.dialog.geometry(f"+{x}+{y}")
-    
+
     def create_ui(self):
         """创建对话框UI"""
         # 当前语言标签
         current_label = tk.Label(
-            self.dialog, 
-            text=f"当前语言: {self.current_language}", 
-            font=("Arial", 10)
+            self.dialog, text=f"当前语言: {self.current_language}", font=(self.font_family, self.font_size)
         )
         current_label.pack(pady=10, padx=10, anchor=tk.W)
-        
+
         # 搜索框架
         search_frame = tk.Frame(self.dialog)
         search_frame.pack(fill=tk.X, padx=10, pady=5)
-        
+
         # 搜索标签
-        search_label = tk.Label(search_frame, text="搜索:", font=("Arial", 10))
+        search_label = tk.Label(search_frame, text="搜索:", font=(self.font_family, self.font_size))
         search_label.pack(side=tk.LEFT, padx=(0, 5))
-        
+
         # 搜索输入框
         self.search_var = tk.StringVar()
-        self.search_entry = tk.Entry(search_frame, textvariable=self.search_var, font=("Arial", 10))
+        self.search_entry = tk.Entry(
+            search_frame, textvariable=self.search_var, font=(self.font_family, self.font_size)
+        )
         self.search_entry.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        
+
         # 搜索按钮
-        search_button = tk.Button(search_frame, text="搜索", command=self.search_languages, font=("Arial", 10), width=8)
+        search_button = tk.Button(
+            search_frame,
+            text="搜索",
+            command=self.search_languages,
+            font=(self.font_family, self.font_size),
+            width=8,
+        )
         search_button.pack(side=tk.LEFT, padx=5)
-        
-        # 查看全部按钮
-        view_all_button = tk.Button(search_frame, text="查看全部", command=self.show_all_languages, font=("Arial", 10), width=8)
-        view_all_button.pack(side=tk.LEFT)
-        
+
         # 绑定回车键触发搜索
         self.search_entry.bind("<Return>", lambda event: self.search_languages())
-        
+
         # 创建滚动条和列表框
         list_frame = tk.Frame(self.dialog)
         list_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
-        
+
         # 垂直滚动条
         vscrollbar = tk.Scrollbar(list_frame)
         vscrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
+
         # 语言列表框
         self.language_listbox = tk.Listbox(
-            list_frame, 
+            list_frame,
             yscrollcommand=vscrollbar.set,
-            font=("Arial", 10),
-            selectmode=tk.SINGLE
+            font=(self.font_family, self.font_size),
+            selectmode=tk.SINGLE,
         )
         self.language_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        
+
         vscrollbar.config(command=self.language_listbox.yview)
-        
+
         # 加载语言（在后台加载以避免阻塞）
         self.dialog.after(100, self.load_languages)
-        
+
         # 双击选择语言
         self.language_listbox.bind("<Double-Button-1>", self.on_language_select)
-        
+
+        # 绑定键盘上下键导航
+        self.language_listbox.bind("<Up>", self.on_keyboard_navigate)
+        self.language_listbox.bind("<Down>", self.on_keyboard_navigate)
+        self.language_listbox.bind("<Return>", self.on_language_select)
+
+        # 默认让搜索框获取焦点
+        self.search_entry.focus_set()
+
         # 按钮框架
         button_frame = tk.Frame(self.dialog)
         button_frame.pack(pady=10)
-        
+
         # 确定按钮
         ok_button = tk.Button(
-            button_frame, 
-            text="确定", 
+            button_frame,
+            text="确定",
             command=self.on_language_select,
             width=10,
-            font=("Arial", 10)
+            font=(self.font_family, self.font_size),
         )
         ok_button.pack(side=tk.LEFT, padx=5)
-        
+
         # 取消按钮
         cancel_button = tk.Button(
-            button_frame, 
-            text="取消", 
+            button_frame,
+            text="取消",
             command=self.dialog.destroy,
             width=10,
-            font=("Arial", 10)
+            font=(self.font_family, self.font_size),
         )
         cancel_button.pack(side=tk.LEFT, padx=5)
-    
+
     def load_languages(self):
         """加载语言列表"""
         try:
             # 动态导入get_all_languages函数
             from enhanced_syntax_highlighter import get_all_languages
+
             # 获取所有支持的语言
             languages_data = get_all_languages()
-            
+
             # 提取语言名称和别名映射
             self.all_languages = sorted([lang for lang, _ in languages_data])
             self.language_aliases = dict(languages_data)
-            
+
             # 显示所有语言
-            self.show_all_languages()
+            self._update_listbox(self.all_languages)
         except Exception as e:
             # 如果出错，显示错误信息
             self.language_listbox.delete(0, tk.END)
             self.language_listbox.insert(tk.END, f"加载语言失败: {str(e)}")
             self.language_listbox.config(state="disabled")
-    
-    def show_all_languages(self):
-        """显示所有语言"""
-        self._update_listbox(self.all_languages)
-    
+
     def search_languages(self):
-        """根据搜索关键字过滤语言"""
+        """根据搜索关键字过滤语言，如果搜索框为空则显示所有语言"""
         keyword = self.search_var.get().lower().strip()
+        # 如果搜索框为空，显示所有语言
         if not keyword:
-            self.show_all_languages()
+            self._update_listbox(self.all_languages)
             return
-        
+
         # 过滤匹配的语言
-        filtered_languages = [lang for lang in self.all_languages 
-                            if keyword in lang.lower()]
+        filtered_languages = [
+            lang for lang in self.all_languages if keyword in lang.lower()
+        ]
         self._update_listbox(filtered_languages)
-    
+
+    def on_keyboard_navigate(self, event):
+        """处理键盘导航事件
+
+        Args:
+            event: 事件对象
+        """
+        selection = self.language_listbox.curselection()
+        if not selection:
+            # 如果没有选中项，选择第一个
+            if self.language_listbox.size() > 0:
+                self.language_listbox.selection_set(0)
+                self.language_listbox.see(0)
+            return
+
+        current_index = selection[0]
+        total_items = self.language_listbox.size()
+
+        if event.keysym == "Up" and current_index > 0:
+            # 向上移动
+            new_index = current_index - 1
+            self.language_listbox.selection_clear(current_index)
+            self.language_listbox.selection_set(new_index)
+            self.language_listbox.see(new_index)
+        elif event.keysym == "Down" and current_index < total_items - 1:
+            # 向下移动
+            new_index = current_index + 1
+            self.language_listbox.selection_clear(current_index)
+            self.language_listbox.selection_set(new_index)
+            self.language_listbox.see(new_index)
+
     def _update_listbox(self, languages):
         """更新列表框内容
-        
+
         Args:
             languages: 要显示的语言列表
         """
         self.language_listbox.delete(0, tk.END)
-        
+
         # 添加语言到列表框
         for lang in languages:
             self.language_listbox.insert(tk.END, lang)
-            
+
         # 尝试选中当前语言
         if self.current_language in languages:
             index = languages.index(self.current_language)
@@ -3511,10 +3604,10 @@ class LanguageDialog:
             # 如果当前语言不在列表中，默认选中第一个
             self.language_listbox.selection_set(0)
             self.language_listbox.see(0)
-    
+
     def on_language_select(self, event=None):
         """处理语言选择
-        
+
         Args:
             event: 事件对象
         """
@@ -3522,11 +3615,32 @@ class LanguageDialog:
         if selection:
             self.selected_language = self.language_listbox.get(selection[0])
             self.dialog.destroy()
-    
+
     def get_selected_language(self):
         """获取选中的语言
-        
+
         Returns:
             str: 选中的语言名称，取消时返回None
         """
         return self.selected_language
+
+    def update_current_language(self, current_language):
+        """更新当前语言显示和词法分析器名称
+
+        Args:
+            current_language: 当前语言名称
+        """
+        # 更新当前语言变量
+        self.current_language = current_language
+
+        # 如果父窗口有current_lexer属性，也更新它以保持一致性
+        if hasattr(self.parent, "current_lexer"):
+            self.parent.current_lexer = current_language
+
+        # 更新标签文本
+        for widget in self.dialog.winfo_children():
+            if isinstance(widget, tk.Label) and widget.cget("text").startswith(
+                "当前语言: "
+            ):
+                widget.config(text=f"当前语言: {current_language}")
+                break
