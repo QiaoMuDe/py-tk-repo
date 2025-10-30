@@ -14,7 +14,7 @@ import queue
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
-from utils import format_file_size, center_window
+from utils import format_file_size, center_window, set_window_icon
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
 from enhanced_syntax_highlighter import (
@@ -49,8 +49,7 @@ ConfigFileName = ".quick_edit_config.json"
 # 配置文件路径
 ConfigFilePath = os.path.join(os.path.expanduser("~"), ConfigFileName)
 
-# 图标文件路径
-IconFilePath = "./icos/QuickEdit.ico"
+
 
 
 class AdvancedTextEditor:
@@ -73,8 +72,7 @@ class AdvancedTextEditor:
         center_window(self.root, self.main_window_width, self.main_window_height)
 
         # 设置窗口图标
-        if os.path.exists(IconFilePath):  # 如果图标文件存在
-            self.root.iconbitmap(IconFilePath)
+        set_window_icon(self.root)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -893,7 +891,6 @@ class AdvancedTextEditor:
             # 创建自定义对话框
             dialog = tk.Toplevel(self.root)
             dialog.title("设置自动保存间隔")
-            dialog.geometry("700x300")  # 增加窗口大小以更好地显示所有元素
             dialog.resizable(False, False)
             dialog.transient(self.root)
             dialog.grab_set()
@@ -910,10 +907,10 @@ class AdvancedTextEditor:
             style.configure("Small.TButton", font=(self.font_family, 8))
 
             # 居中显示对话框
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
-            y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
-            dialog.geometry(f"+{x}+{y}")
+            center_window(dialog, 700, 300)
+
+            # 设置窗口图标
+            set_window_icon(dialog)
 
             # 创建主框架
             main_frame = ttk.Frame(dialog, padding="20")
@@ -2887,18 +2884,23 @@ class AdvancedTextEditor:
 
     # 格式设置方法
     def choose_font(self):
-        """选择字体"""
+        """设置字体"""
         # 获取系统可用字体列表
         available_fonts = list(font.families())
         available_fonts.sort()  # 排序字体列表
 
         # 创建字体选择对话框
         font_dialog = tk.Toplevel(self.root)
-        font_dialog.title("选择字体")
-        font_dialog.geometry("500x600")  # 调整窗口大小以容纳示例文字
+        font_dialog.title("设置字体")
         font_dialog.resizable(True, True)
         font_dialog.transient(self.root)
         font_dialog.grab_set()  # 模态对话框
+
+        # 设置窗口图标
+        set_window_icon(font_dialog)
+        
+        # 居中显示对话框
+        center_window(font_dialog, 500, 600)
 
         # 当前字体标签
         current_label = tk.Label(
@@ -2996,27 +2998,23 @@ The quick brown fox jumps over the lazy dog.
         )
         cancel_button.pack(side=tk.LEFT, padx=5)
 
-        # 居中显示对话框
+        # 显示对话框
         font_dialog.update_idletasks()
-        x = (font_dialog.winfo_screenwidth() // 2) - (font_dialog.winfo_width() // 2)
-        y = (font_dialog.winfo_screenheight() // 2) - (font_dialog.winfo_height() // 2)
-        font_dialog.geometry(f"+{x}+{y}")
 
     def choose_font_size(self):
-        """选择字体大小"""
+        """设置字体大小"""
         # 创建字体大小设置对话框
         size_dialog = tk.Toplevel(self.root)
         size_dialog.title("设置字体大小")
-        size_dialog.geometry("500x400")  # 调整窗口大小以容纳示例文字
         size_dialog.resizable(True, True)  # 允许调整大小
         size_dialog.transient(self.root)
         size_dialog.grab_set()  # 模态对话框
 
         # 居中显示对话框
-        size_dialog.update_idletasks()
-        x = (size_dialog.winfo_screenwidth() // 2) - (size_dialog.winfo_width() // 2)
-        y = (size_dialog.winfo_screenheight() // 2) - (size_dialog.winfo_height() // 2)
-        size_dialog.geometry(f"+{x}+{y}")
+        center_window(size_dialog, 500, 400)
+
+        # 设置窗口图标
+        set_window_icon(size_dialog)
 
         # 当前字体大小标签
         current_label = tk.Label(

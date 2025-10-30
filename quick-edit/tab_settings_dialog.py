@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from utils import set_window_icon, center_window
 
 
 class TabSettingsDialog:
@@ -40,7 +41,6 @@ class TabSettingsDialog:
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("制表符设置")
-        self.dialog.geometry("500x520")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
@@ -48,17 +48,11 @@ class TabSettingsDialog:
         # 创建UI
         self.create_ui()
 
-        # 居中显示对话框
-        self.center_window()
+        # 设置窗口图标
+        set_window_icon(self.dialog)
 
-    def center_window(self):
-        """将对话框居中显示"""
-        self.dialog.update_idletasks()
-        width = self.dialog.winfo_width()
-        height = self.dialog.winfo_height()
-        x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
-        self.dialog.geometry(f"{width}x{height}+{x}+{y}")
+        # 居中显示对话框
+        center_window(self.dialog, 500, 520)
 
     def create_ui(self):
         """创建对话框UI"""

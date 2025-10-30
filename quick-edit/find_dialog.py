@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 import queue
+from utils import set_window_icon, center_window
 
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None):
@@ -23,31 +24,24 @@ class FindDialog:
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("查找和替换")
-        self.dialog.geometry("500x350")  # 调整大小以适应新的布局并去除底部空白
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        
+        # 设置窗口图标
+        set_window_icon(self.dialog)
         
         # 绑定窗口关闭事件，确保关闭时清除所有查找标记
         self.dialog.protocol("WM_DELETE_WINDOW", self.on_dialog_close)
 
         # 居中显示
-        self.center_window()
+        center_window(self.dialog, 500, 350)
 
         # 创建界面元素
         self.create_widgets()
 
         # 绑定事件
         self.bind_events()
-
-    def center_window(self):
-        """将对话框居中显示"""
-        self.dialog.update_idletasks()
-        width = self.dialog.winfo_width()
-        height = self.dialog.winfo_height()
-        x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
-        self.dialog.geometry(f"{width}x{height}+{x}+{y}")
 
     def create_widgets(self):
         """创建界面控件"""

@@ -1,5 +1,8 @@
 import os
 
+# 图标文件路径
+ICON_FILE_PATH = "./icos/QuickEdit.ico"
+
 
 def format_file_size(size_bytes):
     """将字节大小转换为人性化的显示格式"""
@@ -13,17 +16,20 @@ def format_file_size(size_bytes):
         return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
 
 
-def center_window(window, default_width=None, default_height=None):
+def center_window(window, width=None, height=None):
     """将窗口居中显示"""
-
-    # 获取窗口的实际宽度和高度
-    width = window.winfo_width()
-    height = window.winfo_height()
-
-    # 如果获取的宽高为1且提供了默认尺寸，则使用默认尺寸
-    if (width <= 1 or height <= 1) and default_width and default_height:
-        width = default_width
-        height = default_height
+    
+    # 如果没有提供宽高参数，则获取窗口的实际宽高
+    if width is None:
+        width = window.winfo_width()
+    if height is None:
+        height = window.winfo_height()
+    
+    # 确保宽度和高度有效，防止异常
+    if width <= 1:
+        width = 500  # 默认宽度
+    if height <= 1:
+        height = 400  # 默认高度
 
     # 获取屏幕的宽度和高度
     screen_width = window.winfo_screenwidth()
@@ -36,18 +42,15 @@ def center_window(window, default_width=None, default_height=None):
     # 设置窗口位置和尺寸
     window.geometry(f"{width}x{height}+{x}+{y}")
 
-
-def is_supported_file(supported_extensions , file_path) :
-    """检查文件扩展名是否在支持的列表中
+def set_window_icon(window):
+    """设置窗口图标
     
     Args:
-        supported_extensions (list): 支持的文件扩展名列表
-        file_path (str): 文件路径
-        
-    Returns:
-        bool: 如果文件扩展名在支持列表中返回True，否则返回False
+        window: tkinter窗口对象
     """
-    if not file_path:
-        return False
-    _, ext = os.path.splitext(file_path)
-    return ext.lower() in supported_extensions
+    if os.path.exists(ICON_FILE_PATH):
+        try:
+            window.iconbitmap(ICON_FILE_PATH)
+        except Exception:
+            # 如果设置图标失败，静默忽略
+            pass

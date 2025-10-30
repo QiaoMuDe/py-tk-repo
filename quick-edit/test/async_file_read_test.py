@@ -21,7 +21,6 @@ class AsyncFileReaderTest:
     def __init__(self, root):
         self.root = root
         self.root.title("异步文件读取测试")
-        self.root.geometry("600x400")
         center_window(self.root, 600, 400)
         
         # 测试文件路径

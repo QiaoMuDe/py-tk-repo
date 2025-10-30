@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from utils import set_window_icon
 
 
 class LanguageDialog:
@@ -53,6 +54,9 @@ class LanguageDialog:
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
+        
+        # 设置窗口图标
+        set_window_icon(self.dialog)
 
         # 创建UI
         self.create_ui()
