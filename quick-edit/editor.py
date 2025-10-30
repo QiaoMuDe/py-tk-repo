@@ -610,6 +610,24 @@ class AdvancedTextEditor:
         edit_menu.add_command(
             label="转到行", command=self.go_to_line, accelerator="Ctrl+G"
         )
+        edit_menu.add_separator()
+        edit_menu.add_command(
+            label="清空剪贴板", command=self.clear_clipboard
+        )
+        # 复制到剪贴板子菜单
+        copy_to_clipboard_menu = tk.Menu(edit_menu, tearoff=0, font=menu_font)
+        copy_to_clipboard_menu.add_command(
+            label="文件名", command=self.copy_filename_to_clipboard
+        )
+        copy_to_clipboard_menu.add_command(
+            label="完整文件路径", command=self.copy_filepath_to_clipboard
+        )
+        copy_to_clipboard_menu.add_command(
+            label="目录", command=self.copy_directory_to_clipboard
+        )
+        edit_menu.add_cascade(
+            label="复制到剪贴板", menu=copy_to_clipboard_menu
+        )
         menubar.add_cascade(label="编辑", menu=edit_menu)
 
         # 主题菜单
@@ -3677,3 +3695,45 @@ The quick brown fox jumps over the lazy dog.
             "项目地址:  " + PROJECT_URL + "\n"
             "版本号:  " + VERSION + "\n"
         )
+
+    def clear_clipboard(self):
+        """清空剪贴板"""
+        try:
+            self.text_area.clipboard_clear()
+        except Exception as e:
+            messagebox.showerror("错误", f"清空剪贴板时出错: {str(e)}")
+
+    def copy_filename_to_clipboard(self):
+        """复制文件名到剪贴板"""
+        if self.current_file:
+            try:
+                filename = os.path.basename(self.current_file)
+                self.text_area.clipboard_clear()
+                self.text_area.clipboard_append(filename)
+            except Exception as e:
+                messagebox.showerror("错误", f"复制文件名时出错: {str(e)}")
+        else:
+            messagebox.showinfo("提示", "当前没有打开的文件")
+
+    def copy_filepath_to_clipboard(self):
+        """复制完整文件路径到剪贴板"""
+        if self.current_file:
+            try:
+                self.text_area.clipboard_clear()
+                self.text_area.clipboard_append(self.current_file)
+            except Exception as e:
+                messagebox.showerror("错误", f"复制文件路径时出错: {str(e)}")
+        else:
+            messagebox.showinfo("提示", "当前没有打开的文件")
+
+    def copy_directory_to_clipboard(self):
+        """复制目录到剪贴板"""
+        if self.current_file:
+            try:
+                directory = os.path.dirname(self.current_file)
+                self.text_area.clipboard_clear()
+                self.text_area.clipboard_append(directory)
+            except Exception as e:
+                messagebox.showerror("错误", f"复制目录时出错: {str(e)}")
+        else:
+            messagebox.showinfo("提示", "当前没有打开的文件")
