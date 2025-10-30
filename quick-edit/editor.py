@@ -15,8 +15,8 @@ import queue
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
 from utils import format_file_size, center_window
-# 只导入EnhancedSyntaxHighlighter，get_all_languages在需要时再导入
-from enhanced_syntax_highlighter import EnhancedSyntaxHighlighter
+# 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
+from enhanced_syntax_highlighter import EnhancedSyntaxHighlighter, get_lexer_name_by_filename
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
@@ -81,7 +81,7 @@ class AdvancedTextEditor:
         
         # 增强版语法高亮相关属性
         self.enhanced_highlighter = None  # 增强版语法高亮器实例
-        self.current_lexer = "python"  # 当前使用的词法分析器
+        self.current_lexer = "auto"  # 当前使用的词法分析器
         self.current_style = "monokai"  # 当前使用的样式
 
         # 自动保存相关变量
@@ -101,9 +101,6 @@ class AdvancedTextEditor:
         self.file_read_thread = None
         self.file_read_cancelled = False
         self.progress_window = None
-
-        # 默认词法分析器为自动检测
-        self.current_lexer = "auto"
         
         # 加载配置文件
         self.load_config()
@@ -155,7 +152,7 @@ class AdvancedTextEditor:
                 # 创建新的增强版语法高亮器
                 self.enhanced_highlighter = EnhancedSyntaxHighlighter(
                     self.text_area, # 文本框组件
-                    lexer_name=self.current_lexer, # 词法分析器名称
+                    lexer_name=get_lexer_name_by_filename(self.current_file), # 词法分析器名称
                     style_name=self.current_style, # 样式名称
                     delay_update=200  # 增加延迟以减少启动时的负载
                 )

@@ -561,6 +561,100 @@ class EnhancedSyntaxHighlighter:
 # 缓存语言列表，避免重复加载
 _language_cache = None
 
+# 编程语言与文件扩展名的映射字典
+# key: 语言名称, value: 扩展名列表
+LANGUAGE_EXTENSIONS = {
+    'Python': ['.py', '.pyw', '.pyx', '.pxd', '.pxi'],
+    'Java': ['.java', '.class'],
+    'JavaScript': ['.js', '.jsx', '.mjs', '.cjs'],
+    'TypeScript': ['.ts', '.tsx'],
+    'HTML': ['.html', '.htm', '.xhtml'],
+    'CSS': ['.css'],
+    'SCSS': ['.scss'],
+    'Sass': ['.sass'],
+    'Less': ['.less'],
+    'PHP': ['.php', '.php3', '.php4', '.php5', '.phtml'],
+    'C': ['.c', '.h'],
+    'C++': ['.cpp', '.cxx', '.cc', '.hpp', '.hxx', '.hh'],
+    'C#': ['.cs'],
+    'Go': ['.go'],
+    'Rust': ['.rs'],
+    'Swift': ['.swift'],
+    'Kotlin': ['.kt', '.kts'],
+    'Ruby': ['.rb', '.ruby'],
+    'Perl': ['.pl', '.pm', '.perl'],
+    'Lua': ['.lua'],
+    'Shell': ['.sh', '.bash', '.zsh'],
+    'PowerShell': ['.ps1', '.psm1', '.psd1'],
+    'SQL': ['.sql'],
+    'YAML': ['.yaml', '.yml'],
+    'JSON': ['.json'],
+    'XML': ['.xml'],
+    'Markdown': ['.md', '.markdown'],
+    'R': ['.r'],
+    'Scala': ['.scala', '.sc'],
+    'Dart': ['.dart'],
+    'Objective-C': ['.m', '.mm'],
+    'MATLAB': ['.m'],
+    'Groovy': ['.groovy'],
+    'CoffeeScript': ['.coffee'],
+    'Erlang': ['.erl', '.hrl'],
+    'Elixir': ['.ex', '.exs'],
+    'Haskell': ['.hs', '.lhs'],
+    'OCaml': ['.ml', '.mli'],
+    'F#': ['.fs', '.fsi', '.fsx'],
+    'Visual Basic': ['.vb'],
+    'Pascal': ['.pas', '.pp'],
+    'Fortran': ['.f', '.for', '.f90', '.f95'],
+    'Julia': ['.jl'],
+    'Clojure': ['.clj', '.cljs', '.cljc'],
+    'Scheme': ['.scm', '.ss'],
+    'Lisp': ['.lisp', '.lsp'],
+    'Prolog': ['.pl', '.pro'],
+    'Tcl': ['.tcl'],
+    'Assembly': ['.asm', '.s'],
+    'D': ['.d'],
+    'Nim': ['.nim'],
+    'Zig': ['.zig'],
+    'V': ['.v'],
+    'Crystal': ['.cr'],
+    'Reason': ['.re', '.rei'],
+    'GraphQL': ['.graphql', '.gql'],
+    'Dockerfile': ['Dockerfile'],
+    'Makefile': ['Makefile'],
+    'CMake': ['.cmake', 'CMakeLists.txt'],
+    'Ini': ['.ini'],
+    'TOML': ['.toml'],
+    'Diff': ['.diff', '.patch'],
+    'ApacheConf': ['.htaccess'],
+}
+
+def get_lexer_name_by_filename(file_name):
+    """
+    根据文件名获取对应的语法分析器名称
+    
+    参数:
+        file_name: 文件名，例如 'example.py', 'index.html' 等
+    
+    返回:
+        str: 语法分析器名称，如果找不到匹配项则返回 'auto'
+    """
+    # 从文件名中提取扩展名
+    if '.' in file_name:
+        file_extension = '.' + file_name.split('.')[-1]
+    else:
+        # 如果没有扩展名，返回默认值
+        return 'auto'
+    
+    # 遍历映射字典查找匹配的扩展名
+    for language, extensions in LANGUAGE_EXTENSIONS.items():
+        if file_extension in extensions:
+            # 返回语言名称的小写形式作为lexer名称
+            return language.lower()
+    
+    # 如果没有找到匹配项，返回默认值'auto'
+    return 'auto'
+
 def get_all_languages():
     """
     获取Pygments支持的所有语言及其别名
