@@ -8,10 +8,14 @@
 4. 性能优化，支持大文件处理
 5. 可配置的更新延迟和性能选项
 6. 错误处理和自动恢复
+
+使用方式：
+- 创建文本组件
+- 创建EnhancedSyntaxHighlighter实例，传入文本组件和配置参数
+- 高亮器会自动监听文本变化并更新高亮
 """
 
 import tkinter as tk
-from tkinter import scrolledtext
 import pygments
 from pygments.lexers import get_lexer_by_name, guess_lexer
 from pygments.styles import get_style_by_name
@@ -20,19 +24,25 @@ import threading
 import time
 import queue
 import re
+from typing import Optional, Dict, Set, Tuple, Any
 
-class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
-    def __init__(self, master=None, lexer_name='python', style_name='default', **kwargs):
+class EnhancedSyntaxHighlighter:
+    """
+    独立的语法高亮器类
+    可以为任何兼容的tkinter文本组件提供语法高亮功能
+    """
+    def __init__(self, text_widget, lexer_name='python', style_name='default', **kwargs):
         """
-        初始化增强版语法高亮文本框
+        初始化语法高亮器
         
         参数:
-            master: 父窗口组件
+            text_widget: 要进行高亮的文本组件对象
             lexer_name: 语法解析器名称，如'python', 'javascript'等，'auto'表示自动检测
             style_name: 高亮样式名称
-            **kwargs: 传递给scrolledtext.ScrolledText的其他参数
+            **kwargs: 其他配置参数
         """
-        super().__init__(master, **kwargs)
+        # 存储文本组件引用
+        self.text_widget = text_widget
         
         # Pygments相关设置
         self.lexer_name = lexer_name
@@ -41,20 +51,19 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         self.style = get_style_by_name(style_name)
         
         # 性能优化设置
-        self.enable_optimizations = True  # 启用优化
-        self.delay_update = 100  # 延迟更新时间（毫秒）
-        self.incremental_update = True  # 增量更新
-        self.max_lines_for_full_update = 5000  # 全量更新的最大行数
+        self.enable_optimizations = kwargs.get('enable_optimizations', True)
+        self.delay_update = kwargs.get('delay_update', 100)  # 延迟更新时间（毫秒）
+        self.incremental_update = kwargs.get('incremental_update', True)
+        self.max_lines_for_full_update = kwargs.get('max_lines_for_full_update', 5000)
         
         # 状态变量
-        self._updating = False  # 是否正在更新高亮
-        self._update_timer = None  # 更新定时器
-        self._modified_lines = set()  # 修改过的行集合
-        self._last_processed_line = 0  # 上次处理的行号
-        self._highlight_queue = queue.Queue()  # 高亮任务队列
-        self._worker_thread = None  # 工作线程
-        self._stop_event = threading.Event()  # 停止事件
-        self._lock = threading.RLock()  # 线程锁
+        self._updating = False
+        self._update_timer = None
+        self._modified_lines = set()
+        self._highlight_queue = queue.Queue()
+        self._worker_thread = None
+        self._stop_event = threading.Event()
+        self._lock = threading.RLock()
         
         # 初始化
         self._init_tags()
@@ -68,12 +77,10 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         """
         初始化所有可能的token样式标签
         """
-        # 清除所有现有tag
-        for tag in self.tag_names():
-            self.tag_delete(tag)
-        
-        # 设置默认字体
-        self.config(font=('Consolas', 10))
+        # 清除所有现有tag（保留'sel'选中样式）
+        for tag in self.text_widget.tag_names():
+            if tag != 'sel':
+                self.text_widget.tag_delete(tag)
         
         # 为每种token类型创建tag
         token_styles = {}
@@ -108,9 +115,9 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                     if part.startswith('#') and len(part) == 7:
                         tag_config['foreground'] = part
                     elif part == 'bold':
-                        tag_config['font'] = ('Consolas', 10, 'bold')
+                        tag_config['font'] = self._get_widget_font_with_style('bold')
                     elif part == 'italic':
-                        tag_config['font'] = ('Consolas', 10, 'italic')
+                        tag_config['font'] = self._get_widget_font_with_style('italic')
                     elif part == 'underline':
                         tag_config['underline'] = True
             elif isinstance(style_def, dict):
@@ -119,14 +126,39 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 if 'bgcolor' in style_def and style_def['bgcolor']:
                     tag_config['background'] = f"#{style_def['bgcolor']}"
                 if style_def.get('bold'):
-                    tag_config['font'] = ('Consolas', 10, 'bold')
+                    tag_config['font'] = self._get_widget_font_with_style('bold')
                 if style_def.get('italic'):
-                    tag_config['font'] = ('Consolas', 10, 'italic')
+                    tag_config['font'] = self._get_widget_font_with_style('italic')
                 if style_def.get('underline'):
                     tag_config['underline'] = True
             
             if tag_config:
-                self.tag_configure(tag_name, **tag_config)
+                self.text_widget.tag_configure(tag_name, **tag_config)
+    
+    def _get_widget_font_with_style(self, style):
+        """
+        获取文本组件的字体并添加指定样式
+        """
+        try:
+            # 获取当前字体配置
+            current_font = self.text_widget['font']
+            if isinstance(current_font, str):
+                # 如果是字体名称字符串，创建默认字体
+                return (current_font, 10, style)
+            elif isinstance(current_font, tuple) and len(current_font) >= 2:
+                # 如果是字体元组，添加样式
+                font_list = list(current_font)
+                if len(font_list) >= 3:
+                    # 如果已有样式，替换或添加
+                    font_list[2] = style
+                else:
+                    # 否则添加样式
+                    font_list.append(style)
+                return tuple(font_list)
+            return (current_font, 10, style)
+        except:
+            # 出错时返回默认字体
+            return ('Consolas', 10, style)
     
     def _setup_default_styles(self):
         """
@@ -135,42 +167,63 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         default_styles = {
             Token.Keyword: {'foreground': '#0000FF'}, # 关键字 - 蓝色
             Token.Name.Function: {'foreground': '#008000'},  # 函数名 - 绿色
-            Token.Name.Class: {'foreground': '#008000', 'font': ('Consolas', 10, 'bold')},  # 类名 - 绿色加粗
+            Token.Name.Class: {'foreground': '#008000', 'font': self._get_widget_font_with_style('bold')},  # 类名 - 绿色加粗
             Token.String: {'foreground': '#800080'},  # 字符串 - 紫色
-            Token.Comment: {'foreground': '#808080', 'font': ('Consolas', 10, 'italic')},  # 注释 - 灰色斜体
+            Token.Comment: {'foreground': '#808080', 'font': self._get_widget_font_with_style('italic')},  # 注释 - 灰色斜体
             Token.Number: {'foreground': '#FF0000'}, # 数字 - 红色
-            Token.Operator: {'foreground': '#000000', 'font': ('Consolas', 10, 'bold')},  # 运算符 - 黑色加粗
+            Token.Operator: {'foreground': '#000000', 'font': self._get_widget_font_with_style('bold')},  # 运算符 - 黑色加粗
             Token.Punctuation: {'foreground': '#000000'}, # 符号 - 黑色
             Token.Name.Builtin: {'foreground': '#000080'}, # 内置函数 - 蓝色
-            Token.Keyword.Declaration: {'foreground': '#0000FF', 'font': ('Consolas', 10, 'bold')}, # 声明关键字 - 蓝色加粗
+            Token.Keyword.Declaration: {'foreground': '#0000FF', 'font': self._get_widget_font_with_style('bold')}, # 声明关键字 - 蓝色加粗
             Token.Keyword.Type: {'foreground': '#0000FF'} # 类型关键字 - 蓝色
         }
         
         for token_type, style_config in default_styles.items():
             tag_name = str(token_type)
-            self.tag_configure(tag_name, **style_config)
+            self.text_widget.tag_configure(tag_name, **style_config)
     
     def _bind_events(self):
         """
         绑定文本修改和其他事件
         """
         # 使用<<Modified>>事件而不是KeyRelease，减少事件触发次数
-        self.bind('<<Modified>>', self._on_text_modified) # 文本修改事件
+        self.text_widget.bind('<<Modified>>', self._on_text_modified) # 文本修改事件
         
         # 鼠标事件
-        self.bind('<ButtonRelease>', self._on_mouse_release) # 鼠标释放事件
+        self.text_widget.bind('<ButtonRelease>', self._on_mouse_release) # 鼠标释放事件
         
         # 滚动事件
-        self.bind('<MouseWheel>', self._on_scroll) # 鼠标滚轮事件
+        self.text_widget.bind('<MouseWheel>', self._on_scroll) # 鼠标滚轮事件
         
-        # 窗口关闭时清理 - 只在master是Tk窗口对象时设置protocol
-        if hasattr(self.master, 'protocol'):
-            self.master.protocol("WM_DELETE_WINDOW", self._on_closing) # 窗口关闭事件
-        elif hasattr(self.master, 'winfo_toplevel'):
+        # 尝试获取主窗口并设置关闭事件处理
+        master = self.text_widget.master
+        if hasattr(master, 'protocol'):
+            # 保存原始的协议处理函数
+            original_protocol = master.protocol("WM_DELETE_WINDOW")
+            if original_protocol:
+                def on_closing():
+                    self.destroy()
+                    original_protocol()
+            else:
+                def on_closing():
+                    self.destroy()
+                    master.destroy()
+            master.protocol("WM_DELETE_WINDOW", on_closing)
+        elif hasattr(master, 'winfo_toplevel'):
             # 如果master是Frame等组件，获取根窗口
-            root = self.master.winfo_toplevel()
+            root = master.winfo_toplevel()
             if hasattr(root, 'protocol'):
-                root.protocol("WM_DELETE_WINDOW", self._on_closing)
+                # 保存原始的协议处理函数
+                original_protocol = root.protocol("WM_DELETE_WINDOW")
+                if original_protocol:
+                    def on_closing():
+                        self.destroy()
+                        original_protocol()
+                else:
+                    def on_closing():
+                        self.destroy()
+                        root.destroy()
+                root.protocol("WM_DELETE_WINDOW", on_closing)
     
     def _compile_regex(self):
         """
@@ -197,7 +250,7 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 if task['type'] == 'full':
                     tokens = self._process_full_highlight(task['text'])
                     # 将结果发布到主线程
-                    self.after(0, self._apply_highlighting, tokens, task['text'])
+                    self.text_widget.after(0, self._apply_highlighting, tokens, task['text'])
                 elif task['type'] == 'incremental':
                     tokens = self._process_incremental_highlight(
                         task['text_block'], 
@@ -205,8 +258,8 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                         task['max_line']
                     )
                     # 将结果发布到主线程
-                    self.after(0, self._apply_incremental_highlighting, 
-                              tokens, task['min_line'])
+                    self.text_widget.after(0, self._apply_incremental_highlighting, 
+                                      tokens, task['min_line'])
                 self._highlight_queue.task_done()
             except queue.Empty:
                 continue
@@ -219,12 +272,13 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         """
         文本修改时触发
         """
-        if self._updating or not self.edit_modified():
+        # 检查是否是我们自己触发的修改事件
+        if self._updating or not self.text_widget.edit_modified():
             return
             
         # 记录修改的行
         if self.incremental_update:
-            insert_pos = self.index(tk.INSERT)
+            insert_pos = self.text_widget.index(tk.INSERT)
             line_num = int(insert_pos.split('.')[0])
             self._modified_lines.add(line_num)
             # 也标记前后几行，确保上下文正确
@@ -234,17 +288,17 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         # 使用延迟更新，避免频繁更新
         if self.enable_optimizations and self.delay_update > 0:
             if self._update_timer:
-                self.after_cancel(self._update_timer)
+                self.text_widget.after_cancel(self._update_timer)
             
             # 计算延迟时间（可以根据文件大小动态调整）
-            line_count = int(self.index('end-1c').split('.')[0])
+            line_count = int(self.text_widget.index('end-1c').split('.')[0])
             dynamic_delay = min(self.delay_update, max(50, line_count // 100))
             
-            self._update_timer = self.after(dynamic_delay, self._queue_highlight_update)
+            self._update_timer = self.text_widget.after(dynamic_delay, self._queue_highlight_update)
         else:
             self._queue_highlight_update()
         
-        self.edit_modified(False)
+        self.text_widget.edit_modified(False)
     
     def _on_mouse_release(self, event=None):
         """
@@ -266,7 +320,7 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         将高亮更新任务加入队列
         """
         # 获取所有文本
-        text = self.get('1.0', tk.END)
+        text = self.text_widget.get('1.0', tk.END)
         line_count = text.count('\n') + 1
         
         if not text.strip():
@@ -302,7 +356,7 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 # 获取需要更新的文本块
                 start_pos = f"{min_line}.0"
                 end_pos = f"{max_line}.end"
-                text_block = self.get(start_pos, end_pos)
+                text_block = self.text_widget.get(start_pos, end_pos)
                 
                 self._highlight_queue.put({
                     'type': 'incremental',
@@ -371,15 +425,15 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         self._updating = True
         try:
             # 清除所有现有高亮（保留选中样式）
-            for tag in self.tag_names():
+            for tag in self.text_widget.tag_names():
                 if tag != 'sel':
-                    self.tag_remove(tag, '1.0', tk.END)
+                    self.text_widget.tag_remove(tag, '1.0', tk.END)
             
             # 应用新的高亮
             current_pos = '1.0'
             for token_type, value in tokens:
                 # 计算结束位置
-                end_pos = self.index(f"{current_pos}+{len(value)}c")
+                end_pos = self.text_widget.index(f"{current_pos}+{len(value)}c")
                 
                 # 找到最具体的token类型
                 current_token = token_type
@@ -387,8 +441,8 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 
                 while current_token is not None:
                     tag_name = str(current_token)
-                    if tag_name in self.tag_names():
-                        self.tag_add(tag_name, current_pos, end_pos)
+                    if tag_name in self.text_widget.tag_names():
+                        self.text_widget.tag_add(tag_name, current_pos, end_pos)
                         tag_applied = True
                         break
                     current_token = current_token.parent
@@ -414,16 +468,16 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
             start_pos = f"{min_line}.0"
             # 计算结束位置（基于tokens的总长度）
             total_length = sum(len(value) for _, value in tokens)
-            end_pos = self.index(f"{start_pos}+{total_length}c")
+            end_pos = self.text_widget.index(f"{start_pos}+{total_length}c")
             
-            for tag in self.tag_names():
+            for tag in self.text_widget.tag_names():
                 if tag != 'sel':
-                    self.tag_remove(tag, start_pos, end_pos)
+                    self.text_widget.tag_remove(tag, start_pos, end_pos)
             
             # 应用新的高亮到该区域
             current_pos = start_pos
             for token_type, value in tokens:
-                end_pos = self.index(f"{current_pos}+{len(value)}c")
+                end_pos = self.text_widget.index(f"{current_pos}+{len(value)}c")
                 
                 # 找到最具体的token类型
                 current_token = token_type
@@ -431,8 +485,8 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 
                 while current_token is not None:
                     tag_name = str(current_token)
-                    if tag_name in self.tag_names():
-                        self.tag_add(tag_name, current_pos, end_pos)
+                    if tag_name in self.text_widget.tag_names():
+                        self.text_widget.tag_add(tag_name, current_pos, end_pos)
                         tag_applied = True
                         break
                     current_token = current_token.parent
@@ -441,7 +495,7 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
         except Exception as e:
             print(f"应用增量高亮错误: {e}")
             # 增量更新失败时回退到全量更新
-            self.after(0, self._queue_highlight_update)
+            self.text_widget.after(0, self._queue_highlight_update)
         finally:
             self._updating = False
     
@@ -501,165 +555,273 @@ class EnhancedSyntaxHighlightText(scrolledtext.ScrolledText):
                 if hasattr(self, key):
                     setattr(self, key, value)
     
-    def _on_closing(self):
+    def update_highlighting(self):
         """
-        窗口关闭时的清理工作
+        手动触发高亮更新
+        当外部代码修改了文本内容时可以调用此方法
         """
-        self._stop_event.set()
-        if self._worker_thread:
-            self._worker_thread.join(timeout=0.5)  # 等待工作线程结束
-        self.master.destroy()
+        self._queue_highlight_update()
     
     def destroy(self):
         """
-        销毁组件时清理资源
+        销毁高亮器，清理资源
         """
         self._stop_event.set()
-        if self._worker_thread:
+        if self._update_timer:
+            try:
+                self.text_widget.after_cancel(self._update_timer)
+            except:
+                pass
+        if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=0.5)  # 等待工作线程结束
-        super().destroy()
 
 # 测试用的简单应用示例
 if __name__ == "__main__":
     def create_demo_app():
         """
         创建演示应用
+        展示如何使用EnhancedSyntaxHighlighter
+        添加语言选择和控制按钮
         """
         root = tk.Tk()
-        root.title("增强版语法高亮演示")
-        root.geometry("1000x600")
+        root.title("增强版语法高亮模块演示")
+        root.geometry("1000x700")
         
-        # 创建语法高亮文本框
-        text_editor = EnhancedSyntaxHighlightText(
+        # 创建控制框架
+        control_frame = tk.Frame(root)
+        control_frame.pack(fill=tk.X, padx=5, pady=5)
+        
+        # 获取所有支持的语言
+        def get_all_languages():
+            """获取Pygments支持的所有语言及其别名"""
+            languages = []
+            seen_aliases = set()
+            for name, aliases, _, _ in pygments.lexers.get_all_lexers():
+                # 添加语言名称和主要别名
+                alias = aliases[0] if aliases else name.lower()
+                # 避免重复的别名
+                if alias not in seen_aliases:
+                    languages.append((name, alias))
+                    seen_aliases.add(alias)
+            # 按名称排序
+            languages.sort(key=lambda x: x[0])
+            return languages
+        
+        # 获取所有语言
+        languages = get_all_languages()
+        language_names = [lang[0] for lang in languages]
+        language_aliases = dict(languages)
+        
+        # 创建语言选择标签
+        lang_label = tk.Label(control_frame, text="选择语言:")
+        lang_label.pack(side=tk.LEFT, padx=5)
+        
+        # 创建语言选择下拉菜单
+        lang_var = tk.StringVar(root)
+        lang_var.set("Python")  # 默认选择Python
+        lang_menu = tk.OptionMenu(control_frame, lang_var, *language_names)
+        lang_menu.pack(side=tk.LEFT, padx=5)
+        
+        # 创建样式选择标签
+        style_label = tk.Label(control_frame, text="选择样式:")
+        style_label.pack(side=tk.LEFT, padx=5)
+        
+        # 获取所有支持的样式
+        style_names = sorted(pygments.styles.get_all_styles())
+        style_var = tk.StringVar(root)
+        style_var.set("monokai")  # 默认样式
+        style_menu = tk.OptionMenu(control_frame, style_var, *style_names)
+        style_menu.pack(side=tk.LEFT, padx=5)
+        
+        # 创建一个普通的文本框
+        text_editor = tk.Text(
             root, 
+            wrap=tk.NONE,
+            undo=True,
+            font=('Consolas', 10)
+        )
+        text_editor.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        # 创建滚动条
+        scrollbar = tk.Scrollbar(root, command=text_editor.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        text_editor.config(yscrollcommand=scrollbar.set)
+        
+        # 创建状态栏
+        status_var = tk.StringVar()
+        status_var.set("就绪 - 当前语言: Python")
+        status_bar = tk.Label(root, textvariable=status_var, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        status_bar.pack(side=tk.BOTTOM, fill=tk.X)
+        
+        # 创建语法高亮器，传入文本框对象
+        highlighter = EnhancedSyntaxHighlighter(
+            text_editor,
             lexer_name='python',
             style_name='monokai',
-            wrap=tk.NONE
+            delay_update=100
         )
         
-        # 显式设置窗口关闭处理程序，确保正确清理资源
-        def on_window_closing():
-            # 停止语法高亮工作线程
-            text_editor._stop_event.set()
-            if text_editor._worker_thread:
-                text_editor._worker_thread.join(timeout=0.5)
-            # 销毁窗口
-            root.destroy()
+        # 定义切换语言的函数
+        def change_language():
+            try:
+                selected_lang = lang_var.get()
+                if selected_lang in language_aliases:
+                    lexer_name = language_aliases[selected_lang]
+                    highlighter.set_lexer(lexer_name)
+                    status_var.set(f"当前语言: {selected_lang}")
+                else:
+                    status_var.set(f"错误: 未知语言 {selected_lang}")
+            except Exception as e:
+                status_var.set(f"切换语言时出错: {str(e)}")
         
-        # 设置窗口关闭事件处理
-        root.protocol("WM_DELETE_WINDOW", on_window_closing)
+        # 定义切换样式的函数
+        def change_style():
+            try:
+                selected_style = style_var.get()
+                highlighter.set_style(selected_style)
+                status_var.set(f"当前样式: {selected_style}")
+            except Exception as e:
+                status_var.set(f"切换样式时出错: {str(e)}")
         
-        # 设置性能选项
-        text_editor.set_performance_options(
-            enable_optimizations=True,
-            delay_update=80,
-            incremental_update=True,
-            max_lines_for_full_update=3000
-        )
+        # 定义切换高亮的函数
+        highlighting_enabled = tk.BooleanVar(value=True)
+        def toggle_highlighting():
+            if highlighting_enabled.get():
+                # 清除所有高亮
+                for tag in text_editor.tag_names():
+                    if tag != 'sel':
+                        text_editor.tag_remove(tag, '1.0', tk.END)
+                toggle_btn.config(text="开启高亮")
+                status_var.set("语法高亮: 已禁用")
+            else:
+                highlighter.update_highlighting()
+                toggle_btn.config(text="关闭高亮")
+                status_var.set("语法高亮: 已启用")
+            highlighting_enabled.set(not highlighting_enabled.get())
         
-        text_editor.pack(expand=True, fill=tk.BOTH)
+        # 定义重置按钮函数
+        def reset_highlighter():
+            try:
+                nonlocal highlighter
+                highlighter.destroy()
+                highlighter = EnhancedSyntaxHighlighter(
+                    text_editor,
+                    lexer_name=language_aliases.get(lang_var.get(), 'python'),
+                    style_name=style_var.get(),
+                    delay_update=100
+                )
+                status_var.set("高亮器已重置")
+            except Exception as e:
+                status_var.set(f"重置高亮器时出错: {str(e)}")
         
-        # 添加示例代码
-        sample_code = '''import tkinter as tk
-from tkinter import ttk
-import time
-
-class EnhancedApp:
-    """高性能应用示例"""
-    
-    def __init__(self, root):
-        self.root = root
-        self.root.title("高性能应用")
+        # 创建应用按钮
+        apply_btn = tk.Button(control_frame, text="应用语言", command=change_language)
+        apply_btn.pack(side=tk.LEFT, padx=5)
         
-        # 性能监控
-        self.performance_data = {
-            'start_time': time.time(),
-            'frame_count': 0,
-            'last_update': time.time()
+        # 创建样式应用按钮
+        style_btn = tk.Button(control_frame, text="应用样式", command=change_style)
+        style_btn.pack(side=tk.LEFT, padx=5)
+        
+        # 创建高亮切换按钮
+        toggle_btn = tk.Button(control_frame, text="关闭高亮", command=toggle_highlighting)
+        toggle_btn.pack(side=tk.LEFT, padx=5)
+        
+        # 创建重置按钮
+        reset_btn = tk.Button(control_frame, text="重置高亮器", command=reset_highlighter)
+        reset_btn.pack(side=tk.LEFT, padx=5)
+        
+        # 添加一些示例代码 - 包含多种语言的注释，方便测试不同语言的高亮
+        sample_code = '''\
+        这是一个示例代码，包含多种语言的注释
+        
+        Python:
+        # 这是Python注释
+        def hello():
+            print("Hello, World!")
+        
+        JavaScript:
+        // 这是JavaScript注释
+        function hello() {
+            console.log("Hello, World!");
         }
         
-        # 创建UI
-        self._create_ui()
+        HTML:
+        <!-- 这是HTML注释 -->
+        <div class="example">Hello</div>
         
-        # 启动性能监控
-        self._start_performance_monitor()
+        CSS:
+        /* 这是CSS注释 */
+        .example {
+            color: red;
+        }
+        
+        Java:
+        /* 这是Java多行注释 */
+        public class Hello {
+            public static void main(String[] args) {
+                System.out.println("Hello, World!");
+            }
+        }
+        
+        C++:
+        // 这是C++注释
+        #include <iostream>
+        using namespace std;
+        
+        int main() {
+            cout << "Hello, World!" << endl;
+            return 0;
+        }
+        
+        SQL:
+        -- 这是SQL注释
+        SELECT * FROM users WHERE age > 18;
+        
+        切换不同的语言查看语法高亮效果！
+        '''
+        
+        # Python代码示例
+        python_code = """
+        
+        class ExampleApp:
+            def __init__(self, root):
+                self.root = root
+                self.root.title("示例应用")
+                
+                # 创建按钮
+                self.button = tk.Button(
+                    root, 
+                    text="点击我", 
+                    command=self.on_button_click
+                )
+                self.button.pack(pady=20)
+                
+            def on_button_click(self):
+                print("按钮被点击了!")
+                
+        if __name__ == "__main__":
+            root = tk.Tk()
+            app = ExampleApp(root)
+            root.mainloop()
+        """
+        
+        text_editor.insert(tk.END, sample_code)
+        text_editor.insert(tk.END, "\n\n# Python代码示例\n")
+        text_editor.insert(tk.END, python_code)
+        
+        # 手动触发一次高亮更新
+        highlighter.update_highlighting()
+        
+        # 设置窗口关闭处理
+        def on_window_closing():
+            # 清理高亮器资源
+            highlighter.destroy()
+            root.destroy()
+        
+        root.protocol("WM_DELETE_WINDOW", on_window_closing)
+        
+        return root, highlighter
     
-    def _create_ui(self):
-        """创建UI界面"""
-        main_frame = ttk.Frame(self.root, padding="10")
-        main_frame.pack(fill=tk.BOTH, expand=True)
-        
-        # 文本编辑区域
-        self.text_area = ttk.Frame(main_frame)
-        self.text_area.pack(fill=tk.BOTH, expand=True)
-        
-        # 性能显示
-        self.perf_label = ttk.Label(main_frame, text="性能: 0 FPS")
-        self.perf_label.pack(anchor=tk.E)
-    
-    def _start_performance_monitor(self):
-        """启动性能监控"""
-        current_time = time.time()
-        elapsed = current_time - self.performance_data['last_update']
-        
-        if elapsed >= 1.0:  # 每秒更新一次
-            fps = self.performance_data['frame_count'] / elapsed
-            self.perf_label.config(text=f"性能: {fps:.1f} FPS")
-            self.performance_data['frame_count'] = 0
-            self.performance_data['last_update'] = current_time
-        
-        self.performance_data['frame_count'] += 1
-        self.root.after(16, self._start_performance_monitor)  # ~60 FPS
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = EnhancedApp(root)
-    root.mainloop()'''
-        
-        text_editor.insert('1.0', sample_code)
-        text_editor._queue_highlight_update()
-        
-        # 创建简单的菜单
-        menu_bar = tk.Menu(root)
-        
-        # 语言菜单
-        lang_menu = tk.Menu(menu_bar, tearoff=0)
-        languages = [
-            ('Python', 'python'),
-            ('JavaScript', 'javascript'),
-            ('HTML', 'html'),
-            ('CSS', 'css'),
-            ('Java', 'java'),
-            ('C++', 'cpp'),
-            ('自动检测', 'auto')
-        ]
-        for lang_name, lang_code in languages:
-            lang_menu.add_command(
-                label=lang_name, 
-                command=lambda code=lang_code: text_editor.set_lexer(code)
-            )
-        menu_bar.add_cascade(label="语言", menu=lang_menu)
-        
-        # 样式菜单
-        style_menu = tk.Menu(menu_bar, tearoff=0)
-        styles = [
-            ('默认', 'default'),
-            ('单色', 'monokai'),
-            ('友好', 'friendly'),
-            ('色彩丰富', 'colorful'),
-            ('murphy', 'murphy'),
-            ('tango', 'tango')
-        ]
-        for style_name, style_code in styles:
-            style_menu.add_command(
-                label=style_name, 
-                command=lambda code=style_code: text_editor.set_style(code)
-            )
-        menu_bar.add_cascade(label="样式", menu=style_menu)
-        
-        root.config(menu=menu_bar)
-        
-        return root
-    
-    root = create_demo_app()
+    # 运行演示应用
+    root, _ = create_demo_app()
     root.mainloop()
