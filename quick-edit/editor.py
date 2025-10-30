@@ -22,6 +22,7 @@ from enhanced_syntax_highlighter import (
     get_lexer_name_by_filename,
 )
 from language_dialog import LanguageDialog
+from tab_settings_dialog import TabSettingsDialog
 
 # 项目地址
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"
@@ -108,6 +109,10 @@ class AdvancedTextEditor:
         self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)  # 备份选项
         self.save_lock = threading.RLock()  # 线程安全锁
         self.is_saving = False
+        
+        # 制表符相关设置
+        self.tab_width = 4  # 默认制表符宽度
+        self.use_spaces_for_tabs = False  # 默认不使用空格替代制表符
 
         # 异步文件读取相关属性
         self.file_read_thread = None
@@ -392,6 +397,9 @@ class AdvancedTextEditor:
 
         # 设置行号区域样式
         self.line_numbers.config(bg="#f0f0f0", highlightthickness=0)
+        
+        # 应用制表符设置
+        self.apply_tab_settings()
 
     def open_language_dialog(self):
         """打开语言选择对话框"""
@@ -685,6 +693,14 @@ class AdvancedTextEditor:
             variable=self.backup_enabled_var,
         )
         # 查看配置文件选项
+        # 制表符设置
+        settings_menu.add_separator()
+        settings_menu.add_command(
+            label="制表符设置...",
+            command=self.open_tab_settings_dialog
+        )
+        
+        # 查看配置文件选项
         settings_menu.add_separator()
         settings_menu.add_command(
             label="查看配置",
@@ -804,6 +820,73 @@ class AdvancedTextEditor:
         # 调用open_file方法打开配置文件
         self.open_file(self.config_file_path)
 
+    def open_tab_settings_dialog(self):
+        """打开制表符设置对话框"""
+        try:
+            # 创建制表符设置对话框
+            dialog = TabSettingsDialog(
+                self.root,
+                current_tab_width=self.tab_width,
+                use_spaces_for_tabs=self.use_spaces_for_tabs
+            )
+            
+            # 等待对话框关闭
+            self.root.wait_window(dialog.dialog)
+            
+            # 获取用户设置的选项
+            new_tab_width, new_use_spaces = dialog.get_settings()
+            
+            # 如果设置发生了变化
+            if (new_tab_width != self.tab_width or 
+                new_use_spaces != self.use_spaces_for_tabs):
+                
+                # 更新设置
+                self.tab_width = new_tab_width
+                self.use_spaces_for_tabs = new_use_spaces
+                
+                # 应用新的制表符设置
+                self.apply_tab_settings()
+                
+                # 保存配置
+                self.save_config()
+                
+                # 更新状态栏
+                self.update_statusbar()
+                
+        except Exception as e:
+            messagebox.showerror("错误", f"设置制表符时出错: {str(e)}")
+    
+    def apply_tab_settings(self):
+        """应用制表符设置到文本区域"""
+        # 设置制表符宽度
+        # 使用字体的度量来正确计算制表符宽度
+        font_config = self.text_area["font"]
+        try:
+            import tkinter.font as tkfont
+            f = tkfont.Font(font=font_config)
+            char_width = f.measure('0')  # 测量一个字符的宽度
+            self.text_area.config(tabs=self.tab_width * char_width)
+        except:
+            # 如果获取字体宽度失败，使用一个合理的默认值
+            self.text_area.config(tabs=self.tab_width * 8)  # 回退到像素计算
+        
+        # 设置是否使用空格替代制表符
+        if self.use_spaces_for_tabs:
+            # 创建一个绑定来拦截Tab键
+            def on_tab_key(event):
+                # 插入空格而不是制表符
+                self.text_area.insert(tk.INSERT, ' ' * self.tab_width)
+                # 返回'break'以阻止默认的制表符行为
+                return "break"
+            
+            # 先移除可能存在的绑定
+            self.text_area.unbind('<Tab>')
+            # 添加新的绑定
+            self.text_area.bind('<Tab>', on_tab_key)
+        else:
+            # 移除自定义绑定，使用默认的制表符行为
+            self.text_area.unbind('<Tab>')
+    
     def set_auto_save_interval(self):
         """设置自动保存间隔"""
         try:
@@ -1367,6 +1450,21 @@ class AdvancedTextEditor:
             # 获取光标位置
             cursor_pos = self.text_area.index(tk.INSERT)
             row, col = cursor_pos.split(".")
+            
+            # 修正列数计算，考虑制表符宽度
+            # 当使用实际制表符（非空格替代）时，计算真实显示的列数
+            if not self.use_spaces_for_tabs:
+                # 获取光标所在行的内容
+                current_line = self.text_area.get(f"{row}.0", f"{row}.{col}")
+                # 计算显示的列数
+                display_col = 0
+                for char in current_line:
+                    if char == '\t':
+                        # 制表符宽度为self.tab_width，计算到下一个制表位
+                        display_col += self.tab_width - (display_col % self.tab_width)
+                    else:
+                        display_col += 1
+                col = str(display_col)
 
             # 获取总字符数
             char_count = len(self.text_area.get("1.0", tk.END + "-1c"))
@@ -1472,6 +1570,9 @@ class AdvancedTextEditor:
                     self.backup_enabled = config.get("backup_enabled", True)
                     # 加载文本自动换行配置
                     self.word_wrap_enabled = config.get("word_wrap_enabled", True)
+                    # 加载制表符设置
+                    self.tab_width = config.get("tab_width", 4)
+                    self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
                     # 加载新的配置属性
                     self.max_file_size = config.get("max_file_size", MaxFileSize)
                     self.small_file_size_threshold = config.get(
@@ -1534,6 +1635,8 @@ class AdvancedTextEditor:
             "auto_save_interval": self.auto_save_interval,
             "backup_enabled": self.backup_enabled,
             "word_wrap_enabled": self.word_wrap_enabled,
+            "tab_width": self.tab_width,
+            "use_spaces_for_tabs": self.use_spaces_for_tabs,
             "max_file_size": self.max_file_size,
             "small_file_size_threshold": self.small_file_size_threshold,
             "main_window_height": self.main_window_height,
