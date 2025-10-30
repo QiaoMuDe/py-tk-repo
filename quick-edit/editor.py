@@ -14,7 +14,7 @@ import queue
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager
-from utils import format_file_size, center_window, set_window_icon
+from utils import format_file_size, center_window, set_window_icon, is_binary_file
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
 from enhanced_syntax_highlighter import (
@@ -1974,34 +1974,48 @@ class AdvancedTextEditor:
         # 移除状态栏更新，因为_reset_file_state已经包含了这一步
         pass
 
-    def detect_file_encoding_and_line_ending(self, file_path):
-        """检测文件编码和换行符类型"""
-        if not os.path.exists(file_path):
+    def detect_file_encoding_and_line_ending(self, file_path=None, sample_data=None):
+        """检测文件编码和换行符类型
+        
+        Args:
+            file_path: 文件路径（如果提供了sample_data，则忽略此参数）
+            sample_data: 已读取的文件样本数据（字节类型）
+            
+        Returns:
+            tuple: (编码, 换行符类型)
+        """
+        if file_path is None and sample_data is None:
+            return "UTF-8", "LF"  # 默认值
+            
+        if file_path is not None and not os.path.exists(file_path):
             return "UTF-8", "LF"  # 默认值
 
         try:
-            # 只读取一次文件，同时用于编码检测和换行符检测
-            with open(file_path, "rb") as file:
-                # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
-                # 这样可以提高性能，尤其是对于大文件
-                raw_data = file.read(1024)  # 只读取前1KB用于检测
+            # 如果提供了样本数据，直接使用
+            if sample_data is not None:
+                raw_data = sample_data
+            else:
+                # 否则从文件中读取样本
+                with open(file_path, "rb") as file:
+                    # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
+                    raw_data = file.read(1024)
                 
-                # 检测编码
-                if raw_data:
-                    result = chardet.detect(raw_data)
-                    encoding = result["encoding"] if result["encoding"] else "UTF-8"
-                else:
-                    encoding = "UTF-8"
-                
-                # 检测换行符类型
-                if b"\r\n" in raw_data:
-                    line_ending = "CRLF"
-                elif b"\n" in raw_data:
-                    line_ending = "LF"
-                elif b"\r" in raw_data:
-                    line_ending = "CR"
-                else:
-                    line_ending = "LF"  # 默认
+            # 检测编码
+            if raw_data:
+                result = chardet.detect(raw_data)
+                encoding = result["encoding"] if result["encoding"] else "UTF-8"
+            else:
+                encoding = "UTF-8"
+            
+            # 检测换行符类型
+            if b"\r\n" in raw_data:
+                line_ending = "CRLF"
+            elif b"\n" in raw_data:
+                line_ending = "LF"
+            elif b"\r" in raw_data:
+                line_ending = "CR"
+            else:
+                line_ending = "LF"  # 默认
 
             return encoding, line_ending
         except Exception as e:
@@ -2111,10 +2125,22 @@ class AdvancedTextEditor:
         if self.current_file:
             backup_file = self.current_file + ".bak"
             try:
-                # 检测备份文件的编码和换行符
-                encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                    backup_file
-                )
+                # 先检测备份文件是否为二进制文件
+                sample_data = None
+                with open(backup_file, "rb") as file:
+                    # 读取1KB样本数据
+                    sample_data = file.read(1024)
+                
+                # 检测是否为二进制文件
+                if is_binary_file(sample_data=sample_data):
+                    messagebox.showerror(
+                        "恢复失败", 
+                        "备份文件似乎是二进制文件，无法恢复。"
+                    )
+                    return
+                
+                # 使用同一样本数据检测编码和换行符
+                encoding, line_ending = self.detect_file_encoding_and_line_ending(sample_data=sample_data)
 
                 # 读取备份内容
                 with open(backup_file, "r", encoding=encoding) as f:
@@ -2209,9 +2235,29 @@ class AdvancedTextEditor:
 
                 self.root.after(0, show_error)
                 return
-
-            # 检测文件编码和换行符类型
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(file_path)
+            
+            # 只打开一次文件，读取样本数据用于所有检测
+            sample_data = None
+            with open(file_path, "rb") as file:
+                # 读取1KB样本数据用于二进制文件检测、编码检测和换行符检测
+                sample_data = file.read(1024)
+                
+            # 首先检测是否为二进制文件
+            if is_binary_file(sample_data=sample_data):
+                def show_binary_error():
+                    messagebox.showinfo(
+                        "无法打开",
+                        f"文件 '{os.path.basename(file_path)}' 似乎是二进制文件，\n" 
+                        f"QuickEdit是文本编辑器，不支持打开二进制文件。"
+                    )
+                    if show_progress:
+                        self._close_progress_window()
+                
+                self.root.after(0, show_binary_error)
+                return
+                
+            # 使用同一样本数据检测编码和换行符类型
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(sample_data=sample_data)
 
             # 分块读取文件内容以避免内存问题
             content_chunks = []
