@@ -602,10 +602,10 @@ class AdvancedTextEditor:
             label="向下翻页", command=self.page_down, accelerator="PgDn"
         )
         edit_menu.add_command(
-            label="转到文件顶部", command=self.go_to_home, accelerator="Ctrl+Home"
+            label="转到文件顶部", command=self.go_to_home, accelerator="Home"
         )
         edit_menu.add_command(
-            label="转到文件底部", command=self.go_to_end, accelerator="Ctrl+End"
+            label="转到文件底部", command=self.go_to_end, accelerator="End"
         )
         edit_menu.add_command(
             label="转到行", command=self.go_to_line, accelerator="Ctrl+G"
@@ -1636,8 +1636,8 @@ class AdvancedTextEditor:
         self.root.bind("<Control-a>", lambda e: self.select_all())
         self.root.bind("<Control-f>", lambda e: self.show_find_dialog())
         self.root.bind("<Control-h>", lambda e: self.replace_text())
-        self.root.bind("<Control-Home>", lambda e: self.go_to_home())
-        self.root.bind("<Control-End>", lambda e: self.go_to_end())
+        self.root.bind("<Home>", lambda e: self.go_to_home())
+        self.root.bind("<End>", lambda e: self.go_to_end())
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
         self.root.bind("<Control-t>", lambda e: self.cycle_theme())  # 循环切换主题
