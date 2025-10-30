@@ -22,30 +22,9 @@ class LanguageDialog:
         self.all_languages = []  # 存储所有语言列表
         self.language_aliases = {}  # 存储语言别名映射
 
-        # 获取父窗口的字体名称，使用固定字体大小
-        try:
-            # 尝试从父窗口获取字体配置
-            if hasattr(parent, "text_widget") and parent.text_widget:
-                # 获取文本部件的字体
-                font_config = parent.text_widget["font"]
-                # 如果是元组格式 (family, size)
-                if isinstance(font_config, tuple) and len(font_config) >= 1:
-                    self.font_family = font_config[0]
-                else:
-                    # 尝试解析字体配置字符串
-                    import tkinter.font as tkfont
-
-                    f = tkfont.Font(font=font_config)
-                    self.font_family = f.actual()["family"]
-            else:
-                # 默认字体名称
-                self.font_family = "Arial"
-        except:
-            # 出错时使用默认字体
-            self.font_family = "Arial"
-
-        # 固定字体大小为10
-        self.font_size = 10
+        # 直接使用固定字体配置，不再从父窗口获取
+        self.font_family = "Microsoft YaHei UI"  # 固定字体名称
+        self.font_size = 12  # 固定字体大小
 
         # 创建对话框
         self.dialog = tk.Toplevel(parent)

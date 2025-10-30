@@ -18,7 +18,7 @@ for i, f in enumerate(available_fonts[:20]):
 print(f"\n总共找到 {len(available_fonts)} 种字体")
 
 # 创建标签显示不同字体
-label1 = tk.Label(root, text="Arial 字体", font=("Arial", 12))
+label1 = tk.Label(root, text="Microsoft YaHei UI 字体", font=("Microsoft YaHei UI", 12))
 label1.pack(pady=10)
 
 label2 = tk.Label(root, text="Times New Roman 字体", font=("Times New Roman", 12))
@@ -36,7 +36,7 @@ elif "Microsoft YaHei" in available_fonts:
     label4.pack(pady=10)
 
 # 显示字体数量
-count_label = tk.Label(root, text=f"系统中共有 {len(available_fonts)} 种字体", font=("Arial", 10))
+count_label = tk.Label(root, text=f"系统中共有 {len(available_fonts)} 种字体", font=("Microsoft YaHei UI", 10))
 count_label.pack(pady=20)
 
 root.mainloop()

@@ -34,7 +34,7 @@ class AsyncFileReaderTest:
         main_frame.pack(fill=tk.BOTH, expand=True)
         
         # 标题
-        title_label = ttk.Label(main_frame, text="异步文件读取功能测试", font=("Arial", 16, "bold"))
+        title_label = ttk.Label(main_frame, text="异步文件读取功能测试", font=("Microsoft YaHei UI", 16, "bold"))
         title_label.pack(pady=(0, 20))
         
         # 文件大小输入

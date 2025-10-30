@@ -7,7 +7,7 @@ class FontDialogTest:
         self.root.title("字体对话框测试")
         self.root.geometry("600x400")
         
-        self.font_family = "Arial"
+        self.font_family = "Microsoft YaHei UI"
         self.font_size = 12
         
         # 创建UI
@@ -27,7 +27,7 @@ class FontDialogTest:
             self.root,
             text="选择字体",
             command=self.choose_font,
-            font=("Arial", 12),
+            font=("Microsoft YaHei UI", 12),
             width=15,
             height=2
         )
@@ -63,7 +63,7 @@ class FontDialogTest:
         current_label = tk.Label(
             font_dialog, 
             text=f"当前字体: {self.font_family}", 
-            font=("Arial", 10)
+            font=("Microsoft YaHei UI", 10)
         )
         current_label.pack(pady=10)
         
@@ -78,7 +78,7 @@ class FontDialogTest:
         font_listbox = tk.Listbox(
             frame, 
             yscrollcommand=scrollbar.set,
-            font=("Arial", 10)
+            font=("Microsoft YaHei UI", 10)
         )
         font_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         

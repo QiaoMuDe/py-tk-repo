@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 import queue
-from utils import set_window_icon, center_window, get_custom_font_from_parent
+from utils import set_window_icon, center_window
 
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None, selected_text=""):
@@ -61,16 +61,11 @@ class FindDialog:
         ttk.Label(main_frame, text="查找内容:").grid(
             row=0, column=0, columnspan=3, sticky=tk.W, pady=(0, 5)
         )
+
         # 使用最小的多行文本输入框代替单行输入框，提升性能
-        # 使用通用函数获取自定义字体配置
-        custom_font = get_custom_font_from_parent(self.parent, custom_size=18)
-        
         # 创建查找输入框
-        if custom_font:
-            self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=custom_font)
-        else:
-            # 直接设置一个默认字体和大小，确保字体大小能够生效
-            self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+        self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+            
         
         self.search_entry.grid(
             row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)
@@ -85,12 +80,8 @@ class FindDialog:
             row=2, column=0, columnspan=3, sticky=tk.W, pady=(0, 5)
         )
         # 使用最小的多行文本输入框代替单行输入框，提升性能
-        # 应用相同的字体配置到替换输入框
-        if custom_font:
-            self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=custom_font)
-        else:
-            # 直接设置一个默认字体和大小，确保字体大小能够生效
-            self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+        self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
+            
         
         self.replace_entry.grid(
             row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)

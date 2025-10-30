@@ -76,8 +76,8 @@ class AdvancedTextEditor:
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
-        self.font_family = "Arial"  # 默认字体
-        self.font_size = 12  # 默认字体大小
+        self.font_family = "Microsoft YaHei UI"  # 默认字体
+        self.font_size = 13  # 默认字体大小
         self.font_bold = False  # 默认不加粗
         self.font_italic = False  # 默认不斜体
         self.font_underline = False  # 默认无下划线
@@ -1545,7 +1545,7 @@ class AdvancedTextEditor:
             try:
                 with open(self.config_file_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
-                    self.font_family = config.get("font_family", "Arial")
+                    self.font_family = config.get("font_family", "Microsoft YaHei UI")
                     self.font_size = config.get("font_size", 12)
                     self.font_bold = config.get("font_bold", False)
                     self.font_italic = config.get("font_italic", False)
@@ -2942,7 +2942,7 @@ class AdvancedTextEditor:
 
         # 当前字体标签
         current_label = tk.Label(
-            font_dialog, text=f"当前字体: {self.font_family}", font=("Arial", 10)
+            font_dialog, text=f"当前字体: {self.font_family}", font=("Microsoft YaHei UI", 13)
         )
         current_label.pack(pady=5)
 
@@ -2955,7 +2955,7 @@ class AdvancedTextEditor:
 
         # 字体列表框
         font_listbox = tk.Listbox(
-            frame, yscrollcommand=scrollbar.set, font=("Arial", 10)
+            frame, yscrollcommand=scrollbar.set, font=("Microsoft YaHei UI", 12)
         )
         font_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
@@ -3006,7 +3006,7 @@ class AdvancedTextEditor:
         sample_frame.pack(fill=tk.BOTH, expand=False, padx=10, pady=5)
 
         # 示例文字
-        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
+        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=5)
         sample_text.pack(fill=tk.BOTH, expand=True)
 
         # 插入示例文字内容
@@ -3049,23 +3049,27 @@ The quick brown fox jumps over the lazy dog.
         size_dialog.grab_set()  # 模态对话框
 
         # 居中显示对话框
-        center_window(size_dialog, 500, 400)
+        center_window(size_dialog, 500, 300)  # 减小默认窗口高度
 
         # 设置窗口图标
         set_window_icon(size_dialog)
 
+        # 创建顶部控制区域框架
+        control_frame = tk.Frame(size_dialog)
+        control_frame.pack(fill=tk.X, padx=10, pady=5)
+
         # 当前字体大小标签
         current_label = tk.Label(
-            size_dialog, text=f"当前字体大小: {self.font_size}", font=("Arial", 10)
+            control_frame, text=f"当前字体大小: {self.font_size}", font=("Microsoft YaHei UI", 12)
         )
-        current_label.pack(pady=5)
+        current_label.pack(side=tk.TOP, pady=5)
 
         # 字体大小变量
         size_var = tk.StringVar(value=str(self.font_size))
 
-        # 输入框框架
-        input_frame = tk.Frame(size_dialog)
-        input_frame.pack(pady=5)
+        # 输入控制框架
+        input_frame = tk.Frame(control_frame)
+        input_frame.pack(side=tk.TOP, pady=5)
 
         # 减少按钮
         def decrease_size():
@@ -3087,7 +3091,7 @@ The quick brown fox jumps over the lazy dog.
 
         # 输入框
         size_entry = tk.Entry(
-            input_frame, textvariable=size_var, width=10, justify="center"
+            input_frame, textvariable=size_var, width=10, justify="center", font=("Microsoft YaHei UI", 12)
         )
         size_entry.pack(side=tk.LEFT, padx=5)
 
@@ -3109,12 +3113,19 @@ The quick brown fox jumps over the lazy dog.
         increase_btn = tk.Button(input_frame, text="+", command=increase_size, width=3)
         increase_btn.pack(side=tk.LEFT, padx=5)
 
-        # 示例文字框架
-        sample_frame = tk.LabelFrame(size_dialog, text="字体预览", padx=10, pady=10)
-        sample_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        # 确定和取消按钮放在输入框旁边
+        ok_button = tk.Button(input_frame, text="确定", command=lambda: apply_size(), width=8)
+        ok_button.pack(side=tk.LEFT, padx=10)
 
-        # 示例文字
-        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=8)
+        cancel_button = tk.Button(input_frame, text="取消", command=size_dialog.destroy, width=8)
+        cancel_button.pack(side=tk.LEFT, padx=5)
+
+        # 示例文字框架
+        sample_frame = tk.LabelFrame(size_dialog, text="字体预览", padx=10, pady=5)
+        sample_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+        # 示例文字 - 降低高度
+        sample_text = tk.Text(sample_frame, wrap=tk.WORD, height=4)  # 降低高度为4
         sample_text.pack(fill=tk.BOTH, expand=True)
 
         # 插入示例文字内容
@@ -3128,11 +3139,7 @@ The quick brown fox jumps over the lazy dog.
         # 应用当前字体大小到示例文字
         sample_text.config(font=(self.font_family, self.font_size))
 
-        # 按钮框架
-        button_frame = tk.Frame(size_dialog)
-        button_frame.pack(pady=10)
-
-        # 确定按钮
+        # 确定按钮功能
         def apply_size():
             try:
                 new_size = int(size_var.get())
@@ -3145,15 +3152,6 @@ The quick brown fox jumps over the lazy dog.
                     messagebox.showerror("错误", "字体大小必须在1-100之间")
             except ValueError:
                 messagebox.showerror("错误", "请输入有效的数字")
-
-        ok_button = tk.Button(button_frame, text="确定", command=apply_size, width=10)
-        ok_button.pack(side=tk.LEFT, padx=5)
-
-        # 取消按钮
-        cancel_button = tk.Button(
-            button_frame, text="取消", command=size_dialog.destroy, width=10
-        )
-        cancel_button.pack(side=tk.LEFT, padx=5)
 
         # 绑定回车键确认
         size_entry.bind("<Return>", lambda event: apply_size())

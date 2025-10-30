@@ -34,9 +34,9 @@ class TabSettingsDialog:
             elif hasattr(parent, "font_family"):
                 self.font_family = parent.font_family
             else:
-                self.font_family = "Arial"
+                self.font_family = "Microsoft YaHei UI"
         except:
-            self.font_family = "Arial"
+            self.font_family = "Microsoft YaHei UI"
 
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
