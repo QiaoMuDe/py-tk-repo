@@ -1852,9 +1852,9 @@ class AdvancedTextEditor:
             # 移除行号区域之前的高亮矩形
             self.line_numbers.delete("hover_highlight")
 
-            # 获取当前主题的光标行背景色（用于悬停行高亮）
+            # 获取当前主题的悬停行背景色
             theme = self.theme_manager.get_current_theme()
-            hover_bg = theme.get("cursor_line_bg", "#e0e0e0")
+            hover_bg = theme.get("hover_line_bg", "#f0f0f0")
             
             # 设置hover_line标签的背景色样式
             self.text_area.tag_configure("hover_line", background=hover_bg)
