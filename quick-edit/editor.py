@@ -14,7 +14,7 @@ import queue
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
-from utils import format_file_size, center_window, set_window_icon, is_binary_file
+import utils
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
 from enhanced_syntax_highlighter import (
@@ -72,10 +72,10 @@ class AdvancedTextEditor:
         self.config_file_path = ConfigFilePath  # 配置文件路径
 
         # 设置窗口大小和位置
-        center_window(self.root, self.main_window_width, self.main_window_height)
+        utils.center_window(self.root, self.main_window_width, self.main_window_height)
 
         # 设置窗口图标
-        set_window_icon(self.root)
+        utils.set_window_icon(self.root)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -852,31 +852,7 @@ class AdvancedTextEditor:
         # 保存配置
         self.save_config()
 
-    def format_auto_save_interval(self, interval):
-        """格式化自动保存间隔显示
 
-        Args:
-            interval: 自动保存间隔（秒）
-
-        Returns:
-            格式化后的间隔字符串（如"5分钟", "1小时30分钟"等）
-        """
-        if interval >= 3600:  # 1小时或以上
-            hours = interval // 3600
-            minutes = (interval % 3600) // 60
-            if minutes == 0:
-                return f"{hours}小时"
-            else:
-                return f"{hours}小时{minutes}分钟"
-        elif interval >= 60:  # 1分钟或以上
-            minutes = interval // 60
-            seconds = interval % 60
-            if seconds == 0:
-                return f"{minutes}分钟"
-            else:
-                return f"{minutes}分钟{seconds}秒"
-        else:  # 秒数
-            return f"{interval}秒"
 
     def toggle_auto_save(self):
         """切换自动保存功能的启用状态"""
@@ -886,7 +862,7 @@ class AdvancedTextEditor:
         if self.auto_save_enabled:
             self.start_auto_save_timer()
             # 使用辅助方法格式化显示
-            display_interval = self.format_auto_save_interval(self.auto_save_interval)
+            display_interval = utils.format_auto_save_interval(self.auto_save_interval)
             messagebox.showinfo("自动保存", f"已启用自动保存，间隔为{display_interval}")
         else:
             self.stop_auto_save_timer()
@@ -1190,7 +1166,7 @@ class AdvancedTextEditor:
                     self.start_auto_save_timer()
                 dialog.destroy()
                 # 使用辅助方法格式化显示
-                display_interval = self.format_auto_save_interval(interval)
+                display_interval = utils.format_auto_save_interval(interval)
                 messagebox.showinfo(
                     "设置成功", f"自动保存间隔已设置为{display_interval}"
                 )
@@ -2153,20 +2129,7 @@ class AdvancedTextEditor:
         except Exception as e:
             return "UTF-8", "LF"  # 出错时返回默认值
 
-    def convert_line_endings(self, text, target_ending):
-        """将文本中的换行符转换为目标格式"""
-        # 先统一转换为 \n 格式 (处理混合换行符的情况)
-        text = text.replace("\r\n", "\n")  # Windows -> Unix
-        text = text.replace("\r", "\n")  # Mac -> Unix
 
-        # 再转换为目标格式
-        if target_ending == "CRLF":
-            text = text.replace("\n", "\r\n")
-        elif target_ending == "CR":
-            text = text.replace("\n", "\r")
-        # 如果目标是LF, 则无需转换, 因为我们已经统一为LF格式了
-
-        return text
 
     def cycle_line_ending(self):
         """在三种换行符格式之间循环切换"""
@@ -2351,8 +2314,8 @@ class AdvancedTextEditor:
             # 检查文件大小
             file_size = os.path.getsize(file_path)
             if file_size > self.max_file_size:
-                formatted_size = format_file_size(file_size)
-                max_size = format_file_size(self.max_file_size)
+                formatted_size = utils.format_file_size(file_size)
+                max_size = utils.format_file_size(self.max_file_size)
 
                 # 确保在主线程中显示错误消息
                 def show_error():
@@ -2376,7 +2339,7 @@ class AdvancedTextEditor:
                 sample_data = file.read(1024)
 
             # 首先检测是否为二进制文件
-            if is_binary_file(sample_data=sample_data):
+            if utils.is_binary_file(sample_data=sample_data):
 
                 def show_binary_error():
                     messagebox.showinfo(
@@ -2544,7 +2507,7 @@ class AdvancedTextEditor:
         """
         try:
             # 转换换行符格式
-            converted_content = self.convert_line_endings(content, self.line_ending)
+            converted_content = utils.convert_line_endings(content, self.line_ending)
             with open(
                 file_path, "w", encoding=self.encoding.lower(), newline=""
             ) as file:
@@ -2846,7 +2809,7 @@ class AdvancedTextEditor:
                 )
 
                 # 使用辅助方法格式化显示
-                display_interval = self.format_auto_save_interval(
+                display_interval = utils.format_auto_save_interval(
                     self.auto_save_interval
                 )
 
@@ -3189,10 +3152,10 @@ The quick brown fox jumps over the lazy dog.
         size_dialog.grab_set()  # 模态对话框
 
         # 居中显示对话框
-        center_window(size_dialog, 500, 300)  # 减小默认窗口高度
+        utils.center_window(size_dialog, 500, 300)  # 减小默认窗口高度
 
         # 设置窗口图标
-        set_window_icon(size_dialog)
+        utils.set_window_icon(size_dialog)
 
         # 创建顶部控制区域框架
         control_frame = tk.Frame(size_dialog)

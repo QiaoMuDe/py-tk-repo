@@ -18,6 +18,53 @@ def format_file_size(size_bytes):
         return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
 
 
+def format_auto_save_interval(interval):
+    """格式化自动保存间隔显示
+
+    Args:
+        interval: 自动保存间隔（秒）
+
+    Returns:
+        格式化后的间隔字符串（如"5分钟", "1小时30分钟"等）
+    """
+    if interval >= 3600:  # 1小时或以上
+        hours = interval // 3600
+        minutes = (interval % 3600) // 60
+        if minutes > 0:
+            return f"{hours}小时{minutes}分钟"
+        else:
+            return f"{hours}小时"
+    elif interval >= 60:  # 1分钟或以上
+        minutes = interval // 60
+        return f"{minutes}分钟"
+    else:  # 1分钟以下
+        return f"{interval}秒"
+
+
+def convert_line_endings(text, target_ending):
+    """将文本中的换行符转换为目标格式
+
+    Args:
+        text: 要转换的文本
+        target_ending: 目标换行符格式 ("LF", "CRLF", "CR")
+
+    Returns:
+        转换后的文本
+    """
+    # 先统一转换为 \n 格式 (处理混合换行符的情况)
+    text = text.replace("\r\n", "\n")  # Windows -> Unix
+    text = text.replace("\r", "\n")  # Mac -> Unix
+
+    # 再转换为目标格式
+    if target_ending == "CRLF":
+        text = text.replace("\n", "\r\n")
+    elif target_ending == "CR":
+        text = text.replace("\n", "\r")
+    # 如果目标是LF, 则无需转换, 因为我们已经统一为LF格式了
+
+    return text
+
+
 def center_window(window, width=None, height=None):
     """将窗口居中显示"""
     # 如果没有提供宽高参数，则获取窗口的实际宽高
