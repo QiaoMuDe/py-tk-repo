@@ -557,7 +557,9 @@ class AdvancedTextEditor:
             accelerator="Ctrl+R",
         )
         file_menu.add_command(
-            label="打开所在文件夹", command=self.open_containing_folder, accelerator="Ctrl+Shift+R"
+            label="打开所在文件夹",
+            command=self.open_containing_folder,
+            accelerator="Ctrl+Shift+R",
         )
         file_menu.add_separator()
         file_menu.add_command(label="退出", command=self.exit_app, accelerator="Ctrl+Q")
@@ -616,7 +618,7 @@ class AdvancedTextEditor:
         theme_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         theme_menu.add_command(label="字体", command=self.choose_font)
         theme_menu.add_command(label="字体大小", command=self.choose_font_size)
-        
+
         # 初始化字体样式变量
         theme_menu.add_separator()
         self.bold_var = tk.BooleanVar(value=self.font_bold)
@@ -643,7 +645,7 @@ class AdvancedTextEditor:
             command=self.toggle_overstrike,
             variable=self.overstrike_var,
         )
-        
+
         # 添加主题切换选项
         theme_menu.add_separator()
         theme_menu.add_command(
@@ -784,6 +786,12 @@ class AdvancedTextEditor:
 
         # 帮助菜单
         help_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
+        help_menu.add_command(
+            label="文档统计信息",
+            command=self.show_document_stats,
+            accelerator="Ctrl+Shift+I",
+        )
+        help_menu.add_separator()
         help_menu.add_command(label="关于", command=self.show_about, accelerator="F1")
         menubar.add_cascade(label="帮助", menu=help_menu)
 
@@ -791,9 +799,10 @@ class AdvancedTextEditor:
 
     def apply_cursor_styles(self):
         """应用光标样式设置"""
-        # 应用全局光标样式到文本区域和状态栏
+        # 应用全局光标样式到文本区域
         self.text_area.config(cursor=self.cursor_style)
-        self.right_status.config(cursor=self.cursor_style)
+        # right_status 保持手型光标用于点击操作
+        self.right_status.config(cursor="hand2")
 
     def set_cursor_style(self, cursor_style):
         """设置全局光标样式"""
@@ -802,7 +811,8 @@ class AdvancedTextEditor:
 
         # 更新文本区域和状态栏的光标样式
         self.text_area.config(cursor=cursor_style)
-        self.right_status.config(cursor=cursor_style)
+        # right_status 保持手型光标用于点击操作
+        self.right_status.config(cursor="hand2")
 
         # 更新光标样式变量状态
         for style in CURSOR_STYLES:
@@ -1561,8 +1571,12 @@ class AdvancedTextEditor:
             bg=theme["statusbar_bg"],
             fg=theme["statusbar_fg"],
             font=statusbar_font,
+            cursor="hand2",  # 添加手型光标表示可点击
         )
         self.left_status.pack(side=tk.LEFT, padx=5)
+
+        # 为左侧状态栏绑定鼠标点击事件
+        self.left_status.bind("<Button-1>", lambda e: self.show_document_stats())
 
         # 中间自动保存状态标签, 使用主题背景色和前景色
         self.center_status = tk.Label(
@@ -1675,6 +1689,203 @@ class AdvancedTextEditor:
         except Exception as e:
             self.left_status.config(text="状态更新错误")
 
+    def show_document_stats(self):
+        """显示文档统计信息窗口（单例模式）"""
+        # 单例模式：检查统计窗口是否已经存在
+        if hasattr(self, "_stats_window") and self._stats_window.winfo_exists():
+            # 如果窗口存在，将其置于前台
+            self._stats_window.lift()
+            self._stats_window.focus_force()
+            return
+
+        # 创建顶层窗口
+        self._stats_window = tk.Toplevel(self.root)
+        self._stats_window.title("文档统计信息")
+        self._stats_window.resizable(False, False)
+
+        # 居中显示窗口
+        quick_edit_utils.center_window(self._stats_window, 450, 380)
+
+        # 设置窗口图标
+        quick_edit_utils.set_window_icon(self._stats_window)
+
+        # 设置窗口模态
+        self._stats_window.transient(self.root)
+        self._stats_window.grab_set()
+
+        # 获取当前主题
+        theme = self.theme_manager.get_current_theme()
+
+        # 设置窗口背景色
+        self._stats_window.configure(bg=theme["statusbar_bg"])
+
+        # 创建主框架
+        main_frame = tk.Frame(self._stats_window, bg=theme["statusbar_bg"])
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+
+        # 标题标签
+        title_label = tk.Label(
+            main_frame,
+            text="文档统计信息",
+            font=font.Font(family="Microsoft YaHei UI", size=15, weight="bold"),
+            bg=theme["statusbar_bg"],
+            fg=theme["statusbar_fg"],
+        )
+        title_label.pack(pady=(0, 20))
+
+        # 统计信息框架
+        stats_frame = tk.Frame(main_frame, bg=theme["statusbar_bg"])
+        stats_frame.pack(fill=tk.X, expand=False)
+
+        # 创建统计信息标签
+        self.stats_labels = {}
+        stats_info = [
+            ("字符总数:", "chars_total"),
+            ("字符数(不含空格):", "chars_no_spaces"),
+            ("单词数:", "words_count"),
+            ("行数:", "lines_count"),
+            ("段落数:", "paragraphs_count"),
+            ("文件大小:", "file_size"),
+        ]
+
+        for i, (label_text, key) in enumerate(stats_info):
+            row_frame = tk.Frame(stats_frame, bg=theme["statusbar_bg"])
+            row_frame.pack(fill=tk.X, pady=3)  # 减小垂直间距
+
+            label = tk.Label(
+                row_frame,
+                text=label_text,
+                font=font.Font(family="Microsoft YaHei UI", size=12),
+                bg=theme["statusbar_bg"],
+                fg=theme["statusbar_fg"],
+                anchor=tk.W,
+            )
+            label.pack(side=tk.LEFT)
+
+            value_label = tk.Label(
+                row_frame,
+                text="计算中...",
+                font=font.Font(family="Microsoft YaHei UI", size=12, weight="bold"),
+                bg=theme["statusbar_bg"],
+                fg=theme["statusbar_fg"],
+                anchor=tk.E,
+            )
+            value_label.pack(side=tk.RIGHT)
+
+            self.stats_labels[key] = value_label
+
+        # 进度条框架 - 完全移除顶部边距
+        progress_frame = tk.Frame(main_frame, bg=theme["statusbar_bg"])
+        progress_frame.pack(fill=tk.X, pady=(0, 0))
+
+        self.progress_var = tk.StringVar(value="正在统计文档信息...")
+        progress_label = tk.Label(
+            progress_frame,
+            textvariable=self.progress_var,
+            font=font.Font(family="Microsoft YaHei UI", size=12),
+            bg=theme["statusbar_bg"],
+            fg=theme["statusbar_fg"],
+        )
+        progress_label.pack()
+
+        # 关闭按钮 - 进一步减少顶部边距
+        close_button = tk.Button(
+            main_frame,
+            text="关闭",
+            command=self._stats_window.destroy,
+            font=font.Font(family="Microsoft YaHei UI", size=12),
+            bg=theme["menu_bg"],
+            fg=theme["menu_fg"],
+            activebackground=theme["menu_active_bg"],
+            activeforeground=theme["menu_active_fg"],
+        )
+        close_button.pack(pady=(5, 0))
+
+        # 启动异步统计任务
+        self.start_document_stats_calculation()
+
+        # 等待窗口关闭
+        self.root.wait_window(self._stats_window)
+
+    def start_document_stats_calculation(self):
+        """启动异步文档统计计算"""
+        # 创建队列用于线程间通信
+        self.stats_queue = queue.Queue()
+
+        # 在单独的线程中执行统计计算
+        stats_thread = threading.Thread(target=self.calculate_document_stats)
+        stats_thread.daemon = True
+        stats_thread.start()
+
+        # 定期检查统计结果
+        self.check_stats_calculation()
+
+    def calculate_document_stats(self):
+        """在后台线程中计算文档统计信息"""
+        try:
+            # 获取文档内容
+            content = self.text_area.get("1.0", tk.END + "-1c")
+
+            # 计算各种统计信息
+            chars_total = len(content)
+            chars_no_spaces = len(re.sub(r"\s", "", content))
+            words_count = len(re.findall(r"\b\w+\b", content))
+            lines_count = content.count("\n") + 1
+            paragraphs_count = len([p for p in content.split("\n\n") if p.strip()])
+
+            # 文件大小 - 优化：如果文件已保存，直接获取文件大小；否则计算内容的UTF-8编码大小
+            if self.current_file and os.path.exists(self.current_file):
+                # 对于已保存的文件，直接获取文件大小
+                file_size = os.path.getsize(self.current_file)
+            else:
+                # 对于未保存的文件，计算内容的UTF-8编码大小
+                file_size = len(content.encode("utf-8"))
+
+            if file_size < 1024:
+                file_size_text = f"{file_size} 字节"
+            elif file_size < 1024 * 1024:
+                file_size_text = f"{file_size / 1024:.2f} KB"
+            else:
+                file_size_text = f"{file_size / (1024 * 1024):.2f} MB"
+
+            # 将结果放入队列
+            result = {
+                "chars_total": chars_total,
+                "chars_no_spaces": chars_no_spaces,
+                "words_count": words_count,
+                "lines_count": lines_count,
+                "paragraphs_count": paragraphs_count,
+                "file_size": file_size_text,
+            }
+
+            self.stats_queue.put(("success", result))
+        except Exception as e:
+            self.stats_queue.put(("error", str(e)))
+
+    def check_stats_calculation(self):
+        """定期检查统计计算结果并更新UI"""
+        try:
+            # 检查队列中是否有结果
+            status, result = self.stats_queue.get_nowait()
+
+            if status == "success":
+                # 更新统计信息标签
+                for key, value in result.items():
+                    if key in self.stats_labels:
+                        self.stats_labels[key].config(text=str(value))
+
+                # 更新进度信息
+                self.progress_var.set("统计完成")
+            else:
+                # 处理错误
+                self.progress_var.set(f"统计出错: {result}")
+
+        except queue.Empty:
+            # 队列为空，稍后再检查
+            self.root.after(100, self.check_stats_calculation)
+        except Exception as e:
+            self.progress_var.set(f"更新出错: {str(e)}")
+
     def bind_shortcuts(self):
         """绑定快捷键"""
         self.root.bind("<Control-n>", lambda e: self.new_file())
@@ -1691,7 +1902,12 @@ class AdvancedTextEditor:
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
         self.root.bind("<Control-t>", lambda e: self.cycle_theme())  # 循环切换主题
-        self.root.bind("<Control-R>", lambda e: self.open_containing_folder())  # 打开所在文件夹
+        self.root.bind(
+            "<Control-R>", lambda e: self.open_containing_folder()
+        )  # 打开所在文件夹
+        self.root.bind(
+            "<Control-Shift-I>", lambda e: self.show_document_stats()
+        )  # 显示文档统计信息
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
