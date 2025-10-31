@@ -148,6 +148,37 @@ def is_binary_file(file_path=None, sample_data=None, sample_size=1024):
         return True
 
 
+def get_supported_encodings():
+    """获取支持的编码列表
+
+    Returns:
+        list: 支持的编码列表，常用编码在前
+    """
+    # 常用编码选项
+    common_encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
+
+    # 从encodings模块获取所有支持的编码
+    try:
+        import encodings
+
+        all_encodings = [
+            f[:-3]
+            for f in os.listdir(os.path.dirname(encodings.__file__))
+            if f.endswith(".py") and not f.startswith("_")
+        ]
+
+        # 合并常用编码和所有支持的编码，保持常用编码在前
+        supported_encodings = common_encodings[:]
+        for enc in all_encodings:
+            if enc.upper() not in [e.upper() for e in supported_encodings]:
+                supported_encodings.append(enc)
+
+        return supported_encodings
+    except Exception:
+        # 如果获取所有编码失败，返回常用编码列表
+        return common_encodings
+
+
 def detect_file_encoding_and_line_ending(file_path=None, sample_data=None):
     """检测文件编码和换行符类型
 
@@ -178,6 +209,10 @@ def detect_file_encoding_and_line_ending(file_path=None, sample_data=None):
         if raw_data:
             result = chardet.detect(raw_data)
             encoding = result["encoding"] if result["encoding"] else "UTF-8"
+
+            # 改进：将ASCII编码统一显示为UTF-8，因为ASCII是UTF-8的子集
+            if encoding and encoding.lower() == "ascii":
+                encoding = "UTF-8"
         else:
             encoding = "UTF-8"
 

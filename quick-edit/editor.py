@@ -10,6 +10,7 @@ import tkinterdnd2
 import re
 import threading
 import queue
+import codecs
 
 # 导入我们创建的模块
 from find_dialog import FindDialog
@@ -89,7 +90,7 @@ class AdvancedTextEditor:
         self.toolbar_visible = True  # 工具栏默认显示
         self.show_line_numbers = True  # 行号显示状态, 默认显示
         self.syntax_highlighting_enabled = True  # 语法高亮显示状态, 默认启用
-        self.encoding = "utf-8"  # 默认编码
+        self.encoding = "UTF-8"  # 默认编码
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
@@ -232,7 +233,7 @@ class AdvancedTextEditor:
         else:
             self.root.title("QuickEdit")
         # 重置编码和换行符为默认值
-        self.encoding = "utf-8"
+        self.encoding = "UTF-8"
         self.line_ending = "LF"
         # 重置修改状态
         self.text_area.edit_modified(False)
@@ -533,12 +534,7 @@ class AdvancedTextEditor:
         )
         file_menu.add_separator()
         # 添加编码选择子菜单
-        encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font)
-        encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
-        for enc in encodings:
-            encoding_submenu.add_command(
-                label=enc, command=lambda e=enc: self.change_encoding(e)
-            )
+        encoding_submenu = self.create_encoding_menu(show_common_only=True)
         file_menu.add_cascade(label="编码", menu=encoding_submenu)
         # 添加换行符选择子菜单
         line_ending_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font)
@@ -1421,15 +1417,11 @@ class AdvancedTextEditor:
         )
 
         # 编辑操作按钮
-        undo_btn = ttk.Button(
-            self.toolbar, text="撤销", command=self.undo_text
-        )
+        undo_btn = ttk.Button(self.toolbar, text="撤销", command=self.undo_text)
         undo_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(undo_btn)
 
-        redo_btn = ttk.Button(
-            self.toolbar, text="重做", command=self.redo_text
-        )
+        redo_btn = ttk.Button(self.toolbar, text="重做", command=self.redo_text)
         redo_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(redo_btn)
 
@@ -1516,7 +1508,7 @@ class AdvancedTextEditor:
         # 右侧状态信息 (编码和换行符类型), 使用主题背景色和前景色
         self.right_status = tk.Label(
             self.statusbar_frame,
-            text="utf-8 | LF",
+            text="UTF-8 | LF",
             anchor=tk.E,
             cursor="hand2",
             bg=theme["statusbar_bg"],
@@ -1599,7 +1591,7 @@ class AdvancedTextEditor:
 
             # 更新右侧状态信息 (编码和换行符类型)
             if hasattr(self, "encoding") and hasattr(self, "line_ending"):
-                file_info = f"{self.encoding} | {self.line_ending}"
+                file_info = f"{self.encoding.upper()} | {self.line_ending}"
                 if self.current_file:
                     file_name = os.path.basename(self.current_file)
                     right_text = f"{file_name} | {file_info}"
@@ -1640,7 +1632,15 @@ class AdvancedTextEditor:
         """加载配置文件"""
         if os.path.exists(self.config_file_path):
             try:
-                with open(self.config_file_path, "r", encoding="utf-8") as f:
+                # 先检测配置文件的编码
+                encoding, _ = quick_edit_utils.detect_file_encoding_and_line_ending(
+                    self.config_file_path
+                )
+
+                # 使用检测到的编码通过codecs.open打开文件
+                with codecs.open(
+                    self.config_file_path, "r", encoding=encoding, errors="replace"
+                ) as f:
                     config = json.load(f)
                     self.font_family = config.get("font_family", "Microsoft YaHei UI")
                     self.font_size = config.get("font_size", 12)
@@ -1972,21 +1972,62 @@ class AdvancedTextEditor:
 
     def on_encoding_click(self, event=None):
         """处理编码标签右键点击事件"""
-        # 创建编码选择菜单
-        encoding_menu = tk.Menu(self.root, tearoff=0)
-
-        # 常用编码选项
-        encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
-
-        # 添加编码选项到菜单
-        for enc in encodings:
-            encoding_menu.add_command(
-                label=enc, command=lambda e=enc: self.change_encoding(e)
-            )
+        # 创建编码选择菜单，只显示常用编码
+        encoding_menu = self.create_encoding_menu(show_common_only=True)
 
         # 显示菜单
         try:
             encoding_menu.tk_popup(event.x_root, event.y_root)
+        finally:
+            encoding_menu.grab_release()
+
+    def create_encoding_menu(self, show_common_only=False):
+        """创建编码选择菜单
+
+        Args:
+            show_common_only (bool): 是否只显示常用编码，默认False显示完整编码列表
+        """
+        # 创建编码选择菜单
+        encoding_menu = tk.Menu(self.root, tearoff=0)
+
+        if show_common_only:
+            # 只显示常用编码
+            common_encodings = [
+                "UTF-8",
+                "UTF-16",
+                "GBK",
+                "GB2312",
+                "ASCII",
+                "ISO-8859-1",
+            ]
+            for enc in common_encodings:
+                encoding_menu.add_command(
+                    label=enc, command=lambda e=enc: self.change_encoding(e)
+                )
+            # 添加"更多"选项，点击后显示完整编码列表
+            encoding_menu.add_separator()
+            encoding_menu.add_command(label="更多...", command=self.show_all_encodings)
+        else:
+            # 显示完整编码列表
+            encodings = quick_edit_utils.get_supported_encodings()
+            for enc in encodings:
+                encoding_menu.add_command(
+                    label=enc, command=lambda e=enc: self.change_encoding(e)
+                )
+
+        return encoding_menu
+
+    def show_all_encodings(self):
+        """显示完整编码列表"""
+        # 创建完整编码列表菜单
+        encoding_menu = self.create_encoding_menu(show_common_only=False)
+
+        # 显示菜单在光标位置
+        try:
+            # 获取当前鼠标位置
+            x = self.root.winfo_pointerx()
+            y = self.root.winfo_pointery()
+            encoding_menu.tk_popup(x, y)
         finally:
             encoding_menu.grab_release()
 
@@ -2203,7 +2244,9 @@ class AdvancedTextEditor:
                 )
 
                 # 读取备份内容
-                with open(backup_file, "r", encoding=encoding) as f:
+                with codecs.open(
+                    backup_file, "r", encoding=encoding, errors="replace"
+                ) as f:
                     content = f.read()
 
                 # 复用_finish_open_file方法来处理文件内容，避免代码重复
@@ -2328,7 +2371,10 @@ class AdvancedTextEditor:
             content_chunks = []
             chunk_size = 8192  # 8KB chunks
 
-            with open(file_path, "r", encoding=encoding) as file:
+            # 使用检测到的编码打开文件
+            with codecs.open(
+                file_path, "r", encoding=encoding, errors="replace"
+            ) as file:
                 while not self.file_read_cancelled:
                     chunk = file.read(chunk_size)
                     if not chunk:
@@ -2469,15 +2515,21 @@ class AdvancedTextEditor:
             update_current_file: 是否更新当前文件路径
 
         Returns:
-            bool: 保存是否成功
+            tuple: (保存是否成功, 错误信息)
         """
         try:
+            # 确保编码有效，避免使用无法处理非ASCII字符的编码
+            encoding_to_use = self.encoding
+
+            # 使用codecs.open确保编码设置被正确应用
             # 转换换行符格式
             converted_content = quick_edit_utils.convert_line_endings(
                 content, self.line_ending
             )
-            with open(
-                file_path, "w", encoding=self.encoding.lower(), newline=""
+
+            # 使用codecs库打开文件，确保编码被正确应用
+            with codecs.open(
+                file_path, "w", encoding=encoding_to_use, errors="replace"
             ) as file:
                 file.write(converted_content)
 
@@ -2564,7 +2616,7 @@ class AdvancedTextEditor:
             if not silent:
                 messagebox.showinfo(
                     "保存成功",
-                    f"文件已成功保存！\n编码格式: {self.encoding}\n换行符格式: {self.line_ending}",
+                    f"文件已成功保存！\n编码格式: {self.encoding.upper()}\n换行符格式: {self.line_ending}",
                 )
             else:
                 # 静默模式下，只在状态栏显示简短信息
@@ -2830,7 +2882,9 @@ class AdvancedTextEditor:
             )
 
             # 读取备份文件内容
-            with open(backup_file, "r", encoding=encoding) as f:
+            with codecs.open(
+                backup_file, "r", encoding=encoding, errors="replace"
+            ) as f:
                 content = f.read()
 
             # 使用现有的convert_line_endings方法处理换行符
@@ -2916,7 +2970,7 @@ class AdvancedTextEditor:
     # 编辑操作方法
     def copy_text(self):
         """复制文本
-        
+
         当没有选中内容时，捕获异常并静默处理，避免程序崩溃
         """
         try:
@@ -2931,7 +2985,7 @@ class AdvancedTextEditor:
 
     def cut_text(self):
         """剪切文本
-        
+
         当没有选中内容时，捕获异常并静默处理，避免程序崩溃
         """
         try:
@@ -2946,7 +3000,7 @@ class AdvancedTextEditor:
 
     def paste_text(self):
         """粘贴文本
-        
+
         当剪贴板为空时，捕获异常并静默处理，避免程序崩溃
         """
         try:
@@ -2959,7 +3013,7 @@ class AdvancedTextEditor:
 
     def undo_text(self):
         """撤销操作
-        
+
         当没有可撤销的操作时，显示提示框而不是静默处理，提供更好的用户体验
         """
         try:
@@ -2967,10 +3021,10 @@ class AdvancedTextEditor:
         except tk.TclError:
             # 没有可撤销的操作时，显示提示框
             messagebox.showinfo("提示", "没有可撤销的操作")
-            
+
     def redo_text(self):
         """重做操作
-        
+
         当没有可重做的操作时，显示提示框而不是静默处理，提供更好的用户体验
         """
         try:
@@ -2978,7 +3032,7 @@ class AdvancedTextEditor:
         except tk.TclError:
             # 没有可重做的操作时，显示提示框
             messagebox.showinfo("提示", "没有可重做的操作")
-            
+
     def select_all(self):
         """全选文本"""
         self.text_area.tag_add(tk.SEL, "1.0", tk.END)
