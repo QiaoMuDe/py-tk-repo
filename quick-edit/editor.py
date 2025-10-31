@@ -1422,13 +1422,13 @@ class AdvancedTextEditor:
 
         # 编辑操作按钮
         undo_btn = ttk.Button(
-            self.toolbar, text="撤销", command=self.text_area.edit_undo
+            self.toolbar, text="撤销", command=self.undo_text
         )
         undo_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(undo_btn)
 
         redo_btn = ttk.Button(
-            self.toolbar, text="重做", command=self.text_area.edit_redo
+            self.toolbar, text="重做", command=self.redo_text
         )
         redo_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(redo_btn)
@@ -1995,6 +1995,9 @@ class AdvancedTextEditor:
         old_encoding = self.encoding
         self.encoding = new_encoding
 
+        # 将编辑器标记为已修改状态，确保切换文件时弹出保存提示
+        self.text_area.edit_modified(True)
+
         # 更新状态栏
         self.update_statusbar()
 
@@ -2007,6 +2010,9 @@ class AdvancedTextEditor:
         """设置换行符类型"""
         old_ending = self.line_ending
         self.line_ending = new_ending
+
+        # 将编辑器标记为已修改状态，确保切换文件时弹出保存提示
+        self.text_area.edit_modified(True)
 
         # 更新状态栏
         self.update_statusbar()
@@ -2111,31 +2117,6 @@ class AdvancedTextEditor:
         self._reset_file_state()
         # 移除状态栏更新，因为_reset_file_state已经包含了这一步
         pass
-
-    def cycle_line_ending(self):
-        """在三种换行符格式之间循环切换"""
-        # 定义切换顺序
-        cycle_order = ["LF", "CRLF", "CR"]
-
-        # 获取当前索引
-        try:
-            current_index = cycle_order.index(self.line_ending)
-        except ValueError:
-            # 如果当前格式不在列表中, 默认从LF开始
-            current_index = 0
-
-        # 计算下一个索引
-        next_index = (current_index + 1) % len(cycle_order)
-        new_ending = cycle_order[next_index]
-
-        # 更新换行符类型
-        self.line_ending = new_ending
-
-        # 更新状态栏显示
-        self.update_statusbar()
-
-        # 返回新的换行符类型
-        return new_ending
 
     def open_file(self, file_path=None):
         """打开文件"""
@@ -2934,19 +2915,70 @@ class AdvancedTextEditor:
 
     # 编辑操作方法
     def copy_text(self):
-        """复制文本"""
-        self.text_area.clipboard_clear()
-        self.text_area.clipboard_append(self.text_area.selection_get())
+        """复制文本
+        
+        当没有选中内容时，捕获异常并静默处理，避免程序崩溃
+        """
+        try:
+            # 检查是否有选中的文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                self.text_area.clipboard_clear()
+                self.text_area.clipboard_append(selected_text)
+        except tk.TclError:
+            # 没有选中内容或选择无效时，静默处理
+            pass
 
     def cut_text(self):
-        """剪切文本"""
-        self.copy_text()
-        self.text_area.delete("sel.first", "sel.last")
+        """剪切文本
+        
+        当没有选中内容时，捕获异常并静默处理，避免程序崩溃
+        """
+        try:
+            # 检查是否有选中的文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                self.copy_text()
+                self.text_area.delete("sel.first", "sel.last")
+        except tk.TclError:
+            # 没有选中内容或选择无效时，静默处理
+            pass
 
     def paste_text(self):
-        """粘贴文本"""
-        self.text_area.insert(tk.INSERT, self.text_area.clipboard_get())
+        """粘贴文本
+        
+        当剪贴板为空时，捕获异常并静默处理，避免程序崩溃
+        """
+        try:
+            clipboard_text = self.text_area.clipboard_get()
+            if clipboard_text:
+                self.text_area.insert(tk.INSERT, clipboard_text)
+        except tk.TclError:
+            # 剪贴板为空或无法获取内容时，静默处理
+            pass
 
+    def undo_text(self):
+        """撤销操作
+        
+        当没有可撤销的操作时，显示提示框而不是静默处理，提供更好的用户体验
+        """
+        try:
+            self.text_area.edit_undo()
+        except tk.TclError:
+            # 没有可撤销的操作时，显示提示框
+            messagebox.showinfo("提示", "没有可撤销的操作")
+            
+    def redo_text(self):
+        """重做操作
+        
+        当没有可重做的操作时，显示提示框而不是静默处理，提供更好的用户体验
+        """
+        try:
+            self.text_area.edit_redo()
+        except tk.TclError:
+            # 没有可重做的操作时，显示提示框
+            messagebox.showinfo("提示", "没有可重做的操作")
+            
     def select_all(self):
         """全选文本"""
         self.text_area.tag_add(tk.SEL, "1.0", tk.END)
@@ -3607,13 +3639,13 @@ The quick brown fox jumps over the lazy dog.
     def create_undo_menu_item(self, parent_menu):
         """创建撤销菜单项"""
         parent_menu.add_command(
-            label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
+            label="撤销", command=self.undo_text, accelerator="Ctrl+Z"
         )
 
     def create_redo_menu_item(self, parent_menu):
         """创建重做菜单项"""
         parent_menu.add_command(
-            label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
+            label="重做", command=self.redo_text, accelerator="Ctrl+Y"
         )
 
     def create_cut_menu_item(self, parent_menu):
