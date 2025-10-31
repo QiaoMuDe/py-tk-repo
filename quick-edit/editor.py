@@ -532,6 +532,7 @@ class AdvancedTextEditor:
             label="关闭文件", command=self.close_file, accelerator="Ctrl+W"
         )
         file_menu.add_separator()
+
         # 添加编码选择子菜单
         encoding_submenu = self.create_encoding_menu(show_common_only=True)
         file_menu.add_cascade(label="编码", menu=encoding_submenu)
@@ -554,6 +555,9 @@ class AdvancedTextEditor:
             command=self.toggle_readonly_mode,
             variable=self.readonly_var,
             accelerator="Ctrl+R",
+        )
+        file_menu.add_command(
+            label="打开所在文件夹", command=self.open_containing_folder, accelerator="Ctrl+Shift+R"
         )
         file_menu.add_separator()
         file_menu.add_command(label="退出", command=self.exit_app, accelerator="Ctrl+Q")
@@ -1687,6 +1691,7 @@ class AdvancedTextEditor:
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
         self.root.bind("<Control-g>", lambda e: self.go_to_line())
         self.root.bind("<Control-t>", lambda e: self.cycle_theme())  # 循环切换主题
+        self.root.bind("<Control-R>", lambda e: self.open_containing_folder())  # 打开所在文件夹
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
@@ -3873,6 +3878,22 @@ The quick brown fox jumps over the lazy dog.
                 self.text_area.clipboard_append(self.current_file)
             except Exception as e:
                 messagebox.showerror("错误", f"复制文件路径时出错: {str(e)}")
+        else:
+            messagebox.showinfo("提示", "当前没有打开的文件")
+
+    def open_containing_folder(self):
+        """打开当前文件所在的文件夹"""
+        if self.current_file:
+            try:
+                # 获取文件所在的目录
+                directory = os.path.dirname(self.current_file)
+                if os.path.exists(directory):
+                    # 在Windows上使用explorer命令打开文件夹
+                    os.startfile(directory)
+                else:
+                    messagebox.showerror("错误", "文件所在目录不存在")
+            except Exception as e:
+                messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
         else:
             messagebox.showinfo("提示", "当前没有打开的文件")
 
