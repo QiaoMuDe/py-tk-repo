@@ -342,9 +342,7 @@ class AdvancedTextEditor:
         if self.show_line_numbers:
             self.line_numbers.pack(side=tk.LEFT, fill=tk.Y)
 
-            # 绑定鼠标事件用于悬停高亮和点击全选
-            self.line_numbers.bind("<Motion>", self.on_line_number_hover)
-            self.line_numbers.bind("<Leave>", self.on_line_number_leave)
+            # 绑定鼠标事件用于点击全选
             self.line_numbers.bind("<Button-1>", self.on_line_number_click)
 
         # 创建文本区域和滚动条的容器
@@ -403,9 +401,7 @@ class AdvancedTextEditor:
             "<<Modified>>", lambda e: self.schedule_line_number_update(50)
         )
 
-        # 绑定光标移动事件, 用于高亮光标所在行
-        self.text_area.bind("<KeyRelease>", self.highlight_cursor_line, add="+")
-        self.text_area.bind("<ButtonRelease>", self.highlight_cursor_line, add="+")
+
 
         # 绑定鼠标右键事件，用于显示上下文菜单
         self.text_area.bind("<Button-3>", self.show_context_menu)
@@ -415,6 +411,8 @@ class AdvancedTextEditor:
 
         # 设置默认字体
         self.update_font()
+
+
 
         # 初始化文件相关变量
         self.total_lines = 0
@@ -429,7 +427,7 @@ class AdvancedTextEditor:
             maxundo=self.max_undo,  # 最大撤销次数
         )
 
-        # 设置行号区域样式
+        # 设置行号区域样式(默认为白色)
         self.line_numbers.config(bg="#f0f0f0", highlightthickness=0)
 
         # 应用制表符设置
@@ -815,7 +813,7 @@ class AdvancedTextEditor:
         """切换行号显示"""
         # 更新变量状态
         self.show_line_numbers = self.show_line_numbers_var.get()
-        
+
         if self.show_line_numbers:
             # 显示行号并设置位置
             self.line_numbers.pack(side=tk.LEFT, fill=tk.Y, before=self.text_container)
@@ -828,7 +826,7 @@ class AdvancedTextEditor:
             self.line_numbers.pack_forget()
             # 让文本容器占据整个空间
             self.text_container.pack(fill=tk.BOTH, expand=True)
-        
+
         # 保存配置
         self.save_config()
 
@@ -1607,9 +1605,6 @@ class AdvancedTextEditor:
             # 更新行号显示
             self.update_line_numbers()
 
-            # 高亮光标所在行
-            self.highlight_cursor_line()
-
         except Exception as e:
             self.left_status.config(text="状态更新错误")
 
@@ -1781,43 +1776,8 @@ class AdvancedTextEditor:
         # 更新行号显示
         self.update_line_numbers()
 
-    def highlight_cursor_line(self, event=None):
-        """高亮光标所在行"""
-        try:
-            # 移除之前的光标行高亮
-            self.text_area.tag_remove("cursor_line", "1.0", tk.END)
 
-            # 获取光标当前位置
-            cursor_pos = self.text_area.index(tk.INSERT)
-            row, col = cursor_pos.split(".")
 
-            # 为整行添加高亮标记（从行首到行尾+1字符，确保覆盖整行）
-            start_pos = f"{row}.0"
-            end_pos = f"{int(row)+1}.0"
-            self.text_area.tag_add("cursor_line", start_pos, end_pos)
-        except Exception as e:
-            # 忽略错误, 保持程序稳定
-            pass
-
-    def on_line_number_hover(self, event):
-        """处理行号区域鼠标悬停事件"""
-        # 获取鼠标在canvas中的y坐标
-        y = event.y
-
-        # 获取文本区域中对应y坐标的行号
-        text_index = self.text_area.index(f"@0,{y}")
-        hovered_line = text_index.split(".")[0]
-
-        # 高亮悬停行
-        self.highlight_hovered_line(hovered_line)
-
-    def on_line_number_leave(self, event):
-        """处理鼠标离开行号区域事件"""
-        # 移除悬停行高亮
-        self.text_area.tag_remove("hover_line", "1.0", tk.END)
-        # 移除行号区域的高亮矩形
-        self.line_numbers.delete("hover_highlight")
-        
     def on_line_number_click(self, event):
         """处理行号区域点击事件 - 全选点击的行"""
         try:
@@ -1827,11 +1787,11 @@ class AdvancedTextEditor:
             # 获取文本区域中对应y坐标的行号
             text_index = self.text_area.index(f"@0,{y}")
             clicked_line = text_index.split(".")[0]
-            
+
             # 全选该行内容
             start_pos = f"{clicked_line}.0"
             end_pos = f"{clicked_line}.end"
-            
+
             # 无论行是否有内容，都执行全选操作
             self.text_area.tag_remove(tk.SEL, "1.0", tk.END)
             self.text_area.tag_add(tk.SEL, start_pos, end_pos)
@@ -1839,50 +1799,7 @@ class AdvancedTextEditor:
             self.text_area.see(start_pos)
             # 确保文本区域获得焦点
             self.text_area.focus_set()
-        except Exception as e:
-            # 忽略错误, 保持程序稳定
-            pass
 
-    def highlight_hovered_line(self, line_number):
-        """高亮鼠标悬停的行"""
-        try:
-            # 移除之前的悬停行高亮
-            self.text_area.tag_remove("hover_line", "1.0", tk.END)
-
-            # 移除行号区域之前的高亮矩形
-            self.line_numbers.delete("hover_highlight")
-
-            # 获取当前主题的悬停行背景色
-            theme = self.theme_manager.get_current_theme()
-            hover_bg = theme.get("hover_line_bg", "#f0f0f0")
-            
-            # 设置hover_line标签的背景色样式
-            self.text_area.tag_configure("hover_line", background=hover_bg)
-
-            # 获取行号区域的宽度
-            line_number_width = self.line_numbers.winfo_width()
-
-            # 获取文本区域中该行的位置信息
-            dlineinfo = self.text_area.dlineinfo(f"{line_number}.0")
-            if dlineinfo:
-                y_pos = dlineinfo[1]  # y坐标
-                line_height = dlineinfo[3]  # 行高
-
-                # 在行号区域绘制高亮矩形（覆盖整行宽度）
-                self.line_numbers.create_rectangle(
-                    0,
-                    y_pos,
-                    line_number_width,
-                    y_pos + line_height,
-                    fill=hover_bg,
-                    outline=hover_bg,
-                    tags="hover_highlight",
-                )
-
-            # 为文本区域整行添加悬停高亮标记
-            start_pos = f"{line_number}.0"
-            end_pos = f"{int(line_number)+1}.0"  # 使用与光标行相同的范围，确保覆盖整行
-            self.text_area.tag_add("hover_line", start_pos, end_pos)
         except Exception as e:
             # 忽略错误, 保持程序稳定
             pass
@@ -2480,6 +2397,8 @@ class AdvancedTextEditor:
             # 更新状态栏
             self.update_statusbar()
 
+
+
             # 延迟应用语法高亮以减少卡顿
             self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)
         except Exception as e:
@@ -2494,8 +2413,6 @@ class AdvancedTextEditor:
             else:
                 self.remove_syntax_highlighting()
 
-            # 在语法高亮应用后重新高亮光标行
-            self.highlight_cursor_line()
         except Exception as e:
             # 忽略语法高亮错误, 不影响文件打开
             pass

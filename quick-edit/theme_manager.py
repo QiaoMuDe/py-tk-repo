@@ -3,15 +3,33 @@ from tkinter import ttk
 
 # 定义可用的光标样式
 CURSOR_STYLES = [
-    "arrow", "xterm", "watch", "hand2", "question_arrow", 
-    "sb_h_double_arrow", "sb_v_double_arrow", "fleur",
-    "crosshair", "plus", "pencil", "pirate", "heart",
-    "spider", "spraycan", "target", "tcross", "trek",
-    "dotbox", "exchange", "sizing", "top_left_arrow"
+    "arrow",
+    "xterm",
+    "watch",
+    "hand2",
+    "question_arrow",
+    "sb_h_double_arrow",
+    "sb_v_double_arrow",
+    "fleur",
+    "crosshair",
+    "plus",
+    "pencil",
+    "pirate",
+    "heart",
+    "spider",
+    "spraycan",
+    "target",
+    "tcross",
+    "trek",
+    "dotbox",
+    "exchange",
+    "sizing",
+    "top_left_arrow",
 ]
 
 # 默认光标样式
 DEFAULT_CURSOR = "arrow"
+
 
 class ThemeManager:
     """主题管理器类"""
@@ -19,7 +37,7 @@ class ThemeManager:
     # 预定义的主题
     THEMES = {
         "light": {
-            "name": "浅色主题", # 主题名称
+            "name": "浅色主题",  # 主题名称
             "text_bg": "white",  # 文本区域背景色
             "text_fg": "black",  # 文本区域前景色
             "text_insert_bg": "black",  # 插入点背景色
@@ -28,11 +46,10 @@ class ThemeManager:
             "line_numbers_bg": "#f0f0f0",  # 行号区域背景色
             "line_numbers_fg": "gray",  # 行号区域前景色
             "found_bg": "yellow",  # 搜索结果背景色
-            "found_fg": "black",  # 搜索结果前景色 
+            "found_fg": "black",  # 搜索结果前景色
             "current_match_bg": "#ff9900",  # 当前匹配项背景色
             "current_match_fg": "black",  # 当前匹配项前景色
             "cursor_line_bg": "yellow",  # 光标所在行背景色
-            "hover_line_bg": "#e0e0e0",  # 悬停行背景色
             "menu_bg": "#f0f0f0",  # 菜单背景色
             "menu_fg": "black",  # 菜单前景色
             "menu_active_bg": "lightblue",  # 激活菜单背景色
@@ -58,7 +75,6 @@ class ThemeManager:
             "current_match_bg": "#ffa500",
             "current_match_fg": "#000000",
             "cursor_line_bg": "#4a4a4a",  # 光标所在行背景色（更亮一些）
-            "hover_line_bg": "#3a3a3a",  # 悬停行背景色
             "menu_bg": "#3a3a3a",
             "menu_fg": "#ffffff",
             "menu_active_bg": "#094771",
@@ -84,7 +100,6 @@ class ThemeManager:
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#000000",
             "cursor_line_bg": "#a0d0f0",  # 光标所在行背景色（更深一些）
-            "hover_line_bg": "#cce6ff",  # 悬停行背景色
             "menu_bg": "#e1ebf5",
             "menu_fg": "#000080",
             "menu_active_bg": "#4682b4",
@@ -110,7 +125,6 @@ class ThemeManager:
             "current_match_bg": "#ff8c00",
             "current_match_fg": "#ffffff",
             "cursor_line_bg": "#d0c0a0",  # 光标所在行背景色（更深一些）
-            "hover_line_bg": "#e6d5b8",  # 悬停行背景色
             "menu_bg": "#e6d5b8",
             "menu_fg": "#5a4a3f",
             "menu_active_bg": "#d0b895",
@@ -136,7 +150,6 @@ class ThemeManager:
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#000000",
             "cursor_line_bg": "#ccffcc",  # 光标所在行背景色
-            "hover_line_bg": "#ccffcc",  # 悬停行背景色
             "menu_bg": "#ccffcc",
             "menu_fg": "#006600",
             "menu_active_bg": "#006600",
@@ -162,7 +175,6 @@ class ThemeManager:
             "current_match_bg": "#ff9966",
             "current_match_fg": "#000000",
             "cursor_line_bg": "#e0d6f0",  # 光标所在行背景色
-            "hover_line_bg": "#e0d6f0",  # 悬停行背景色
             "menu_bg": "#e0d6f0",
             "menu_fg": "#330066",
             "menu_active_bg": "#6600cc",
@@ -188,7 +200,6 @@ class ThemeManager:
             "current_match_bg": "#e67e22",
             "current_match_fg": "#ffffff",
             "cursor_line_bg": "#f5d1b0",  # 光标所在行背景色
-            "hover_line_bg": "#f5d1b0",  # 悬停行背景色
             "menu_bg": "#f5d1b0",
             "menu_fg": "#d35400",
             "menu_active_bg": "#e67e22",
@@ -246,15 +257,10 @@ class ThemeManager:
             background=theme["current_match_bg"],
             foreground=theme["current_match_fg"],
         )
-        
+
         # 应用光标所在行背景色样式
         self.editor.text_area.tag_configure(
             "cursor_line", background=theme["cursor_line_bg"]
-        )
-        
-        # 应用悬停行背景色样式
-        self.editor.text_area.tag_configure(
-            "hover_line", background=theme.get("hover_line_bg", theme["cursor_line_bg"])
         )
 
         # 应用菜单样式
@@ -344,5 +350,3 @@ class ThemeManager:
             # 如果编辑器有重置居中状态栏的方法，调用它以确保状态一致
             if hasattr(self.editor, "reset_center_status"):
                 self.editor.reset_center_status()
-
-                
