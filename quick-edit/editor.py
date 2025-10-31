@@ -2018,8 +2018,7 @@ class AdvancedTextEditor:
 
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
-                    self.save_file()
-                    saved = True
+                    saved = self.save_file()  # 只有保存成功才设置为True
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
@@ -2034,8 +2033,7 @@ class AdvancedTextEditor:
 
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
-                    self.save_file()
-                    saved = True
+                    saved = self.save_file()  # 只有保存成功才设置为True
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
@@ -2057,9 +2055,12 @@ class AdvancedTextEditor:
         if not continue_operation:
             return  # 用户取消操作
 
-        # 只有在用户选择保存时才清理备份文件
-        if saved and self.current_file and self.auto_save_enabled:
-            self.cleanup_backup()
+        # 如果有当前文件且启用了备份功能，需要清理备份文件
+        # 两种情况需要清理：1. 用户选择保存（saved=True） 2. 文件未被修改
+        if self.current_file and self.backup_enabled:
+            # 检查文件是否未被修改
+            if saved or not self.text_area.edit_modified():
+                self.cleanup_backup()
 
         # 使用辅助方法重置文件状态
         self._reset_file_state()
