@@ -70,7 +70,9 @@ class AdvancedTextEditor:
         self.config_file_path = ConfigFilePath  # 配置文件路径
 
         # 设置窗口大小和位置
-        quick_edit_utils.center_window(self.root, self.main_window_width, self.main_window_height)
+        quick_edit_utils.center_window(
+            self.root, self.main_window_width, self.main_window_height
+        )
 
         # 设置窗口图标
         quick_edit_utils.set_window_icon(self.root)
@@ -86,7 +88,7 @@ class AdvancedTextEditor:
         self.toolbar_visible = True  # 工具栏默认显示
         self.show_line_numbers = True  # 行号显示状态, 默认显示
         self.syntax_highlighting_enabled = True  # 语法高亮显示状态, 默认启用
-        self.encoding = "UTF-8"  # 默认编码
+        self.encoding = "utf-8"  # 默认编码
         self.line_ending = "LF"  # 默认换行符
         self.readonly_mode = False  # 只读模式, 默认关闭
         self.current_theme = "light"  # 默认主题
@@ -178,11 +180,13 @@ class AdvancedTextEditor:
                 self.language_var.set(lexer_name)
 
                 # 使用enhanced_syntax_highlighter模块中的函数创建语法高亮器
-                self.enhanced_highlighter = enhanced_syntax_highlighter.apply_syntax_highlighting(
-                    self.text_area,
-                    lexer_name=lexer_name,
-                    style_name=self.current_style,
-                    delay_update=200
+                self.enhanced_highlighter = (
+                    enhanced_syntax_highlighter.apply_syntax_highlighting(
+                        self.text_area,
+                        lexer_name=lexer_name,
+                        style_name=self.current_style,
+                        delay_update=200,
+                    )
                 )
 
                 # 延迟触发高亮更新, 避免在UI初始化期间进行大量计算
@@ -204,7 +208,9 @@ class AdvancedTextEditor:
         """移除语法高亮"""
         try:
             # 使用enhanced_syntax_highlighter模块中的函数移除语法高亮
-            enhanced_syntax_highlighter.remove_syntax_highlighting(self.enhanced_highlighter)
+            enhanced_syntax_highlighter.remove_syntax_highlighting(
+                self.enhanced_highlighter
+            )
             self.enhanced_highlighter = None
         except Exception:
             # 捕获所有异常但不中断程序
@@ -222,7 +228,7 @@ class AdvancedTextEditor:
         else:
             self.root.title("QuickEdit")
         # 重置编码和换行符为默认值
-        self.encoding = "UTF-8"
+        self.encoding = "utf-8"
         self.line_ending = "LF"
         # 重置修改状态
         self.text_area.edit_modified(False)
@@ -839,8 +845,6 @@ class AdvancedTextEditor:
         # 保存配置
         self.save_config()
 
-
-
     def toggle_auto_save(self):
         """切换自动保存功能的启用状态"""
         self.auto_save_enabled = self.auto_save_var.get()
@@ -849,7 +853,9 @@ class AdvancedTextEditor:
         if self.auto_save_enabled:
             self.start_auto_save_timer()
             # 使用辅助方法格式化显示
-            display_interval = quick_edit_utils.format_auto_save_interval(self.auto_save_interval)
+            display_interval = quick_edit_utils.format_auto_save_interval(
+                self.auto_save_interval
+            )
             messagebox.showinfo("自动保存", f"已启用自动保存，间隔为{display_interval}")
         else:
             self.stop_auto_save_timer()
@@ -1506,7 +1512,7 @@ class AdvancedTextEditor:
         # 右侧状态信息 (编码和换行符类型), 使用主题背景色和前景色
         self.right_status = tk.Label(
             self.statusbar_frame,
-            text="UTF-8 | LF",
+            text="utf-8 | LF",
             anchor=tk.E,
             cursor="hand2",
             bg=theme["statusbar_bg"],
@@ -1879,32 +1885,64 @@ class AdvancedTextEditor:
         current_text = self.right_status.cget("text")
 
         # 判断点击位置是在编码部分还是换行符部分
-        # 文本格式为 "文件名 - 编码 | 换行符" 或 "编码 | 换行符"
+        # 文本格式为 "文件名 | 编码 | 换行符" 或 "编码 | 换行符"
         if " | " in current_text:
-            # 找到分隔符的位置
-            separator_pos = current_text.find(" | ")
-
-            # 计算编码部分和换行符部分的大致宽度比例
-            # 这是一个简化的方法，实际的宽度取决于字体和字符
-            encoding_part = current_text[:separator_pos]
-            line_ending_part = current_text[separator_pos + 3 :]  # 跳过" | "
-
-            # 估算各部分的宽度比例（这是一个近似值）
-            total_length = len(current_text)
-            encoding_ratio = (
-                len(encoding_part) / total_length if total_length > 0 else 0.5
-            )
-
+            # 分割文本获取各个部分
+            parts = current_text.split(" | ")
+            
             # 获取标签的宽度
             width = self.right_status.winfo_width()
-
-            # 根据点击位置决定是编码部分还是换行符部分
-            if x < width * encoding_ratio:
-                # 点击的是编码部分
-                self.on_encoding_click(event)
+            total_length = len(current_text)
+            
+            if len(parts) == 3:
+                # 有文件名的情况: "文件名 | 编码 | 换行符"
+                filename_part = parts[0]
+                encoding_part = parts[1]
+                line_ending_part = parts[2]
+                
+                # 文件名部分的长度（包含" | "）
+                filename_end_pos = len(filename_part) + 3
+                # 编码部分的结束位置（包含" | "）
+                encoding_end_pos = filename_end_pos + len(encoding_part) + 3
+                
+                # 计算各部分的宽度位置
+                if total_length > 0:
+                    filename_end_x = (filename_end_pos / total_length) * width
+                    encoding_end_x = (encoding_end_pos / total_length) * width
+                else:
+                    filename_end_x = 0
+                    encoding_end_x = width / 2
+                
+                # 只在点击编码或换行符部分时显示菜单
+                if filename_end_x <= x:
+                    if x < encoding_end_x:
+                        # 点击的是编码部分
+                        self.on_encoding_click(event)
+                    else:
+                        # 点击的是换行符部分
+                        self.on_line_ending_right_click(event)
+                # 点击文件名部分时不执行任何操作
             else:
-                # 点击的是换行符部分
-                self.on_line_ending_right_click(event)
+                # 没有文件名的情况: "编码 | 换行符"
+                encoding_part = parts[0]
+                line_ending_part = parts[1]
+                
+                # 计算编码部分的结束位置
+                encoding_end_pos = len(encoding_part) + 3
+                
+                # 计算各部分的宽度位置
+                if total_length > 0:
+                    encoding_end_x = (encoding_end_pos / total_length) * width
+                else:
+                    encoding_end_x = width / 2
+                
+                # 正常处理编码和换行符部分的点击
+                if x < encoding_end_x:
+                    # 点击的是编码部分
+                    self.on_encoding_click(event)
+                else:
+                    # 点击的是换行符部分
+                    self.on_line_ending_right_click(event)
         else:
             # 如果没有找到分隔符，默认显示换行符菜单
             self.on_line_ending_right_click(event)
@@ -2070,55 +2108,6 @@ class AdvancedTextEditor:
         # 移除状态栏更新，因为_reset_file_state已经包含了这一步
         pass
 
-    def detect_file_encoding_and_line_ending(self, file_path=None, sample_data=None):
-        """检测文件编码和换行符类型
-
-        Args:
-            file_path: 文件路径（如果提供了sample_data，则忽略此参数）
-            sample_data: 已读取的文件样本数据（字节类型）
-
-        Returns:
-            tuple: (编码, 换行符类型)
-        """
-        if file_path is None and sample_data is None:
-            return "UTF-8", "LF"  # 默认值
-
-        if file_path is not None and not os.path.exists(file_path):
-            return "UTF-8", "LF"  # 默认值
-
-        try:
-            # 如果提供了样本数据，直接使用
-            if sample_data is not None:
-                raw_data = sample_data
-            else:
-                # 否则从文件中读取样本
-                with open(file_path, "rb") as file:
-                    # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
-                    raw_data = file.read(1024)
-
-            # 检测编码
-            if raw_data:
-                result = chardet.detect(raw_data)
-                encoding = result["encoding"] if result["encoding"] else "UTF-8"
-            else:
-                encoding = "UTF-8"
-
-            # 检测换行符类型
-            if b"\r\n" in raw_data:
-                line_ending = "CRLF"
-            elif b"\n" in raw_data:
-                line_ending = "LF"
-            elif b"\r" in raw_data:
-                line_ending = "CR"
-            else:
-                line_ending = "LF"  # 默认
-
-            return encoding, line_ending
-        except Exception as e:
-            return "UTF-8", "LF"  # 出错时返回默认值
-
-
-
     def cycle_line_ending(self):
         """在三种换行符格式之间循环切换"""
         # 定义切换顺序
@@ -2222,8 +2211,10 @@ class AdvancedTextEditor:
                     return
 
                 # 使用同一样本数据检测编码和换行符
-                encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                    sample_data=sample_data
+                encoding, line_ending = (
+                    quick_edit_utils.detect_file_encoding_and_line_ending(
+                        sample_data=sample_data
+                    )
                 )
 
                 # 读取备份内容
@@ -2342,8 +2333,10 @@ class AdvancedTextEditor:
                 return
 
             # 使用同一样本数据检测编码和换行符类型
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                sample_data=sample_data
+            encoding, line_ending = (
+                quick_edit_utils.detect_file_encoding_and_line_ending(
+                    sample_data=sample_data
+                )
             )
 
             # 分块读取文件内容以避免内存问题
@@ -2495,7 +2488,9 @@ class AdvancedTextEditor:
         """
         try:
             # 转换换行符格式
-            converted_content = quick_edit_utils.convert_line_endings(content, self.line_ending)
+            converted_content = quick_edit_utils.convert_line_endings(
+                content, self.line_ending
+            )
             with open(
                 file_path, "w", encoding=self.encoding.lower(), newline=""
             ) as file:
@@ -2845,8 +2840,8 @@ class AdvancedTextEditor:
 
         try:
             # 检测备份文件的编码和换行符
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                backup_file
+            encoding, line_ending = (
+                quick_edit_utils.detect_file_encoding_and_line_ending(backup_file)
             )
 
             # 读取备份文件内容
@@ -2854,7 +2849,7 @@ class AdvancedTextEditor:
                 content = f.read()
 
             # 使用现有的convert_line_endings方法处理换行符
-            content = self.convert_line_endings(content, self.line_ending)
+            content = quick_edit_utils.convert_line_endings(content, self.line_ending)
 
             # 清空当前文本并插入备份内容
             self.text_area.delete("1.0", tk.END)

@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import font
+import chardet
 
 # 图标文件路径
 ICON_FILE_PATH = "./icos/QuickEdit.ico"
@@ -146,3 +147,50 @@ def is_binary_file(file_path=None, sample_data=None, sample_size=1024):
         # 如果读取文件出错，保守地认为可能是二进制文件
         return True
 
+
+def detect_file_encoding_and_line_ending(file_path=None, sample_data=None):
+    """检测文件编码和换行符类型
+
+    Args:
+        file_path: 文件路径（如果提供了sample_data，则忽略此参数）
+        sample_data: 已读取的文件样本数据（字节类型）
+
+    Returns:
+        tuple: (编码, 换行符类型)
+    """
+    if file_path is None and sample_data is None:
+        return "UTF-8", "LF"  # 默认值
+
+    if file_path is not None and not os.path.exists(file_path):
+        return "UTF-8", "LF"  # 默认值
+
+    try:
+        # 如果提供了样本数据，直接使用
+        if sample_data is not None:
+            raw_data = sample_data
+        else:
+            # 否则从文件中读取样本
+            with open(file_path, "rb") as file:
+                # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
+                raw_data = file.read(1024)
+
+        # 检测编码
+        if raw_data:
+            result = chardet.detect(raw_data)
+            encoding = result["encoding"] if result["encoding"] else "UTF-8"
+        else:
+            encoding = "UTF-8"
+
+        # 检测换行符类型
+        if b"\r\n" in raw_data:
+            line_ending = "CRLF"
+        elif b"\n" in raw_data:
+            line_ending = "LF"
+        elif b"\r" in raw_data:
+            line_ending = "CR"
+        else:
+            line_ending = "LF"  # 默认
+
+        return encoding, line_ending
+    except Exception:
+        return "UTF-8", "LF"  # 出错时返回默认值
