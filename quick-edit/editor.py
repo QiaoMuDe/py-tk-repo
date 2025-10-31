@@ -222,7 +222,7 @@ class AdvancedTextEditor:
             pass
 
     def _reset_file_state(self):
-        """重置文件状态的辅助方法，用于close_file和new_file"""
+        """重置文件状态的辅助方法, 用于close_file和new_file"""
         # 清空文本区域
         self.text_area.delete(1.0, tk.END)
         # 重置文件状态
@@ -2327,6 +2327,9 @@ class AdvancedTextEditor:
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     saved = self.save_file()  # 只有保存成功才设置为True
+                    # 如果用户在保存对话框中点击了取消，save_file会返回None
+                    if saved is None:
+                        return False, False  # 取消整个操作
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
@@ -2342,6 +2345,9 @@ class AdvancedTextEditor:
                 result = messagebox.askyesnocancel(title, message)
                 if result is True:  # 是, 保存
                     saved = self.save_file()  # 只有保存成功才设置为True
+                    # 如果用户在保存对话框中点击了取消，save_file会返回None
+                    if saved is None:
+                        return False, False  # 取消整个操作
                 elif result is False:  # 否, 不保存
                     pass  # 不保存直接继续
                 else:  # 取消
@@ -2352,6 +2358,11 @@ class AdvancedTextEditor:
     # 文件操作方法
     def close_file(self):
         """关闭当前文件"""
+        # 检查当前是否有打开的文件
+        if not self.current_file:
+            messagebox.showinfo("提示", "当前没有打开的文件")
+            return
+
         # 检查是否处于只读模式
         if self.readonly_mode:
             messagebox.showinfo("提示", "当前处于只读模式，请先关闭只读模式再关闭文件")
@@ -2388,7 +2399,7 @@ class AdvancedTextEditor:
 
         # 使用辅助方法重置文件状态
         self._reset_file_state()
-        # 移除状态栏更新，因为_reset_file_state已经包含了这一步
+        # 移除状态栏更新, 因为_reset_file_state已经包含了这一步
         pass
 
     def open_file(self, file_path=None):
