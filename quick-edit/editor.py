@@ -612,17 +612,13 @@ class AdvancedTextEditor:
         theme_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
         theme_menu.add_command(label="字体", command=self.choose_font)
         theme_menu.add_command(label="字体大小", command=self.choose_font_size)
-        theme_menu.add_separator()
-        theme_menu.add_command(
-            label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T"
-        )
-        theme_menu.add_separator()
+        
         # 初始化字体样式变量
+        theme_menu.add_separator()
         self.bold_var = tk.BooleanVar(value=self.font_bold)
         self.italic_var = tk.BooleanVar(value=self.font_italic)
         self.underline_var = tk.BooleanVar(value=self.font_underline)
         self.overstrike_var = tk.BooleanVar(value=self.font_overstrike)
-
         theme_menu.add_checkbutton(
             label="粗体",
             command=self.toggle_bold,
@@ -643,6 +639,12 @@ class AdvancedTextEditor:
             command=self.toggle_overstrike,
             variable=self.overstrike_var,
         )
+        
+        # 添加主题切换选项
+        theme_menu.add_separator()
+        theme_menu.add_command(
+            label="切换主题", command=self.cycle_theme, accelerator="Ctrl+T"
+        )
         # 主题选择子菜单
         theme_submenu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
         themes = [
@@ -661,6 +663,7 @@ class AdvancedTextEditor:
         theme_menu.add_cascade(label="主题", menu=theme_submenu)
 
         # 光标样式设置子菜单
+        theme_menu.add_separator()
         cursor_menu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
         self.cursor_style_vars = {}  # 存储光标样式变量
 
