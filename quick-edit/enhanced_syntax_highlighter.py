@@ -26,6 +26,9 @@ import queue
 import re
 from typing import Optional, Dict, Set, Tuple, Any
 
+# 全局语言别名映射缓存
+_language_cache = None
+
 
 class EnhancedSyntaxHighlighter:
     """
@@ -686,6 +689,54 @@ def get_all_languages():
     # 缓存结果
     _language_cache = languages
     return languages
+
+# 获取语言别名映射字典
+def get_language_aliases():
+    """
+    获取语言别名映射字典
+    
+    返回:
+        dict: 语言名称到别名的映射字典
+    """
+    languages = get_all_languages()
+    return dict(languages)
+
+# 核心语法高亮函数
+def apply_syntax_highlighting(text_widget, lexer_name, style_name="default", delay_update=200):
+    """
+    为文本组件应用语法高亮
+    
+    参数:
+        text_widget: 文本组件对象
+        lexer_name: 词法分析器名称
+        style_name: 样式名称
+        delay_update: 更新延迟时间（毫秒）
+    
+    返回:
+        EnhancedSyntaxHighlighter: 语法高亮器实例
+    """
+    # 创建并返回语法高亮器实例
+    return EnhancedSyntaxHighlighter(
+        text_widget,
+        lexer_name=lexer_name,
+        style_name=style_name,
+        delay_update=delay_update
+    )
+
+# 移除语法高亮函数
+def remove_syntax_highlighting(highlighter):
+    """
+    移除语法高亮
+    
+    参数:
+        highlighter: EnhancedSyntaxHighlighter实例
+    """
+    if highlighter:
+        try:
+            highlighter.destroy()
+        except Exception:
+            # 忽略可能的错误
+            pass
 
 
 # 测试用的简单应用示例

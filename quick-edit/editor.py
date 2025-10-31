@@ -16,11 +16,9 @@ from find_dialog import FindDialog
 from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
 import quick_edit_utils
 
-# 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
-from enhanced_syntax_highlighter import (
-    EnhancedSyntaxHighlighter,
-    get_lexer_name_by_filename,
-)
+# 导入enhanced_syntax_highlighter模块
+import enhanced_syntax_highlighter
+from enhanced_syntax_highlighter import get_lexer_name_by_filename
 from language_dialog import LanguageDialog
 from tab_settings_dialog import TabSettingsDialog
 
@@ -172,10 +170,6 @@ class AdvancedTextEditor:
 
             # 如果启用了语法高亮，使用增强版语法高亮器
             if self.syntax_highlighting_enabled:
-                # 销毁现有的增强版语法高亮器
-                if self.enhanced_highlighter:
-                    self.enhanced_highlighter.destroy()
-
                 # 获取词法分析器名称
                 lexer_name = get_lexer_name_by_filename(self.current_file)
                 # 更新current_lexer变量，使语言选择对话框正确显示当前语言
@@ -183,16 +177,15 @@ class AdvancedTextEditor:
                 # 更新language_var以保持菜单和状态同步
                 self.language_var.set(lexer_name)
 
-                # 创建新的增强版语法高亮器
-                self.enhanced_highlighter = EnhancedSyntaxHighlighter(
-                    self.text_area,  # 文本框组件
-                    lexer_name=lexer_name,  # 词法分析器名称
-                    style_name=self.current_style,  # 样式名称
-                    delay_update=200,  # 增加延迟以减少启动时的负载
+                # 使用enhanced_syntax_highlighter模块中的函数创建语法高亮器
+                self.enhanced_highlighter = enhanced_syntax_highlighter.apply_syntax_highlighting(
+                    self.text_area,
+                    lexer_name=lexer_name,
+                    style_name=self.current_style,
+                    delay_update=200
                 )
 
                 # 延迟触发高亮更新, 避免在UI初始化期间进行大量计算
-                # 这样可以让菜单和工具栏先显示出来
                 self.text_area.after(300, self._delayed_highlight_update)
         except Exception as e:
             # 捕获所有异常但不中断程序
@@ -210,11 +203,9 @@ class AdvancedTextEditor:
     def remove_syntax_highlighting(self):
         """移除语法高亮"""
         try:
-            # 如果使用了增强版语法高亮器
-            if self.enhanced_highlighter:
-                # 销毁增强版语法高亮器
-                self.enhanced_highlighter.destroy()
-                self.enhanced_highlighter = None
+            # 使用enhanced_syntax_highlighter模块中的函数移除语法高亮
+            enhanced_syntax_highlighter.remove_syntax_highlighting(self.enhanced_highlighter)
+            self.enhanced_highlighter = None
         except Exception:
             # 捕获所有异常但不中断程序
             pass
@@ -490,12 +481,8 @@ class AdvancedTextEditor:
                 if selected_language is not None
                 else self.language_var.get()
             )
-            # 动态导入get_all_languages函数
-            from enhanced_syntax_highlighter import get_all_languages
-
-            # 获取语言别名映射
-            languages = get_all_languages()
-            language_aliases = dict(languages)
+            # 使用enhanced_syntax_highlighter模块中的函数获取语言别名映射
+            language_aliases = enhanced_syntax_highlighter.get_language_aliases()
 
             # 更新当前词法分析器
             if target_language in language_aliases:
@@ -994,10 +981,10 @@ class AdvancedTextEditor:
             style.configure("Button.TButton", font=("Microsoft YaHei UI", 12, "bold"))
 
             # 居中显示对话框
-            center_window(dialog, 750, 270)
+            quick_edit_utils.center_window(dialog, 750, 270)
 
             # 设置窗口图标
-            set_window_icon(dialog)
+            quick_edit_utils.set_window_icon(dialog)
 
             # 创建主框架
             main_frame = ttk.Frame(dialog, padding="20")
@@ -2273,8 +2260,8 @@ class AdvancedTextEditor:
         self.progress_window.title("正在打开文件...")
         self.progress_window.resizable(False, False)
         self.progress_window.transient(self.root)
-        center_window(self.progress_window, 300, 100)
-        set_window_icon(self.progress_window)
+        quick_edit_utils.center_window(self.progress_window, 300, 100)
+        quick_edit_utils.set_window_icon(self.progress_window)
 
         # 设置为模态窗口，但允许主窗口响应
         self.progress_window.grab_set()
@@ -3037,10 +3024,10 @@ class AdvancedTextEditor:
         font_dialog.grab_set()  # 模态对话框
 
         # 设置窗口图标
-        set_window_icon(font_dialog)
+        quick_edit_utils.set_window_icon(font_dialog)
 
         # 居中显示对话框
-        center_window(font_dialog, 500, 600)
+        quick_edit_utils.center_window(font_dialog, 500, 600)
 
         # 当前字体标签
         current_label = tk.Label(

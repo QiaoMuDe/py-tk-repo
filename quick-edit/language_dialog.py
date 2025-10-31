@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from quick_edit_utils import set_window_icon
+from quick_edit_utils import set_window_icon, center_window
 
 
 class LanguageDialog:
@@ -29,7 +29,6 @@ class LanguageDialog:
         # 创建对话框
         self.dialog = tk.Toplevel(parent)
         self.dialog.title("选择语言")
-        self.dialog.geometry("500x450")
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
@@ -41,10 +40,7 @@ class LanguageDialog:
         self.create_ui()
 
         # 居中显示对话框
-        self.dialog.update_idletasks()
-        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
-        self.dialog.geometry(f"+{x}+{y}")
+        center_window(self.dialog, 500, 450)
 
     def create_ui(self):
         """创建对话框UI"""
