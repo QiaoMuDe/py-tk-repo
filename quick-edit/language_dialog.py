@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from utils import set_window_icon
+from quick_edit_utils import set_window_icon
 
 
 class LanguageDialog:

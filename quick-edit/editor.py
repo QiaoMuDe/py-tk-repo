@@ -14,7 +14,7 @@ import queue
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
-import utils
+import quick_edit_utils
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
 from enhanced_syntax_highlighter import (
@@ -72,10 +72,10 @@ class AdvancedTextEditor:
         self.config_file_path = ConfigFilePath  # 配置文件路径
 
         # 设置窗口大小和位置
-        utils.center_window(self.root, self.main_window_width, self.main_window_height)
+        quick_edit_utils.center_window(self.root, self.main_window_width, self.main_window_height)
 
         # 设置窗口图标
-        utils.set_window_icon(self.root)
+        quick_edit_utils.set_window_icon(self.root)
 
         # 初始化变量
         self.current_file = None  # 当前打开的文件路径
@@ -862,7 +862,7 @@ class AdvancedTextEditor:
         if self.auto_save_enabled:
             self.start_auto_save_timer()
             # 使用辅助方法格式化显示
-            display_interval = utils.format_auto_save_interval(self.auto_save_interval)
+            display_interval = quick_edit_utils.format_auto_save_interval(self.auto_save_interval)
             messagebox.showinfo("自动保存", f"已启用自动保存，间隔为{display_interval}")
         else:
             self.stop_auto_save_timer()
@@ -1166,7 +1166,7 @@ class AdvancedTextEditor:
                     self.start_auto_save_timer()
                 dialog.destroy()
                 # 使用辅助方法格式化显示
-                display_interval = utils.format_auto_save_interval(interval)
+                display_interval = quick_edit_utils.format_auto_save_interval(interval)
                 messagebox.showinfo(
                     "设置成功", f"自动保存间隔已设置为{display_interval}"
                 )
@@ -2227,7 +2227,7 @@ class AdvancedTextEditor:
                     sample_data = file.read(1024)
 
                 # 检测是否为二进制文件
-                if is_binary_file(sample_data=sample_data):
+                if quick_edit_utils.is_binary_file(sample_data=sample_data):
                     messagebox.showerror(
                         "恢复失败", "备份文件似乎是二进制文件，无法恢复。"
                     )
@@ -2314,8 +2314,8 @@ class AdvancedTextEditor:
             # 检查文件大小
             file_size = os.path.getsize(file_path)
             if file_size > self.max_file_size:
-                formatted_size = utils.format_file_size(file_size)
-                max_size = utils.format_file_size(self.max_file_size)
+                formatted_size = quick_edit_utils.format_file_size(file_size)
+                max_size = quick_edit_utils.format_file_size(self.max_file_size)
 
                 # 确保在主线程中显示错误消息
                 def show_error():
@@ -2339,7 +2339,7 @@ class AdvancedTextEditor:
                 sample_data = file.read(1024)
 
             # 首先检测是否为二进制文件
-            if utils.is_binary_file(sample_data=sample_data):
+            if quick_edit_utils.is_binary_file(sample_data=sample_data):
 
                 def show_binary_error():
                     messagebox.showinfo(
@@ -2507,7 +2507,7 @@ class AdvancedTextEditor:
         """
         try:
             # 转换换行符格式
-            converted_content = utils.convert_line_endings(content, self.line_ending)
+            converted_content = quick_edit_utils.convert_line_endings(content, self.line_ending)
             with open(
                 file_path, "w", encoding=self.encoding.lower(), newline=""
             ) as file:
@@ -2809,7 +2809,7 @@ class AdvancedTextEditor:
                 )
 
                 # 使用辅助方法格式化显示
-                display_interval = utils.format_auto_save_interval(
+                display_interval = quick_edit_utils.format_auto_save_interval(
                     self.auto_save_interval
                 )
 
@@ -3152,10 +3152,10 @@ The quick brown fox jumps over the lazy dog.
         size_dialog.grab_set()  # 模态对话框
 
         # 居中显示对话框
-        utils.center_window(size_dialog, 500, 300)  # 减小默认窗口高度
+        quick_edit_utils.center_window(size_dialog, 500, 300)  # 减小默认窗口高度
 
         # 设置窗口图标
-        utils.set_window_icon(size_dialog)
+        quick_edit_utils.set_window_icon(size_dialog)
 
         # 创建顶部控制区域框架
         control_frame = tk.Frame(size_dialog)

@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import re
 import queue
-from utils import set_window_icon, center_window
+from quick_edit_utils import set_window_icon, center_window
 
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None, selected_text=""):
