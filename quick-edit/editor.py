@@ -344,6 +344,10 @@ class AdvancedTextEditor:
 
             # 绑定鼠标事件用于点击全选
             self.line_numbers.bind("<Button-1>", self.on_line_number_click)
+            # 绑定鼠标进入事件用于高亮行号
+            self.line_numbers.bind("<Motion>", self.on_line_number_hover)
+            # 绑定鼠标退出行号区域事件用于取消高亮
+            self.line_numbers.bind("<Leave>", self.on_line_number_leave)
 
         # 创建文本区域和滚动条的容器
         self.text_container = tk.Frame(self.text_frame)
@@ -401,8 +405,6 @@ class AdvancedTextEditor:
             "<<Modified>>", lambda e: self.schedule_line_number_update(50)
         )
 
-
-
         # 绑定鼠标右键事件，用于显示上下文菜单
         self.text_area.bind("<Button-3>", self.show_context_menu)
 
@@ -411,8 +413,6 @@ class AdvancedTextEditor:
 
         # 设置默认字体
         self.update_font()
-
-
 
         # 初始化文件相关变量
         self.total_lines = 0
@@ -1293,7 +1293,7 @@ class AdvancedTextEditor:
         if not getattr(self, "show_line_numbers", True):
             return
 
-        # 清除之前的行号
+        # 清除之前的行号和高亮矩形
         self.line_numbers.delete("all")
 
         # 获取文本区域的行数
@@ -1343,6 +1343,16 @@ class AdvancedTextEditor:
                 if dlineinfo:
                     y_pos = dlineinfo[1]  # y坐标
                     line_height = dlineinfo[3]  # 行高
+                    # 创建行号背景矩形（默认透明，鼠标悬浮时会使用悬浮颜色）
+                    self.line_numbers.create_rectangle(
+                        0,
+                        y_pos,
+                        line_number_width,
+                        y_pos + line_height,
+                        fill="",
+                        outline="",
+                        tags=("line_bg", f"line_{i}"),
+                    )
                     # 在行号区域绘制行号
                     self.line_numbers.create_text(
                         line_number_width - 5,
@@ -1351,6 +1361,7 @@ class AdvancedTextEditor:
                         font=current_font,
                         fill="gray",
                         anchor="e",  # 右对齐
+                        tags=("line_number", f"line_{i}"),
                     )
                 else:
                     # 如果dlineinfo不可用, 使用替代方法计算位置
@@ -1359,6 +1370,55 @@ class AdvancedTextEditor:
         except Exception as e:
             # 忽略错误, 保持程序稳定
             print(f"Error in update_line_numbers: {e}")
+            pass
+
+    def on_line_number_hover(self, event):
+        """处理鼠标悬浮在行号区域的事件，高亮对应的整个文本行"""
+        try:
+            # 获取鼠标在canvas中的y坐标
+            y = event.y
+
+            # 获取文本区域中对应y坐标的行号
+            text_index = self.text_area.index(f"@0,{y}")
+            hovered_line = text_index.split(".")[0]
+
+            # 获取当前主题的行号悬浮背景色
+            theme = self.theme_manager.get_current_theme()
+            hover_bg_color = theme.get("line_numbers_hover_bg", "#e0e0e0")
+
+            # 先清除所有之前的高亮
+            self.on_line_number_leave(event)
+
+            # 高亮当前悬停的行号背景
+            for item in self.line_numbers.find_withtag(f"line_{hovered_line}"):
+                if item in self.line_numbers.find_withtag("line_bg"):
+                    self.line_numbers.itemconfig(item, fill=hover_bg_color)
+
+            # 高亮整个文本行
+            start_pos = f"{hovered_line}.0"
+            end_pos = f"{hovered_line}.end"
+
+            # 使用tag_add添加高亮标记
+            self.text_area.tag_add("line_hover", start_pos, end_pos)
+            # 配置高亮标签的背景色
+            self.text_area.tag_config("line_hover", background=hover_bg_color)
+
+        except Exception:
+            # 忽略错误，保持程序稳定
+            pass
+
+    def on_line_number_leave(self, event):
+        """处理鼠标退出行号区域的事件，清除所有高亮"""
+        try:
+            # 清除文本行高亮
+            if "line_hover" in self.text_area.tag_names():
+                self.text_area.tag_remove("line_hover", "1.0", "end")
+
+            # 清除所有行号背景色
+            for item in self.line_numbers.find_withtag("line_bg"):
+                self.line_numbers.itemconfig(item, fill="")
+        except Exception:
+            # 忽略错误，保持程序稳定
             pass
 
     def create_toolbar(self):
@@ -1775,8 +1835,6 @@ class AdvancedTextEditor:
 
         # 更新行号显示
         self.update_line_numbers()
-
-
 
     def on_line_number_click(self, event):
         """处理行号区域点击事件 - 全选点击的行"""
@@ -2396,8 +2454,6 @@ class AdvancedTextEditor:
 
             # 更新状态栏
             self.update_statusbar()
-
-
 
             # 延迟应用语法高亮以减少卡顿
             self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)

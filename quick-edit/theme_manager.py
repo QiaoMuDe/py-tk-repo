@@ -45,6 +45,7 @@ class ThemeManager:
             "text_select_fg": "black",  # 选择区域前景色
             "line_numbers_bg": "#f0f0f0",  # 行号区域背景色
             "line_numbers_fg": "gray",  # 行号区域前景色
+            "line_numbers_hover_bg": "#e0e0e0",  # 行号区域悬浮背景色
             "found_bg": "yellow",  # 搜索结果背景色
             "found_fg": "black",  # 搜索结果前景色
             "current_match_bg": "#ff9900",  # 当前匹配项背景色
@@ -70,6 +71,7 @@ class ThemeManager:
             "text_select_fg": "#ffffff",
             "line_numbers_bg": "#3a3a3a",
             "line_numbers_fg": "#aaaaaa",
+            "line_numbers_hover_bg": "#4a4a4a",  # 行号区域悬浮背景色
             "found_bg": "#ffff00",
             "found_fg": "#000000",
             "current_match_bg": "#ffa500",
@@ -95,6 +97,7 @@ class ThemeManager:
             "text_select_fg": "#000000",
             "line_numbers_bg": "#e1ebf5",
             "line_numbers_fg": "#191970",
+            "line_numbers_hover_bg": "#d1e0f5",  # 行号区域悬浮背景色
             "found_bg": "#ffff99",
             "found_fg": "#000080",
             "current_match_bg": "#ffcc66",
@@ -120,6 +123,7 @@ class ThemeManager:
             "text_select_fg": "#5a4a3f",
             "line_numbers_bg": "#e6d5b8",
             "line_numbers_fg": "#8c7a63",
+            "line_numbers_hover_bg": "#d6c5a8",  # 行号区域悬浮背景色
             "found_bg": "#ffd700",
             "found_fg": "#5a4a3f",
             "current_match_bg": "#ff8c00",
@@ -145,6 +149,7 @@ class ThemeManager:
             "text_select_fg": "#000000",
             "line_numbers_bg": "#ccffcc",
             "line_numbers_fg": "#006600",
+            "line_numbers_hover_bg": "#bceecc",  # 行号区域悬浮背景色
             "found_bg": "#ffff99",
             "found_fg": "#000000",
             "current_match_bg": "#ffcc66",
@@ -170,6 +175,7 @@ class ThemeManager:
             "text_select_fg": "#000000",
             "line_numbers_bg": "#e0d6f0",
             "line_numbers_fg": "#6600cc",
+            "line_numbers_hover_bg": "#d0c6e0",  # 行号区域悬浮背景色
             "found_bg": "#ffcc99",
             "found_fg": "#000000",
             "current_match_bg": "#ff9966",
@@ -195,6 +201,7 @@ class ThemeManager:
             "text_select_fg": "#ffffff",
             "line_numbers_bg": "#f5d1b0",
             "line_numbers_fg": "#e67e22",
+            "line_numbers_hover_bg": "#e5c1a0",  # 行号区域悬浮背景色
             "found_bg": "#f1c40f",
             "found_fg": "#d35400",
             "current_match_bg": "#e67e22",
@@ -245,8 +252,15 @@ class ThemeManager:
         # 应用行号区域样式
         if hasattr(self.editor, "line_numbers"):
             self.editor.line_numbers.config(bg=theme["line_numbers_bg"])
-            # 更新行号颜色
+            # 更新行号颜色和样式
             self.editor.update_line_numbers()
+            # 应用行号前景色
+            if hasattr(self.editor.text_area, "_cached_font"):
+                # 遍历所有行号文本项并设置正确的前景色
+                for item in self.editor.line_numbers.find_withtag("line_number"):
+                    self.editor.line_numbers.itemconfig(
+                        item, fill=theme["line_numbers_fg"]
+                    )
 
         # 应用查找高亮样式
         self.editor.text_area.tag_configure(
