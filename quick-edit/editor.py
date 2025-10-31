@@ -2493,6 +2493,9 @@ class AdvancedTextEditor:
                 self.apply_syntax_highlighting()
             else:
                 self.remove_syntax_highlighting()
+
+            # 在语法高亮应用后重新高亮光标行
+            self.highlight_cursor_line()
         except Exception as e:
             # 忽略语法高亮错误, 不影响文件打开
             pass
