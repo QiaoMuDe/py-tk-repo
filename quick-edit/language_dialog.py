@@ -234,7 +234,9 @@ class LanguageDialog:
         Args:
             event: 事件对象
         """
-        selection = self.language_listbox.curselection()
+        selection = self.language_listbox.curselection() # 获取当前选中的索引
+        
+        # 如果用户选择了语言
         if selection:
             self.selected_language = self.language_listbox.get(selection[0])
             self.dialog.destroy()
