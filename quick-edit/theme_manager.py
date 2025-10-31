@@ -254,7 +254,7 @@ class ThemeManager:
         
         # 应用悬停行背景色样式
         self.editor.text_area.tag_configure(
-            "hover_line", background=theme["hover_line_bg"]
+            "hover_line", background=theme.get("hover_line_bg", theme["cursor_line_bg"])
         )
 
         # 应用菜单样式
@@ -344,3 +344,5 @@ class ThemeManager:
             # 如果编辑器有重置居中状态栏的方法，调用它以确保状态一致
             if hasattr(self.editor, "reset_center_status"):
                 self.editor.reset_center_status()
+
+                

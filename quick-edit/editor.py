@@ -342,26 +342,27 @@ class AdvancedTextEditor:
         if self.show_line_numbers:
             self.line_numbers.pack(side=tk.LEFT, fill=tk.Y)
 
-            # 绑定鼠标事件用于悬停高亮
+            # 绑定鼠标事件用于悬停高亮和点击全选
             self.line_numbers.bind("<Motion>", self.on_line_number_hover)
             self.line_numbers.bind("<Leave>", self.on_line_number_leave)
+            self.line_numbers.bind("<Button-1>", self.on_line_number_click)
 
         # 创建文本区域和滚动条的容器
-        text_container = tk.Frame(self.text_frame)
-        text_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        self.text_container = tk.Frame(self.text_frame)
+        self.text_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # 创建垂直滚动条
-        self.scrollbar = tk.Scrollbar(text_container, orient=tk.VERTICAL)
+        self.scrollbar = tk.Scrollbar(self.text_container, orient=tk.VERTICAL)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # 创建水平滚动条
-        self.hscrollbar = tk.Scrollbar(text_container, orient=tk.HORIZONTAL)
+        self.hscrollbar = tk.Scrollbar(self.text_container, orient=tk.HORIZONTAL)
         # 初始时隐藏水平滚动条，因为默认启用了文本自动换行
         # self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)
 
         # 创建文本区域
         self.text_area = tk.Text(
-            text_container,
+            self.text_container,
             wrap=tk.WORD,  # 设置为按单词换行
             undo=True,
             yscrollcommand=self.on_text_scroll_with_line_numbers,
@@ -812,19 +813,23 @@ class AdvancedTextEditor:
 
     def toggle_line_numbers(self):
         """切换行号显示"""
-        if self.show_line_numbers_var.get():
-            # 开启行号时, 下次打开文件时将显示行号
-            self.show_line_numbers = True
-            # 提示用户下次打开文件时将显示行号
-            self.left_status.config(text="行号显示已开启, 下次打开文件时将显示行号")
+        # 更新变量状态
+        self.show_line_numbers = self.show_line_numbers_var.get()
+        
+        if self.show_line_numbers:
+            # 显示行号并设置位置
+            self.line_numbers.pack(side=tk.LEFT, fill=tk.Y, before=self.text_container)
+            # 设置文本容器位置
+            self.text_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+            # 立即更新行号
+            self.update_line_numbers()
         else:
-            # 隐藏行号时, 取消打包
+            # 隐藏行号
             self.line_numbers.pack_forget()
-            self.show_line_numbers = False
-            # 提示用户下次打开文件时将隐藏行号
-            self.left_status.config(text="行号显示已关闭, 下次打开文件时将隐藏行号")
-
-        # 保存行号显示状态到配置文件
+            # 让文本容器占据整个空间
+            self.text_container.pack(fill=tk.BOTH, expand=True)
+        
+        # 保存配置
         self.save_config()
 
     def toggle_syntax_highlighting(self):
@@ -1812,6 +1817,31 @@ class AdvancedTextEditor:
         self.text_area.tag_remove("hover_line", "1.0", tk.END)
         # 移除行号区域的高亮矩形
         self.line_numbers.delete("hover_highlight")
+        
+    def on_line_number_click(self, event):
+        """处理行号区域点击事件 - 全选点击的行"""
+        try:
+            # 获取鼠标在canvas中的y坐标
+            y = event.y
+
+            # 获取文本区域中对应y坐标的行号
+            text_index = self.text_area.index(f"@0,{y}")
+            clicked_line = text_index.split(".")[0]
+            
+            # 全选该行内容
+            start_pos = f"{clicked_line}.0"
+            end_pos = f"{clicked_line}.end"
+            
+            # 无论行是否有内容，都执行全选操作
+            self.text_area.tag_remove(tk.SEL, "1.0", tk.END)
+            self.text_area.tag_add(tk.SEL, start_pos, end_pos)
+            # 确保选中内容可见
+            self.text_area.see(start_pos)
+            # 确保文本区域获得焦点
+            self.text_area.focus_set()
+        except Exception as e:
+            # 忽略错误, 保持程序稳定
+            pass
 
     def highlight_hovered_line(self, line_number):
         """高亮鼠标悬停的行"""
@@ -1822,9 +1852,12 @@ class AdvancedTextEditor:
             # 移除行号区域之前的高亮矩形
             self.line_numbers.delete("hover_highlight")
 
-            # 获取当前主题的悬停行背景色
+            # 获取当前主题的光标行背景色（用于悬停行高亮）
             theme = self.theme_manager.get_current_theme()
-            hover_bg = theme.get("hover_line_bg", "#e0e0e0")
+            hover_bg = theme.get("cursor_line_bg", "#e0e0e0")
+            
+            # 设置hover_line标签的背景色样式
+            self.text_area.tag_configure("hover_line", background=hover_bg)
 
             # 获取行号区域的宽度
             line_number_width = self.line_numbers.winfo_width()
@@ -1848,7 +1881,7 @@ class AdvancedTextEditor:
 
             # 为文本区域整行添加悬停高亮标记
             start_pos = f"{line_number}.0"
-            end_pos = f"{line_number}.end"
+            end_pos = f"{int(line_number)+1}.0"  # 使用与光标行相同的范围，确保覆盖整行
             self.text_area.tag_add("hover_line", start_pos, end_pos)
         except Exception as e:
             # 忽略错误, 保持程序稳定
