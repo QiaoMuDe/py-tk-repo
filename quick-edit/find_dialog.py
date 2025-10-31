@@ -4,6 +4,7 @@ import re
 import queue
 from quick_edit_utils import set_window_icon, center_window
 
+
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None, selected_text=""):
         self.parent = parent
@@ -28,10 +29,10 @@ class FindDialog:
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
-        
+
         # 设置窗口图标
         set_window_icon(self.dialog)
-        
+
         # 绑定窗口关闭事件，确保关闭时清除所有查找标记
         self.dialog.protocol("WM_DELETE_WINDOW", self.on_dialog_close)
 
@@ -64,9 +65,14 @@ class FindDialog:
 
         # 使用最小的多行文本输入框代替单行输入框，提升性能
         # 创建查找输入框
-        self.search_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
-            
-        
+        self.search_entry = tk.Text(
+            main_frame,
+            height=1,
+            width=50,
+            wrap=tk.NONE,
+            font=("Microsoft YaHei UI", 15),
+        )
+
         self.search_entry.grid(
             row=1, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)
         )
@@ -80,9 +86,14 @@ class FindDialog:
             row=2, column=0, columnspan=3, sticky=tk.W, pady=(0, 5)
         )
         # 使用最小的多行文本输入框代替单行输入框，提升性能
-        self.replace_entry = tk.Text(main_frame, height=1, width=50, wrap=tk.NONE, font=('Microsoft YaHei UI', 15))
-            
-        
+        self.replace_entry = tk.Text(
+            main_frame,
+            height=1,
+            width=50,
+            wrap=tk.NONE,
+            font=("Microsoft YaHei UI", 15),
+        )
+
         self.replace_entry.grid(
             row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=(0, 15)
         )
@@ -170,12 +181,13 @@ class FindDialog:
 
     def bind_events(self):
         """绑定事件"""
+
         # 多行文本框需要不同的绑定方式
         # 防止在多行文本框中按Enter键插入换行符并触发查找
         def handle_enter(event):
             self.find_next()
             return "break"
-        
+
         self.search_entry.bind("<Return>", handle_enter)
         self.search_entry.bind("<KP_Enter>", handle_enter)
 
@@ -292,7 +304,9 @@ class FindDialog:
         """替换当前匹配项"""
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
-        replace_term = self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
+        replace_term = (
+            self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
+        )
 
         if not search_term:
             messagebox.showwarning("替换", "请输入要查找的内容")
@@ -331,7 +345,9 @@ class FindDialog:
         """替换所有匹配项"""
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
-        replace_term = self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
+        replace_term = (
+            self.replace_entry.get("1.0", tk.END).strip() if self.replace_entry else ""
+        )
 
         if not search_term:
             messagebox.showwarning("替换", "请输入要查找的内容")
@@ -488,9 +504,7 @@ class FindDialog:
             return []
 
             # 使用固定颜色配置替代主题管理器
-        self.text_widget.tag_configure(
-            "found", background="orange", foreground="black"
-        )
+        self.text_widget.tag_configure("found", background="orange", foreground="black")
         self.text_widget.tag_configure(
             "current_match", background="orange", foreground="black"
         )
@@ -518,7 +532,7 @@ class FindDialog:
         # 高亮所有匹配项
         for start_idx, end_idx in self.matches:
             self.text_widget.tag_add("found", start_idx, end_idx)
-        
+
         # 将查找标记提升到最顶层
         self.text_widget.tag_raise("found")
 
@@ -539,7 +553,7 @@ class FindDialog:
 
         # 高亮当前匹配项
         self.text_widget.tag_add("current_match", start_idx, end_idx)
-        
+
         # 将当前匹配标记提升到最顶层
         self.text_widget.tag_raise("current_match")
 
@@ -549,12 +563,12 @@ class FindDialog:
         # 设置光标位置
         self.text_widget.mark_set(tk.INSERT, start_idx)
         self.text_widget.focus_set()
-        
+
     def on_dialog_close(self):
         """处理对话框关闭事件，清除所有查找标记"""
         # 清除所有查找相关的标记
         self.text_widget.tag_remove("found", "1.0", tk.END)
         self.text_widget.tag_remove("current_match", "1.0", tk.END)
-        
+
         # 销毁对话框
         self.dialog.destroy()

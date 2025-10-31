@@ -14,6 +14,7 @@ import queue
 # 导入我们创建的模块
 from find_dialog import FindDialog
 from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
+from insert_helper import InsertHelper
 import quick_edit_utils
 
 # 导入enhanced_syntax_highlighter模块
@@ -131,6 +132,9 @@ class AdvancedTextEditor:
 
         # 初始化主题管理器
         self.theme_manager = ThemeManager(self)
+
+        # 初始化插入助手
+        self.insert_helper = InsertHelper(self)
 
         # 创建主框架
         self.create_widgets()
@@ -1889,22 +1893,22 @@ class AdvancedTextEditor:
         if " | " in current_text:
             # 分割文本获取各个部分
             parts = current_text.split(" | ")
-            
+
             # 获取标签的宽度
             width = self.right_status.winfo_width()
             total_length = len(current_text)
-            
+
             if len(parts) == 3:
                 # 有文件名的情况: "文件名 | 编码 | 换行符"
                 filename_part = parts[0]
                 encoding_part = parts[1]
                 line_ending_part = parts[2]
-                
+
                 # 文件名部分的长度（包含" | "）
                 filename_end_pos = len(filename_part) + 3
                 # 编码部分的结束位置（包含" | "）
                 encoding_end_pos = filename_end_pos + len(encoding_part) + 3
-                
+
                 # 计算各部分的宽度位置
                 if total_length > 0:
                     filename_end_x = (filename_end_pos / total_length) * width
@@ -1912,7 +1916,7 @@ class AdvancedTextEditor:
                 else:
                     filename_end_x = 0
                     encoding_end_x = width / 2
-                
+
                 # 只在点击编码或换行符部分时显示菜单
                 if filename_end_x <= x:
                     if x < encoding_end_x:
@@ -1926,16 +1930,16 @@ class AdvancedTextEditor:
                 # 没有文件名的情况: "编码 | 换行符"
                 encoding_part = parts[0]
                 line_ending_part = parts[1]
-                
+
                 # 计算编码部分的结束位置
                 encoding_end_pos = len(encoding_part) + 3
-                
+
                 # 计算各部分的宽度位置
                 if total_length > 0:
                     encoding_end_x = (encoding_end_pos / total_length) * width
                 else:
                     encoding_end_x = width / 2
-                
+
                 # 正常处理编码和换行符部分的点击
                 if x < encoding_end_x:
                     # 点击的是编码部分
@@ -3687,39 +3691,8 @@ The quick brown fox jumps over the lazy dog.
         return copy_to_clipboard_menu
 
     def create_insert_menu(self, parent_menu):
-        """创建插入子菜单"""
-        insert_menu = tk.Menu(parent_menu, tearoff=0, font=("微软雅黑", 9))
-        insert_menu.add_command(label="脚本 Shebang 行", command=self.insert_shebang)
-        insert_menu.add_command(
-            label="Python字符集声明", command=self.insert_python_encoding
-        )
-        insert_menu.add_command(label="pkgm", command=self.insert_go_package_main)
-        insert_menu.add_separator()
-        insert_menu.add_command(label="文件名", command=self.insert_filename)
-        insert_menu.add_command(label="目录", command=self.insert_directory)
-        insert_menu.add_command(label="完整文件路径", command=self.insert_filepath)
-        insert_menu.add_separator()
-        # 时间格式子菜单
-        time_menu = tk.Menu(insert_menu, tearoff=0, font=("微软雅黑", 9))
-        time_menu.add_command(label="YYYY-MM-DD", command=self.insert_date_yyyy_mm_dd)
-        time_menu.add_command(
-            label="YYYY/MM/DD", command=self.insert_date_yyyy_slash_mm_slash_dd
-        )
-        time_menu.add_command(
-            label="DD/MM/YYYY", command=self.insert_date_dd_slash_mm_slash_yyyy
-        )
-        time_menu.add_command(
-            label="MM/DD/YYYY", command=self.insert_date_mm_slash_dd_slash_yyyy
-        )
-        time_menu.add_command(
-            label="YYYY-MM-DD HH:MM:SS", command=self.insert_datetime_full
-        )
-        time_menu.add_command(
-            label="YYYYMMDDHHMMSS", command=self.insert_timestamp_yyyymmddhhmmss
-        )
-        time_menu.add_command(label="HH:MM:SS", command=self.insert_time_hhmmss)
-        insert_menu.add_cascade(label="时间格式", menu=time_menu)
-        return insert_menu
+        """创建插入子菜单（使用插入助手）"""
+        return self.insert_helper.create_insert_menu(parent_menu)
 
     def show_context_menu(self, event):
         """显示上下文菜单（鼠标右键菜单）"""
@@ -3816,129 +3789,3 @@ The quick brown fox jumps over the lazy dog.
                 messagebox.showerror("错误", f"复制目录时出错: {str(e)}")
         else:
             messagebox.showinfo("提示", "当前没有打开的文件")
-
-    def insert_shebang(self):
-        """在光标位置插入 Shebang 行"""
-        try:
-            self.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
-            # 保持光标在插入文本之后
-            current_cursor_pos = self.text_area.index(tk.INSERT)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入 Shebang 行时出错: {str(e)}")
-
-    def insert_python_encoding(self):
-        """在光标位置插入Python字符集声明"""
-        try:
-            self.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-")
-        except Exception as e:
-            messagebox.showerror("错误", f"插入Python字符集声明时出错: {str(e)}")
-
-    def insert_go_package_main(self):
-        """在光标位置插入Go语言基本结构"""
-        try:
-            go_structure = 'package main\n\nimport (\n\t"fmt"\n)\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}'
-            self.text_area.insert(tk.INSERT, go_structure)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入Go语言基本结构时出错: {str(e)}")
-
-    def insert_filename(self):
-        """在光标位置插入文件名"""
-        if self.current_file:
-            try:
-                filename = os.path.basename(self.current_file)
-                self.text_area.insert(tk.INSERT, filename)
-            except Exception as e:
-                messagebox.showerror("错误", f"插入文件名时出错: {str(e)}")
-        else:
-            messagebox.showinfo("提示", "当前没有打开的文件")
-
-    def insert_filepath(self):
-        """在光标位置插入完整文件路径"""
-        if self.current_file:
-            try:
-                self.text_area.insert(tk.INSERT, self.current_file)
-            except Exception as e:
-                messagebox.showerror("错误", f"插入完整文件路径时出错: {str(e)}")
-        else:
-            messagebox.showinfo("提示", "当前没有打开的文件")
-
-    def insert_directory(self):
-        """在光标位置插入目录"""
-        if self.current_file:
-            try:
-                directory = os.path.dirname(self.current_file)
-                self.text_area.insert(tk.INSERT, directory)
-            except Exception as e:
-                messagebox.showerror("错误", f"插入目录时出错: {str(e)}")
-        else:
-            messagebox.showinfo("提示", "当前没有打开的文件")
-
-    def insert_date_yyyy_mm_dd(self):
-        """在光标位置插入日期 (YYYY-MM-DD 格式)"""
-        try:
-            from datetime import datetime
-
-            date_str = datetime.now().strftime("%Y-%m-%d")
-            self.text_area.insert(tk.INSERT, date_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入日期时出错: {str(e)}")
-
-    def insert_date_yyyy_slash_mm_slash_dd(self):
-        """在光标位置插入日期 (YYYY/MM/DD 格式)"""
-        try:
-            from datetime import datetime
-
-            date_str = datetime.now().strftime("%Y/%m/%d")
-            self.text_area.insert(tk.INSERT, date_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入日期时出错: {str(e)}")
-
-    def insert_date_dd_slash_mm_slash_yyyy(self):
-        """在光标位置插入日期 (DD/MM/YYYY 格式)"""
-        try:
-            from datetime import datetime
-
-            date_str = datetime.now().strftime("%d/%m/%Y")
-            self.text_area.insert(tk.INSERT, date_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入日期时出错: {str(e)}")
-
-    def insert_date_mm_slash_dd_slash_yyyy(self):
-        """在光标位置插入日期 (MM/DD/YYYY 格式)"""
-        try:
-            from datetime import datetime
-
-            date_str = datetime.now().strftime("%m/%d/%Y")
-            self.text_area.insert(tk.INSERT, date_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入日期时出错: {str(e)}")
-
-    def insert_datetime_full(self):
-        """在光标位置插入完整日期时间 (YYYY-MM-DD HH:MM:SS 格式)"""
-        try:
-            from datetime import datetime
-
-            datetime_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.text_area.insert(tk.INSERT, datetime_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入日期时间时出错: {str(e)}")
-
-    def insert_timestamp_yyyymmddhhmmss(self):
-        """在光标位置插入时间戳 (YYYYMMDDHHMMSS 格式)"""
-        try:
-            from datetime import datetime
-
-            timestamp_str = datetime.now().strftime("%Y%m%d%H%M%S")
-            self.text_area.insert(tk.INSERT, timestamp_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入时间戳时出错: {str(e)}")
-
-    def insert_time_hhmmss(self):
-        """在光标位置插入当前时间 (HH:MM:SS 格式)"""
-        try:
-            from datetime import datetime
-
-            time_str = datetime.now().strftime("%H:%M:%S")
-            self.text_area.insert(tk.INSERT, time_str)
-        except Exception as e:
-            messagebox.showerror("错误", f"插入时间时出错: {str(e)}")
