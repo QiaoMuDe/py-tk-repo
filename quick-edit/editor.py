@@ -13,7 +13,7 @@ import queue
 
 # 导入我们创建的模块
 from find_dialog import FindDialog
-from theme_manager import ThemeManager,DEFAULT_CURSOR ,CURSOR_STYLES
+from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
 from utils import format_file_size, center_window, set_window_icon, is_binary_file
 
 # 只导入EnhancedSyntaxHighlighter, get_all_languages在需要时再导入
@@ -110,11 +110,11 @@ class AdvancedTextEditor:
         self.backup_enabled_var = tk.BooleanVar(value=self.backup_enabled)  # 备份选项
         self.save_lock = threading.RLock()  # 线程安全锁
         self.is_saving = False
-        
+
         # 制表符相关设置
         self.tab_width = 4  # 默认制表符宽度
         self.use_spaces_for_tabs = False  # 默认不使用空格替代制表符
-        
+
         # 窗口标题显示格式选项
         self.window_title_format = WINDOW_TITLE_FILENAME_ONLY  # 默认仅显示文件名
 
@@ -151,7 +151,7 @@ class AdvancedTextEditor:
 
         # 应用当前主题 (在创建所有UI组件后应用)
         self.theme_manager.set_theme(self.current_theme)
-        
+
         # 应用光标样式设置
         self.apply_cursor_styles()
 
@@ -245,7 +245,7 @@ class AdvancedTextEditor:
         # 如果没有打开文件，返回None
         if not self.current_file:
             return None
-            
+
         # 根据不同的显示格式设置标题
         if self.window_title_format == WINDOW_TITLE_FULL_PATH:
             # 完整文件路径
@@ -258,7 +258,7 @@ class AdvancedTextEditor:
         else:
             # 仅文件名（默认）
             return os.path.basename(self.current_file)
-    
+
     def update_title_based_on_content(self):
         """根据文本框内容更新窗口标题"""
         # 获取文本框内容
@@ -282,7 +282,7 @@ class AdvancedTextEditor:
         else:
             # 获取显示名称
             display_name = self.get_window_title_display_name()
-            
+
             # 根据只读模式状态和修改状态设置窗口标题
             if self.readonly_mode:
                 if self.text_area.edit_modified():
@@ -351,7 +351,7 @@ class AdvancedTextEditor:
         # 创建垂直滚动条
         self.scrollbar = tk.Scrollbar(text_container, orient=tk.VERTICAL)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        
+
         # 创建水平滚动条
         self.hscrollbar = tk.Scrollbar(text_container, orient=tk.HORIZONTAL)
         # 初始时隐藏水平滚动条，因为默认启用了文本自动换行
@@ -363,16 +363,16 @@ class AdvancedTextEditor:
             wrap=tk.WORD,  # 设置为按单词换行
             undo=True,
             yscrollcommand=self.on_text_scroll_with_line_numbers,
-            xscrollcommand=self.hscrollbar.set  # 关联水平滚动条
+            xscrollcommand=self.hscrollbar.set,  # 关联水平滚动条
         )
         self.text_area.pack(fill=tk.BOTH, expand=True)
 
         # 将滚动条与文本区域关联
         self.scrollbar.config(command=self.on_text_scroll)
         self.hscrollbar.config(command=self.text_area.xview)
-        
+
         # 根据配置设置文本区域的换行属性和水平滚动条状态
-        if hasattr(self, 'word_wrap_enabled'):
+        if hasattr(self, "word_wrap_enabled"):
             if self.word_wrap_enabled:
                 self.text_area.config(wrap=tk.WORD)
                 self.hscrollbar.pack_forget()  # 隐藏水平滚动条
@@ -428,7 +428,7 @@ class AdvancedTextEditor:
 
         # 设置行号区域样式
         self.line_numbers.config(bg="#f0f0f0", highlightthickness=0)
-        
+
         # 应用制表符设置
         self.apply_tab_settings()
 
@@ -455,13 +455,13 @@ class AdvancedTextEditor:
 
     def toggle_word_wrap(self):
         """切换文本自动换行功能
-        
+
         当启用时，文本将在窗口边缘自动换行，水平滚动条隐藏；当禁用时，文本将水平滚动，水平滚动条显示。
         切换后会保存配置到配置文件。
         """
         # 切换换行状态
         self.word_wrap_enabled = not self.word_wrap_enabled
-        
+
         # 根据状态设置文本框的wrap属性和水平滚动条的显示状态
         if self.word_wrap_enabled:
             self.text_area.config(wrap=tk.WORD)
@@ -469,14 +469,14 @@ class AdvancedTextEditor:
         else:
             self.text_area.config(wrap=tk.NONE)
             self.hscrollbar.pack(side=tk.BOTTOM, fill=tk.X)  # 显示水平滚动条
-        
+
         # 更新状态栏显示
         status = "已启用" if self.word_wrap_enabled else "已禁用"
         self.left_status.config(text=f"文本自动换行: {status}")
-        
+
         # 保存配置到配置文件
         self.save_config()
-        
+
     def change_language(self, selected_language=None):
         """更改语法高亮语言
 
@@ -516,7 +516,7 @@ class AdvancedTextEditor:
         """创建菜单栏"""
         # 定义菜单字体
         menu_font = ("Microsoft YaHei UI", 10)
-        
+
         menubar = tk.Menu(self.root, font=menu_font)
 
         # 文件菜单
@@ -569,32 +569,27 @@ class AdvancedTextEditor:
 
         # 编辑菜单
         edit_menu = tk.Menu(menubar, tearoff=0, font=menu_font)
-        edit_menu.add_command(
-            label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
-        )
-        edit_menu.add_command(
-            label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
-        )
+
+        # 添加撤销和重做选项
+        self.create_undo_menu_item(edit_menu)
+        self.create_redo_menu_item(edit_menu)
         edit_menu.add_separator()
-        edit_menu.add_command(
-            label="复制", command=self.copy_text, accelerator="Ctrl+C"
-        )
-        edit_menu.add_command(label="剪切", command=self.cut_text, accelerator="Ctrl+X")
-        edit_menu.add_command(
-            label="粘贴", command=self.paste_text, accelerator="Ctrl+V"
-        )
+
+        # 添加剪切、复制、粘贴和全选选项
+        self.create_cut_menu_item(edit_menu)
+        self.create_copy_menu_item(edit_menu)
+        self.create_paste_menu_item(edit_menu)
         edit_menu.add_separator()
-        edit_menu.add_command(
-            label="全选", command=self.select_all, accelerator="Ctrl+A"
-        )
+
+        self.create_select_all_menu_item(edit_menu)
         edit_menu.add_separator()
-        edit_menu.add_command(
-            label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
-        )
-        edit_menu.add_command(
-            label="替换", command=self.replace_text, accelerator="Ctrl+H"
-        )
+
+        # 添加查找和替换选项
+        self.create_find_menu_item(edit_menu)
+        self.create_replace_menu_item(edit_menu)
         edit_menu.add_separator()
+
+        # 页面导航选项
         edit_menu.add_command(
             label="向上翻页", command=self.page_up, accelerator="PgUp"
         )
@@ -611,71 +606,14 @@ class AdvancedTextEditor:
             label="转到行", command=self.go_to_line, accelerator="Ctrl+G"
         )
         edit_menu.add_separator()
-        edit_menu.add_command(
-            label="清空剪贴板", command=self.clear_clipboard
-        )
+
+        edit_menu.add_command(label="清空剪贴板", command=self.clear_clipboard)
         # 复制到剪贴板子菜单
-        copy_to_clipboard_menu = tk.Menu(edit_menu, tearoff=0, font=menu_font)
-        copy_to_clipboard_menu.add_command(
-            label="文件名", command=self.copy_filename_to_clipboard
-        )
-        copy_to_clipboard_menu.add_command(
-            label="完整文件路径", command=self.copy_filepath_to_clipboard
-        )
-        copy_to_clipboard_menu.add_command(
-            label="目录", command=self.copy_directory_to_clipboard
-        )
-        edit_menu.add_cascade(
-            label="复制到剪贴板", menu=copy_to_clipboard_menu
-        )
+        copy_to_clipboard_menu = self.create_copy_to_clipboard_menu(edit_menu)
+        edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_menu)
         # 插入子菜单
-        insert_menu = tk.Menu(edit_menu, tearoff=0, font=menu_font)
-        insert_menu.add_command(
-            label="脚本 Shebang 行", command=self.insert_shebang
-        )
-        insert_menu.add_command(
-            label="Python字符集声明", command=self.insert_python_encoding
-        )
-        insert_menu.add_separator()
-        insert_menu.add_command(
-            label="文件名", command=self.insert_filename
-        )
-        insert_menu.add_command(
-            label="目录", command=self.insert_directory
-        )
-        insert_menu.add_command(
-            label="完整文件路径", command=self.insert_filepath
-        )
-        insert_menu.add_separator()
-        # 时间格式子菜单
-        time_menu = tk.Menu(insert_menu, tearoff=0, font=menu_font)
-        time_menu.add_command(
-            label="YYYY-MM-DD", command=self.insert_date_yyyy_mm_dd
-        )
-        time_menu.add_command(
-            label="YYYY/MM/DD", command=self.insert_date_yyyy_slash_mm_slash_dd
-        )
-        time_menu.add_command(
-            label="DD/MM/YYYY", command=self.insert_date_dd_slash_mm_slash_yyyy
-        )
-        time_menu.add_command(
-            label="MM/DD/YYYY", command=self.insert_date_mm_slash_dd_slash_yyyy
-        )
-        time_menu.add_command(
-            label="YYYY-MM-DD HH:MM:SS", command=self.insert_datetime_full
-        )
-        time_menu.add_command(
-            label="YYYYMMDDHHMMSS", command=self.insert_timestamp_yyyymmddhhmmss
-        )
-        time_menu.add_command(
-            label="HH:MM:SS", command=self.insert_time_hhmmss
-        )
-        insert_menu.add_cascade(
-            label="时间格式", menu=time_menu
-        )
-        edit_menu.add_cascade(
-            label="插入", menu=insert_menu
-        )
+        insert_menu = self.create_insert_menu(edit_menu)
+        edit_menu.add_cascade(label="插入", menu=insert_menu)
         menubar.add_cascade(label="编辑", menu=edit_menu)
 
         # 主题菜单
@@ -729,11 +667,11 @@ class AdvancedTextEditor:
                 label=label, command=lambda t=theme_name: self.change_theme(t)
             )
         theme_menu.add_cascade(label="主题", menu=theme_submenu)
-        
+
         # 光标样式设置子菜单
         cursor_menu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
         self.cursor_style_vars = {}  # 存储光标样式变量
-        
+
         # 全局光标样式选项
         for cursor_style in CURSOR_STYLES:
             var = tk.BooleanVar(value=(self.cursor_style == cursor_style))
@@ -741,9 +679,9 @@ class AdvancedTextEditor:
             cursor_menu.add_checkbutton(
                 label=cursor_style,
                 variable=var,
-                command=lambda s=cursor_style: self.set_cursor_style(s)
+                command=lambda s=cursor_style: self.set_cursor_style(s),
             )
-        
+
         theme_menu.add_cascade(label="光标样式", menu=cursor_menu)
         menubar.add_cascade(label="主题", menu=theme_menu)
 
@@ -788,7 +726,7 @@ class AdvancedTextEditor:
         settings_menu.add_checkbutton(
             label="启用文本自动换行",
             command=self.toggle_word_wrap,
-            variable=self.word_wrap_var
+            variable=self.word_wrap_var,
         )
         # 自动保存设置
         settings_menu.add_separator()
@@ -812,10 +750,9 @@ class AdvancedTextEditor:
         # 制表符设置
         settings_menu.add_separator()
         settings_menu.add_command(
-            label="制表符设置...",
-            command=self.open_tab_settings_dialog
+            label="制表符设置...", command=self.open_tab_settings_dialog
         )
-        
+
         # 窗口标题显示选项
         title_format_menu = tk.Menu(settings_menu, tearoff=0, font=menu_font)
         self.window_title_format_var = tk.StringVar(value=self.window_title_format)
@@ -823,28 +760,26 @@ class AdvancedTextEditor:
             label="仅文件名",
             variable=self.window_title_format_var,
             value=WINDOW_TITLE_FILENAME_ONLY,
-            command=self.set_window_title_format
+            command=self.set_window_title_format,
         )
         title_format_menu.add_radiobutton(
             label="完整文件路径",
             variable=self.window_title_format_var,
             value=WINDOW_TITLE_FULL_PATH,
-            command=self.set_window_title_format
+            command=self.set_window_title_format,
         )
         title_format_menu.add_radiobutton(
             label="文件和目录",
             variable=self.window_title_format_var,
             value=WINDOW_TITLE_FILE_AND_DIRECTORY,
-            command=self.set_window_title_format
+            command=self.set_window_title_format,
         )
         settings_menu.add_cascade(label="窗口标题显示", menu=title_format_menu)
-        
+
         # 查看配置文件选项
         settings_menu.add_separator()
         settings_menu.add_command(
-            label="查看配置",
-            command=self.open_config_file,
-            accelerator="Ctrl+Shift+C"
+            label="查看配置", command=self.open_config_file, accelerator="Ctrl+Shift+C"
         )
         menubar.add_cascade(label="设置", menu=settings_menu)
 
@@ -854,30 +789,30 @@ class AdvancedTextEditor:
         menubar.add_cascade(label="帮助", menu=help_menu)
 
         self.root.config(menu=menubar)
-        
+
     def apply_cursor_styles(self):
         """应用光标样式设置"""
         # 应用全局光标样式到文本区域和状态栏
         self.text_area.config(cursor=self.cursor_style)
         self.right_status.config(cursor=self.cursor_style)
-        
+
     def set_cursor_style(self, cursor_style):
         """设置全局光标样式"""
         # 更新配置
         self.cursor_style = cursor_style
-        
+
         # 更新文本区域和状态栏的光标样式
         self.text_area.config(cursor=cursor_style)
         self.right_status.config(cursor=cursor_style)
-        
+
         # 更新光标样式变量状态
         for style in CURSOR_STYLES:
             if style in self.cursor_style_vars:
                 self.cursor_style_vars[style].set(style == cursor_style)
-        
+
         # 保存配置
         self.save_config()
-        
+
         # 绑定快捷键
         self.root.bind("<Control-Shift-C>", lambda event: self.open_config_file())
         self.root.bind("<F1>", lambda event: self.show_about())
@@ -989,46 +924,48 @@ class AdvancedTextEditor:
             dialog = TabSettingsDialog(
                 self.root,
                 current_tab_width=self.tab_width,
-                use_spaces_for_tabs=self.use_spaces_for_tabs
+                use_spaces_for_tabs=self.use_spaces_for_tabs,
             )
-            
+
             # 等待对话框关闭
             self.root.wait_window(dialog.dialog)
-            
+
             # 获取用户设置的选项
             new_tab_width, new_use_spaces = dialog.get_settings()
-            
+
             # 如果设置发生了变化
-            if (new_tab_width != self.tab_width or 
-                new_use_spaces != self.use_spaces_for_tabs):
-                
+            if (
+                new_tab_width != self.tab_width
+                or new_use_spaces != self.use_spaces_for_tabs
+            ):
+
                 # 更新设置
                 self.tab_width = new_tab_width
                 self.use_spaces_for_tabs = new_use_spaces
-                
+
                 # 应用新的制表符设置
                 self.apply_tab_settings()
-                
+
                 # 保存配置
                 self.save_config()
-                
+
                 # 更新状态栏
                 self.update_statusbar()
-                
+
         except Exception as e:
             messagebox.showerror("错误", f"设置制表符时出错: {str(e)}")
-    
+
     def set_window_title_format(self):
         """设置窗口标题显示格式"""
         # 更新内部状态
         self.window_title_format = self.window_title_format_var.get()
-        
+
         # 保存配置
         self.save_config()
-        
+
         # 更新窗口标题
         self.update_title_based_on_content()
-    
+
     def apply_tab_settings(self):
         """应用制表符设置到文本区域"""
         # 设置制表符宽度
@@ -1036,30 +973,31 @@ class AdvancedTextEditor:
         font_config = self.text_area["font"]
         try:
             import tkinter.font as tkfont
+
             f = tkfont.Font(font=font_config)
-            char_width = f.measure('0')  # 测量一个字符的宽度
+            char_width = f.measure("0")  # 测量一个字符的宽度
             self.text_area.config(tabs=self.tab_width * char_width)
         except:
             # 如果获取字体宽度失败，使用一个合理的默认值
             self.text_area.config(tabs=self.tab_width * 8)  # 回退到像素计算
-        
+
         # 设置是否使用空格替代制表符
         if self.use_spaces_for_tabs:
             # 创建一个绑定来拦截Tab键
             def on_tab_key(event):
                 # 插入空格而不是制表符
-                self.text_area.insert(tk.INSERT, ' ' * self.tab_width)
+                self.text_area.insert(tk.INSERT, " " * self.tab_width)
                 # 返回'break'以阻止默认的制表符行为
                 return "break"
-            
+
             # 先移除可能存在的绑定
-            self.text_area.unbind('<Tab>')
+            self.text_area.unbind("<Tab>")
             # 添加新的绑定
-            self.text_area.bind('<Tab>', on_tab_key)
+            self.text_area.bind("<Tab>", on_tab_key)
         else:
             # 移除自定义绑定，使用默认的制表符行为
-            self.text_area.unbind('<Tab>')
-    
+            self.text_area.unbind("<Tab>")
+
     def set_auto_save_interval(self):
         """设置自动保存间隔"""
         try:
@@ -1072,10 +1010,12 @@ class AdvancedTextEditor:
 
             # 设置对话框样式
             style = ttk.Style()
-            style.configure("CurrentValue.TLabel", font=("Microsoft YaHei UI", 15, "bold"))
+            style.configure(
+                "CurrentValue.TLabel", font=("Microsoft YaHei UI", 15, "bold")
+            )
             style.configure("Small.TButton", font=("Microsoft YaHei UI", 10, "bold"))
             style.configure("TLabel", font=("Microsoft YaHei UI", 12, "bold"))
-            style.configure("Button.TButton", font= ("Microsoft YaHei UI", 12, "bold"))
+            style.configure("Button.TButton", font=("Microsoft YaHei UI", 12, "bold"))
 
             # 居中显示对话框
             center_window(dialog, 750, 270)
@@ -1088,7 +1028,9 @@ class AdvancedTextEditor:
             main_frame.pack(fill=tk.BOTH, expand=True)
 
             # 添加说明标签
-            desc_label = ttk.Label(main_frame, text="请选择自动保存间隔时间:", style="CurrentValue.TLabel")
+            desc_label = ttk.Label(
+                main_frame, text="请选择自动保存间隔时间:", style="CurrentValue.TLabel"
+            )
             desc_label.pack(pady=(0, 10))
 
             # 创建滑块框架
@@ -1254,7 +1196,13 @@ class AdvancedTextEditor:
                 )
 
             # 使用之前定义的Button.TButton样式
-            ok_button = ttk.Button(buttons_frame, text="确定", command=on_ok, width=10, style="Button.TButton")
+            ok_button = ttk.Button(
+                buttons_frame,
+                text="确定",
+                command=on_ok,
+                width=10,
+                style="Button.TButton",
+            )
             ok_button.pack(side=tk.RIGHT, padx=(5, 0))
 
             # 取消按钮
@@ -1262,7 +1210,11 @@ class AdvancedTextEditor:
                 dialog.destroy()
 
             cancel_button = ttk.Button(
-                buttons_frame, text="取消", command=on_cancel, width=10, style="Button.TButton"
+                buttons_frame,
+                text="取消",
+                command=on_cancel,
+                width=10,
+                style="Button.TButton",
             )
             cancel_button.pack(side=tk.RIGHT)
 
@@ -1619,7 +1571,7 @@ class AdvancedTextEditor:
             # 获取光标位置
             cursor_pos = self.text_area.index(tk.INSERT)
             row, col = cursor_pos.split(".")
-            
+
             # 修正列数计算，考虑制表符宽度
             # 当使用实际制表符（非空格替代）时，计算真实显示的列数
             if not self.use_spaces_for_tabs:
@@ -1628,7 +1580,7 @@ class AdvancedTextEditor:
                 # 计算显示的列数
                 display_col = 0
                 for char in current_line:
-                    if char == '\t':
+                    if char == "\t":
                         # 制表符宽度为self.tab_width，计算到下一个制表位
                         display_col += self.tab_width - (display_col % self.tab_width)
                     else:
@@ -1743,7 +1695,9 @@ class AdvancedTextEditor:
                     self.tab_width = config.get("tab_width", 4)
                     self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
                     # 加载窗口标题显示格式选项
-                    self.window_title_format = config.get("window_title_format", WINDOW_TITLE_FILENAME_ONLY)
+                    self.window_title_format = config.get(
+                        "window_title_format", WINDOW_TITLE_FILENAME_ONLY
+                    )
                     # 加载光标样式配置
                     self.cursor_style = config.get("cursor_style", DEFAULT_CURSOR)
                     # 加载新的配置属性
@@ -2154,17 +2108,17 @@ class AdvancedTextEditor:
 
     def detect_file_encoding_and_line_ending(self, file_path=None, sample_data=None):
         """检测文件编码和换行符类型
-        
+
         Args:
             file_path: 文件路径（如果提供了sample_data，则忽略此参数）
             sample_data: 已读取的文件样本数据（字节类型）
-            
+
         Returns:
             tuple: (编码, 换行符类型)
         """
         if file_path is None and sample_data is None:
             return "UTF-8", "LF"  # 默认值
-            
+
         if file_path is not None and not os.path.exists(file_path):
             return "UTF-8", "LF"  # 默认值
 
@@ -2177,14 +2131,14 @@ class AdvancedTextEditor:
                 with open(file_path, "rb") as file:
                     # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
                     raw_data = file.read(1024)
-                
+
             # 检测编码
             if raw_data:
                 result = chardet.detect(raw_data)
                 encoding = result["encoding"] if result["encoding"] else "UTF-8"
             else:
                 encoding = "UTF-8"
-            
+
             # 检测换行符类型
             if b"\r\n" in raw_data:
                 line_ending = "CRLF"
@@ -2308,17 +2262,18 @@ class AdvancedTextEditor:
                 with open(backup_file, "rb") as file:
                     # 读取1KB样本数据
                     sample_data = file.read(1024)
-                
+
                 # 检测是否为二进制文件
                 if is_binary_file(sample_data=sample_data):
                     messagebox.showerror(
-                        "恢复失败", 
-                        "备份文件似乎是二进制文件，无法恢复。"
+                        "恢复失败", "备份文件似乎是二进制文件，无法恢复。"
                     )
                     return
-                
+
                 # 使用同一样本数据检测编码和换行符
-                encoding, line_ending = self.detect_file_encoding_and_line_ending(sample_data=sample_data)
+                encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                    sample_data=sample_data
+                )
 
                 # 读取备份内容
                 with open(backup_file, "r", encoding=encoding) as f:
@@ -2413,29 +2368,32 @@ class AdvancedTextEditor:
 
                 self.root.after(0, show_error)
                 return
-            
+
             # 只打开一次文件，读取样本数据用于所有检测
             sample_data = None
             with open(file_path, "rb") as file:
                 # 读取1KB样本数据用于二进制文件检测、编码检测和换行符检测
                 sample_data = file.read(1024)
-                
+
             # 首先检测是否为二进制文件
             if is_binary_file(sample_data=sample_data):
+
                 def show_binary_error():
                     messagebox.showinfo(
                         "无法打开",
-                        f"文件 '{os.path.basename(file_path)}' 似乎是二进制文件，\n" 
-                        f"QuickEdit是文本编辑器，不支持打开二进制文件。"
+                        f"文件 '{os.path.basename(file_path)}' 似乎是二进制文件，\n"
+                        f"QuickEdit是文本编辑器，不支持打开二进制文件。",
                     )
                     if show_progress:
                         self._close_progress_window()
-                
+
                 self.root.after(0, show_binary_error)
                 return
-                
+
             # 使用同一样本数据检测编码和换行符类型
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(sample_data=sample_data)
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                sample_data=sample_data
+            )
 
             # 分块读取文件内容以避免内存问题
             content_chunks = []
@@ -2936,7 +2894,9 @@ class AdvancedTextEditor:
 
         try:
             # 检测备份文件的编码和换行符
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(backup_file)
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                backup_file
+            )
 
             # 读取备份文件内容
             with open(backup_file, "r", encoding=encoding) as f:
@@ -3114,13 +3074,15 @@ class AdvancedTextEditor:
 
         # 设置窗口图标
         set_window_icon(font_dialog)
-        
+
         # 居中显示对话框
         center_window(font_dialog, 500, 600)
 
         # 当前字体标签
         current_label = tk.Label(
-            font_dialog, text=f"当前字体: {self.font_family}", font=("Microsoft YaHei UI", 13)
+            font_dialog,
+            text=f"当前字体: {self.font_family}",
+            font=("Microsoft YaHei UI", 13),
         )
         current_label.pack(pady=5)
 
@@ -3238,7 +3200,9 @@ The quick brown fox jumps over the lazy dog.
 
         # 当前字体大小标签
         current_label = tk.Label(
-            control_frame, text=f"当前字体大小: {self.font_size}", font=("Microsoft YaHei UI", 12)
+            control_frame,
+            text=f"当前字体大小: {self.font_size}",
+            font=("Microsoft YaHei UI", 12),
         )
         current_label.pack(side=tk.TOP, pady=5)
 
@@ -3269,7 +3233,11 @@ The quick brown fox jumps over the lazy dog.
 
         # 输入框
         size_entry = tk.Entry(
-            input_frame, textvariable=size_var, width=10, justify="center", font=("Microsoft YaHei UI", 12)
+            input_frame,
+            textvariable=size_var,
+            width=10,
+            justify="center",
+            font=("Microsoft YaHei UI", 12),
         )
         size_entry.pack(side=tk.LEFT, padx=5)
 
@@ -3292,10 +3260,14 @@ The quick brown fox jumps over the lazy dog.
         increase_btn.pack(side=tk.LEFT, padx=5)
 
         # 确定和取消按钮放在输入框旁边
-        ok_button = tk.Button(input_frame, text="确定", command=lambda: apply_size(), width=8)
+        ok_button = tk.Button(
+            input_frame, text="确定", command=lambda: apply_size(), width=8
+        )
         ok_button.pack(side=tk.LEFT, padx=10)
 
-        cancel_button = tk.Button(input_frame, text="取消", command=size_dialog.destroy, width=8)
+        cancel_button = tk.Button(
+            input_frame, text="取消", command=size_dialog.destroy, width=8
+        )
         cancel_button.pack(side=tk.LEFT, padx=5)
 
         # 示例文字框架
@@ -3593,7 +3565,11 @@ The quick brown fox jumps over the lazy dog.
     def show_find_dialog(self):
         """显示查找对话框"""
         # 获取文本区域中选中的文本
-        selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST) if self.text_area.tag_ranges(tk.SEL) else ""
+        selected_text = (
+            self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            if self.text_area.tag_ranges(tk.SEL)
+            else ""
+        )
         FindDialog(self.root, self.text_area, self.current_file, selected_text)
 
     def advanced_find_text(
@@ -3678,59 +3654,168 @@ The quick brown fox jumps over the lazy dog.
 
         return matches
 
+    def create_undo_menu_item(self, parent_menu):
+        """创建撤销菜单项"""
+        parent_menu.add_command(
+            label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
+        )
+
+    def create_redo_menu_item(self, parent_menu):
+        """创建重做菜单项"""
+        parent_menu.add_command(
+            label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
+        )
+
+    def create_cut_menu_item(self, parent_menu):
+        """创建剪切菜单项"""
+        parent_menu.add_command(
+            label="剪切", command=self.cut_text, accelerator="Ctrl+X"
+        )
+
+    def create_copy_menu_item(self, parent_menu):
+        """创建复制菜单项"""
+        parent_menu.add_command(
+            label="复制", command=self.copy_text, accelerator="Ctrl+C"
+        )
+
+    def create_paste_menu_item(self, parent_menu):
+        """创建粘贴菜单项"""
+        parent_menu.add_command(
+            label="粘贴", command=self.paste_text, accelerator="Ctrl+V"
+        )
+
+    def create_select_all_menu_item(self, parent_menu):
+        """创建全选菜单项"""
+        parent_menu.add_command(
+            label="全选", command=self.select_all, accelerator="Ctrl+A"
+        )
+
+    def create_find_menu_item(self, parent_menu):
+        """创建查找菜单项"""
+        parent_menu.add_command(
+            label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
+        )
+
+    def create_replace_menu_item(self, parent_menu):
+        """创建替换菜单项"""
+        parent_menu.add_command(
+            label="替换", command=self.replace_text, accelerator="Ctrl+H"
+        )
+
+    def create_bold_menu_item(self, parent_menu):
+        """创建粗体菜单项"""
+        parent_menu.add_checkbutton(
+            label="粗体", command=self.toggle_bold, variable=self.bold_var
+        )
+
+    def create_italic_menu_item(self, parent_menu):
+        """创建斜体菜单项"""
+        parent_menu.add_checkbutton(
+            label="斜体", command=self.toggle_italic, variable=self.italic_var
+        )
+
+    def create_underline_menu_item(self, parent_menu):
+        """创建下划线菜单项"""
+        parent_menu.add_checkbutton(
+            label="下划线", command=self.toggle_underline, variable=self.underline_var
+        )
+
+    def create_overstrike_menu_item(self, parent_menu):
+        """创建删除线菜单项"""
+        parent_menu.add_checkbutton(
+            label="删除线", command=self.toggle_overstrike, variable=self.overstrike_var
+        )
+
+    def create_copy_to_clipboard_menu(self, parent_menu):
+        """创建复制到剪贴板子菜单"""
+        copy_to_clipboard_menu = tk.Menu(parent_menu, tearoff=0, font=("微软雅黑", 9))
+        copy_to_clipboard_menu.add_command(
+            label="文件名", command=self.copy_filename_to_clipboard
+        )
+        copy_to_clipboard_menu.add_command(
+            label="完整文件路径", command=self.copy_filepath_to_clipboard
+        )
+        copy_to_clipboard_menu.add_command(
+            label="目录", command=self.copy_directory_to_clipboard
+        )
+        return copy_to_clipboard_menu
+
+    def create_insert_menu(self, parent_menu):
+        """创建插入子菜单"""
+        insert_menu = tk.Menu(parent_menu, tearoff=0, font=("微软雅黑", 9))
+        insert_menu.add_command(label="脚本 Shebang 行", command=self.insert_shebang)
+        insert_menu.add_command(
+            label="Python字符集声明", command=self.insert_python_encoding
+        )
+        insert_menu.add_command(label="pkgm", command=self.insert_go_package_main)
+        insert_menu.add_separator()
+        insert_menu.add_command(label="文件名", command=self.insert_filename)
+        insert_menu.add_command(label="目录", command=self.insert_directory)
+        insert_menu.add_command(label="完整文件路径", command=self.insert_filepath)
+        insert_menu.add_separator()
+        # 时间格式子菜单
+        time_menu = tk.Menu(insert_menu, tearoff=0, font=("微软雅黑", 9))
+        time_menu.add_command(label="YYYY-MM-DD", command=self.insert_date_yyyy_mm_dd)
+        time_menu.add_command(
+            label="YYYY/MM/DD", command=self.insert_date_yyyy_slash_mm_slash_dd
+        )
+        time_menu.add_command(
+            label="DD/MM/YYYY", command=self.insert_date_dd_slash_mm_slash_yyyy
+        )
+        time_menu.add_command(
+            label="MM/DD/YYYY", command=self.insert_date_mm_slash_dd_slash_yyyy
+        )
+        time_menu.add_command(
+            label="YYYY-MM-DD HH:MM:SS", command=self.insert_datetime_full
+        )
+        time_menu.add_command(
+            label="YYYYMMDDHHMMSS", command=self.insert_timestamp_yyyymmddhhmmss
+        )
+        time_menu.add_command(label="HH:MM:SS", command=self.insert_time_hhmmss)
+        insert_menu.add_cascade(label="时间格式", menu=time_menu)
+        return insert_menu
+
     def show_context_menu(self, event):
         """显示上下文菜单（鼠标右键菜单）"""
         # 创建上下文菜单
         context_menu = tk.Menu(self.root, tearoff=0)
 
         # 添加撤销和重做选项
-        context_menu.add_command(
-            label="撤销", command=self.text_area.edit_undo, accelerator="Ctrl+Z"
-        )
-        context_menu.add_command(
-            label="重做", command=self.text_area.edit_redo, accelerator="Ctrl+Y"
-        )
+        self.create_undo_menu_item(context_menu)
+        self.create_redo_menu_item(context_menu)
         context_menu.add_separator()
 
         # 添加剪切、复制、粘贴和全选选项
-        context_menu.add_command(
-            label="剪切", command=self.cut_text, accelerator="Ctrl+X"
-        )
-        context_menu.add_command(
-            label="复制", command=self.copy_text, accelerator="Ctrl+C"
-        )
-        context_menu.add_command(
-            label="粘贴", command=self.paste_text, accelerator="Ctrl+V"
-        )
+        self.create_cut_menu_item(context_menu)
+        self.create_copy_menu_item(context_menu)
+        self.create_paste_menu_item(context_menu)
         context_menu.add_separator()
 
-        context_menu.add_command(
-            label="全选", command=self.select_all, accelerator="Ctrl+A"
-        )
+        self.create_select_all_menu_item(context_menu)
         context_menu.add_separator()
 
         # 添加查找和替换选项
-        context_menu.add_command(
-            label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
-        )
-        context_menu.add_command(
-            label="替换", command=self.replace_text, accelerator="Ctrl+H"
-        )
+        self.create_find_menu_item(context_menu)
+        self.create_replace_menu_item(context_menu)
         context_menu.add_separator()
 
         # 添加字体效果选项
-        context_menu.add_checkbutton(
-            label="粗体", command=self.toggle_bold, variable=self.bold_var
-        )
-        context_menu.add_checkbutton(
-            label="斜体", command=self.toggle_italic, variable=self.italic_var
-        )
-        context_menu.add_checkbutton(
-            label="下划线", command=self.toggle_underline, variable=self.underline_var
-        )
-        context_menu.add_checkbutton(
-            label="删除线", command=self.toggle_overstrike, variable=self.overstrike_var
-        )
+        self.create_bold_menu_item(context_menu)
+        self.create_italic_menu_item(context_menu)
+        self.create_underline_menu_item(context_menu)
+        self.create_overstrike_menu_item(context_menu)
+        context_menu.add_separator()
+
+        # 添加清空剪贴板选项
+        context_menu.add_command(label="清空剪贴板", command=self.clear_clipboard)
+
+        # 添加复制到剪贴板子菜单
+        copy_to_clipboard_menu = self.create_copy_to_clipboard_menu(context_menu)
+        context_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_menu)
+
+        # 添加插入子菜单
+        insert_menu = self.create_insert_menu(context_menu)
+        context_menu.add_cascade(label="插入", menu=insert_menu)
 
         # 在鼠标位置显示菜单
         context_menu.post(event.x_root, event.y_root)
@@ -3741,7 +3826,7 @@ The quick brown fox jumps over the lazy dog.
             "关于QuickEdit",
             "QuickEdit 是一个轻量级的文本编辑器，支持多种文件操作和编辑功能。\n\n"
             "项目地址:  " + PROJECT_URL + "\n"
-            "版本号:  " + VERSION + "\n"
+            "版本号:  " + VERSION + "\n",
         )
 
     def clear_clipboard(self):
@@ -3802,6 +3887,14 @@ The quick brown fox jumps over the lazy dog.
         except Exception as e:
             messagebox.showerror("错误", f"插入Python字符集声明时出错: {str(e)}")
 
+    def insert_go_package_main(self):
+        """在光标位置插入Go语言基本结构"""
+        try:
+            go_structure = 'package main\n\nimport (\n\t"fmt"\n)\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}'
+            self.text_area.insert(tk.INSERT, go_structure)
+        except Exception as e:
+            messagebox.showerror("错误", f"插入Go语言基本结构时出错: {str(e)}")
+
     def insert_filename(self):
         """在光标位置插入文件名"""
         if self.current_file:
@@ -3838,6 +3931,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入日期 (YYYY-MM-DD 格式)"""
         try:
             from datetime import datetime
+
             date_str = datetime.now().strftime("%Y-%m-%d")
             self.text_area.insert(tk.INSERT, date_str)
         except Exception as e:
@@ -3847,6 +3941,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入日期 (YYYY/MM/DD 格式)"""
         try:
             from datetime import datetime
+
             date_str = datetime.now().strftime("%Y/%m/%d")
             self.text_area.insert(tk.INSERT, date_str)
         except Exception as e:
@@ -3856,6 +3951,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入日期 (DD/MM/YYYY 格式)"""
         try:
             from datetime import datetime
+
             date_str = datetime.now().strftime("%d/%m/%Y")
             self.text_area.insert(tk.INSERT, date_str)
         except Exception as e:
@@ -3865,6 +3961,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入日期 (MM/DD/YYYY 格式)"""
         try:
             from datetime import datetime
+
             date_str = datetime.now().strftime("%m/%d/%Y")
             self.text_area.insert(tk.INSERT, date_str)
         except Exception as e:
@@ -3874,6 +3971,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入完整日期时间 (YYYY-MM-DD HH:MM:SS 格式)"""
         try:
             from datetime import datetime
+
             datetime_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.text_area.insert(tk.INSERT, datetime_str)
         except Exception as e:
@@ -3883,6 +3981,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入时间戳 (YYYYMMDDHHMMSS 格式)"""
         try:
             from datetime import datetime
+
             timestamp_str = datetime.now().strftime("%Y%m%d%H%M%S")
             self.text_area.insert(tk.INSERT, timestamp_str)
         except Exception as e:
@@ -3892,6 +3991,7 @@ The quick brown fox jumps over the lazy dog.
         """在光标位置插入当前时间 (HH:MM:SS 格式)"""
         try:
             from datetime import datetime
+
             time_str = datetime.now().strftime("%H:%M:%S")
             self.text_area.insert(tk.INSERT, time_str)
         except Exception as e:
