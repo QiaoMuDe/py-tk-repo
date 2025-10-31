@@ -57,7 +57,7 @@ class ThemeManager:
             "found_fg": "#000000",
             "current_match_bg": "#ffa500",
             "current_match_fg": "#000000",
-            "cursor_line_bg": "#3a3a3a",  # 光标所在行背景色
+            "cursor_line_bg": "#4a4a4a",  # 光标所在行背景色（更亮一些）
             "hover_line_bg": "#3a3a3a",  # 悬停行背景色
             "menu_bg": "#3a3a3a",
             "menu_fg": "#ffffff",
@@ -83,7 +83,7 @@ class ThemeManager:
             "found_fg": "#000080",
             "current_match_bg": "#ffcc66",
             "current_match_fg": "#000000",
-            "cursor_line_bg": "#cce6ff",  # 光标所在行背景色
+            "cursor_line_bg": "#a0d0f0",  # 光标所在行背景色（更深一些）
             "hover_line_bg": "#cce6ff",  # 悬停行背景色
             "menu_bg": "#e1ebf5",
             "menu_fg": "#000080",
@@ -109,7 +109,7 @@ class ThemeManager:
             "found_fg": "#5a4a3f",
             "current_match_bg": "#ff8c00",
             "current_match_fg": "#ffffff",
-            "cursor_line_bg": "#e6d5b8",  # 光标所在行背景色
+            "cursor_line_bg": "#d0c0a0",  # 光标所在行背景色（更深一些）
             "hover_line_bg": "#e6d5b8",  # 悬停行背景色
             "menu_bg": "#e6d5b8",
             "menu_fg": "#5a4a3f",
