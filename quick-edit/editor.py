@@ -16,6 +16,7 @@ import codecs
 from find_dialog import FindDialog
 from theme_manager import ThemeManager, DEFAULT_CURSOR, CURSOR_STYLES
 from insert_helper import InsertHelper
+from text_processing_helper import TextProcessingHelper
 import quick_edit_utils
 
 # 导入enhanced_syntax_highlighter模块
@@ -136,9 +137,16 @@ class AdvancedTextEditor:
 
         # 初始化插入助手
         self.insert_helper = InsertHelper(self)
+        
+        # 初始化文本处理助手
+        # 注意：text_area在create_widgets后才存在，这里只做占位初始化
+        self.text_processing_helper = None
 
         # 创建主框架
         self.create_widgets()
+        
+        # 初始化文本处理助手（此时text_area已经创建）
+        self.text_processing_helper = TextProcessingHelper(self.text_area)
 
         self.create_menu()
         # 创建工具栏
@@ -609,6 +617,11 @@ class AdvancedTextEditor:
         # 复制到剪贴板子菜单
         copy_to_clipboard_menu = self.create_copy_to_clipboard_menu(edit_menu)
         edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_menu)
+        
+        # 选中文本操作子菜单
+        selected_text_menu = self.create_selected_text_menu(edit_menu)
+        edit_menu.add_cascade(label="选中文本操作", menu=selected_text_menu)
+        
         # 插入子菜单
         insert_menu = self.create_insert_menu(edit_menu)
         edit_menu.add_cascade(label="插入", menu=insert_menu)
@@ -4024,6 +4037,73 @@ The quick brown fox jumps over the lazy dog.
         """创建插入子菜单（使用插入助手）"""
         return self.insert_helper.create_insert_menu(parent_menu)
 
+    def create_selected_text_menu(self, parent_menu):
+        """创建选中文本操作子菜单
+
+        Args:
+            parent_menu: 父菜单对象
+
+        Returns:
+            tk.Menu: 选中文本操作子菜单
+        """
+        # 创建子菜单
+        selected_text_menu = tk.Menu(parent_menu, tearoff=0)
+        
+        # 添加文本转换功能，调用text_processing_helper中的方法
+        selected_text_menu.add_command(label="转换为大写", 
+                                      command=self.text_processing_helper.convert_to_uppercase)
+        selected_text_menu.add_command(label="转换为小写", 
+                                      command=self.text_processing_helper.convert_to_lowercase)
+        selected_text_menu.add_command(label="首字母大写", 
+                                      command=self.text_processing_helper.convert_to_title_case)
+        selected_text_menu.add_separator()
+        
+        # 添加文本处理功能
+        selected_text_menu.add_command(label="移除首尾空白", 
+                                      command=self.text_processing_helper.trim_selection)
+        selected_text_menu.add_command(label="移除左侧空白", 
+                                      command=self.text_processing_helper.remove_left_whitespace)
+        selected_text_menu.add_command(label="移除右侧空白", 
+                                      command=self.text_processing_helper.remove_right_whitespace)
+        selected_text_menu.add_command(label="移除多余空白", 
+                                      command=self.text_processing_helper.remove_extra_whitespace)
+        selected_text_menu.add_separator()
+        
+        # 添加行处理功能
+        selected_text_menu.add_command(label="移除空白行", 
+                                      command=self.text_processing_helper.remove_blank_lines)
+        selected_text_menu.add_command(label="合并空白行", 
+                                      command=self.text_processing_helper.merge_blank_lines)
+        selected_text_menu.add_command(label="移除重复空行", 
+                                      command=self.text_processing_helper.remove_duplicate_blank_lines)
+        selected_text_menu.add_command(label="合并重复行", 
+                                      command=self.text_processing_helper.merge_duplicate_lines)
+        selected_text_menu.add_separator()
+        
+        # 添加JSON处理功能
+        selected_text_menu.add_command(label="格式化JSON", 
+                                      command=self.text_processing_helper.format_json)
+        selected_text_menu.add_command(label="压缩JSON", 
+                                      command=self.text_processing_helper.compress_json)
+        selected_text_menu.add_separator()
+        
+        # 添加XML、CSV、INI格式化功能
+        selected_text_menu.add_command(label="格式化XML", 
+                                      command=self.text_processing_helper.format_xml)
+        selected_text_menu.add_command(label="格式化CSV", 
+                                      command=self.text_processing_helper.format_csv)
+        selected_text_menu.add_command(label="格式化INI", 
+                                      command=self.text_processing_helper.format_ini)
+        selected_text_menu.add_separator()
+        
+        # 添加注释相关功能
+        selected_text_menu.add_command(label="添加行注释", 
+                                      command=self.text_processing_helper.comment_selection)
+        selected_text_menu.add_command(label="移除行注释", 
+                                      command=self.text_processing_helper.uncomment_selection)
+        
+        return selected_text_menu
+    
     def show_context_menu(self, event):
         """显示上下文菜单（鼠标右键菜单）"""
         # 创建上下文菜单
@@ -4061,6 +4141,10 @@ The quick brown fox jumps over the lazy dog.
         # 添加复制到剪贴板子菜单
         copy_to_clipboard_menu = self.create_copy_to_clipboard_menu(context_menu)
         context_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_menu)
+        
+        # 添加选中文本操作子菜单
+        selected_text_menu = self.create_selected_text_menu(context_menu)
+        context_menu.add_cascade(label="选中文本操作", menu=selected_text_menu)
 
         # 添加插入子菜单
         insert_menu = self.create_insert_menu(context_menu)
