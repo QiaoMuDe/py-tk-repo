@@ -4101,8 +4101,10 @@ The quick brown fox jumps over the lazy dog.
         selected_text_menu.add_separator()
         
         # 添加注释相关功能
-        selected_text_menu.add_command(label="添加行注释", 
-                                      command=self.text_processing_helper.comment_selection)
+        selected_text_menu.add_command(label="添加 # 注释", 
+                                      command=self.text_processing_helper.comment_selection_hash)
+        selected_text_menu.add_command(label="添加 // 注释", 
+                                      command=self.text_processing_helper.comment_selection_slash)
         selected_text_menu.add_command(label="移除行注释", 
                                       command=self.text_processing_helper.uncomment_selection)
         

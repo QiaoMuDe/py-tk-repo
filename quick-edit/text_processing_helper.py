@@ -326,7 +326,7 @@ class TextProcessingHelper:
             # 没有选中文本时不做任何操作
             pass
     
-    def comment_selection(self):
+    def comment_selection_hash(self):
         """为选中的文本添加行注释（在每行开头添加 # ）"""
         try:
             # 获取选中文本
@@ -338,6 +338,27 @@ class TextProcessingHelper:
                 lines = selected_text.split('\n')
                 # 为每行添加注释
                 commented_lines = ['# ' + line for line in lines]
+                # 重新组合文本
+                commented_text = '\n'.join(commented_lines)
+                # 替换选中的文本
+                self.text_area.delete("sel.first", "sel.last")
+                self.text_area.insert(insert_pos, commented_text)
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
+    
+    def comment_selection_slash(self):
+        """为选中的文本添加行注释（在每行开头添加 // ）"""
+        try:
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                # 保存插入位置
+                insert_pos = self.text_area.index("sel.first")
+                # 分割成行
+                lines = selected_text.split('\n')
+                # 为每行添加注释
+                commented_lines = ['// ' + line for line in lines]
                 # 重新组合文本
                 commented_text = '\n'.join(commented_lines)
                 # 替换选中的文本
@@ -634,7 +655,7 @@ class TextProcessingHelper:
 
 
     def uncomment_selection(self):
-        """移除选中文本中的行注释（移除每行开头的 # ）"""
+        """移除选中文本中的行注释（移除每行开头的 # 或 // ）"""
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -646,11 +667,16 @@ class TextProcessingHelper:
                 # 移除每行开头的注释符号
                 uncommented_lines = []
                 for line in lines:
-                    # 移除行开头的 # 和可能的空格
+                    # 检查并移除行开头的 # 注释
                     if line.startswith('# '):
                         uncommented_lines.append(line[2:])
                     elif line.startswith('#'):
                         uncommented_lines.append(line[1:])
+                    # 检查并移除行开头的 // 注释
+                    elif line.startswith('// '):
+                        uncommented_lines.append(line[3:])
+                    elif line.startswith('//'):
+                        uncommented_lines.append(line[2:])
                     else:
                         uncommented_lines.append(line)
                 # 重新组合文本
