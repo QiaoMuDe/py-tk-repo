@@ -1,4 +1,17 @@
 import tkinter as tk
+import tkinter.messagebox as messagebox
+import json
+import csv
+import io
+import xml.etree.ElementTree as ET
+from xml.dom import minidom
+import black
+import autopep8
+from ruamel.yaml import YAML
+from io import StringIO
+import yaml
+import re
+import base64
 
 
 class TextProcessingHelper:
@@ -13,8 +26,25 @@ class TextProcessingHelper:
         self.text_area = text_area
         self.menu_font = ("Microsoft YaHei UI", 9)
 
+    def _is_readonly(self):
+        """检查文本区域是否处于只读模式
+
+        Returns:
+            bool: 如果文本区域处于禁用状态（只读模式）则返回True，否则返回False
+        """
+        return self.text_area.cget("state") == tk.DISABLED
+
+    def _show_readonly_message(self):
+        """显示只读模式下无法编辑的提示信息"""
+        messagebox.showinfo("提示", "当前处于只读模式，无法进行选中处理。")
+
     def convert_to_uppercase(self):
         """将选中的文本转换为大写"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -32,6 +62,11 @@ class TextProcessingHelper:
 
     def convert_to_lowercase(self):
         """将选中的文本转换为小写"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -49,6 +84,11 @@ class TextProcessingHelper:
 
     def convert_to_title_case(self):
         """将选中的文本转换为首字母大写"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -66,6 +106,11 @@ class TextProcessingHelper:
 
     def trim_selection(self):
         """移除选中文本的首尾空白"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -83,6 +128,11 @@ class TextProcessingHelper:
 
     def remove_left_whitespace(self):
         """移除选中文本每行的左侧空白"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -223,6 +273,11 @@ class TextProcessingHelper:
 
     def remove_right_whitespace(self):
         """移除选中文本每行的右侧空白"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -244,6 +299,11 @@ class TextProcessingHelper:
 
     def remove_blank_lines(self):
         """移除选中文本中的所有空白行"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -265,6 +325,11 @@ class TextProcessingHelper:
 
     def merge_blank_lines(self):
         """合并连续的空白行为单个空白行"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -298,6 +363,11 @@ class TextProcessingHelper:
 
     def merge_duplicate_lines(self):
         """合并重复的行（保留第一次出现的行）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -328,6 +398,11 @@ class TextProcessingHelper:
             pass
 
     def remove_duplicate_blank_lines(self):
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         """移除重复的空行"""
         try:
             # 获取选中文本
@@ -362,9 +437,12 @@ class TextProcessingHelper:
 
     def format_json(self):
         """格式化JSON文本（美化）"""
-        try:
-            import json
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -380,32 +458,22 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_json)
                 except json.JSONDecodeError:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message(
-                                "错误",
-                                "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
-                            )
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
-
-                        messagebox.showerror(
-                            "错误",
-                            "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
-                        )
+                    messagebox.showerror(
+                        "错误",
+                        "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
+                    )
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def compress_json(self):
         """压缩JSON文本（移除所有空白字符）"""
-        try:
-            import json
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -423,29 +491,22 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, compressed_json)
                 except json.JSONDecodeError:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message(
-                                "错误",
-                                "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
-                            )
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror(
+                        "错误",
+                        "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
+                    )
 
-                        messagebox.showerror(
-                            "错误",
-                            "无法解析JSON文本。请确保选择的文本是有效的JSON格式。",
-                        )
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def remove_extra_whitespace(self):
         """移除选中文本中的多余空白字符（连续空格替换为单个空格）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -471,6 +532,11 @@ class TextProcessingHelper:
 
     def comment_selection_hash(self):
         """为选中的文本添加行注释（在每行开头添加 # ）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -492,6 +558,11 @@ class TextProcessingHelper:
 
     def comment_selection_slash(self):
         """为选中的文本添加行注释（在每行开头添加 // ）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -513,6 +584,11 @@ class TextProcessingHelper:
 
     def format_ini(self):
         """格式化INI文本（对齐键值对），保留注释"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -612,27 +688,20 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_ini)
                 except Exception as e:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message("错误", f"无法格式化INI文本: {str(e)}")
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror("错误", f"无法格式化INI文本: {str(e)}")
 
-                        messagebox.showerror("错误", f"无法格式化INI文本: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def format_csv(self):
         """格式化CSV文本（对齐列），保持CSV格式"""
-        try:
-            import csv
-            import io
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -669,27 +738,20 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_csv)
                 except Exception as e:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message("错误", f"无法格式化CSV文本: {str(e)}")
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror("错误", f"无法格式化CSV文本: {str(e)}")
 
-                        messagebox.showerror("错误", f"无法格式化CSV文本: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def format_xml(self):
         """格式化XML文本（美化）"""
-        try:
-            import xml.etree.ElementTree as ET
-            from xml.dom import minidom
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -710,28 +772,21 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_xml)
                 except ET.ParseError:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message(
-                                "错误",
-                                "无法解析XML文本。请确保选择的文本是有效的XML格式。",
-                            )
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror(
+                        "错误", "无法解析XML文本。请确保选择的文本是有效的XML格式。"
+                    )
 
-                        messagebox.showerror(
-                            "错误", "无法解析XML文本。请确保选择的文本是有效的XML格式。"
-                        )
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def format_python(self):
         """格式化Python代码"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -742,8 +797,6 @@ class TextProcessingHelper:
 
                     # 尝试使用black格式化（优先使用）
                     try:
-                        import black
-
                         # 使用black格式化代码
                         formatted_code = black.format_str(
                             selected_text, mode=black.Mode()
@@ -751,28 +804,14 @@ class TextProcessingHelper:
                     except ImportError:
                         # 如果black不可用，尝试使用autopep8
                         try:
-                            import autopep8
-
                             # 使用autopep8格式化代码
                             formatted_code = autopep8.fix_code(selected_text)
                         except ImportError:
                             # 如果都没有，显示错误消息
-                            if hasattr(self.text_area, "master") and hasattr(
-                                self.text_area.master, "master"
-                            ):
-                                root = self.text_area.master.master
-                                if hasattr(root, "show_message"):
-                                    root.show_message(
-                                        "错误",
-                                        "未找到Python代码格式化工具。请安装black或autopep8。",
-                                    )
-                            else:
-                                import tkinter.messagebox as messagebox
-
-                                messagebox.showerror(
-                                    "错误",
-                                    "未找到Python代码格式化工具。请安装black或autopep8。",
-                                )
+                            messagebox.showerror(
+                                "错误",
+                                "未找到Python代码格式化工具。请安装black或autopep8。",
+                            )
                             return
 
                     # 替换选中的文本
@@ -780,22 +819,19 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_code)
                 except Exception as e:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message("错误", f"无法格式化Python代码: {str(e)}")
-                    else:
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror("错误", f"无法格式化Python代码: {str(e)}")
 
-                        messagebox.showerror("错误", f"无法格式化Python代码: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def format_yaml(self):
         """格式化YAML文本（美化，保留注释）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -806,24 +842,19 @@ class TextProcessingHelper:
 
                     # 尝试使用ruamel.yaml保留注释格式化
                     try:
-                        from ruamel.yaml import YAML
-
                         # 使用ruamel.yaml保留注释格式化
                         yaml = YAML()
                         yaml.preserve_quotes = True
                         yaml.width = 4096  # 防止自动换行
                         # 读取YAML
                         yaml_obj = yaml.load(selected_text)
-                        # 重新格式化输出
-                        from io import StringIO
 
+                        # 重新格式化输出
                         string_stream = StringIO()
                         yaml.dump(yaml_obj, string_stream)
                         formatted_yaml = string_stream.getvalue()
                     except ImportError:
                         # 如果ruamel.yaml不可用，回退到原来的PyYAML（会丢失注释）
-                        import yaml
-
                         # 解析YAML
                         yaml_obj = yaml.safe_load(selected_text)
                         # 格式化输出（美化）
@@ -840,23 +871,19 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, formatted_yaml)
                 except Exception as e:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message("错误", f"无法解析YAML文本: {str(e)}")
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror("错误", f"无法解析YAML文本: {str(e)}")
 
-                        messagebox.showerror("错误", f"无法解析YAML文本: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def uncomment_selection(self):
         """移除选中文本中的行注释（移除每行开头的 # 或 // ）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -891,9 +918,12 @@ class TextProcessingHelper:
 
     def encode_base64(self):
         """对选中的文本进行Base64编码"""
-        try:
-            import base64
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -911,9 +941,12 @@ class TextProcessingHelper:
 
     def decode_base64(self):
         """对选中的Base64编码文本进行解码"""
-        try:
-            import base64
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
 
+        try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
@@ -928,29 +961,22 @@ class TextProcessingHelper:
                     self.text_area.insert(insert_pos, decoded_text)
                 except Exception:
                     # 显示错误消息
-                    if hasattr(self.text_area, "master") and hasattr(
-                        self.text_area.master, "master"
-                    ):
-                        root = self.text_area.master.master
-                        if hasattr(root, "show_message"):
-                            root.show_message(
-                                "错误",
-                                "无法解码Base64文本。请确保选择的文本是有效的Base64编码。",
-                            )
-                    else:
-                        # 如果找不到show_message方法，使用tkinter的messagebox
-                        import tkinter.messagebox as messagebox
+                    messagebox.showerror(
+                        "错误",
+                        "无法解码Base64文本。请确保选择的文本是有效的Base64编码。",
+                    )
 
-                        messagebox.showerror(
-                            "错误",
-                            "无法解码Base64文本。请确保选择的文本是有效的Base64编码。",
-                        )
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def sort_lines_asc(self):
         """将选中文本的行按升序排序"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中文本
             selected_text = self.text_area.selection_get()
@@ -971,6 +997,11 @@ class TextProcessingHelper:
 
     def to_camel_case(self, event=None):
         """将选中的下划线命名转换为驼峰命名"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中的文本
             try:
@@ -981,8 +1012,6 @@ class TextProcessingHelper:
 
             # 将下划线命名转换为驼峰命名
             # 先按空格、换行符分割文本
-            import re
-
             words = re.split(r"(\s+)", selected_text)
 
             # 处理每个单词
@@ -1011,6 +1040,11 @@ class TextProcessingHelper:
 
     def to_snake_case(self, event=None):
         """将选中的驼峰命名转换为下划线命名"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中的文本
             try:
@@ -1020,8 +1054,6 @@ class TextProcessingHelper:
                 return
 
             # 将驼峰命名转换为下划线命名
-            import re
-
             # 在大写字母前添加下划线，然后转换为小写
             snake_case_text = re.sub(
                 r"([a-z0-9])([A-Z])", r"\1_\2", selected_text
@@ -1036,6 +1068,11 @@ class TextProcessingHelper:
 
     def sort_lines_desc(self, event=None):
         """降序排序选中的行"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中的文本
             try:
@@ -1060,6 +1097,11 @@ class TextProcessingHelper:
 
     def reverse_text(self, event=None):
         """反转选中的文本（字符级别）"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中的文本
             try:
@@ -1080,6 +1122,11 @@ class TextProcessingHelper:
 
     def reverse_lines(self, event=None):
         """反转选中的行顺序"""
+        # 检查是否处于只读模式
+        if self._is_readonly():
+            self._show_readonly_message()
+            return
+
         try:
             # 获取选中的文本
             try:

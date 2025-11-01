@@ -21,6 +21,11 @@ class InsertHelper:
 
     def insert_shebang(self):
         """在光标位置插入 Shebang 行"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             self.editor.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
             # 保持光标在插入文本之后
@@ -30,6 +35,11 @@ class InsertHelper:
 
     def insert_python_encoding(self):
         """在光标位置插入Python字符集声明"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             self.editor.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-")
         except Exception as e:
@@ -37,6 +47,11 @@ class InsertHelper:
 
     def insert_go_package_main(self):
         """在光标位置插入Go语言基本结构"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             go_structure = 'package main\n\nimport (\n\tfmt""\n)\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}'
             self.editor.text_area.insert(tk.INSERT, go_structure)
@@ -45,6 +60,11 @@ class InsertHelper:
 
     def insert_filename(self):
         """在光标位置插入文件名"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         if self.editor.current_file:
             try:
                 filename = os.path.basename(self.editor.current_file)
@@ -56,6 +76,11 @@ class InsertHelper:
 
     def insert_filepath(self):
         """在光标位置插入完整文件路径"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         if self.editor.current_file:
             try:
                 self.editor.text_area.insert(tk.INSERT, self.editor.current_file)
@@ -66,6 +91,11 @@ class InsertHelper:
 
     def insert_directory(self):
         """在光标位置插入目录"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         if self.editor.current_file:
             try:
                 directory = os.path.dirname(self.editor.current_file)
@@ -77,6 +107,11 @@ class InsertHelper:
 
     def insert_date_yyyy_mm_dd(self):
         """在光标位置插入日期 (YYYY-MM-DD 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             date_str = datetime.now().strftime("%Y-%m-%d")
             self.editor.text_area.insert(tk.INSERT, date_str)
@@ -85,6 +120,11 @@ class InsertHelper:
 
     def insert_date_yyyy_slash_mm_slash_dd(self):
         """在光标位置插入日期 (YYYY/MM/DD 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             date_str = datetime.now().strftime("%Y/%m/%d")
             self.editor.text_area.insert(tk.INSERT, date_str)
@@ -93,6 +133,11 @@ class InsertHelper:
 
     def insert_date_dd_slash_mm_slash_yyyy(self):
         """在光标位置插入日期 (DD/MM/YYYY 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             date_str = datetime.now().strftime("%d/%m/%Y")
             self.editor.text_area.insert(tk.INSERT, date_str)
@@ -101,6 +146,11 @@ class InsertHelper:
 
     def insert_date_mm_slash_dd_slash_yyyy(self):
         """在光标位置插入日期 (MM/DD/YYYY 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             date_str = datetime.now().strftime("%m/%d/%Y")
             self.editor.text_area.insert(tk.INSERT, date_str)
@@ -109,6 +159,11 @@ class InsertHelper:
 
     def insert_datetime_full(self):
         """在光标位置插入完整日期时间 (YYYY-MM-DD HH:MM:SS 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             datetime_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.editor.text_area.insert(tk.INSERT, datetime_str)
@@ -117,6 +172,11 @@ class InsertHelper:
 
     def insert_timestamp_yyyymmddhhmmss(self):
         """在光标位置插入时间戳 (YYYYMMDDHHMMSS 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             timestamp_str = datetime.now().strftime("%Y%m%d%H%M%S")
             self.editor.text_area.insert(tk.INSERT, timestamp_str)
@@ -125,6 +185,11 @@ class InsertHelper:
 
     def insert_time_hhmmss(self):
         """在光标位置插入当前时间 (HH:MM:SS 格式)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             time_str = datetime.now().strftime("%H:%M:%S")
             self.editor.text_area.insert(tk.INSERT, time_str)
@@ -133,6 +198,11 @@ class InsertHelper:
 
     def insert_uuid_v4(self):
         """在光标位置插入UUID v4 (带连字符)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             uuid_str = str(uuid.uuid4())
             self.editor.text_area.insert(tk.INSERT, uuid_str)
@@ -141,6 +211,11 @@ class InsertHelper:
 
     def insert_uuid_v4_nodash(self):
         """在光标位置插入UUID v4 (无连字符)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             uuid_str = str(uuid.uuid4()).replace("-", "")
             self.editor.text_area.insert(tk.INSERT, uuid_str)
@@ -149,6 +224,11 @@ class InsertHelper:
 
     def insert_uuid_v4_uppercase(self):
         """在光标位置插入UUID v4 (大写)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             uuid_str = str(uuid.uuid4()).upper()
             self.editor.text_area.insert(tk.INSERT, uuid_str)
@@ -157,6 +237,11 @@ class InsertHelper:
 
     def insert_uuid_v4_nodash_uppercase(self):
         """在光标位置插入UUID v4 (无连字符大写)"""
+        # 检查是否处于只读模式
+        if self.editor.readonly_mode:
+            messagebox.showinfo("提示", "当前处于只读模式，无法插入内容")
+            return
+
         try:
             uuid_str = str(uuid.uuid4()).replace("-", "").upper()
             self.editor.text_area.insert(tk.INSERT, uuid_str)
