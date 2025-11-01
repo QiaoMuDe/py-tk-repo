@@ -596,7 +596,6 @@ class AdvancedTextEditor:
 
         # 添加查找和替换选项
         self.create_find_menu_item(edit_menu)
-        self.create_replace_menu_item(edit_menu)
         edit_menu.add_separator()
 
         # 页面导航选项
@@ -1502,9 +1501,9 @@ class AdvancedTextEditor:
             side=tk.LEFT, fill=tk.Y, padx=4
         )
 
-        # 查找和替换按钮
+        # 查找替换按钮
         find_replace_btn = ttk.Button(
-            self.toolbar, text="查找和替换", command=self.show_find_dialog
+            self.toolbar, text="查找替换", command=self.show_find_dialog
         )
         find_replace_btn.pack(side=tk.LEFT, padx=2, pady=2)
         self.toolbar_buttons.append(find_replace_btn)
@@ -1913,7 +1912,6 @@ class AdvancedTextEditor:
         self.root.bind("<Control-q>", lambda e: self.exit_app())
         self.root.bind("<Control-a>", lambda e: self.select_all())
         self.root.bind("<Control-f>", lambda e: self.show_find_dialog())
-        self.root.bind("<Control-h>", lambda e: self.replace_text())
         self.root.bind("<Home>", lambda e: self.go_to_home())
         self.root.bind("<End>", lambda e: self.go_to_end())
         self.root.bind("<Control-r>", lambda e: self.toggle_readonly_mode())
@@ -2830,6 +2828,12 @@ class AdvancedTextEditor:
                 messagebox.showinfo("提示", "当前处于只读模式, 无法保存文件。")
             return False, None
 
+        # 检查文档是否被修改
+        if not self.text_area.edit_modified():
+            if not silent:
+                messagebox.showinfo("提示", "文档没有被修改，无需保存。")
+            return False, None
+
         # 检查文本框是否有内容
         content = self.text_area.get(1.0, tk.END).strip()
         if not content:
@@ -2858,10 +2862,9 @@ class AdvancedTextEditor:
         success, error_msg = self._save_content_to_file(self.current_file, content)
 
         if success:
-            # 在Tkinter事件循环中更新UI, 避免命令冲突
-            self.root.after(
-                10, lambda: self._post_save_operations(self.current_file, silent)
-            )
+            # 立即调用_post_save_operations更新UI状态
+            # 不再使用延迟调用，确保及时更新
+            self._post_save_operations(self.current_file, silent)
             return True
         else:
             if not silent:
@@ -2878,6 +2881,10 @@ class AdvancedTextEditor:
         try:
             # 更新修改状态
             self.text_area.edit_modified(False)
+            
+            # 确保窗口标题和状态栏都得到更新
+            self.update_title_based_on_content()
+            self.update_statusbar()
 
             # 显示保存成功消息
             if not silent:
@@ -2885,9 +2892,6 @@ class AdvancedTextEditor:
                     "保存成功",
                     f"文件已成功保存！\n编码格式: {self.encoding.upper()}\n换行符格式: {self.line_ending}",
                 )
-            else:
-                # 静默模式下，只在状态栏显示简短信息
-                self.update_statusbar()
 
             # 检查是否启用了语法高亮
             if self.syntax_highlighting_enabled:
@@ -2961,6 +2965,8 @@ class AdvancedTextEditor:
         if self.auto_save_timer:
             self.root.after_cancel(self.auto_save_timer)
             self.auto_save_timer = None
+        # 更新状态栏显示自动保存已禁用
+        self.show_default_auto_save_status()
 
     def perform_auto_save(self):
         """执行自动保存操作"""
@@ -2989,8 +2995,8 @@ class AdvancedTextEditor:
                 # 执行保存操作
                 success = self.save_file(silent=True)
 
-                # 更新UI状态（需要在主线程中执行）
-                if success:
+                # 只有在自动保存启用状态下才更新自动保存状态
+                if success and self.auto_save_enabled:
                     self.root.after(
                         0, lambda: self.update_auto_save_status(True, "自动保存成功")
                     )
@@ -3032,8 +3038,9 @@ class AdvancedTextEditor:
             # 更新最后自动保存时间
             self.last_auto_save_time = datetime.datetime.now()
 
-            # 在主线程更新状态栏
-            self.root.after(0, self.update_auto_save_status, True, "自动保存完成")
+            # 只有在自动保存启用状态下才更新自动保存状态
+            if self.auto_save_enabled:
+                self.root.after(0, self.update_auto_save_status, True, "自动保存完成")
         except Exception as e:
             print(f"备份失败: {e}")
             error_msg = f"备份失败: {str(e)}"
@@ -3329,11 +3336,6 @@ class AdvancedTextEditor:
 
             if not self.text_area.tag_ranges("found"):
                 messagebox.showinfo("查找结果", "未找到指定文本")
-
-    def replace_text(self):
-        """替换文本"""
-        # 使用新的查找和替换对话框
-        FindDialog(self.root, self.text_area, self.current_file, read_only=self.readonly_mode)
 
     def go_to_end(self):
         """转到文件底部"""
@@ -3867,7 +3869,7 @@ The quick brown fox jumps over the lazy dog.
 
     def show_find_dialog(self):
         """显示查找对话框"""
-        # 获取文本区域中选中的文本
+        # 获取文本区域中选中的文本，保持原始内容不变
         selected_text = (
             self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
             if self.text_area.tag_ranges(tk.SEL)
@@ -3994,15 +3996,9 @@ The quick brown fox jumps over the lazy dog.
         )
 
     def create_find_menu_item(self, parent_menu):
-        """创建查找菜单项"""
+        """创建查找替换菜单项"""
         parent_menu.add_command(
-            label="查找", command=self.show_find_dialog, accelerator="Ctrl+F"
-        )
-
-    def create_replace_menu_item(self, parent_menu):
-        """创建替换菜单项"""
-        parent_menu.add_command(
-            label="替换", command=self.replace_text, accelerator="Ctrl+H"
+            label="查找替换", command=self.show_find_dialog, accelerator="Ctrl+F"
         )
 
     def create_bold_menu_item(self, parent_menu):
@@ -4081,7 +4077,6 @@ The quick brown fox jumps over the lazy dog.
 
         # 添加查找和替换选项
         self.create_find_menu_item(context_menu)
-        self.create_replace_menu_item(context_menu)
         context_menu.add_separator()
 
         # 添加字体效果选项
