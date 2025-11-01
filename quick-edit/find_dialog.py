@@ -6,12 +6,13 @@ from quick_edit_utils import set_window_icon, center_window
 
 
 class FindDialog:
-    def __init__(self, parent, text_widget, file_path=None, selected_text="", read_only=False):
+    def __init__(self, parent, text_widget, file_path=None, selected_text="", read_only=False, update_callback=None):
         self.parent = parent # 父窗口
         self.text_widget = text_widget
         self.file_path = file_path
         self.selected_text = selected_text  # 接收选中文本
         self.read_only = read_only  # 只读模式标志
+        self.update_callback = update_callback  # 更新回调函数，用于通知主窗口更新状态
         self.matches = []
         self.current_match_index = -1
         self.is_searching = False  # 标记是否正在进行查找操作
@@ -342,9 +343,10 @@ class FindDialog:
         
         # 设置文本组件的修改状态标志，确保窗口标题能正确更新
         self.text_widget.edit_modified(True)
-        # 直接调用父组件的update_statusbar方法确保即时更新，比事件触发更高效
-        if hasattr(self.text_widget.master, 'update_statusbar'):
-            self.text_widget.master.update_statusbar()
+        
+        # 使用回调函数通知主窗口更新状态
+        if self.update_callback:
+            self.update_callback()
 
         # 重新执行查找以更新匹配项列表
         self.matches = self.perform_search(search_term)
@@ -401,9 +403,10 @@ class FindDialog:
 
         # 设置文本组件的修改状态标志，确保窗口标题能正确更新
         self.text_widget.edit_modified(True)
-        # 直接调用父组件的update_statusbar方法确保即时更新，比事件触发更高效
-        if hasattr(self.text_widget.master, 'update_statusbar'):
-            self.text_widget.master.update_statusbar()
+        
+        # 使用回调函数通知主窗口更新状态
+        if self.update_callback:
+            self.update_callback()
 
         # 清除匹配项列表和高亮
         self.matches = []

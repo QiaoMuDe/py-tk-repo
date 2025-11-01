@@ -1300,6 +1300,10 @@ class AdvancedTextEditor:
 
     def on_key_press(self, event):
         """处理键盘按键事件"""
+        # 检测Ctrl+H组合键，阻止默认的退格行为
+        if (event.state & 0x4) and (event.keysym == 'h' or event.char == '\x08'):
+            return "break"
+            
         # 在适当的时候更新行号显示
         self.root.after(10, self.update_line_numbers)
         return None
@@ -1904,6 +1908,8 @@ class AdvancedTextEditor:
 
     def bind_shortcuts(self):
         """绑定快捷键"""
+        # 绑定Ctrl+H到空操作，覆盖默认的退格行为
+        self.root.bind("<Control-h>", lambda e: "break")
         self.root.bind("<Control-n>", lambda e: self.new_file())
         self.root.bind("<Control-o>", lambda e: self.open_file())
         self.root.bind("<Control-s>", lambda e: self.save_file())
@@ -3875,7 +3881,9 @@ The quick brown fox jumps over the lazy dog.
             if self.text_area.tag_ranges(tk.SEL)
             else ""
         )
-        FindDialog(self.root, self.text_area, self.current_file, selected_text, read_only=self.readonly_mode)
+        # 传递update_statusbar方法作为回调函数，确保替换操作后能立即更新窗口状态
+        FindDialog(self.root, self.text_area, self.current_file, selected_text, 
+                  read_only=self.readonly_mode, update_callback=self.update_statusbar)
 
     def advanced_find_text(
         self, search_term, search_type="normal", match_case=True, whole_word=False
