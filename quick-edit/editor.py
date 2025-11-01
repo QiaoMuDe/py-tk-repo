@@ -4107,6 +4107,13 @@ The quick brown fox jumps over the lazy dog.
                                       command=self.text_processing_helper.comment_selection_slash)
         selected_text_menu.add_command(label="移除行注释", 
                                       command=self.text_processing_helper.uncomment_selection)
+        selected_text_menu.add_separator()
+        
+        # 添加Base64编码解码功能
+        selected_text_menu.add_command(label="Base64编码", 
+                                      command=self.text_processing_helper.encode_base64)
+        selected_text_menu.add_command(label="Base64解码", 
+                                      command=self.text_processing_helper.decode_base64)
         
         return selected_text_menu
     

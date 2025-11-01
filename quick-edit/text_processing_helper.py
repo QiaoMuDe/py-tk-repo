@@ -687,3 +687,52 @@ class TextProcessingHelper:
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
+    
+    def encode_base64(self):
+        """对选中的文本进行Base64编码"""
+        try:
+            import base64
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                # 保存插入位置
+                insert_pos = self.text_area.index("sel.first")
+                # 对文本进行Base64编码
+                encoded_bytes = base64.b64encode(selected_text.encode('utf-8'))
+                encoded_text = encoded_bytes.decode('utf-8')
+                # 替换选中的文本
+                self.text_area.delete("sel.first", "sel.last")
+                self.text_area.insert(insert_pos, encoded_text)
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
+    
+    def decode_base64(self):
+        """对选中的Base64编码文本进行解码"""
+        try:
+            import base64
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                # 保存插入位置
+                insert_pos = self.text_area.index("sel.first")
+                try:
+                    # 对Base64文本进行解码
+                    decoded_bytes = base64.b64decode(selected_text.encode('utf-8'))
+                    decoded_text = decoded_bytes.decode('utf-8')
+                    # 替换选中的文本
+                    self.text_area.delete("sel.first", "sel.last")
+                    self.text_area.insert(insert_pos, decoded_text)
+                except Exception:
+                    # 显示错误消息
+                    if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
+                        root = self.text_area.master.master
+                        if hasattr(root, 'show_message'):
+                            root.show_message("错误", "无法解码Base64文本。请确保选择的文本是有效的Base64编码。")
+                    else:
+                        # 如果找不到show_message方法，使用tkinter的messagebox
+                        import tkinter.messagebox as messagebox
+                        messagebox.showerror("错误", "无法解码Base64文本。请确保选择的文本是有效的Base64编码。")
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
