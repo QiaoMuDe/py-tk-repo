@@ -176,6 +176,10 @@ class AdvancedTextEditor:
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
+        
+        # 设置窗口焦点和文本框光标位置
+        self.root.focus_force()
+        self.text_area.focus_set()
 
     def apply_syntax_highlighting(self):
         """应用语法高亮"""
@@ -2414,6 +2418,9 @@ class AdvancedTextEditor:
         self._reset_file_state()
         # 移除状态栏更新, 因为_reset_file_state已经包含了这一步
         pass
+        
+        # 设置文本框获取焦点
+        self.text_area.focus_set()
 
     def open_file(self, file_path=None):
         """打开文件"""
@@ -2705,6 +2712,9 @@ class AdvancedTextEditor:
 
             # 延迟应用语法高亮以减少卡顿
             self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)
+            
+            # 设置文本框获取焦点
+            self.text_area.focus_set()
         except Exception as e:
             messagebox.showerror("错误", f"无法打开文件: {str(e)}")
 
