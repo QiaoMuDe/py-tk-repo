@@ -36,7 +36,7 @@ class TextProcessingHelper:
 
     def _show_readonly_message(self):
         """显示只读模式下无法编辑的提示信息"""
-        messagebox.showinfo("提示", "当前处于只读模式，无法进行选中处理。")
+        messagebox.showinfo("提示", "当前处于只读模式，无法进行选中文本操作。")
 
     def convert_to_uppercase(self):
         """将选中的文本转换为大写"""
