@@ -348,25 +348,83 @@ class TextProcessingHelper:
             pass
     
     def format_ini(self):
-        """格式化INI文本（对齐键值对）"""
+        """格式化INI文本（对齐键值对），保留注释"""
         try:
-            import configparser
-            import io
             # 获取选中文本
             selected_text = self.text_area.selection_get()
             if selected_text:
                 try:
                     # 保存插入位置
                     insert_pos = self.text_area.index("sel.first")
-                    # 使用configparser解析INI
-                    config = configparser.ConfigParser()
-                    config.read_string(selected_text)
+                    # 分割成行
+                    lines = selected_text.split('\n')
                     
-                    # 格式化输出
-                    output = io.StringIO()
-                    config.write(output)
-                    formatted_ini = output.getvalue()
-                    output.close()
+                    # 分析并格式化INI文件，保留注释
+                    formatted_lines = []
+                    max_key_lengths = {}  # 每个section中key的最大长度
+                    current_section = None
+                    
+                    # 第一遍扫描，找出每个section中key的最大长度
+                    for line in lines:
+                        line = line.rstrip()  # 移除行尾空白
+                        stripped = line.lstrip()
+                        
+                        # 跳过空行和注释行（在计算长度时跳过）
+                        if not stripped or stripped.startswith(';') or stripped.startswith('#'):
+                            continue
+                            
+                        # 检查是否为section行
+                        if stripped.startswith('[') and stripped.endswith(']'):
+                            current_section = stripped[1:-1]
+                            if current_section not in max_key_lengths:
+                                max_key_lengths[current_section] = 0
+                        elif current_section and '=' in stripped and not (stripped.startswith(';') or stripped.startswith('#')):
+                            # 这是一个键值对
+                            key = stripped.split('=', 1)[0].rstrip()
+                            if len(key) > max_key_lengths[current_section]:
+                                max_key_lengths[current_section] = len(key)
+                    
+                    # 第二遍扫描，格式化每一行
+                    current_section = None
+                    for line in lines:
+                        line = line.rstrip()  # 移除行尾空白
+                        stripped = line.lstrip()
+                        leading_spaces = len(line) - len(stripped)
+                        
+                        # 保留空行和注释行
+                        if not stripped:
+                            formatted_lines.append('')
+                        elif stripped.startswith(';') or stripped.startswith('#'):
+                            # 保留注释行的原始格式
+                            formatted_lines.append(line)
+                        elif stripped.startswith('[') and stripped.endswith(']'):
+                            # Section行居中或保持原格式
+                            current_section = stripped[1:-1]
+                            formatted_lines.append(line)
+                        elif current_section and '=' in stripped:
+                            # 键值对格式化
+                            if stripped.startswith(';') or stripped.startswith('#'):
+                                # 注释行保持原样
+                                formatted_lines.append(line)
+                            else:
+                                # 分割键和值
+                                parts = stripped.split('=', 1)
+                                if len(parts) == 2:
+                                    key = parts[0].rstrip()
+                                    value = parts[1].lstrip()
+                                    # 使用之前计算的最大key长度进行对齐
+                                    padding = max_key_lengths.get(current_section, len(key))
+                                    formatted_line = ' ' * leading_spaces + key.ljust(padding) + ' = ' + value
+                                    formatted_lines.append(formatted_line)
+                                else:
+                                    # 不是标准键值对，保持原样
+                                    formatted_lines.append(line)
+                        else:
+                            # 其他行保持原样
+                            formatted_lines.append(line)
+                    
+                    # 重新组合文本
+                    formatted_ini = '\n'.join(formatted_lines)
                     
                     # 替换选中的文本
                     self.text_area.delete("sel.first", "sel.last")
@@ -376,17 +434,17 @@ class TextProcessingHelper:
                     if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
                         root = self.text_area.master.master
                         if hasattr(root, 'show_message'):
-                            root.show_message("错误", f"无法解析INI文本: {str(e)}")
+                            root.show_message("错误", f"无法格式化INI文本: {str(e)}")
                     else:
                         # 如果找不到show_message方法，使用tkinter的messagebox
                         import tkinter.messagebox as messagebox
-                        messagebox.showerror("错误", f"无法解析INI文本: {str(e)}")
+                        messagebox.showerror("错误", f"无法格式化INI文本: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
 
     def format_csv(self):
-        """格式化CSV文本（对齐列）"""
+        """格式化CSV文本（对齐列），保持CSV格式"""
         try:
             import csv
             import io
@@ -408,13 +466,14 @@ class TextProcessingHelper:
                         for i, cell in enumerate(row):
                             col_widths[i] = max(col_widths[i], len(cell))
                     
-                    # 格式化输出
+                    # 格式化输出，保持CSV格式
                     formatted_lines = []
                     for row in rows:
                         formatted_row = ""
                         for i, cell in enumerate(row):
                             if i < len(col_widths) - 1:  # 不是最后一列
-                                formatted_row += cell.ljust(col_widths[i] + 2)  # 用空格填充并添加间隔
+                                # 保持CSV格式，使用逗号分隔，但对齐列宽
+                                formatted_row += cell.ljust(col_widths[i] + 1) + ','
                             else:
                                 formatted_row += cell
                         formatted_lines.append(formatted_row)
@@ -428,11 +487,11 @@ class TextProcessingHelper:
                     if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
                         root = self.text_area.master.master
                         if hasattr(root, 'show_message'):
-                            root.show_message("错误", f"无法解析CSV文本: {str(e)}")
+                            root.show_message("错误", f"无法格式化CSV文本: {str(e)}")
                     else:
                         # 如果找不到show_message方法，使用tkinter的messagebox
                         import tkinter.messagebox as messagebox
-                        messagebox.showerror("错误", f"无法解析CSV文本: {str(e)}")
+                        messagebox.showerror("错误", f"无法格式化CSV文本: {str(e)}")
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
@@ -473,6 +532,106 @@ class TextProcessingHelper:
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
+
+    def format_python(self):
+        """格式化Python代码"""
+        try:
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                try:
+                    # 保存插入位置
+                    insert_pos = self.text_area.index("sel.first")
+                    
+                    # 尝试使用black格式化（优先使用）
+                    try:
+                        import black
+                        # 使用black格式化代码
+                        formatted_code = black.format_str(selected_text, mode=black.Mode())
+                    except ImportError:
+                        # 如果black不可用，尝试使用autopep8
+                        try:
+                            import autopep8
+                            # 使用autopep8格式化代码
+                            formatted_code = autopep8.fix_code(selected_text)
+                        except ImportError:
+                            # 如果都没有，显示错误消息
+                            if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
+                                root = self.text_area.master.master
+                                if hasattr(root, 'show_message'):
+                                    root.show_message("错误", "未找到Python代码格式化工具。请安装black或autopep8。")
+                            else:
+                                import tkinter.messagebox as messagebox
+                                messagebox.showerror("错误", "未找到Python代码格式化工具。请安装black或autopep8。")
+                            return
+                    
+                    # 替换选中的文本
+                    self.text_area.delete("sel.first", "sel.last")
+                    self.text_area.insert(insert_pos, formatted_code)
+                except Exception as e:
+                    # 显示错误消息
+                    if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
+                        root = self.text_area.master.master
+                        if hasattr(root, 'show_message'):
+                            root.show_message("错误", f"无法格式化Python代码: {str(e)}")
+                    else:
+                        import tkinter.messagebox as messagebox
+                        messagebox.showerror("错误", f"无法格式化Python代码: {str(e)}")
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
+
+    def format_yaml(self):
+        """格式化YAML文本（美化，保留注释）"""
+        try:
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                try:
+                    # 保存插入位置
+                    insert_pos = self.text_area.index("sel.first")
+                    
+                    # 尝试使用ruamel.yaml保留注释格式化
+                    try:
+                        from ruamel.yaml import YAML
+                        # 使用ruamel.yaml保留注释格式化
+                        yaml = YAML()
+                        yaml.preserve_quotes = True
+                        yaml.width = 4096  # 防止自动换行
+                        # 读取YAML
+                        yaml_obj = yaml.load(selected_text)
+                        # 重新格式化输出
+                        from io import StringIO
+                        string_stream = StringIO()
+                        yaml.dump(yaml_obj, string_stream)
+                        formatted_yaml = string_stream.getvalue()
+                    except ImportError:
+                        # 如果ruamel.yaml不可用，回退到原来的PyYAML（会丢失注释）
+                        import yaml
+                        # 解析YAML
+                        yaml_obj = yaml.safe_load(selected_text)
+                        # 格式化输出（美化）
+                        formatted_yaml = yaml.dump(yaml_obj, allow_unicode=True, indent=2, 
+                                                 default_flow_style=False, sort_keys=False)
+                    
+                    # 替换选中的文本
+                    self.text_area.delete("sel.first", "sel.last")
+                    self.text_area.insert(insert_pos, formatted_yaml)
+                except Exception as e:
+                    # 显示错误消息
+                    if hasattr(self.text_area, 'master') and hasattr(self.text_area.master, 'master'):
+                        root = self.text_area.master.master
+                        if hasattr(root, 'show_message'):
+                            root.show_message("错误", f"无法解析YAML文本: {str(e)}")
+                    else:
+                        # 如果找不到show_message方法，使用tkinter的messagebox
+                        import tkinter.messagebox as messagebox
+                        messagebox.showerror("错误", f"无法解析YAML文本: {str(e)}")
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
+
+
 
     def uncomment_selection(self):
         """移除选中文本中的行注释（移除每行开头的 # ）"""

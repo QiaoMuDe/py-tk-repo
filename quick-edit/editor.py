@@ -4094,6 +4094,10 @@ The quick brown fox jumps over the lazy dog.
                                       command=self.text_processing_helper.format_csv)
         selected_text_menu.add_command(label="格式化INI", 
                                       command=self.text_processing_helper.format_ini)
+        selected_text_menu.add_command(label="格式化Python", 
+                                      command=self.text_processing_helper.format_python)
+        selected_text_menu.add_command(label="格式化YAML", 
+                                      command=self.text_processing_helper.format_yaml)
         selected_text_menu.add_separator()
         
         # 添加注释相关功能
