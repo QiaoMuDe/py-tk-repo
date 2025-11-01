@@ -218,6 +218,110 @@ class ThemeManager:
             "statusbar_bg": "#f5d1b0",
             "statusbar_fg": "#d35400",
         },
+        "deep_ocean": {
+            "name": "深海蓝主题",
+            "text_bg": "#16213e",
+            "text_fg": "#e94560",
+            "text_insert_bg": "#e94560",
+            "text_select_bg": "#0f3460",
+            "text_select_fg": "#ffffff",
+            "line_numbers_bg": "#0f3460",
+            "line_numbers_fg": "#6264a7",
+            "line_numbers_hover_bg": "#1e2f5a",
+            "found_bg": "#e94560",
+            "found_fg": "#ffffff",
+            "current_match_bg": "#c71635",
+            "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#1e2f5a",
+            "menu_bg": "#0f3460",
+            "menu_fg": "#e94560",
+            "menu_active_bg": "#1a2c50",
+            "menu_active_fg": "#ffffff",
+            "toolbar_bg": "#0f3460",
+            "toolbar_active_bg": "#1a2c50",
+            "toolbar_pressed_bg": "#0a2548",
+            "toolbar_button_fg": "#e94560",
+            "statusbar_bg": "#0f3460",
+            "statusbar_fg": "#e94560",
+        },
+        "forest": {
+            "name": "森林绿主题",
+            "text_bg": "#1d3c45",
+            "text_fg": "#9ec8b9",
+            "text_insert_bg": "#9ec8b9",
+            "text_select_bg": "#2d4e57",
+            "text_select_fg": "#ffffff",
+            "line_numbers_bg": "#2d4e57",
+            "line_numbers_fg": "#6c9b87",
+            "line_numbers_hover_bg": "#3d5e67",
+            "found_bg": "#70a99a",
+            "found_fg": "#1d3c45",
+            "current_match_bg": "#5e8d7f",
+            "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#2d4e57",
+            "menu_bg": "#2d4e57",
+            "menu_fg": "#9ec8b9",
+            "menu_active_bg": "#3d5e67",
+            "menu_active_fg": "#ffffff",
+            "toolbar_bg": "#2d4e57",
+            "toolbar_active_bg": "#3d5e67",
+            "toolbar_pressed_bg": "#1d3c45",
+            "toolbar_button_fg": "#9ec8b9",
+            "statusbar_bg": "#2d4e57",
+            "statusbar_fg": "#9ec8b9",
+        },
+        "sunrise": {
+            "name": "日出金主题",
+            "text_bg": "#f4e0b9",
+            "text_fg": "#8a4f1d",
+            "text_insert_bg": "#8a4f1d",
+            "text_select_bg": "#e9c176",
+            "text_select_fg": "#8a4f1d",
+            "line_numbers_bg": "#e9c176",
+            "line_numbers_fg": "#a96f3d",
+            "line_numbers_hover_bg": "#d9b166",
+            "found_bg": "#d4a15a",
+            "found_fg": "#8a4f1d",
+            "current_match_bg": "#c4914a",
+            "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#e9c176",
+            "menu_bg": "#e9c176",
+            "menu_fg": "#8a4f1d",
+            "menu_active_bg": "#d9b166",
+            "menu_active_fg": "#ffffff",
+            "toolbar_bg": "#e9c176",
+            "toolbar_active_bg": "#d9b166",
+            "toolbar_pressed_bg": "#c9a156",
+            "toolbar_button_fg": "#8a4f1d",
+            "statusbar_bg": "#e9c176",
+            "statusbar_fg": "#8a4f1d",
+        },
+        "neon_pink": {
+            "name": "霓虹粉主题",
+            "text_bg": "#2b0622",
+            "text_fg": "#ff5aac",
+            "text_insert_bg": "#ff5aac",
+            "text_select_bg": "#4b1a42",
+            "text_select_fg": "#ffffff",
+            "line_numbers_bg": "#4b1a42",
+            "line_numbers_fg": "#d9489c",
+            "line_numbers_hover_bg": "#5b2a52",
+            "found_bg": "#ff7ad5",
+            "found_fg": "#2b0622",
+            "current_match_bg": "#ff48a5",
+            "current_match_fg": "#ffffff",
+            "cursor_line_bg": "#4b1a42",
+            "menu_bg": "#4b1a42",
+            "menu_fg": "#ff5aac",
+            "menu_active_bg": "#5b2a52",
+            "menu_active_fg": "#ffffff",
+            "toolbar_bg": "#4b1a42",
+            "toolbar_active_bg": "#5b2a52",
+            "toolbar_pressed_bg": "#3b1632",
+            "toolbar_button_fg": "#ff5aac",
+            "statusbar_bg": "#4b1a42",
+            "statusbar_fg": "#ff5aac",
+        },
     }
 
     def __init__(self, editor):
@@ -227,6 +331,16 @@ class ThemeManager:
     def get_current_theme(self):
         """获取当前主题配置"""
         return self.THEMES.get(self.current_theme, self.THEMES["light"])
+
+    def get_theme_list(self):
+        """
+        获取所有可用主题的列表
+        返回格式: [(主题名称, 主题键), ...]
+        """
+        return [
+            (theme_config["name"], theme_key)
+            for theme_key, theme_config in self.THEMES.items()
+        ]
 
     def set_theme(self, theme_name):
         """设置主题"""

@@ -29,7 +29,7 @@ from tab_settings_dialog import TabSettingsDialog
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"
 
 # 版本号
-VERSION = "v1.0.0"
+VERSION = "v0.0.6"
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
@@ -176,7 +176,7 @@ class AdvancedTextEditor:
 
         # 启用拖拽支持
         self.enable_drag_and_drop()
-        
+
         # 设置窗口焦点和文本框光标位置
         self.root.focus_force()
         self.text_area.focus_set()
@@ -276,12 +276,12 @@ class AdvancedTextEditor:
     def update_title_based_on_content(self):
         """根据文本框内容更新窗口标题"""
         # 优化：移除不必要的全文读取操作，改用文本比较和修改状态判断
-        
+
         # 如果没有打开文件
         if not self.current_file:
             # 使用文本比较而不是读取整个内容，更高效地判断文本框是否为空
             is_empty = self.text_area.compare("end-1c", "==", "1.0")
-            
+
             if is_empty:
                 # 当内容为空时，重置修改状态为未修改
                 self.text_area.edit_modified(False)
@@ -671,15 +671,8 @@ class AdvancedTextEditor:
         )
         # 主题选择子菜单
         theme_submenu = tk.Menu(theme_menu, tearoff=0, font=menu_font)
-        themes = [
-            ("浅色主题", "light"),
-            ("深色主题", "dark"),
-            ("蓝色主题", "blue"),
-            ("羊皮卷风格", "parchment"),
-            ("经典绿色", "green"),
-            ("午夜紫", "midnight_purple"),
-            ("日落橙", "sunset"),
-        ]
+        # 使用主题管理器获取所有可用主题列表
+        themes = self.theme_manager.get_theme_list()
         for label, theme_name in themes:
             theme_submenu.add_command(
                 label=label, command=lambda t=theme_name: self.change_theme(t)
@@ -1245,16 +1238,9 @@ class AdvancedTextEditor:
 
     def cycle_theme(self):
         """循环切换主题"""
-        # 定义主题列表，保持与菜单中一致的顺序
-        themes = [
-            "light",
-            "dark",
-            "blue",
-            "parchment",
-            "green",
-            "midnight_purple",
-            "sunset",
-        ]
+        # 从主题管理器获取所有主题，保持与菜单中一致的顺序
+        theme_list = self.theme_manager.get_theme_list()
+        themes = [theme_key for _, theme_key in theme_list]
 
         # 找到当前主题在列表中的位置
         try:
@@ -1303,9 +1289,9 @@ class AdvancedTextEditor:
     def on_key_press(self, event):
         """处理键盘按键事件"""
         # 检测Ctrl+H组合键，阻止默认的退格行为
-        if (event.state & 0x4) and (event.keysym == 'h' or event.char == '\x08'):
+        if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
             return "break"
-            
+
         # 在适当的时候更新行号显示
         self.root.after(10, self.update_line_numbers)
         return None
@@ -2424,7 +2410,7 @@ class AdvancedTextEditor:
         self._reset_file_state()
         # 移除状态栏更新, 因为_reset_file_state已经包含了这一步
         pass
-        
+
         # 设置文本框获取焦点
         self.text_area.focus_set()
 
@@ -2718,7 +2704,7 @@ class AdvancedTextEditor:
 
             # 延迟应用语法高亮以减少卡顿
             self.root.after(100, self._delayed_apply_syntax_highlighting, file_path)
-            
+
             # 设置文本框获取焦点
             self.text_area.focus_set()
         except Exception as e:
@@ -2889,7 +2875,7 @@ class AdvancedTextEditor:
         try:
             # 更新修改状态
             self.text_area.edit_modified(False)
-            
+
             # 确保窗口标题和状态栏都得到更新
             self.update_title_based_on_content()
             self.update_statusbar()
@@ -3300,14 +3286,14 @@ class AdvancedTextEditor:
         """
         try:
             self.text_area.edit_undo()
-            
+
             # 检查撤销后是否为空文件且是新建文件
             if not self.current_file and self.text_area.compare("end-1c", "==", "1.0"):
                 # 当内容为空时，重置修改状态为未修改
                 self.text_area.edit_modified(False)
                 # 确保状态更新
                 self.update_statusbar()
-                
+
         except tk.TclError:
             # 没有可撤销的操作时，显示提示框
             messagebox.showinfo("提示", "没有可撤销的操作")
@@ -3319,14 +3305,14 @@ class AdvancedTextEditor:
         """
         try:
             self.text_area.edit_redo()
-            
+
             # 检查重做后是否为空文件且是新建文件
             if not self.current_file and self.text_area.compare("end-1c", "==", "1.0"):
                 # 当内容为空时，重置修改状态为未修改
                 self.text_area.edit_modified(False)
                 # 确保状态更新
                 self.update_statusbar()
-                
+
         except tk.TclError:
             # 没有可重做的操作时，显示提示框
             messagebox.showinfo("提示", "没有可重做的操作")
@@ -3900,8 +3886,14 @@ The quick brown fox jumps over the lazy dog.
             else ""
         )
         # 传递update_statusbar方法作为回调函数，确保替换操作后能立即更新窗口状态
-        FindDialog(self.root, self.text_area, self.current_file, selected_text, 
-                  read_only=self.readonly_mode, update_callback=self.update_statusbar)
+        FindDialog(
+            self.root,
+            self.text_area,
+            self.current_file,
+            selected_text,
+            read_only=self.readonly_mode,
+            update_callback=self.update_statusbar,
+        )
 
     def advanced_find_text(
         self, search_term, search_type="normal", match_case=True, whole_word=False
