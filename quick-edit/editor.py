@@ -275,18 +275,18 @@ class AdvancedTextEditor:
 
     def update_title_based_on_content(self):
         """根据文本框内容更新窗口标题"""
-        # 获取文本框内容
-        content = self.text_area.get("1.0", tk.END + "-1c")
-
+        # 优化：移除不必要的全文读取操作，改用文本比较和修改状态判断
+        
         # 如果没有打开文件
         if not self.current_file:
-            # 如果文本框为空，使用程序名称作为标题
-            if not content or content.isspace():
+            # 使用文本比较而不是读取整个内容，更高效地判断文本框是否为空
+            is_empty = self.text_area.compare("end-1c", "==", "1.0")
+            
+            if is_empty:
                 if self.readonly_mode:
                     self.root.title("[只读模式] QuickEdit")
                 else:
                     self.root.title("QuickEdit")
-            # 如果文本框有内容，显示"未保存 - QuickEdit"
             else:
                 if self.readonly_mode:
                     self.root.title("[只读模式] 未保存 - QuickEdit")

@@ -7,7 +7,7 @@ from quick_edit_utils import set_window_icon, center_window
 
 class FindDialog:
     def __init__(self, parent, text_widget, file_path=None, selected_text="", read_only=False):
-        self.parent = parent
+        self.parent = parent # 父窗口
         self.text_widget = text_widget
         self.file_path = file_path
         self.selected_text = selected_text  # 接收选中文本
@@ -339,6 +339,12 @@ class FindDialog:
         # 执行替换
         self.text_widget.delete(start_idx, end_idx)
         self.text_widget.insert(start_idx, replace_term)
+        
+        # 设置文本组件的修改状态标志，确保窗口标题能正确更新
+        self.text_widget.edit_modified(True)
+        # 直接调用父组件的update_statusbar方法确保即时更新，比事件触发更高效
+        if hasattr(self.text_widget.master, 'update_statusbar'):
+            self.text_widget.master.update_statusbar()
 
         # 重新执行查找以更新匹配项列表
         self.matches = self.perform_search(search_term)
@@ -392,6 +398,12 @@ class FindDialog:
             start_idx, end_idx = self.matches[i]
             self.text_widget.delete(start_idx, end_idx)
             self.text_widget.insert(start_idx, replace_term)
+
+        # 设置文本组件的修改状态标志，确保窗口标题能正确更新
+        self.text_widget.edit_modified(True)
+        # 直接调用父组件的update_statusbar方法确保即时更新，比事件触发更高效
+        if hasattr(self.text_widget.master, 'update_statusbar'):
+            self.text_widget.master.update_statusbar()
 
         # 清除匹配项列表和高亮
         self.matches = []
