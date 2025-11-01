@@ -283,6 +283,8 @@ class AdvancedTextEditor:
             is_empty = self.text_area.compare("end-1c", "==", "1.0")
             
             if is_empty:
+                # 当内容为空时，重置修改状态为未修改
+                self.text_area.edit_modified(False)
                 if self.readonly_mode:
                     self.root.title("[只读模式] QuickEdit")
                 else:
@@ -3298,6 +3300,14 @@ class AdvancedTextEditor:
         """
         try:
             self.text_area.edit_undo()
+            
+            # 检查撤销后是否为空文件且是新建文件
+            if not self.current_file and self.text_area.compare("end-1c", "==", "1.0"):
+                # 当内容为空时，重置修改状态为未修改
+                self.text_area.edit_modified(False)
+                # 确保状态更新
+                self.update_statusbar()
+                
         except tk.TclError:
             # 没有可撤销的操作时，显示提示框
             messagebox.showinfo("提示", "没有可撤销的操作")
@@ -3309,6 +3319,14 @@ class AdvancedTextEditor:
         """
         try:
             self.text_area.edit_redo()
+            
+            # 检查重做后是否为空文件且是新建文件
+            if not self.current_file and self.text_area.compare("end-1c", "==", "1.0"):
+                # 当内容为空时，重置修改状态为未修改
+                self.text_area.edit_modified(False)
+                # 确保状态更新
+                self.update_statusbar()
+                
         except tk.TclError:
             # 没有可重做的操作时，显示提示框
             messagebox.showinfo("提示", "没有可重做的操作")
