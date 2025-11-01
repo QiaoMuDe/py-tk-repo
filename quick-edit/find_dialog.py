@@ -6,11 +6,12 @@ from quick_edit_utils import set_window_icon, center_window
 
 
 class FindDialog:
-    def __init__(self, parent, text_widget, file_path=None, selected_text=""):
+    def __init__(self, parent, text_widget, file_path=None, selected_text="", read_only=False):
         self.parent = parent
         self.text_widget = text_widget
         self.file_path = file_path
         self.selected_text = selected_text  # 接收选中文本
+        self.read_only = read_only  # 只读模式标志
         self.matches = []
         self.current_match_index = -1
         self.is_searching = False  # 标记是否正在进行查找操作
@@ -302,6 +303,11 @@ class FindDialog:
 
     def replace_once(self):
         """替换当前匹配项"""
+        # 检查是否处于只读模式
+        if self.read_only:
+            messagebox.showwarning("替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作")
+            return
+        
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
         replace_term = (
@@ -327,6 +333,8 @@ class FindDialog:
 
         # 获取当前匹配项的位置
         start_idx, end_idx = self.matches[self.current_match_index]
+        # 保存当前匹配项的文本位置，用于替换后计算新的位置
+        current_match_text = self.text_widget.get(start_idx, end_idx)
 
         # 执行替换
         self.text_widget.delete(start_idx, end_idx)
@@ -336,13 +344,28 @@ class FindDialog:
         self.matches = self.perform_search(search_term)
         self._last_search_term = search_term
 
-        # 重置当前索引
-        self.current_match_index = -1
+        # 智能调整索引，尝试找到下一个合适的匹配项
+        # 如果替换后的文本和原文本不同，重置索引
+        if replace_term != current_match_text:
+            # 替换后自动查找下一个匹配项
+            if self.matches:
+                self.current_match_index = 0
+                self.highlight_current_match()
+            else:
+                self.current_match_index = -1
+        else:
+            # 如果替换的文本相同，保持当前索引
+            pass
 
         messagebox.showinfo("替换", "已替换当前匹配项")
 
     def replace_all(self):
         """替换所有匹配项"""
+        # 检查是否处于只读模式
+        if self.read_only:
+            messagebox.showwarning("替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作")
+            return
+        
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
         replace_term = (
@@ -378,6 +401,24 @@ class FindDialog:
 
         messagebox.showinfo("替换", f"已替换 {replaced_count} 个匹配项")
 
+    def _reset_ui_state(self):
+        """重置所有按钮的UI状态"""
+        self.find_button.config(state=tk.NORMAL)
+        self.find_prev_button.config(state=tk.NORMAL)
+        self.find_all_button.config(state=tk.NORMAL)
+        if self.replace_once_button:
+            self.replace_once_button.config(state=tk.NORMAL)
+        if self.replace_all_button:
+            self.replace_all_button.config(state=tk.NORMAL)
+    
+    def _clear_search_state(self):
+        """清除查找状态和高亮"""
+        self.is_searching = False
+        self.matches = []
+        self.current_match_index = -1
+        self.text_widget.tag_remove("found", "1.0", tk.END)
+        self.text_widget.tag_remove("current_match", "1.0", tk.END)
+    
     def perform_search(self, search_term):
         """执行实际的查找操作"""
         # 设置查找状态
@@ -388,6 +429,10 @@ class FindDialog:
         self.find_button.config(state=tk.DISABLED)
         self.find_prev_button.config(state=tk.DISABLED)
         self.find_all_button.config(state=tk.DISABLED)
+        if self.replace_once_button:
+            self.replace_once_button.config(state=tk.DISABLED)
+        if self.replace_all_button:
+            self.replace_all_button.config(state=tk.DISABLED)
 
         # 清除之前的高亮
         self.text_widget.tag_remove("found", "1.0", tk.END)
@@ -411,49 +456,42 @@ class FindDialog:
                     pattern = search_term
                     content = self.text_widget.get("1.0", tk.END + "-1c")
 
-                    # 获取内容总长度用于进度计算
-                    total_length = len(content)
-                    processed_length = 0
-
                     # 编译正则表达式以提高性能
                     compiled_pattern = re.compile(pattern, flags)
 
                     for match in compiled_pattern.finditer(content):
-                        # 检查是否需要取消查找
-                        if self.cancel_search:
-                            # 更新UI状态
-                            self.find_button.config(state=tk.NORMAL)
-                            self.find_prev_button.config(state=tk.NORMAL)
-                            self.find_all_button.config(state=tk.NORMAL)
-                            return []
-                        start_idx = self.text_widget.index(f"1.0+{match.start()}c")
-                        end_idx = self.text_widget.index(f"1.0+{match.end()}c")
-                        matches.append((start_idx, end_idx))
+                         # 检查是否需要取消查找
+                         if self.cancel_search:
+                             # 更新UI状态
+                             self._reset_ui_state()
+                             # 清除高亮和匹配结果
+                             self.text_widget.tag_remove("found", "1.0", tk.END)
+                             self.text_widget.tag_remove("current_match", "1.0", tk.END)
+                             return []
+                         start_idx = self.text_widget.index(f"1.0+{match.start()}c")
+                         end_idx = self.text_widget.index(f"1.0+{match.end()}c")
+                         matches.append((start_idx, end_idx))
                 except re.error as e:
                     messagebox.showerror(
                         "正则表达式错误", f"正则表达式语法错误: {str(e)}"
                     )
                     # 更新UI状态
-                    self.find_button.config(state=tk.NORMAL)
-                    self.find_prev_button.config(state=tk.NORMAL)
-                    self.find_all_button.config(state=tk.NORMAL)
+                    self._reset_ui_state()
                     return []
             else:
                 # 普通查找或完整匹配
                 search_flags = 0 if match_case else re.IGNORECASE
 
                 start_pos = "1.0"
-                content = self.text_widget.get("1.0", tk.END + "-1c")
-                total_length = len(content)
-                processed_length = 0
 
                 while True:
                     # 检查是否需要取消查找
                     if self.cancel_search:
                         # 更新UI状态
-                        self.find_button.config(state=tk.NORMAL)
-                        self.find_prev_button.config(state=tk.NORMAL)
-                        self.find_all_button.config(state=tk.NORMAL)
+                        self._reset_ui_state()
+                        # 清除高亮和匹配结果
+                        self.text_widget.tag_remove("found", "1.0", tk.END)
+                        self.text_widget.tag_remove("current_match", "1.0", tk.END)
                         return []
 
                     if search_type == "whole":
@@ -461,7 +499,15 @@ class FindDialog:
                         pattern = r"\b" + re.escape(search_term) + r"\b"
                         content_from_start = self.text_widget.get(start_pos, tk.END)
                         flags = 0 if match_case else re.IGNORECASE
-                        match = re.search(pattern, content_from_start, flags)
+                        # 对于完整单词匹配，如果启用了跨行匹配，需要特殊处理
+                        if multiline_match:
+                            # 移除行边界，允许跨多行匹配完整单词
+                            pattern = re.escape(search_term)
+                            # 使用更精确的单词边界检测
+                            word_boundary_pattern = r"(?<!\w)" + pattern + r"(?!\w)"
+                            match = re.search(word_boundary_pattern, content_from_start, flags)
+                        else:
+                            match = re.search(pattern, content_from_start, flags)
                         if not match:
                             break
 
@@ -478,9 +524,26 @@ class FindDialog:
                         end_idx = f"{current_line}.{current_col + len(search_term)}"
                     else:
                         # 普通查找
-                        start_idx = self.text_widget.search(
-                            search_term, start_pos, tk.END, nocase=not match_case
-                        )
+                        # 对于普通查找，如果启用了跨行匹配，需要使用re.search
+                        if multiline_match:
+                            content_from_start = self.text_widget.get(start_pos, tk.END)
+                            flags = 0 if match_case else re.IGNORECASE
+                            match = re.search(re.escape(search_term), content_from_start, flags)
+                            if not match:
+                                break
+                            # 计算实际位置
+                            content_up_to_start = self.text_widget.get("1.0", start_pos)
+                            full_content_up_to_match = (
+                                content_up_to_start + content_from_start[:match.start()]
+                            )
+                            lines = full_content_up_to_match.split("\n")
+                            current_line = len(lines)
+                            current_col = len(lines[-1])
+                            start_idx = f"{current_line}.{current_col}"
+                        else:
+                            start_idx = self.text_widget.search(
+                                search_term, start_pos, tk.END, nocase=not match_case
+                            )
                         if not start_idx:
                             break
                         end_idx = f"{start_idx}+{len(search_term)}c"
@@ -491,16 +554,12 @@ class FindDialog:
         except re.error as e:
             messagebox.showerror("正则表达式错误", f"正则表达式语法错误: {str(e)}")
             # 更新UI状态
-            self.find_button.config(state=tk.NORMAL)
-            self.find_prev_button.config(state=tk.NORMAL)
-            self.find_all_button.config(state=tk.NORMAL)
+            self._reset_ui_state()
             return []
         except Exception as e:
             messagebox.showerror("查找错误", f"查找过程中发生错误: {str(e)}")
             # 更新UI状态
-            self.find_button.config(state=tk.NORMAL)
-            self.find_prev_button.config(state=tk.NORMAL)
-            self.find_all_button.config(state=tk.NORMAL)
+            self._reset_ui_state()
             return []
 
             # 使用固定颜色配置替代主题管理器
@@ -513,9 +572,7 @@ class FindDialog:
         self.is_searching = False
 
         # 更新UI状态
-        self.find_button.config(state=tk.NORMAL)
-        self.find_prev_button.config(state=tk.NORMAL)
-        self.find_all_button.config(state=tk.NORMAL)
+        self._reset_ui_state()
 
         # 如果不是取消操作, 显示查找结果
         if not self.cancel_search:

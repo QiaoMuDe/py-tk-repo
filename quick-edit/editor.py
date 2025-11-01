@@ -3333,7 +3333,7 @@ class AdvancedTextEditor:
     def replace_text(self):
         """替换文本"""
         # 使用新的查找和替换对话框
-        FindDialog(self.root, self.text_area, self.current_file)
+        FindDialog(self.root, self.text_area, self.current_file, read_only=self.readonly_mode)
 
     def go_to_end(self):
         """转到文件底部"""
@@ -3873,7 +3873,7 @@ The quick brown fox jumps over the lazy dog.
             if self.text_area.tag_ranges(tk.SEL)
             else ""
         )
-        FindDialog(self.root, self.text_area, self.current_file, selected_text)
+        FindDialog(self.root, self.text_area, self.current_file, selected_text, read_only=self.readonly_mode)
 
     def advanced_find_text(
         self, search_term, search_type="normal", match_case=True, whole_word=False
