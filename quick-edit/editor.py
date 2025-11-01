@@ -4078,6 +4078,18 @@ The quick brown fox jumps over the lazy dog.
                                       command=self.text_processing_helper.remove_duplicate_blank_lines)
         selected_text_menu.add_command(label="合并重复行", 
                                       command=self.text_processing_helper.merge_duplicate_lines)
+        selected_text_menu.add_command(label="升序排序", 
+                                      command=self.text_processing_helper.sort_lines_asc)
+        selected_text_menu.add_command(label="降序排序", 
+                                      command=self.text_processing_helper.sort_lines_desc)
+        selected_text_menu.add_command(label="字符反转", 
+                                      command=self.text_processing_helper.reverse_text)
+        selected_text_menu.add_command(label="行反转", 
+                                      command=self.text_processing_helper.reverse_lines)
+        selected_text_menu.add_command(label="下划线转驼峰", 
+                                      command=self.text_processing_helper.to_camel_case)
+        selected_text_menu.add_command(label="驼峰转下划线", 
+                                      command=self.text_processing_helper.to_snake_case)
         selected_text_menu.add_separator()
         
         # 添加JSON处理功能

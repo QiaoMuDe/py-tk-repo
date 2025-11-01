@@ -736,3 +736,151 @@ class TextProcessingHelper:
         except tk.TclError:
             # 没有选中文本时不做任何操作
             pass
+    
+    def sort_lines_asc(self):
+        """将选中文本的行按升序排序"""
+        try:
+            # 获取选中文本
+            selected_text = self.text_area.selection_get()
+            if selected_text:
+                # 保存插入位置
+                insert_pos = self.text_area.index("sel.first")
+                # 分割成行并排序
+                lines = selected_text.split('\n')
+                sorted_lines = sorted(lines)
+                # 重新组合文本
+                result_text = '\n'.join(sorted_lines)
+                # 替换选中的文本
+                self.text_area.delete("sel.first", "sel.last")
+                self.text_area.insert(insert_pos, result_text)
+        except tk.TclError:
+            # 没有选中文本时不做任何操作
+            pass
+    
+    def to_camel_case(self, event=None):
+        """将选中的下划线命名转换为驼峰命名"""
+        try:
+            # 获取选中的文本
+            try:
+                selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                messagebox.showinfo("提示", "请先选择要处理的文本")
+                return
+            
+            # 将下划线命名转换为驼峰命名
+            # 先按空格、换行符分割文本
+            import re
+            words = re.split(r'(\s+)', selected_text)
+            
+            # 处理每个单词
+            converted_words = []
+            for word in words:
+                # 如果是空白字符，直接添加
+                if re.match(r'\s+', word):
+                    converted_words.append(word)
+                else:
+                    # 将下划线命名转换为驼峰命名
+                    parts = word.split('_')
+                    camel_case_word = parts[0] + ''.join(part.capitalize() for part in parts[1:])
+                    converted_words.append(camel_case_word)
+            
+            # 将转换后的单词重新组合成字符串
+            converted_text = ''.join(converted_words)
+            
+            # 替换原始选中文本
+            self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_area.insert(tk.INSERT, converted_text)
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"处理文本时出错: {str(e)}")
+
+    def to_snake_case(self, event=None):
+        """将选中的驼峰命名转换为下划线命名"""
+        try:
+            # 获取选中的文本
+            try:
+                selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                messagebox.showinfo("提示", "请先选择要处理的文本")
+                return
+            
+            # 将驼峰命名转换为下划线命名
+            import re
+            # 在大写字母前添加下划线，然后转换为小写
+            snake_case_text = re.sub(r'([a-z0-9])([A-Z])', r'\1_\2', selected_text).lower()
+            
+            # 替换原始选中文本
+            self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_area.insert(tk.INSERT, snake_case_text)
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"处理文本时出错: {str(e)}")
+
+    def sort_lines_desc(self, event=None):
+        """降序排序选中的行"""
+        try:
+            # 获取选中的文本
+            try:
+                selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                messagebox.showinfo("提示", "请先选择要处理的文本")
+                return
+            
+            # 分割成行并降序排序
+            lines = selected_text.split('\n')
+            sorted_lines = sorted(lines, reverse=True)
+            
+            # 将排序后的行重新组合成字符串
+            sorted_text = '\n'.join(sorted_lines)
+            
+            # 替换原始选中文本
+            self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_area.insert(tk.INSERT, sorted_text)
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"处理文本时出错: {str(e)}")
+
+
+    def reverse_text(self, event=None):
+        """反转选中的文本（字符级别）"""
+        try:
+            # 获取选中的文本
+            try:
+                selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                messagebox.showinfo("提示", "请先选择要处理的文本")
+                return
+            
+            # 反转文本
+            reversed_text = selected_text[::-1]
+            
+            # 替换原始选中文本
+            self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_area.insert(tk.INSERT, reversed_text)
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"处理文本时出错: {str(e)}")
+
+    def reverse_lines(self, event=None):
+        """反转选中的行顺序"""
+        try:
+            # 获取选中的文本
+            try:
+                selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
+            except tk.TclError:
+                messagebox.showinfo("提示", "请先选择要处理的文本")
+                return
+            
+            # 分割成行并反转行顺序
+            lines = selected_text.split('\n')
+            reversed_lines = lines[::-1]
+            
+            # 将反转后的行重新组合成字符串
+            reversed_text = '\n'.join(reversed_lines)
+            
+            # 替换原始选中文本
+            self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+            self.text_area.insert(tk.INSERT, reversed_text)
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"处理文本时出错: {str(e)}")

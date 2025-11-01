@@ -1,5 +1,6 @@
 import os
 import tkinter as tk
+import uuid
 from datetime import datetime
 import tkinter.messagebox as messagebox
 
@@ -129,6 +130,38 @@ class InsertHelper:
             self.editor.text_area.insert(tk.INSERT, time_str)
         except Exception as e:
             messagebox.showerror("错误", f"插入时间时出错: {str(e)}")
+    
+    def insert_uuid_v4(self):
+        """在光标位置插入UUID v4 (带连字符)"""
+        try:
+            uuid_str = str(uuid.uuid4())
+            self.editor.text_area.insert(tk.INSERT, uuid_str)
+        except Exception as e:
+            messagebox.showerror("错误", f"插入UUID时出错: {str(e)}")
+            
+    def insert_uuid_v4_nodash(self):
+        """在光标位置插入UUID v4 (无连字符)"""
+        try:
+            uuid_str = str(uuid.uuid4()).replace("-", "")
+            self.editor.text_area.insert(tk.INSERT, uuid_str)
+        except Exception as e:
+            messagebox.showerror("错误", f"插入无连字符UUID时出错: {str(e)}")
+            
+    def insert_uuid_v4_uppercase(self):
+        """在光标位置插入UUID v4 (大写)"""
+        try:
+            uuid_str = str(uuid.uuid4()).upper()
+            self.editor.text_area.insert(tk.INSERT, uuid_str)
+        except Exception as e:
+            messagebox.showerror("错误", f"插入大写UUID时出错: {str(e)}")
+            
+    def insert_uuid_v4_nodash_uppercase(self):
+        """在光标位置插入UUID v4 (无连字符大写)"""
+        try:
+            uuid_str = str(uuid.uuid4()).replace("-", "").upper()
+            self.editor.text_area.insert(tk.INSERT, uuid_str)
+        except Exception as e:
+            messagebox.showerror("错误", f"插入无连字符大写UUID时出错: {str(e)}")
 
     def create_insert_menu(self, parent_menu):
         """创建插入子菜单
@@ -139,7 +172,7 @@ class InsertHelper:
         Returns:
             创建的插入子菜单对象
         """
-        insert_menu = tk.Menu(parent_menu, tearoff=0, font=("微软雅黑", 9))
+        insert_menu = tk.Menu(parent_menu, tearoff=0, font=("Microsoft YaHei UI", 9))
         insert_menu.add_command(label="脚本 Shebang 行", command=self.insert_shebang)
         insert_menu.add_command(
             label="Python字符集声明", command=self.insert_python_encoding
@@ -152,7 +185,7 @@ class InsertHelper:
         insert_menu.add_separator()
 
         # 创建时间格式子菜单
-        time_menu = tk.Menu(insert_menu, tearoff=0, font=("微软雅黑", 9))
+        time_menu = tk.Menu(insert_menu, tearoff=0, font=("Microsoft YaHei UI", 9))
         time_menu.add_command(label="HH:MM:SS", command=self.insert_time_hhmmss)
         time_menu.add_command(label="YYYY-MM-DD", command=self.insert_date_yyyy_mm_dd)
         time_menu.add_command(
@@ -171,5 +204,14 @@ class InsertHelper:
             label="YYYYMMDDHHMMSS", command=self.insert_timestamp_yyyymmddhhmmss
         )
         insert_menu.add_cascade(label="时间格式", menu=time_menu)
+        
+        # 添加UUID子菜单
+        insert_menu.add_separator()
+        uuid_menu = tk.Menu(insert_menu, tearoff=0, font=("Microsoft YaHei UI", 9))
+        uuid_menu.add_command(label="UUID v4 (带连字符)", command=self.insert_uuid_v4)
+        uuid_menu.add_command(label="UUID v4 (无连字符)", command=self.insert_uuid_v4_nodash)
+        uuid_menu.add_command(label="UUID v4 (大写)", command=self.insert_uuid_v4_uppercase)
+        uuid_menu.add_command(label="UUID v4 (无连字符大写)", command=self.insert_uuid_v4_nodash_uppercase)
+        insert_menu.add_cascade(label="UUID", menu=uuid_menu)
 
         return insert_menu
