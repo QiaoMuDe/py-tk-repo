@@ -29,7 +29,7 @@ from tab_settings_dialog import TabSettingsDialog
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"
 
 # 版本号
-VERSION = "v0.0.8"
+VERSION = "v0.0.10"
 
 # 文件大小限制
 MaxFileSize = 1024 * 1024 * 10  # 最大文件大小限制
