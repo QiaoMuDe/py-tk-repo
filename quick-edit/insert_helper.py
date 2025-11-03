@@ -53,7 +53,7 @@ class InsertHelper:
             return
 
         try:
-            go_structure = 'package main\n\nimport (\n\tfmt""\n)\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}'
+            go_structure = 'package main\n\nimport (\n\t"fmt"\n)\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}'
             self.editor.text_area.insert(tk.INSERT, go_structure)
         except Exception as e:
             messagebox.showerror("错误", f"插入Go语言基本结构时出错: {str(e)}")
