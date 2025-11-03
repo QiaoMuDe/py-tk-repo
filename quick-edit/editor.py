@@ -117,6 +117,9 @@ class AdvancedTextEditor:
         # 制表符相关设置
         self.tab_width = 4  # 默认制表符宽度
         self.use_spaces_for_tabs = False  # 默认不使用空格替代制表符
+        
+        # 快捷插入功能设置
+        self.quick_insert_enabled = True  # 默认启用快捷插入功能
 
         # 窗口标题显示格式选项
         self.window_title_format = WINDOW_TITLE_FILENAME_ONLY  # 默认仅显示文件名
@@ -764,6 +767,14 @@ class AdvancedTextEditor:
         settings_menu.add_command(
             label="制表符设置...", command=self.open_tab_settings_dialog
         )
+        
+        # 快捷插入功能设置
+        self.quick_insert_var = tk.BooleanVar(value=self.quick_insert_enabled)
+        settings_menu.add_checkbutton(
+            label="启用快捷插入(@)",
+            command=self.toggle_quick_insert,
+            variable=self.quick_insert_var,
+        )
 
         # 窗口标题显示选项
         title_format_menu = tk.Menu(settings_menu, tearoff=0, font=menu_font)
@@ -901,6 +912,14 @@ class AdvancedTextEditor:
         self.save_config()
 
         status_text = "已启用副本备份" if self.backup_enabled else "已禁用副本备份"
+        self.left_status.config(text=status_text)
+
+    def toggle_quick_insert(self):
+        """切换快捷插入功能的启用状态"""
+        self.quick_insert_enabled = self.quick_insert_var.get()
+        self.save_config()
+
+        status_text = "已启用快捷插入(@)" if self.quick_insert_enabled else "已禁用快捷插入(@)"
         self.left_status.config(text=status_text)
 
     def open_config_file(self):
@@ -1290,6 +1309,108 @@ class AdvancedTextEditor:
         """处理键盘按键事件"""
         # 检测Ctrl+H组合键，阻止默认的退格行为
         if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
+            return "break"
+
+        # 检测@符号，弹出插入菜单
+        if event.char == "@" and self.quick_insert_enabled:
+            # 先插入@符号
+            self.text_area.insert(tk.INSERT, "@")
+
+            # 获取当前光标位置（@符号后的位置）
+            current_pos = self.text_area.index(tk.INSERT)
+
+            # 创建插入菜单
+            insert_menu = self.insert_helper.create_insert_menu(self.root)
+
+            # 获取@符号的位置（光标前一个字符）
+            at_pos = self.text_area.index(f"{current_pos}-1c")
+
+            # 获取光标在屏幕上的坐标
+            bbox = self.text_area.bbox(at_pos)
+
+            # 保存原始菜单项命令
+            original_commands = {}
+
+            # 为所有菜单项添加标记功能
+            menu_length = insert_menu.index("end")
+            for index in range(menu_length + 1):
+                try:
+                    # 获取菜单项标签（用于识别有效菜单项）
+                    label = insert_menu.entrycget(index, "label")
+
+                    # 如果是有效的菜单项（不是分隔符）
+                    if label:
+                        try:
+                            # 尝试获取原始命令
+                            command = insert_menu.entrycget(index, "command")
+                            # 保存原始命令
+                            original_commands[index] = command
+                        except tk.TclError:
+                            # 如果没有命令，可能是子菜单或其他特殊项
+                            pass
+
+                        # 创建新命令，执行原始命令并删除@符号
+                        def make_new_command(idx):
+                            def new_command():
+                                # 删除@符号
+                                self.text_area.delete(at_pos, current_pos)
+
+                                # 执行原始命令
+                                orig_cmd = original_commands.get(idx)
+                                if orig_cmd and callable(orig_cmd):
+                                    orig_cmd()
+                                elif orig_cmd:
+                                    # 如果是字符串命令，使用eval执行（在tkinter中常见）
+                                    self.root.eval(orig_cmd)
+
+                                # 关闭菜单
+                                insert_menu.unpost()
+
+                            return new_command
+
+                        # 设置新命令
+                        insert_menu.entryconfig(index, command=make_new_command(index))
+                except tk.TclError:
+                    # 忽略分隔符或无效项
+                    pass
+
+            # 如果获取坐标成功
+            if bbox:
+                x, y, width, height = bbox
+                # 计算菜单显示位置
+                abs_x = self.text_area.winfo_rootx() + x
+                abs_y = self.text_area.winfo_rooty() + y + height + 5
+
+                # 显示菜单
+                insert_menu.post(abs_x, abs_y)
+
+                # 菜单消失后处理
+                def on_menu_closed():
+                    # 恢复原始命令
+                    for index, cmd in original_commands.items():
+                        try:
+                            insert_menu.entryconfig(index, command=cmd)
+                        except tk.TclError:
+                            pass
+
+                    # 恢复焦点
+                    self.text_area.focus_set()
+
+                # 使用after方法定期检查菜单是否关闭
+                def check_menu_closed():
+                    try:
+                        # 尝试获取菜单状态
+                        insert_menu.tk.call(insert_menu._w, "index", "active")
+                        # 如果没有异常，菜单仍然打开，继续检查
+                        self.root.after(100, check_menu_closed)
+                    except tk.TclError:
+                        # 菜单已关闭，执行后续处理
+                        on_menu_closed()
+
+                # 开始检查菜单状态
+                self.root.after(100, check_menu_closed)
+
+            # 阻止默认的@符号插入（因为我们已经手动插入了）
             return "break"
 
         # 在适当的时候更新行号显示
@@ -1984,6 +2105,8 @@ class AdvancedTextEditor:
                     self.config_file_path = config.get(
                         "config_file_path", ConfigFilePath
                     )
+                    # 加载快捷插入功能配置
+                    self.quick_insert_enabled = config.get("quick_insert_enabled", True)
 
                 # 同步更新字体样式变量的状态
                 if hasattr(self, "bold_var"):
@@ -2039,6 +2162,7 @@ class AdvancedTextEditor:
             "max_undo": self.max_undo,
             "config_file_name": self.config_file_name,
             "config_file_path": self.config_file_path,
+            "quick_insert_enabled": self.quick_insert_enabled,
         }
 
         try:
