@@ -839,6 +839,7 @@ class AdvancedTextEditor:
             label="启用语法高亮",
             command=self.toggle_syntax_highlighting,
             variable=self.syntax_highlighting_var,
+            accelerator="Ctrl+Shift+K",
         )
         syntax_menu.add_separator()
 
@@ -2169,6 +2170,16 @@ class AdvancedTextEditor:
         self.root.bind(
             "<Control-Shift-I>", lambda e: self.show_document_stats()
         )  # 显示文档统计信息
+        # 绑定语法高亮快捷键 - 先翻转变量值再调用方法
+        self.root.bind(
+            "<Control-Shift-K>",
+            lambda e: (
+                self.syntax_highlighting_var.set(
+                    not self.syntax_highlighting_var.get()
+                ),
+                self.toggle_syntax_highlighting(),
+            )[1],
+        )
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
