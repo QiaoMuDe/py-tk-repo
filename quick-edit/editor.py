@@ -117,7 +117,7 @@ class AdvancedTextEditor:
         # 制表符相关设置
         self.tab_width = 4  # 默认制表符宽度
         self.use_spaces_for_tabs = False  # 默认不使用空格替代制表符
-        
+
         # 快捷插入功能设置
         self.quick_insert_enabled = True  # 默认启用快捷插入功能
 
@@ -183,6 +183,135 @@ class AdvancedTextEditor:
         # 设置窗口焦点和文本框光标位置
         self.root.focus_force()
         self.text_area.focus_set()
+
+    def load_config(self):
+        """加载配置文件"""
+        if os.path.exists(self.config_file_path):
+            try:
+                # 先检测配置文件的编码
+                encoding, _ = quick_edit_utils.detect_file_encoding_and_line_ending(
+                    self.config_file_path
+                )
+
+                # 使用检测到的编码通过codecs.open打开文件
+                with codecs.open(
+                    self.config_file_path, "r", encoding=encoding, errors="replace"
+                ) as f:
+                    config = json.load(f)
+                    self.font_family = config.get("font_family", "Microsoft YaHei UI")
+                    self.font_size = config.get("font_size", 12)
+                    self.font_bold = config.get("font_bold", False)
+                    self.font_italic = config.get("font_italic", False)
+                    self.font_underline = config.get("font_underline", False)
+                    self.font_overstrike = config.get("font_overstrike", False)
+                    self.toolbar_visible = config.get("toolbar_visible", True)
+                    # 加载行号显示状态
+                    self.show_line_numbers = config.get("show_line_numbers", True)
+                    # 加载语法高亮显示状态
+                    self.syntax_highlighting_enabled = config.get(
+                        "syntax_highlighting_enabled", True
+                    )
+                    # 加载主题配置
+                    self.current_theme = config.get("current_theme", "light")
+                    # 加载自动保存配置
+                    self.auto_save_enabled = config.get("auto_save_enabled", False)
+                    self.auto_save_interval = config.get("auto_save_interval", 5)
+                    # 加载备份配置
+                    self.backup_enabled = config.get("backup_enabled", True)
+                    # 加载文本自动换行配置
+                    self.word_wrap_enabled = config.get("word_wrap_enabled", True)
+                    # 加载制表符设置
+                    self.tab_width = config.get("tab_width", 4)
+                    self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
+                    # 加载窗口标题显示格式选项
+                    self.window_title_format = config.get(
+                        "window_title_format", WINDOW_TITLE_FILENAME_ONLY
+                    )
+                    # 加载光标样式配置
+                    self.cursor_style = config.get("cursor_style", DEFAULT_CURSOR)
+                    # 加载新的配置属性
+                    self.max_file_size = config.get("max_file_size", MaxFileSize)
+                    self.small_file_size_threshold = config.get(
+                        "small_file_size_threshold", SmallFileSizeThreshold
+                    )
+                    self.main_window_height = config.get(
+                        "main_window_height", MainWindowHeight
+                    )  # 高度
+                    self.main_window_width = config.get(
+                        "main_window_width", MainWindowWidth
+                    )  # 宽度
+                    self.max_undo = config.get("max_undo", MaxUndo)  # 最大撤销次数
+                    self.config_file_name = config.get(
+                        "config_file_name", ConfigFileName
+                    )
+                    self.config_file_path = config.get(
+                        "config_file_path", ConfigFilePath
+                    )
+                    # 加载快捷插入功能配置
+                    self.quick_insert_enabled = config.get("quick_insert_enabled", True)
+
+                # 同步更新字体样式变量的状态
+                if hasattr(self, "bold_var"):
+                    self.bold_var.set(self.font_bold)
+                if hasattr(self, "italic_var"):
+                    self.italic_var.set(self.font_italic)
+                if hasattr(self, "underline_var"):
+                    self.underline_var.set(self.font_underline)
+                if hasattr(self, "overstrike_var"):
+                    self.overstrike_var.set(self.font_overstrike)
+                # 同步更新自动保存菜单变量的状态
+                if hasattr(self, "auto_save_var"):
+                    self.auto_save_var.set(self.auto_save_enabled)
+                # 同步更新备份选项菜单变量的状态
+                if hasattr(self, "backup_enabled_var"):
+                    self.backup_enabled_var.set(self.backup_enabled)
+                # 同步更新文本自动换行菜单变量的状态
+                if hasattr(self, "word_wrap_var"):
+                    self.word_wrap_var.set(self.word_wrap_enabled)
+
+            except Exception as e:
+                print(f"加载配置文件时出错: {e}")
+                # 如果出错，则使用默认配置
+        else:
+            # 配置文件不存在，保存默认配置
+            self.save_config()
+
+    def save_config(self):
+        """保存配置文件"""
+        config = {
+            "font_family": self.font_family,
+            "font_size": self.font_size,
+            "font_bold": self.font_bold,
+            "font_italic": self.font_italic,
+            "font_underline": self.font_underline,
+            "font_overstrike": self.font_overstrike,
+            "toolbar_visible": self.toolbar_visible,
+            "show_line_numbers": self.show_line_numbers,
+            "syntax_highlighting_enabled": self.syntax_highlighting_enabled,
+            "current_theme": self.current_theme,
+            "auto_save_enabled": self.auto_save_enabled,
+            "auto_save_interval": self.auto_save_interval,
+            "backup_enabled": self.backup_enabled,
+            "word_wrap_enabled": self.word_wrap_enabled,
+            "tab_width": self.tab_width,
+            "use_spaces_for_tabs": self.use_spaces_for_tabs,
+            "window_title_format": self.window_title_format,
+            "cursor_style": self.cursor_style,
+            "max_file_size": self.max_file_size,
+            "small_file_size_threshold": self.small_file_size_threshold,
+            "main_window_height": self.main_window_height,
+            "main_window_width": self.main_window_width,
+            "max_undo": self.max_undo,
+            "config_file_name": self.config_file_name,
+            "config_file_path": self.config_file_path,
+            "quick_insert_enabled": self.quick_insert_enabled,
+        }
+
+        try:
+            with open(self.config_file_path, "w", encoding="utf-8") as f:
+                json.dump(config, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"保存配置文件时出错: {e}")
 
     def apply_syntax_highlighting(self):
         """应用语法高亮"""
@@ -767,7 +896,7 @@ class AdvancedTextEditor:
         settings_menu.add_command(
             label="制表符设置...", command=self.open_tab_settings_dialog
         )
-        
+
         # 快捷插入功能设置
         self.quick_insert_var = tk.BooleanVar(value=self.quick_insert_enabled)
         settings_menu.add_checkbutton(
@@ -919,7 +1048,9 @@ class AdvancedTextEditor:
         self.quick_insert_enabled = self.quick_insert_var.get()
         self.save_config()
 
-        status_text = "已启用快捷插入(@)" if self.quick_insert_enabled else "已禁用快捷插入(@)"
+        status_text = (
+            "已启用快捷插入(@)" if self.quick_insert_enabled else "已禁用快捷插入(@)"
+        )
         self.left_status.config(text=status_text)
 
     def open_config_file(self):
@@ -2041,135 +2172,6 @@ class AdvancedTextEditor:
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
-
-    def load_config(self):
-        """加载配置文件"""
-        if os.path.exists(self.config_file_path):
-            try:
-                # 先检测配置文件的编码
-                encoding, _ = quick_edit_utils.detect_file_encoding_and_line_ending(
-                    self.config_file_path
-                )
-
-                # 使用检测到的编码通过codecs.open打开文件
-                with codecs.open(
-                    self.config_file_path, "r", encoding=encoding, errors="replace"
-                ) as f:
-                    config = json.load(f)
-                    self.font_family = config.get("font_family", "Microsoft YaHei UI")
-                    self.font_size = config.get("font_size", 12)
-                    self.font_bold = config.get("font_bold", False)
-                    self.font_italic = config.get("font_italic", False)
-                    self.font_underline = config.get("font_underline", False)
-                    self.font_overstrike = config.get("font_overstrike", False)
-                    self.toolbar_visible = config.get("toolbar_visible", True)
-                    # 加载行号显示状态
-                    self.show_line_numbers = config.get("show_line_numbers", True)
-                    # 加载语法高亮显示状态
-                    self.syntax_highlighting_enabled = config.get(
-                        "syntax_highlighting_enabled", True
-                    )
-                    # 加载主题配置
-                    self.current_theme = config.get("current_theme", "light")
-                    # 加载自动保存配置
-                    self.auto_save_enabled = config.get("auto_save_enabled", False)
-                    self.auto_save_interval = config.get("auto_save_interval", 5)
-                    # 加载备份配置
-                    self.backup_enabled = config.get("backup_enabled", True)
-                    # 加载文本自动换行配置
-                    self.word_wrap_enabled = config.get("word_wrap_enabled", True)
-                    # 加载制表符设置
-                    self.tab_width = config.get("tab_width", 4)
-                    self.use_spaces_for_tabs = config.get("use_spaces_for_tabs", False)
-                    # 加载窗口标题显示格式选项
-                    self.window_title_format = config.get(
-                        "window_title_format", WINDOW_TITLE_FILENAME_ONLY
-                    )
-                    # 加载光标样式配置
-                    self.cursor_style = config.get("cursor_style", DEFAULT_CURSOR)
-                    # 加载新的配置属性
-                    self.max_file_size = config.get("max_file_size", MaxFileSize)
-                    self.small_file_size_threshold = config.get(
-                        "small_file_size_threshold", SmallFileSizeThreshold
-                    )
-                    self.main_window_height = config.get(
-                        "main_window_height", MainWindowHeight
-                    )  # 高度
-                    self.main_window_width = config.get(
-                        "main_window_width", MainWindowWidth
-                    )  # 宽度
-                    self.max_undo = config.get("max_undo", MaxUndo)  # 最大撤销次数
-                    self.config_file_name = config.get(
-                        "config_file_name", ConfigFileName
-                    )
-                    self.config_file_path = config.get(
-                        "config_file_path", ConfigFilePath
-                    )
-                    # 加载快捷插入功能配置
-                    self.quick_insert_enabled = config.get("quick_insert_enabled", True)
-
-                # 同步更新字体样式变量的状态
-                if hasattr(self, "bold_var"):
-                    self.bold_var.set(self.font_bold)
-                if hasattr(self, "italic_var"):
-                    self.italic_var.set(self.font_italic)
-                if hasattr(self, "underline_var"):
-                    self.underline_var.set(self.font_underline)
-                if hasattr(self, "overstrike_var"):
-                    self.overstrike_var.set(self.font_overstrike)
-                # 同步更新自动保存菜单变量的状态
-                if hasattr(self, "auto_save_var"):
-                    self.auto_save_var.set(self.auto_save_enabled)
-                # 同步更新备份选项菜单变量的状态
-                if hasattr(self, "backup_enabled_var"):
-                    self.backup_enabled_var.set(self.backup_enabled)
-                # 同步更新文本自动换行菜单变量的状态
-                if hasattr(self, "word_wrap_var"):
-                    self.word_wrap_var.set(self.word_wrap_enabled)
-
-            except Exception as e:
-                print(f"加载配置文件时出错: {e}")
-                # 如果出错，则使用默认配置
-        else:
-            # 配置文件不存在，保存默认配置
-            self.save_config()
-
-    def save_config(self):
-        """保存配置文件"""
-        config = {
-            "font_family": self.font_family,
-            "font_size": self.font_size,
-            "font_bold": self.font_bold,
-            "font_italic": self.font_italic,
-            "font_underline": self.font_underline,
-            "font_overstrike": self.font_overstrike,
-            "toolbar_visible": self.toolbar_visible,
-            "show_line_numbers": self.show_line_numbers,
-            "syntax_highlighting_enabled": self.syntax_highlighting_enabled,
-            "current_theme": self.current_theme,
-            "auto_save_enabled": self.auto_save_enabled,
-            "auto_save_interval": self.auto_save_interval,
-            "backup_enabled": self.backup_enabled,
-            "word_wrap_enabled": self.word_wrap_enabled,
-            "tab_width": self.tab_width,
-            "use_spaces_for_tabs": self.use_spaces_for_tabs,
-            "window_title_format": self.window_title_format,
-            "cursor_style": self.cursor_style,
-            "max_file_size": self.max_file_size,
-            "small_file_size_threshold": self.small_file_size_threshold,
-            "main_window_height": self.main_window_height,
-            "main_window_width": self.main_window_width,
-            "max_undo": self.max_undo,
-            "config_file_name": self.config_file_name,
-            "config_file_path": self.config_file_path,
-            "quick_insert_enabled": self.quick_insert_enabled,
-        }
-
-        try:
-            with open(self.config_file_path, "w", encoding="utf-8") as f:
-                json.dump(config, f, ensure_ascii=False, indent=4)
-        except Exception as e:
-            print(f"保存配置文件时出错: {e}")
 
     def update_font(self):
         """更新字体设置"""
