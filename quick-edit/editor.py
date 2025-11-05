@@ -974,10 +974,6 @@ class AdvancedTextEditor:
         # 保存配置
         self.save_config()
 
-        # 绑定快捷键
-        self.root.bind("<Control-Shift-C>", lambda event: self.open_config_file())
-        self.root.bind("<F1>", lambda event: self.show_about())
-
     def toggle_line_numbers(self):
         """切换行号显示"""
         # 更新变量状态
@@ -2183,6 +2179,11 @@ class AdvancedTextEditor:
         # 绑定PgUp和PgDn键用于页面滚动
         self.root.bind("<Prior>", lambda e: self.page_up())  # PgUp键
         self.root.bind("<Next>", lambda e: self.page_down())  # PgDn键
+        # 绑定快捷键
+        self.root.bind(
+            "<Control-Shift-C>", lambda event: self.open_config_file()
+        )  # 打开配置文件
+        self.root.bind("<F1>", lambda event: self.show_about())  # 显示关于信息
 
     def update_font(self):
         """更新字体设置"""
@@ -2331,21 +2332,105 @@ class AdvancedTextEditor:
 
     def go_to_line(self):
         """转到指定行"""
-        # 创建对话框
-        line_number = simpledialog.askinteger("转到行", "请输入行号:", parent=self.root)
+        # 创建自定义对话框以支持图标设置
+        dialog = tk.Toplevel(self.root)
+        dialog.title("转到行")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 设置对话框图标
+        quick_edit_utils.set_window_icon(dialog)
+
+        # 居中显示对话框
+        quick_edit_utils.center_window(dialog, 400, 60)
+
+        # 创建主框架
+        main_frame = ttk.Frame(dialog, padding="10 10 10 10")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+
+        # 获取总行数
+        total_lines = int(self.text_area.index("end-1c").split(".")[0])
+
+        # 创建水平排列的控件框架
+        controls_frame = ttk.Frame(main_frame)
+        controls_frame.pack(fill=tk.X, expand=True, pady=5)
+
+        # 创建行号标签
+        ttk.Label(controls_frame, text="行号:", font=("Microsoft YaHei UI", 10)).pack(
+            side=tk.LEFT, padx=(0, 10)
+        )
+
+        # 创建输入框
+        entry = ttk.Entry(controls_frame, width=10, font=("Microsoft YaHei UI", 10))
+        entry.pack(side=tk.LEFT, padx=(0, 10))
+        entry.focus()
+
+        # 创建信息标签
+        info_label = ttk.Label(
+            controls_frame,
+            text=f"(共 {total_lines} 行)",
+            font=("Microsoft YaHei UI", 9),
+            foreground="gray",
+        )
+        info_label.pack(side=tk.LEFT, padx=(0, 20))
+
+        # 初始化行号变量
+        line_number = [None]
+
+        def on_ok():
+            try:
+                num = int(entry.get())
+                if num > 0:
+                    if num > total_lines:
+                        result = messagebox.askyesno(
+                            "行号超出范围",
+                            f"指定的行号 {num} 超出了文档的最大行数 {total_lines}。\n是否跳转到最后一行？",
+                        )
+                        if result:
+                            line_number[0] = total_lines
+                            dialog.destroy()
+                        else:
+                            entry.focus()
+                            return
+                    else:
+                        line_number[0] = num
+                        dialog.destroy()
+                else:
+                    messagebox.showwarning("无效输入", "行号必须大于0")
+                    entry.focus()
+            except ValueError:
+                messagebox.showwarning("无效输入", "请输入有效的整数")
+                entry.focus()
+
+        def on_cancel():
+            dialog.destroy()
+
+        # 创建按钮框架
+        button_frame = ttk.Frame(controls_frame)
+        button_frame.pack(side=tk.RIGHT)
+
+        # 创建按钮
+        ok_button = ttk.Button(button_frame, text="确定", command=on_ok, width=8)
+        ok_button.pack(side=tk.LEFT, padx=5)
+
+        cancel_button = ttk.Button(
+            button_frame, text="取消", command=on_cancel, width=8
+        )
+        cancel_button.pack(side=tk.LEFT, padx=5)
+
+        # 绑定回车键
+        entry.bind("<Return>", lambda event: on_ok())
+        dialog.bind("<Escape>", lambda event: on_cancel())
+
+        # 等待对话框关闭
+        self.root.wait_window(dialog)
 
         # 检查用户是否输入了有效的行号
-        if line_number is not None and line_number > 0:
-            # 获取总行数
-            total_lines = int(self.text_area.index("end-1c").split(".")[0])
-
-            # 确保行号不超过总行数
-            if line_number > total_lines:
-                line_number = total_lines
-
+        if line_number[0] is not None and line_number[0] > 0:
             # 转到指定行
-            self.text_area.mark_set(tk.INSERT, f"{line_number}.0")
-            self.text_area.see(f"{line_number}.0")
+            self.text_area.mark_set(tk.INSERT, f"{line_number[0]}.0")
+            self.text_area.see(f"{line_number[0]}.0")
             self.text_area.focus_set()
 
     def on_encoding_click(self, event=None):
