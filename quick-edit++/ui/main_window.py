@@ -57,27 +57,17 @@ class MainWindow(ctk.CTk):
         self.line_numbers_frame = ctk.CTkFrame(self.text_frame, width=50)
         self.line_numbers_frame.pack(side="left", fill="y", padx=(5, 0), pady=5)
         
-        # 创建行号显示标题
-        self.line_numbers_label = ctk.CTkLabel(
-            self.line_numbers_frame,
-            text="行号",
-            font=("Microsoft YaHei", 10),
-            height=20
-        )
-        self.line_numbers_label.pack(fill="x", padx=5, pady=(5, 0))
-        
-        # 创建行号显示区域
-        self.line_numbers = ctk.CTkTextbox(
+        # 创建行号显示区域 (使用Canvas实现)
+        self.line_numbers_canvas = ctk.CTkCanvas(
             self.line_numbers_frame,
             width=50,
-            height=100,
-            wrap="none",
-            state="disabled",
-            text_color="#888888",
-            fg_color="#2a2a2a",
-            font=("Consolas", 12)
+            bg="white",
+            highlightthickness=0
         )
-        self.line_numbers.pack(fill="both", expand=True, padx=5, pady=5)
+        self.line_numbers_canvas.pack(fill="both", expand=True, padx=0, pady=0)
+        
+        # 初始化行号显示 (静态显示前50行)
+        self._init_static_line_numbers()
         
         # 创建文本编辑区域
         self.text_area = ctk.CTkTextbox(
@@ -141,6 +131,42 @@ class MainWindow(ctk.CTk):
                 selected_chars=selected_chars, 
                 selected_lines=selected_lines
             )
+        
+    def _init_static_line_numbers(self):
+        """初始化静态行号显示 (显示前50行)"""
+        # 清除画布上的所有内容
+        self.line_numbers_canvas.delete("all")
+        
+        # 获取画布尺寸
+        canvas_width = self.line_numbers_canvas.winfo_reqwidth()
+        canvas_height = self.line_numbers_canvas.winfo_reqheight()
+        
+        # 设置字体和行高，与文本框保持一致
+        font = ("Consolas", 12)
+        line_height = 20  # 与文本框行高保持一致
+        
+        # 计算可显示的行数
+        max_lines = min(50, canvas_height // line_height)
+        
+        # 绘制行号，确保与文本框每行对齐
+        for i in range(1, max_lines + 1):
+            # 调整y坐标以确保行号与文本行对齐
+            y_pos = (i - 1) * line_height + line_height - 4  # 减去4像素以更好地垂直对齐
+            self.line_numbers_canvas.create_text(
+                canvas_width - 10,  # 右对齐，距离右边10像素
+                y_pos,
+                text=str(i),
+                fill="gray",
+                font=font,
+                anchor="e"  # 右对齐
+            )
+            
+        # 绘制分隔线
+        self.line_numbers_canvas.create_line(
+            canvas_width - 1, 0,
+            canvas_width - 1, canvas_height,
+            fill="#cccccc"
+        )
         
     def _on_closing(self):
         """窗口关闭事件处理"""
