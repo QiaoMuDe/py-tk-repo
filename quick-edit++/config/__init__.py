@@ -5,4 +5,19 @@
 配置管理模块初始化文件
 """
 
-# 空文件，用于标识config目录为Python包
+# 从config_manager模块导出关键函数和常量
+from .config_manager import (
+    load_config,
+    save_config,
+    CONFIG_PATH,
+    DEFAULT_CONFIG,
+    merge_configs
+)
+
+__all__ = [
+    'load_config',
+    'save_config',
+    'CONFIG_PATH',
+    'DEFAULT_CONFIG',
+    'merge_configs'
+]

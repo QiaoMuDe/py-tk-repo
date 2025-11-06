@@ -6,9 +6,35 @@
 """
 
 import customtkinter as ctk
+from ui.dialogs.font_dialog import show_font_dialog
 
 
-def create_menu(root):
+def on_font_confirm(font_config, text_widget=None):
+    """
+    字体设置确认回调函数
+    
+    Args:
+        font_config: 字体配置字典，包含family和size
+        text_widget: 文本框组件引用
+    """
+    # 这里实现字体设置的应用逻辑
+    try:
+        # 打印字体设置信息
+        print(f"应用字体设置: {font_config}")
+        
+        # 使用CTkFont创建字体对象并应用到文本框
+        if text_widget:
+            from customtkinter import CTkFont
+            font_obj = CTkFont(family=font_config.get("family", "Microsoft YaHei"), 
+                              size=font_config.get("size", 12))
+            text_widget.configure(font=font_obj)
+            print(f"已成功应用字体到文本框: {font_config}")
+    except Exception as e:
+        print(f"应用字体设置时出错: {e}")
+
+
+
+def create_menu(root, main_window=None):
     """创建菜单栏"""
     # 由于customtkinter没有直接的菜单栏组件，我们需要使用tkinter的菜单
     # 这里我们创建一个隐藏的tkinter菜单栏
@@ -112,7 +138,7 @@ def create_menu(root):
     
     # 创建格式菜单
     format_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    format_menu.add_command(label="字体", command=lambda: print("设置字体"))
+    format_menu.add_command(label="字体", command=lambda: show_font_dialog(root, main_window.text_area if hasattr(main_window, 'text_area') else None, on_font_confirm))
     format_menu.add_command(label="背景色", command=lambda: print("设置背景色"))
     format_menu.add_separator()
     format_menu.add_command(label="加粗", command=lambda: print("设置文字加粗"))

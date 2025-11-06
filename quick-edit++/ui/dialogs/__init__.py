@@ -2,7 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """
-UI对话框模块初始化文件
+对话框模块初始化文件
 """
 
-# 空文件，用于标识dialogs目录为Python包
+# 从font_dialog模块导出关键函数和类
+from .font_dialog import (
+    FontDialog,
+    show_font_dialog
+)
+
+__all__ = [
+    'FontDialog',
+    'show_font_dialog'
+]

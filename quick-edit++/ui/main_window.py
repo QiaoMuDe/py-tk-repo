@@ -28,11 +28,14 @@ class MainWindow(ctk.CTk):
         # 设置最小窗口大小
         self.minsize(800, 600)
         
+        # 初始化字体设置
+        self.current_font = ("Microsoft YaHei", 12)
+        
         # 创建UI组件
         self._create_widgets()
         
         # 创建菜单栏
-        self.menu_bar = create_menu(self)
+        self.menu_bar = create_menu(self, self)
         
         # 设置窗口关闭事件
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -58,7 +61,8 @@ class MainWindow(ctk.CTk):
         self.text_area = ctk.CTkTextbox(
             self.text_frame,
             wrap="none",
-            undo=True
+            undo=True,
+            font=self.current_font
         )
         self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
         
@@ -121,6 +125,27 @@ class MainWindow(ctk.CTk):
         """窗口关闭事件处理"""
         # 这里可以添加保存确认等逻辑
         self.destroy()
+        
+    def update_font(self, font_config):
+        """
+        更新文本编辑器的字体设置
+        
+        Args:
+            font_config: 字体配置字典，包含family和size
+        """
+        try:
+            # 更新当前字体设置
+            self.current_font = (
+                font_config.get("family", "Microsoft YaHei"),
+                font_config.get("size", 12)
+            )
+            
+            # 应用新字体到文本编辑器
+            self.text_area.configure(font=self.current_font)
+            
+            print(f"已成功更新字体设置: {self.current_font}")
+        except Exception as e:
+            print(f"更新字体设置时出错: {e}")
         
     def run(self):
         """运行主窗口"""
