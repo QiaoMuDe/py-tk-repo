@@ -28,7 +28,7 @@ class QuickEditApp:
         """初始化应用"""
         # 设置应用外观模式
         ctk.set_appearance_mode("light")  # 可选: "light", "dark", "system"
-        ctk.set_default_color_theme("blue")  # 可选: "blue", "green", "dark-blue"
+        ctk.set_default_color_theme("green")  # 可选: "blue", "green", "dark-blue"
         
         # 启用DPI缩放支持
         try:

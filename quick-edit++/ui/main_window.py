@@ -6,6 +6,7 @@
 """
 
 import customtkinter as ctk
+import tkinter as tk
 from .toolbar import Toolbar
 from .menu import create_menu
 from .status_bar import StatusBar
@@ -41,41 +42,25 @@ class MainWindow(ctk.CTk):
         
     def _create_widgets(self):
         """创建主窗口中的各个组件"""
-        # 创建主框架
+        # 创建主框架 - 去掉内边距以铺满窗口
         self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        self.main_frame.pack(fill="both", expand=True, padx=0, pady=0)
         
-        # 创建工具栏
+        # 创建工具栏 - 去掉内边距，确保完全铺满
         self.toolbar = Toolbar(self.main_frame)
-        self.toolbar.pack(side="top", fill="x", padx=5, pady=(5, 0))
+        self.toolbar.pack(side="top", fill="x", padx=0, pady=0)
         
-        # 创建文本编辑区域框架
+        # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
         self.text_frame = ctk.CTkFrame(self.main_frame)
-        self.text_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        self.text_frame.pack(fill="both", expand=True, padx=0, pady=0)
         
-        # 创建行号显示区域框架
-        self.line_numbers_frame = ctk.CTkFrame(self.text_frame, width=50)
-        self.line_numbers_frame.pack(side="left", fill="y", padx=(5, 0), pady=5)
-        
-        # 创建行号显示区域 (使用Canvas实现)
-        self.line_numbers_canvas = ctk.CTkCanvas(
-            self.line_numbers_frame,
-            width=50,
-            bg="white",
-            highlightthickness=0
-        )
-        self.line_numbers_canvas.pack(fill="both", expand=True, padx=0, pady=0)
-        
-        # 初始化行号显示 (静态显示前50行)
-        self._init_static_line_numbers()
-        
-        # 创建文本编辑区域
+        # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.text_area = ctk.CTkTextbox(
             self.text_frame,
             wrap="none",
             undo=True
         )
-        self.text_area.pack(side="right", fill="both", expand=True, padx=(0, 5), pady=5)
+        self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
         
     def _bind_text_events(self):
         """绑定文本区域事件"""
@@ -117,7 +102,7 @@ class MainWindow(ctk.CTk):
             
             # 计算选中的行数
             selected_lines = selected_content.count('\n') + 1
-        except ctk.TclError:
+        except tk.TclError:
             # 没有选中内容
             selected_chars = None
             selected_lines = None
@@ -131,42 +116,6 @@ class MainWindow(ctk.CTk):
                 selected_chars=selected_chars, 
                 selected_lines=selected_lines
             )
-        
-    def _init_static_line_numbers(self):
-        """初始化静态行号显示 (显示前50行)"""
-        # 清除画布上的所有内容
-        self.line_numbers_canvas.delete("all")
-        
-        # 获取画布尺寸
-        canvas_width = self.line_numbers_canvas.winfo_reqwidth()
-        canvas_height = self.line_numbers_canvas.winfo_reqheight()
-        
-        # 设置字体和行高，与文本框保持一致
-        font = ("Consolas", 12)
-        line_height = 20  # 与文本框行高保持一致
-        
-        # 计算可显示的行数
-        max_lines = min(50, canvas_height // line_height)
-        
-        # 绘制行号，确保与文本框每行对齐
-        for i in range(1, max_lines + 1):
-            # 调整y坐标以确保行号与文本行对齐
-            y_pos = (i - 1) * line_height + line_height - 4  # 减去4像素以更好地垂直对齐
-            self.line_numbers_canvas.create_text(
-                canvas_width - 10,  # 右对齐，距离右边10像素
-                y_pos,
-                text=str(i),
-                fill="gray",
-                font=font,
-                anchor="e"  # 右对齐
-            )
-            
-        # 绘制分隔线
-        self.line_numbers_canvas.create_line(
-            canvas_width - 1, 0,
-            canvas_width - 1, canvas_height,
-            fill="#cccccc"
-        )
         
     def _on_closing(self):
         """窗口关闭事件处理"""

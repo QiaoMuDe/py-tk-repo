@@ -35,7 +35,7 @@ class StatusBar(ctk.CTkFrame):
             self,
             text="就绪 | 第1行 | 第1列",
             anchor="w",
-            font=("Microsoft YaHei", 10)
+            font=("Microsoft YaHei", 12)
         )
         self.left_label.grid(row=0, column=0, padx=10, pady=2, sticky="w")
         
@@ -44,7 +44,7 @@ class StatusBar(ctk.CTkFrame):
             self,
             text=f"自动保存: 从未(间隔{self.auto_save_interval}秒)",
             anchor="center",
-            font=("Microsoft YaHei", 10)
+            font=("Microsoft YaHei", 12)
         )
         self.center_label.grid(row=0, column=1, padx=10, pady=2, sticky="ew")
         
@@ -53,7 +53,7 @@ class StatusBar(ctk.CTkFrame):
             self,
             text=f"{self.encoding} | {self.line_ending}",
             anchor="e",
-            font=("Microsoft YaHei", 10)
+            font=("Microsoft YaHei", 12)
         )
         self.right_label.grid(row=0, column=2, padx=10, pady=2, sticky="e")
         
