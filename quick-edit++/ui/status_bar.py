@@ -84,7 +84,7 @@ class StatusBar(ctk.CTkFrame):
             text = f"{status} | 第{row}行 | 第{col}列"
         elif selected_chars is None and selected_lines is None:
             # 有总字符数但无选中内容
-            text = f"{status} | 第{row}行 | 第{col}列 | 总字符数{total_chars}"
+            text = f"{status} | 第{row}行 | 第{col}列 | {total_chars}个字符"
         else:
             # 有选中内容
             selection_text = ""
@@ -92,7 +92,7 @@ class StatusBar(ctk.CTkFrame):
                 selection_text += f"已选中{selected_chars}个字符"
             if selected_lines is not None and selected_lines > 1:
                 selection_text += f"({selected_lines}行)"
-            text = f"{status} | 第{row}行 | 第{col}列 | 总字符数{total_chars} | {selection_text}"
+            text = f"{status} | 第{row}行 | 第{col}列 | {total_chars}个字符 | {selection_text}"
             
         self.left_label.configure(text=text)
         

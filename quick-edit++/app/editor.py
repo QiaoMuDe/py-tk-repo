@@ -221,8 +221,27 @@ class QuickEditApp(ctk.CTk):
             selected_content = self.text_area.get(ctk.SEL_FIRST, ctk.SEL_LAST)
             selected_chars = len(selected_content)
 
+            # 获取选中的起始和结束位置
+            start_pos = self.text_area.index(ctk.SEL_FIRST)
+            end_pos = self.text_area.index(ctk.SEL_LAST)
+            
+            # 提取起始和结束行号
+            start_row = int(start_pos.split(".")[0])
+            end_row = int(end_pos.split(".")[0])
+            
             # 计算选中的行数
-            selected_lines = selected_content.count("\n") + 1
+            selected_lines = end_row - start_row + 1
+            
+            # 特殊情况处理：
+            # 1. 如果选中内容为空，不显示行数
+            # 2. 如果全选且末尾没有字符（即end_col为0），则减去一行
+            end_col = int(end_pos.split(".")[1])
+            if selected_chars == 0:
+                selected_lines = None
+            elif end_col == 0 and end_row > start_row:
+                # 全选情况，末尾位置在行首，减去一行
+                selected_lines = end_row - start_row
+                
         except tk.TclError:
             # 没有选中内容
             selected_chars = None
