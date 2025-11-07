@@ -15,6 +15,7 @@ from datetime import datetime
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+from config.config_manager import config_manager
 from ui.main_window import MainWindow
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
@@ -27,8 +28,11 @@ class QuickEditApp:
     def __init__(self):
         """初始化应用"""
         # 设置应用外观模式
-        ctk.set_appearance_mode("light")  # 可选: "light", "dark", "system"
-        ctk.set_default_color_theme("blue")  # 可选: "blue", "green", "dark-blue"
+        theme_mode = config_manager.get("app.theme_mode", "light")
+        ctk.set_appearance_mode(theme_mode)  # 可选: "light", "dark", "system"
+        
+        color_theme = config_manager.get("app.color_theme", "blue")
+        ctk.set_default_color_theme(color_theme)  # 可选: "blue", "green", "dark-blue"
         
         # 启用DPI缩放支持
         try:
@@ -38,26 +42,39 @@ class QuickEditApp:
             print(f"警告: 无法启用DPI缩放支持: {e}")
         
         # 创建主应用窗口
-        self.main_window = MainWindow()
+        self.main_window = MainWindow(self)
         self.main_window.title("QuickEdit++")
-        self.main_window.geometry("1000x700")
+        
+        # 获取窗口大小配置
+        window_width = config_manager.get("app.window_width", 1000)
+        window_height = config_manager.get("app.window_height", 700)
+        self.main_window.geometry(f"{window_width}x{window_height}")
         
         # 自动保存相关属性
-        self.auto_save_enabled = True
-        self.auto_save_interval = 30  # 默认30秒
+        self.auto_save_enabled = config_manager.get("saving.auto_save", True)
+        self.auto_save_interval = config_manager.get("saving.auto_save_interval", 30)  # 默认30秒
         self.last_auto_save_time = None
         self.auto_save_job = None
         
         # 创建菜单栏
-        self.menu_bar = create_menu(self.main_window)
+        self.menu_bar = create_menu(self.main_window, self)
         self.main_window.config(menu=self.menu_bar)
         
+        # 创建工具栏
+        self.toolbar = Toolbar(self.main_window, self)
+        if config_manager.get("toolbar.show_toolbar", True):
+            self.toolbar.pack(side="top", fill="x")
+        
         # 创建状态栏并放置在主窗口底部
-        self.status_bar = StatusBar(self.main_window)
-        self.status_bar.pack(side="bottom", fill="x")
+        self.status_bar = StatusBar(self.main_window, self)
+        if config_manager.get("status_bar.show_status_bar", True):
+            self.status_bar.pack(side="bottom", fill="x")
         
         # 设置状态栏引用以便其他组件可以更新状态
         self.main_window.status_bar = self.status_bar
+        
+        # 确保文本编辑区域在工具栏和状态栏之间
+        self.main_window.text_frame.pack(after=self.toolbar, before=self.status_bar, fill="both", expand=True)
         
         # 初始化状态栏显示
         self._init_status_bar()

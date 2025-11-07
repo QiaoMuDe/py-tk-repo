@@ -5,32 +5,43 @@
 菜单栏界面模块
 """
 
+import tkinter as tk
 import customtkinter as ctk
 from ui.dialogs.font_dialog import show_font_dialog
+from config.config_manager import config_manager
 
 
-def on_font_confirm(font_config, text_widget=None):
+def on_font_confirm(font_info, text_area=None):
     """
     字体设置确认回调函数
     
     Args:
-        font_config: 字体配置字典，包含family和size
-        text_widget: 文本框组件引用
+        font_info: 字体配置字典，包含family、size、weight等属性
+        text_area: 文本框组件引用
     """
-    # 这里实现字体设置的应用逻辑
-    try:
-        # 打印字体设置信息
-        print(f"应用字体设置: {font_config}")
+    if not text_area:
+        return
         
-        # 使用CTkFont创建字体对象并应用到文本框
-        if text_widget:
-            from customtkinter import CTkFont
-            font_obj = CTkFont(family=font_config.get("family", "Microsoft YaHei"), 
-                              size=font_config.get("size", 12))
-            text_widget.configure(font=font_obj)
-            print(f"已成功应用字体到文本框: {font_config}")
+    try:
+        # 应用字体到文本区域
+        from customtkinter import CTkFont
+        font = CTkFont(
+            family=font_info.get("family", "Microsoft YaHei"),
+            size=font_info.get("size", 12),
+            weight=font_info.get("weight", "normal"),
+            slant=font_info.get("slant", "roman"),
+            underline=font_info.get("underline", False),
+            overstrike=font_info.get("overstrike", False)
+        )
+        text_area.configure(font=font)
+        
+        # 保存字体配置到配置管理器
+        if hasattr(text_area, 'main_window'):
+            text_area.main_window.update_font(font_info)
+        
+        print(f"字体已应用: {font_info.get('family', 'Microsoft YaHei')} {font_info.get('size', 12)}pt")
     except Exception as e:
-        print(f"应用字体设置时出错: {e}")
+        print(f"应用字体失败: {e}")
 
 
 
@@ -38,13 +49,17 @@ def create_menu(root, main_window=None):
     """创建菜单栏"""
     # 由于customtkinter没有直接的菜单栏组件，我们需要使用tkinter的菜单
     # 这里我们创建一个隐藏的tkinter菜单栏
-    import tkinter as tk
+    
+    # 从配置管理器获取菜单字体设置
+    menu_font = config_manager.get_font_config("menu")
+    menu_font_family = menu_font.get("family", "Microsoft YaHei")
+    menu_font_size = menu_font.get("size", 10)
     
     # 创建主菜单
-    main_menu = tk.Menu(root, font=("Microsoft YaHei", 10))
+    main_menu = tk.Menu(root, font=(menu_font_family, menu_font_size))
     
     # 创建文件菜单
-    file_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    file_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     
     # 第一组：基本文件操作
     file_menu.add_command(label="新建", command=lambda: print("新建文件"))
@@ -58,21 +73,39 @@ def create_menu(root, main_window=None):
     
     # 第二组：文件编码
     # 创建文件编码子菜单
-    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    encoding_submenu.add_command(label="UTF-8", command=lambda: print("设置编码为UTF-8"))
-    encoding_submenu.add_command(label="GBK", command=lambda: print("设置编码为GBK"))
-    encoding_submenu.add_command(label="UTF-16", command=lambda: print("设置编码为UTF-16"))
-    encoding_submenu.add_command(label="ASCII", command=lambda: print("设置编码为ASCII"))
+    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    
+    # 获取当前编码设置
+    current_encoding = config_manager.get("file.default_encoding", "UTF-8")
+    encoding_options = ["UTF-8", "GBK", "UTF-16", "ASCII"]
+    
+    for encoding in encoding_options:
+        encoding_submenu.add_command(
+            label=encoding, 
+            command=lambda enc=encoding: set_file_encoding(enc)
+        )
+    
     encoding_submenu.add_separator()
     encoding_submenu.add_command(label="其他编码...", command=lambda: print("选择其他编码"))
     
     file_menu.add_cascade(label="文件编码", menu=encoding_submenu)
 
     # 创建换行符子菜单
-    newline_submenu = tk.Menu(file_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    newline_submenu.add_command(label="Windows (CRLF)", command=lambda: print("设置换行符为CRLF"))
-    newline_submenu.add_command(label="Linux/Unix (LF)", command=lambda: print("设置换行符为LF"))
-    newline_submenu.add_command(label="Mac (CR)", command=lambda: print("设置换行符为CR"))
+    newline_submenu = tk.Menu(file_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    
+    # 获取当前换行符设置
+    current_newline = config_manager.get("file.default_line_ending", "CRLF")
+    newline_options = [
+        ("Windows (CRLF)", "CRLF"),
+        ("Linux/Unix (LF)", "LF"),
+        ("Mac (CR)", "CR")
+    ]
+    
+    for label, value in newline_options:
+        newline_submenu.add_command(
+            label=label, 
+            command=lambda nl=value: set_file_line_ending(nl)
+        )
     
     file_menu.add_cascade(label="换行符", menu=newline_submenu)
     
@@ -93,7 +126,7 @@ def create_menu(root, main_window=None):
     main_menu.add_cascade(label="文件", menu=file_menu)
     
     # 创建编辑菜单
-    edit_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    edit_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     edit_menu.add_command(label="撤销", command=lambda: print("撤销"))
     edit_menu.add_command(label="重做", command=lambda: print("重做"))
     edit_menu.add_separator()
@@ -122,22 +155,22 @@ def create_menu(root, main_window=None):
     edit_menu.add_command(label="清空剪贴板", command=lambda: print("清空剪贴板"))
     
     # 创建复制到剪贴板子菜单
-    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
     
     # 创建选中文本操作子菜单
-    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     edit_menu.add_cascade(label="选中文本操作", menu=selected_text_submenu)
     
     # 创建插入子菜单
-    insert_submenu = tk.Menu(edit_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    insert_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
     
     # 将编辑菜单添加到主菜单
     main_menu.add_cascade(label="编辑", menu=edit_menu)
     
     # 创建格式菜单
-    format_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    format_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     format_menu.add_command(label="字体", command=lambda: show_font_dialog(root, main_window.text_area if hasattr(main_window, 'text_area') else None, on_font_confirm))
     format_menu.add_command(label="背景色", command=lambda: print("设置背景色"))
     format_menu.add_separator()
@@ -146,38 +179,63 @@ def create_menu(root, main_window=None):
     format_menu.add_command(label="下划线", command=lambda: print("设置文字下划线"))
     format_menu.add_command(label="删除线", command=lambda: print("设置文字删除线"))
     format_menu.add_separator()
-    # 创建光标样式子菜单
-    cursor_style_submenu = tk.Menu(format_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    format_menu.add_cascade(label="光标样式", menu=cursor_style_submenu)
+    
+    # 注意：已移除光标样式子菜单，使用系统默认光标样式
     
     # 将格式菜单添加到主菜单
     main_menu.add_cascade(label="格式", menu=format_menu)
     
     # 创建主题菜单
-    theme_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    theme_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     
     # 外观模式分组（3种模式）
-    theme_menu.add_command(label="浅色模式", command=lambda: ctk.set_appearance_mode("light"))
-    theme_menu.add_command(label="深色模式", command=lambda: ctk.set_appearance_mode("dark"))
-    theme_menu.add_command(label="跟随系统", command=lambda: ctk.set_appearance_mode("system"))
+    # 获取当前外观模式
+    current_theme = config_manager.get("app.theme_mode", "system")
+    theme_options = [
+        ("浅色模式", "light"),
+        ("深色模式", "dark"),
+        ("跟随系统", "system")
+    ]
+    
+    for label, value in theme_options:
+        theme_menu.add_command(
+            label=label, 
+            command=lambda tm=value: set_theme_mode(tm)
+        )
+    
     theme_menu.add_separator()
     
     # 主题颜色分组（3种主题）
-    theme_menu.add_command(label="蓝色主题", command=lambda: ctk.set_default_color_theme("blue"))
-    theme_menu.add_command(label="绿色主题", command=lambda: ctk.set_default_color_theme("green"))
-    theme_menu.add_command(label="深蓝色主题", command=lambda: ctk.set_default_color_theme("dark-blue"))
+    # 获取当前颜色主题
+    current_color = config_manager.get("app.color_theme", "blue")
+    color_options = [
+        ("蓝色主题", "blue"),
+        ("绿色主题", "green"),
+        ("深蓝色主题", "dark-blue")
+    ]
+    
+    for label, value in color_options:
+        theme_menu.add_command(
+            label=label, 
+            command=lambda ct=value: set_color_theme(ct)
+        )
     
     # 将主题菜单添加到主菜单
     main_menu.add_cascade(label="主题", menu=theme_menu)
     
     # 创建设置菜单
-    settings_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    settings_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     
     # 第一组：界面设置
-    settings_menu.add_checkbutton(label="显示工具栏", command=lambda: print("切换工具栏显示"))
+    # 获取工具栏显示状态
+    show_toolbar = config_manager.get("toolbar.show_toolbar", True)
+    settings_menu.add_checkbutton(
+        label="显示工具栏", 
+        command=lambda: toggle_toolbar()
+    )
     
     # 创建窗口标题显示子菜单
-    title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     title_display_submenu.add_checkbutton(label="显示文件名", command=lambda: print("切换文件名显示"))
     title_display_submenu.add_checkbutton(label="显示文件路径", command=lambda: print("切换文件路径显示"))
     title_display_submenu.add_checkbutton(label="显示状态信息", command=lambda: print("切换状态信息显示"))
@@ -185,32 +243,79 @@ def create_menu(root, main_window=None):
     settings_menu.add_separator()
     
     # 第二组：编辑设置
-    settings_menu.add_checkbutton(label="启用自动换行", command=lambda: print("切换自动换行"))
+    # 获取自动换行设置
+    auto_wrap = config_manager.get("text_editor.auto_wrap", True)
+    settings_menu.add_checkbutton(
+        label="启用自动换行", 
+        command=lambda: toggle_auto_wrap()
+    )
     
     # 创建制表符设置子菜单
-    tab_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    tab_settings_submenu.add_command(label="制表符宽度: 2", command=lambda: print("设置制表符宽度为2"))
-    tab_settings_submenu.add_command(label="制表符宽度: 4", command=lambda: print("设置制表符宽度为4"))
-    tab_settings_submenu.add_command(label="制表符宽度: 8", command=lambda: print("设置制表符宽度为8"))
+    tab_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    
+    # 获取当前制表符宽度
+    tab_width = config_manager.get("text_editor.tab_width", 4)
+    tab_options = [2, 4, 8]
+    
+    for width in tab_options:
+        tab_settings_submenu.add_command(
+            label=f"制表符宽度: {width}", 
+            command=lambda w=width: set_tab_width(w)
+        )
+    
     tab_settings_submenu.add_separator()
-    tab_settings_submenu.add_checkbutton(label="使用空格代替制表符", command=lambda: print("切换制表符替换为空格"))
+    
+    # 获取空格代替制表符设置
+    use_spaces = config_manager.get("text_editor.use_spaces_for_tabs", False)
+    tab_settings_submenu.add_checkbutton(
+        label="使用空格代替制表符", 
+        command=lambda: toggle_use_spaces()
+    )
+    
     settings_menu.add_cascade(label="制表符设置", menu=tab_settings_submenu)
     
-    settings_menu.add_checkbutton(label="启用快捷插入(@)", command=lambda: print("切换快捷插入功能"))
+    # 获取快捷插入设置
+    quick_insert = config_manager.get("text_editor.quick_insert_enabled", True)
+    settings_menu.add_checkbutton(
+        label="启用快捷插入(@)", 
+        command=lambda: toggle_quick_insert()
+    )
     settings_menu.add_separator()
     
     # 第三组：保存设置
-    settings_menu.add_checkbutton(label="启用自动保存", command=lambda: print("切换自动保存"))
+    # 获取自动保存设置
+    auto_save = config_manager.get("saving.auto_save", True)
+    settings_menu.add_checkbutton(
+        label="启用自动保存", 
+        command=lambda: toggle_auto_save()
+    )
     
     # 创建自动保存间隔子菜单
-    autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=("Microsoft YaHei", 10))
-    autosave_submenu.add_command(label="30秒", command=lambda: print("设置自动保存间隔为30秒"))
-    autosave_submenu.add_command(label="1分钟", command=lambda: print("设置自动保存间隔为1分钟"))
-    autosave_submenu.add_command(label="5分钟", command=lambda: print("设置自动保存间隔为5分钟"))
-    autosave_submenu.add_command(label="10分钟", command=lambda: print("设置自动保存间隔为10分钟"))
+    autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    
+    # 获取当前自动保存间隔
+    auto_save_interval = config_manager.get("saving.auto_save_interval", 60)
+    interval_options = [
+        ("30秒", 30),
+        ("1分钟", 60),
+        ("5分钟", 300),
+        ("10分钟", 600)
+    ]
+    
+    for label, value in interval_options:
+        autosave_submenu.add_command(
+            label=label, 
+            command=lambda interval=value: set_auto_save_interval(interval)
+        )
+    
     settings_menu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
     
-    settings_menu.add_checkbutton(label="启用副本备份", command=lambda: print("切换副本备份功能"))
+    # 获取备份设置
+    backup_enabled = config_manager.get("saving.backup_enabled", True)
+    settings_menu.add_checkbutton(
+        label="启用副本备份", 
+        command=lambda: toggle_backup()
+    )
     settings_menu.add_separator()
     
     # 第四组：配置管理
@@ -221,7 +326,7 @@ def create_menu(root, main_window=None):
     main_menu.add_cascade(label="设置", menu=settings_menu)
     
     # 创建帮助菜单
-    help_menu = tk.Menu(main_menu, tearoff=0, font=("Microsoft YaHei", 10))
+    help_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
     help_menu.add_command(label="文档统计信息", command=lambda: print("显示文档统计信息"))
     help_menu.add_command(label="关于", command=lambda: print("显示关于信息"))
     
@@ -232,3 +337,98 @@ def create_menu(root, main_window=None):
     root.config(menu=main_menu)
     
     return main_menu
+
+
+def set_file_encoding(encoding):
+    """设置文件编码"""
+    config_manager.set("file.default_encoding", encoding)
+    config_manager.save_config()
+    print(f"文件编码已设置为: {encoding}")
+
+
+def set_file_line_ending(line_ending):
+    """设置文件换行符"""
+    config_manager.set("file.default_line_ending", line_ending)
+    config_manager.save_config()
+    print(f"文件换行符已设置为: {line_ending}")
+
+
+# 注意：已移除光标样式设置函数，使用系统默认光标样式
+
+
+def set_theme_mode(mode):
+    """设置主题模式"""
+    config_manager.set("app.theme_mode", mode)
+    config_manager.save_config()
+    ctk.set_appearance_mode(mode)
+    print(f"主题模式已设置为: {mode}")
+
+
+def set_color_theme(theme):
+    """设置颜色主题"""
+    config_manager.set("app.color_theme", theme)
+    config_manager.save_config()
+    ctk.set_default_color_theme(theme)
+    print(f"颜色主题已设置为: {theme}")
+
+
+def toggle_toolbar():
+    """切换工具栏显示"""
+    current = config_manager.get("toolbar.show_toolbar", True)
+    config_manager.set("toolbar.show_toolbar", not current)
+    config_manager.save_config()
+    print(f"工具栏显示已设置为: {not current}")
+
+
+def toggle_auto_wrap():
+    """切换自动换行"""
+    current = config_manager.get("text_editor.auto_wrap", True)
+    config_manager.set("text_editor.auto_wrap", not current)
+    config_manager.save_config()
+    print(f"自动换行已设置为: {not current}")
+
+
+def set_tab_width(width):
+    """设置制表符宽度"""
+    config_manager.set("text_editor.tab_width", width)
+    config_manager.save_config()
+    print(f"制表符宽度已设置为: {width}")
+
+
+def toggle_use_spaces():
+    """切换使用空格代替制表符"""
+    current = config_manager.get("text_editor.use_spaces_for_tabs", False)
+    config_manager.set("text_editor.use_spaces_for_tabs", not current)
+    config_manager.save_config()
+    print(f"使用空格代替制表符已设置为: {not current}")
+
+
+def toggle_quick_insert():
+    """切换快捷插入"""
+    current = config_manager.get("text_editor.quick_insert_enabled", True)
+    config_manager.set("text_editor.quick_insert_enabled", not current)
+    config_manager.save_config()
+    print(f"快捷插入已设置为: {not current}")
+
+
+def toggle_auto_save():
+    """切换自动保存"""
+    current = config_manager.get("saving.auto_save", True)
+    config_manager.set("saving.auto_save", not current)
+    config_manager.save_config()
+    print(f"自动保存已设置为: {not current}")
+
+
+def set_auto_save_interval(interval):
+    """设置自动保存间隔"""
+    config_manager.set("saving.auto_save_interval", interval)
+    config_manager.save_config()
+    print(f"自动保存间隔已设置为: {interval}秒")
+
+
+def toggle_backup():
+    """切换备份"""
+    current = config_manager.get("saving.backup_enabled", True)
+    config_manager.set("saving.backup_enabled", not current)
+    config_manager.save_config()
+    print(f"备份已设置为: {not current}")

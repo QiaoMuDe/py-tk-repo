@@ -11,9 +11,12 @@ import customtkinter as ctk
 class Toolbar(ctk.CTkFrame):
     """工具栏类"""
     
-    def __init__(self, parent):
+    def __init__(self, parent, app=None):
         """初始化工具栏"""
         super().__init__(parent, height=50, corner_radius=0)
+        
+        # 保存应用实例引用
+        self.app = app
         
         # 创建工具栏按钮
         self._create_buttons()

@@ -7,6 +7,7 @@
 
 import customtkinter as ctk
 import tkinter as tk
+from config.config_manager import config_manager
 from .toolbar import Toolbar
 from .menu import create_menu
 from .status_bar import StatusBar
@@ -15,27 +16,35 @@ from .status_bar import StatusBar
 class MainWindow(ctk.CTk):
     """主窗口类"""
     
-    def __init__(self):
+    def __init__(self, app):
         """初始化主窗口"""
         super().__init__()
+        
+        # 保存应用实例引用
+        self.app = app
         
         # 设置窗口标题
         self.title("QuickEdit++")
         
-        # 设置窗口大小
-        self.geometry("1200x800")
+        # 获取窗口大小配置
+        window_width = config_manager.get("app.window_width", 1200)
+        window_height = config_manager.get("app.window_height", 800)
+        self.geometry(f"{window_width}x{window_height}")
         
         # 设置最小窗口大小
-        self.minsize(800, 600)
+        min_width = config_manager.get("app.min_width", 800)
+        min_height = config_manager.get("app.min_height", 600)
+        self.minsize(min_width, min_height)
         
         # 初始化字体设置
-        self.current_font = ("Microsoft YaHei", 12)
+        font_config = config_manager.get_font_config("text_editor")
+        self.current_font = (
+            font_config.get("font", "Microsoft YaHei"),
+            font_config.get("font_size", 12)
+        )
         
         # 创建UI组件
         self._create_widgets()
-        
-        # 创建菜单栏
-        self.menu_bar = create_menu(self, self)
         
         # 设置窗口关闭事件
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
@@ -45,16 +54,8 @@ class MainWindow(ctk.CTk):
         
     def _create_widgets(self):
         """创建主窗口中的各个组件"""
-        # 创建主框架 - 去掉内边距以铺满窗口
-        self.main_frame = ctk.CTkFrame(self)
-        self.main_frame.pack(fill="both", expand=True, padx=0, pady=0)
-        
-        # 创建工具栏 - 去掉内边距，确保完全铺满
-        self.toolbar = Toolbar(self.main_frame)
-        self.toolbar.pack(side="top", fill="x", padx=0, pady=0)
-        
         # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
-        self.text_frame = ctk.CTkFrame(self.main_frame)
+        self.text_frame = ctk.CTkFrame(self)
         self.text_frame.pack(fill="both", expand=True, padx=0, pady=0)
         
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
@@ -65,6 +66,8 @@ class MainWindow(ctk.CTk):
             font=self.current_font
         )
         self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
+        
+        # 注意：不再设置光标样式，使用系统默认样式
         
     def _bind_text_events(self):
         """绑定文本区域事件"""
@@ -142,6 +145,14 @@ class MainWindow(ctk.CTk):
             
             # 应用新字体到文本编辑器
             self.text_area.configure(font=self.current_font)
+            
+            # 保存字体配置
+            config_manager.set_font_config("text_editor", {
+                "font": font_config.get("family", "Microsoft YaHei"),
+                "font_size": font_config.get("size", 12),
+                "font_bold": font_config.get("bold", False)
+            })
+            config_manager.save_config()
             
             print(f"已成功更新字体设置: {self.current_font}")
         except Exception as e:

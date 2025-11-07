@@ -5,18 +5,18 @@
 配置管理模块初始化文件
 """
 
-# 从config_manager模块导出关键函数和常量
+# 从config_manager模块导出ConfigManager类和全局实例
 from .config_manager import (
-    load_config,
-    save_config,
+    ConfigManager,
+    config_manager,
     CONFIG_PATH,
     DEFAULT_CONFIG,
     merge_configs
 )
 
 __all__ = [
-    'load_config',
-    'save_config',
+    'ConfigManager',
+    'config_manager',
     'CONFIG_PATH',
     'DEFAULT_CONFIG',
     'merge_configs'
