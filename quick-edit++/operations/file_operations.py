@@ -78,7 +78,8 @@ class FileOperations:
             self.editor.current_line_ending = line_ending
             
             # 重置修改状态
-            self.editor.is_modified = False
+            self.editor.is_modified = False  # 清除修改状态标志
+            self.editor.is_new_file = False  # 清除新文件状态标志
             
             # 更新状态栏文件信息
             file_name = os.path.basename(file_path)
@@ -143,7 +144,8 @@ class FileOperations:
             self.editor.status_bar.set_status_info("文件已保存")
             
             # 重置修改状态
-            self.editor.is_modified = False
+            self.editor.is_modified = False  # 清除修改状态标志
+            self.editor.is_new_file = False  # 清除新文件状态标志
             
             # 更新窗口标题
             self.editor._update_window_title()
@@ -209,7 +211,8 @@ class FileOperations:
             self.editor.current_line_ending = line_ending
             
             # 重置修改状态
-            self.editor.is_modified = False
+            self.editor.is_modified = False  # 清除修改状态标志
+            self.editor.is_new_file = False  # 清除新文件状态标志
             
             # 更新状态栏文件信息
             file_name = os.path.basename(file_path)
@@ -239,18 +242,25 @@ class FileOperations:
         # 关闭当前文件
         self.close_file()
         
-        # 更新状态栏
+        # 设置新文件状态标志
+        self.editor.is_new_file = True
+        
+        # 更新状态栏为新文件状态
         self.editor.status_bar.set_status_info("新文件")
         self.editor.status_bar.set_file_info(
             filename="新文件",
             encoding="UTF-8"
         )
         
-        # 更新窗口标题
-        self.editor._update_window_title()
+        # 更新窗口标题为新文件
+        self.editor.title("新文件 - QuickEdit++")
     
     def close_file(self):
         """关闭当前文件，重置窗口和状态栏状态"""
+        # 检查是否需要保存当前文件
+        if not self.check_save_before_close():
+            return  # 用户取消了操作
+            
         # 清空编辑器内容
         self.editor.text_area.delete("1.0", tk.END)
         
@@ -259,10 +269,12 @@ class FileOperations:
         self.editor.current_encoding = 'UTF-8'
         self.editor.current_line_ending = 'LF'
         self.editor.is_modified = False
+        self.editor.is_new_file = False  # 清除新文件状态标志
         
         # 更新状态栏
         self.editor.status_bar.set_status_info("就绪")
-        self.editor.status_bar.set_file_info()
+        # 重置状态栏右侧文件信息，不传递filename参数，这样会显示默认的编码和换行符
+        self.editor.status_bar.set_file_info(filename=None, encoding="UTF-8", line_ending="LF")
         
         # 更新窗口标题
         self.editor._update_window_title()

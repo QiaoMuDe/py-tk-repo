@@ -32,7 +32,7 @@ def create_menu(root):
     file_menu.add_command(label="打开", command=lambda: root.open_file())
     file_menu.add_command(label="保存", command=lambda: root.save_file())
     file_menu.add_command(label="另存为", command=lambda: root.save_file_as())
-    file_menu.add_command(label="关闭文件", command=lambda: print("关闭当前文件"))
+    file_menu.add_command(label="关闭文件", command=lambda: root.close_file())
     
     # 分隔符
     file_menu.add_separator()

@@ -16,6 +16,9 @@ class Toolbar(ctk.CTkFrame):
         """初始化工具栏"""
         super().__init__(parent, height=50, corner_radius=0)
         
+        # 保存对父窗口的引用
+        self.parent = parent
+        
         # 获取工具栏字体配置
         font_config = config_manager.get_font_config("toolbar")
         self.button_font = (
@@ -36,7 +39,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("新建文件")
+            command=self.parent.new_file
         )
         self.new_button.pack(side="left", padx=2, pady=10)
         
@@ -47,7 +50,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("打开文件")
+            command=self.parent.open_file
         )
         self.open_button.pack(side="left", padx=2, pady=10)
         
@@ -58,7 +61,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("保存文件")
+            command=self.parent.save_file
         )
         self.save_button.pack(side="left", padx=2, pady=10)
         
@@ -69,7 +72,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("另存为")
+            command=self.parent.save_file_as
         )
         self.save_as_button.pack(side="left", padx=2, pady=10)
         
@@ -80,7 +83,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("关闭文件")
+            command=self.parent.close_file
         )
         self.close_button.pack(side="left", padx=2, pady=10)
         

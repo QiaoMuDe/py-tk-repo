@@ -88,6 +88,7 @@ class QuickEditApp(ctk.CTk):
         self.current_encoding = 'UTF-8'  # 当前文件编码
         self.current_line_ending = 'LF'  # 当前文件换行符
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
+        self.is_new_file = False  # 是否为新文件状态
         
         # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
         self.text_frame = ctk.CTkFrame(self)
@@ -320,6 +321,9 @@ class QuickEditApp(ctk.CTk):
                 title_part = f"{file_name} [{dir_name}]" if dir_name else file_name
             else:  # 默认为 "filename" 模式
                 title_part = file_name
+        elif self.is_new_file:
+            # 新文件状态，无论内容是否为空都显示"新文件"
+            title_part = "新文件"
         else:
             # 没有文件路径的情况
             content = self.text_area.get("1.0", ctk.END).strip()

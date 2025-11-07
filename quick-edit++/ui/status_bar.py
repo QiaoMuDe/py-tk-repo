@@ -129,8 +129,8 @@ class StatusBar(ctk.CTkFrame):
             self.right_label.configure(text="")
             return
             
-        if filename is not None:
-            self.filename = filename
+        # 总是更新这些值，即使它们是None
+        self.filename = filename
         if encoding is not None:
             self.encoding = encoding
         if line_ending is not None:
