@@ -6,6 +6,7 @@
 """
 
 import customtkinter as ctk
+from config.config_manager import config_manager
 
 
 class Toolbar(ctk.CTkFrame):
@@ -18,6 +19,14 @@ class Toolbar(ctk.CTkFrame):
         # 保存应用实例引用
         self.app = app
         
+        # 获取工具栏字体配置
+        font_config = config_manager.get_font_config("toolbar")
+        self.button_font = (
+            font_config.get("font", "Microsoft YaHei"), 
+            font_config.get("font_size", 12),
+            "bold" if font_config.get("font_bold", False) else "normal"
+        )
+        
         # 创建工具栏按钮
         self._create_buttons()
         
@@ -29,6 +38,7 @@ class Toolbar(ctk.CTkFrame):
             text="新建",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("新建文件")
         )
         self.new_button.pack(side="left", padx=2, pady=10)
@@ -39,6 +49,7 @@ class Toolbar(ctk.CTkFrame):
             text="打开",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("打开文件")
         )
         self.open_button.pack(side="left", padx=2, pady=10)
@@ -49,6 +60,7 @@ class Toolbar(ctk.CTkFrame):
             text="保存",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("保存文件")
         )
         self.save_button.pack(side="left", padx=2, pady=10)
@@ -59,6 +71,7 @@ class Toolbar(ctk.CTkFrame):
             text="另存为",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("另存为")
         )
         self.save_as_button.pack(side="left", padx=2, pady=10)
@@ -69,6 +82,7 @@ class Toolbar(ctk.CTkFrame):
             text="关闭",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("关闭文件")
         )
         self.close_button.pack(side="left", padx=2, pady=10)
@@ -79,6 +93,7 @@ class Toolbar(ctk.CTkFrame):
             text="只读",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("切换只读模式")
         )
         self.readonly_button.pack(side="left", padx=2, pady=10)
@@ -93,6 +108,7 @@ class Toolbar(ctk.CTkFrame):
             text="撤销",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("撤销操作")
         )
         self.undo_button.pack(side="left", padx=2, pady=10)
@@ -103,6 +119,7 @@ class Toolbar(ctk.CTkFrame):
             text="重做",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("重做操作")
         )
         self.redo_button.pack(side="left", padx=2, pady=10)
@@ -117,6 +134,7 @@ class Toolbar(ctk.CTkFrame):
             text="剪切",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("剪切")
         )
         self.cut_button.pack(side="left", padx=2, pady=10)
@@ -127,6 +145,7 @@ class Toolbar(ctk.CTkFrame):
             text="复制",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("复制")
         )
         self.copy_button.pack(side="left", padx=2, pady=10)
@@ -137,6 +156,7 @@ class Toolbar(ctk.CTkFrame):
             text="粘贴",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("粘贴")
         )
         self.paste_button.pack(side="left", padx=2, pady=10)
@@ -151,6 +171,7 @@ class Toolbar(ctk.CTkFrame):
             text="查找",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("查找")
         )
         self.find_button.pack(side="left", padx=2, pady=10)
@@ -161,6 +182,7 @@ class Toolbar(ctk.CTkFrame):
             text="替换",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("替换")
         )
         self.replace_button.pack(side="left", padx=2, pady=10)
@@ -175,6 +197,49 @@ class Toolbar(ctk.CTkFrame):
             text="退出",
             width=60,
             height=30,
+            font=self.button_font,
             command=lambda: print("退出程序")
         )
         self.exit_button.pack(side="left", padx=2, pady=10)
+        
+    def apply_font(self, font_config):
+        """
+        应用字体设置到工具栏
+        
+        Args:
+            font_config: 字体配置字典，包含font, font_size, font_bold
+        """
+        try:
+            # 构建字体元组
+            font = (
+                font_config.get("font", "Microsoft YaHei"),
+                font_config.get("font_size", 12),
+                "bold" if font_config.get("font_bold", False) else "normal"
+            )
+            
+            # 更新内部字体设置
+            self.button_font = font
+            
+            # 应用字体到所有按钮
+            self.new_button.configure(font=font)
+            self.open_button.configure(font=font)
+            self.save_button.configure(font=font)
+            self.save_as_button.configure(font=font)
+            self.close_button.configure(font=font)
+            self.readonly_button.configure(font=font)
+            self.undo_button.configure(font=font)
+            self.redo_button.configure(font=font)
+            self.cut_button.configure(font=font)
+            self.copy_button.configure(font=font)
+            self.paste_button.configure(font=font)
+            self.find_button.configure(font=font)
+            self.replace_button.configure(font=font)
+            self.exit_button.configure(font=font)
+            
+            # 保存字体配置
+            config_manager.set_font_config("toolbar", font_config)
+            config_manager.save_config()
+            
+            print(f"已成功更新工具栏字体设置: {font}")
+        except Exception as e:
+            print(f"更新工具栏字体设置时出错: {e}")

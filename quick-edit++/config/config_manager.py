@@ -46,21 +46,21 @@ DEFAULT_CONFIG = {
     },
     # 工具栏配置
     "toolbar": {
-        "font": "Microsoft YaHei",
-        "font_size": 10,
-        "font_bold": False,
+        "font": "Microsoft YaHei UI",
+        "font_size": 12,
+        "font_bold": True,
     },
     # 菜单栏配置
     "menu_bar": {
-        "font": "Microsoft YaHei",
+        "font": "Microsoft YaHei UI",
         "font_size": 10,
         "font_bold": False,
     },
     # 状态栏配置
     "status_bar": {
-        "font": "Microsoft YaHei",
-        "font_size": 9,
-        "font_bold": False,
+        "font": "Microsoft YaHei UI",
+        "font_size": 12,
+        "font_bold": True,
     },
 }
 
@@ -257,7 +257,7 @@ class ConfigManager:
             return {}
 
         return {
-            "font": component_config.get("font", "Microsoft YaHei"),
+            "font": component_config.get("font", "Microsoft YaHei UI"),
             "font_size": component_config.get("font_size", 12),
             "font_bold": component_config.get("font_bold", False)
         }
@@ -277,7 +277,7 @@ class ConfigManager:
         if not component_config:
             component_config = {}
 
-        component_config["font"] = font_config.get("font", "Microsoft YaHei")
+        component_config["font"] = font_config.get("font", "Microsoft YaHei UI")
         component_config["font_size"] = font_config.get("font_size", 12)
         component_config["font_bold"] = font_config.get("font_bold", False)
 

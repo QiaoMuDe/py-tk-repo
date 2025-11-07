@@ -26,7 +26,7 @@ def on_font_confirm(font_info, text_area=None):
         # 应用字体到文本区域
         from customtkinter import CTkFont
         font = CTkFont(
-            family=font_info.get("family", "Microsoft YaHei"),
+            family=font_info.get("family", "Microsoft YaHei UI"),
             size=font_info.get("size", 12),
             weight=font_info.get("weight", "normal"),
             slant=font_info.get("slant", "roman"),
@@ -39,7 +39,7 @@ def on_font_confirm(font_info, text_area=None):
         if hasattr(text_area, 'main_window'):
             text_area.main_window.update_font(font_info)
         
-        print(f"字体已应用: {font_info.get('family', 'Microsoft YaHei')} {font_info.get('size', 12)}pt")
+        print(f"字体已应用: {font_info.get('family', 'Microsoft YaHei UI')} {font_info.get('size', 12)}pt")
     except Exception as e:
         print(f"应用字体失败: {e}")
 
@@ -52,7 +52,7 @@ def create_menu(root, main_window=None):
     
     # 从配置管理器获取菜单字体设置
     menu_font = config_manager.get_font_config("menu")
-    menu_font_family = menu_font.get("family", "Microsoft YaHei")
+    menu_font_family = menu_font.get("family", "Microsoft YaHei UI")
     menu_font_size = menu_font.get("size", 10)
     
     # 创建主菜单

@@ -38,7 +38,11 @@ class StatusBar(ctk.CTkFrame):
         
         # 获取状态栏字体配置
         font_config = config_manager.get_font_config("status_bar")
-        font = (font_config.get("font", "Microsoft YaHei"), font_config.get("font_size", 12))
+        font = (
+            font_config.get("font", "Microsoft YaHei UI"), 
+            font_config.get("font_size", 12),
+            "bold" if font_config.get("font_bold", False) else "normal"
+        )
         
         # 创建左侧标签（行号信息和文件编辑状态）
         self.left_label = ctk.CTkLabel(
@@ -168,7 +172,7 @@ class StatusBar(ctk.CTkFrame):
         try:
             # 构建字体元组
             font = (
-                font_config.get("font", "Microsoft YaHei"),
+                font_config.get("font", "Microsoft YaHei UI"),
                 font_config.get("font_size", 12),
                 "bold" if font_config.get("font_bold", False) else "normal"
             )

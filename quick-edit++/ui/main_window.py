@@ -39,7 +39,7 @@ class MainWindow(ctk.CTk):
         # 初始化字体设置
         font_config = config_manager.get_font_config("text_editor")
         self.current_font = (
-            font_config.get("font", "Microsoft YaHei"),
+            font_config.get("font", "Microsoft YaHei UI"),
             font_config.get("font_size", 12)
         )
         
@@ -139,7 +139,7 @@ class MainWindow(ctk.CTk):
         try:
             # 更新当前字体设置
             self.current_font = (
-                font_config.get("family", "Microsoft YaHei"),
+                font_config.get("family", "Microsoft YaHei UI"),
                 font_config.get("size", 12)
             )
             
@@ -148,7 +148,7 @@ class MainWindow(ctk.CTk):
             
             # 保存字体配置
             config_manager.set_font_config("text_editor", {
-                "font": font_config.get("family", "Microsoft YaHei"),
+                "font": font_config.get("family", "Microsoft YaHei UI"),
                 "font_size": font_config.get("size", 12),
                 "font_bold": font_config.get("bold", False)
             })

@@ -43,7 +43,7 @@ class FontDialog:
         
         # 初始字体设置
         self.current_font = {
-            "family": "Microsoft YaHei",
+            "family": "Microsoft YaHei UI",
             "size": 12
         }
         self.font_list = []
@@ -110,7 +110,7 @@ class FontDialog:
         self.search_button.grid(row=0, column=1, padx=5, pady=5)
         
         # 字体列表 - 使用CTkTextbox替代tk.Listbox
-        self.font_listbox = ctk.CTkTextbox(left_frame, wrap="none", font=ctk.CTkFont(family="Microsoft YaHei", size=12))
+        self.font_listbox = ctk.CTkTextbox(left_frame, wrap="none", font=ctk.CTkFont(family="Microsoft YaHei UI", size=12))
         self.font_listbox.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
         
         # 滚动条 - 使用CTkScrollbar替代ttk.Scrollbar
@@ -187,7 +187,7 @@ class FontDialog:
         preview_label.grid(row=0, column=0, sticky="w", padx=5, pady=5)
         
         # 使用CTkTextbox作为预览文本框
-        self.preview_text = ctk.CTkTextbox(bottom_frame, wrap="word", height=100, font=ctk.CTkFont(family="Microsoft YaHei", size=12))
+        self.preview_text = ctk.CTkTextbox(bottom_frame, wrap="word", height=100, font=ctk.CTkFont(family="Microsoft YaHei UI", size=12))
         self.preview_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         
         # 插入预览文本
@@ -221,7 +221,7 @@ class FontDialog:
                 self.font_listbox.insert(f"{i+1}.0", f"{font_name}\n")
         except Exception as e:
             # 如果获取系统字体失败，使用一些常见字体作为备选
-            fallback_fonts = ["Arial", "Helvetica", "Times New Roman", "Courier New", "Microsoft YaHei", "SimHei", "SimSun"]
+            fallback_fonts = ["Arial", "Helvetica", "Times New Roman", "Courier New", "Microsoft YaHei UI", "SimHei", "SimSun"]
             self.font_list = fallback_fonts
             self.filtered_fonts = fallback_fonts.copy()
             
@@ -337,9 +337,9 @@ class FontDialog:
                 font_line = self.font_listbox.get(selected_ranges[0], selected_ranges[1]).strip()
                 font_name = font_line
             else:
-                font_name = "Microsoft YaHei"
+                font_name = "Microsoft YaHei UI"
         except:
-            font_name = "Microsoft YaHei"
+            font_name = "Microsoft YaHei UI"
         
         # 获取字体大小从输入框
         try:
@@ -376,7 +376,7 @@ class FontDialog:
             if not hasattr(self, 'current_font') or 'family' not in self.current_font:
                 # 设置默认字体
                 self.current_font = {
-                    "family": "Microsoft YaHei",
+                    "family": "Microsoft YaHei UI",
                     "size": 12
                 }
             
