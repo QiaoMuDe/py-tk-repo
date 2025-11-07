@@ -52,8 +52,8 @@ class QuickEditApp(ctk.CTk):
         window_width = config_manager.get("app.window_width", 1200)
         window_height = config_manager.get("app.window_height", 800)
 
-        # 设置窗口大小
-        self.geometry(f"{window_width}x{window_height}")
+        # 设置窗口大小, 相对居中显示
+        self.geometry(f"{window_width}x{window_height}+{window_width//2}+{window_height//3}")
 
         # 设置最小窗口大小
         min_width = config_manager.get("app.min_width", 800)
