@@ -20,7 +20,6 @@ from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
-from core.common_utils import set_window_min_size
 
 
 class QuickEditApp(ctk.CTk):
@@ -59,7 +58,7 @@ class QuickEditApp(ctk.CTk):
         # 设置最小窗口大小
         min_width = config_manager.get("app.min_width", 800)
         min_height = config_manager.get("app.min_height", 600)
-        set_window_min_size(self, min_width, min_height)
+        self.minsize(min_width, min_height)
 
         # 初始化字体设置
         font_config = config_manager.get_font_config("text_editor")
