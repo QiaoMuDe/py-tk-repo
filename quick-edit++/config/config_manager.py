@@ -65,7 +65,7 @@ DEFAULT_CONFIG = {
     # 组件默认字体配置
     "components": {
         "font": "Microsoft YaHei UI",
-        "font_size": 12,
+        "font_size": 13,
         "font_bold": False,
     },
 }
