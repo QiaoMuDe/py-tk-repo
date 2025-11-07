@@ -3,9 +3,14 @@
 """
 
 import os
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from customtkinter import CTk
+
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 
@@ -139,6 +144,9 @@ class FileOperations:
             
             # 重置修改状态
             self.editor.is_modified = False
+            
+            # 更新窗口标题
+            self.editor._update_window_title()
             
             return True
             

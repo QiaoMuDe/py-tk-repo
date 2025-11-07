@@ -14,13 +14,13 @@ import time
 from datetime import datetime
 
 # 添加项目根目录到Python路径
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
-from app.file_operations import FileOperations
+from operations.file_operations import FileOperations
 
 
 class QuickEditApp(ctk.CTk):
@@ -299,8 +299,7 @@ class QuickEditApp(ctk.CTk):
     def _update_window_title(self):
         """根据文件修改状态更新窗口标题"""
         # 获取配置中的窗口标题模式
-        from ..config.config_manager import ConfigManager
-        config_manager = ConfigManager()
+        from config.config_manager import config_manager
         title_mode = config_manager.get("app.window_title_mode", "filename")
         
         # 根据文件修改状态和路径构建标题
