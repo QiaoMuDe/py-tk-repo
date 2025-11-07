@@ -33,11 +33,10 @@ class FontDialog:
             title: 对话框标题
         """
         self.text_widget = text_widget
-        self.dialog = ctk.CTkToplevel(parent)
+        self.dialog = ctk.CTkToplevel()
         self.dialog.title(title)
         self.dialog.geometry("700x500")  # 设置固定大小
         self.dialog.resizable(True, True)
-        self.dialog.transient(parent)  # 设置为主窗口的子窗口
         self.dialog.grab_set()  # 模态窗口
 
         # 初始化配置管理器
@@ -462,15 +461,6 @@ class FontDialog:
         """
         确认字体设置并关闭对话框
         """
-        # 确保temp_font包含必要的字体信息
-        if not hasattr(self, "temp_font") or "family" not in self.temp_font:
-            # 设置默认字体
-            self.temp_font = {
-                "family": "Microsoft YaHei UI",
-                "size": 12,
-                "weight": "normal",
-            }
-
         # 更新配置管理器中的文本框字体配置
         self.config_manager.set("text_editor.font", self.temp_font["family"])
         self.config_manager.set("text_editor.font_size", self.temp_font["size"])
@@ -482,7 +472,12 @@ class FontDialog:
         self.config_manager.save_config()
         
         # 更新文本框字体
-        pass
+        text_font = ctk.CTkFont(
+            family=self.temp_font["family"],
+            size=self.temp_font["size"],
+            weight=self.temp_font["weight"]
+        )
+        self.text_widget.configure(font=text_font)
 
         # 延迟关闭对话框，确保回调函数执行完毕
         self.dialog.after(100, self.dialog.destroy)

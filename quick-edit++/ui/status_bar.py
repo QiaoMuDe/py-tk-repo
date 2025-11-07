@@ -12,12 +12,9 @@ from config.config_manager import config_manager
 class StatusBar(ctk.CTkFrame):
     """状态栏类"""
     
-    def __init__(self, parent, app):
+    def __init__(self, parent):
         """初始化状态栏"""
         super().__init__(parent)
-        
-        # 保存应用实例引用
-        self.app = app
         
         # 设置状态栏高度
         self.configure(height=25)

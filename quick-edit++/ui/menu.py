@@ -10,47 +10,7 @@ import customtkinter as ctk
 from ui.dialogs.font_dialog import show_font_dialog
 from config.config_manager import config_manager
 
-
-def on_font_confirm(font_info, text_widget=None):
-    """
-    字体设置确认回调函数
-    
-    Args:
-        font_info: 字体配置字典，包含family、size、weight等属性
-        text_widget: 文本框组件引用
-    """
-    if not text_widget:
-        return
-        
-    try:
-        # 创建新的CTkFont对象，确保字体正确应用
-        from customtkinter import CTkFont
-        new_font = CTkFont(
-            family=font_info.get("family", "Microsoft YaHei UI"),
-            size=font_info.get("size", 12),
-            weight=font_info.get("weight", "normal"),
-            slant=font_info.get("slant", "roman"),
-            underline=font_info.get("underline", False),
-            overstrike=font_info.get("overstrike", False)
-        )
-        
-        # 直接应用新字体对象到文本框
-        text_widget.configure(font=new_font)
-        
-        # 如果文本框有main_window属性，更新其current_font引用
-        if hasattr(text_widget, 'master') and hasattr(text_widget.master, 'current_font'):
-            text_widget.master.current_font = new_font
-        
-        # 保存字体配置到配置管理器
-        if hasattr(text_widget, 'master'):
-            text_widget.master.update_font(font_info)
-        
-        print(f"字体已应用: {font_info.get('family', 'Microsoft YaHei UI')} {font_info.get('size', 12)}pt")
-    except Exception as e:
-        print(f"应用字体失败: {e}")
-
-
-def create_menu(root, main_window=None):
+def create_menu(root):
     """创建菜单栏"""
     # 从配置管理器获取菜单字体设置
     menu_font = config_manager.get_font_config("menu_bar")
@@ -177,7 +137,7 @@ def create_menu(root, main_window=None):
     
     # 创建格式菜单
     format_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    format_menu.add_command(label="字体", command=lambda: show_font_dialog(root, main_window.text_area if hasattr(main_window, 'text_area') else None, on_font_confirm))
+    format_menu.add_command(label="字体", command=lambda: show_font_dialog(root.text_area))
     format_menu.add_command(label="背景色", command=lambda: print("设置背景色"))
     
     # 将格式菜单添加到主菜单

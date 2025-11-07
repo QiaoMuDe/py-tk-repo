@@ -12,12 +12,9 @@ from config.config_manager import config_manager
 class Toolbar(ctk.CTkFrame):
     """工具栏类"""
     
-    def __init__(self, parent, app=None):
+    def __init__(self, parent):
         """初始化工具栏"""
         super().__init__(parent, height=50, corner_radius=0)
-        
-        # 保存应用实例引用
-        self.app = app
         
         # 获取工具栏字体配置
         font_config = config_manager.get_font_config("toolbar")
