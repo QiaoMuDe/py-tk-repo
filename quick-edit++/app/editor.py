@@ -7,6 +7,7 @@
 """
 
 import customtkinter as ctk
+import tkinter as tk
 import sys
 import os
 import time
@@ -45,20 +46,11 @@ class QuickEditApp:
         self.main_window = MainWindow(self)
         self.main_window.title("QuickEdit++")
         
-        # 获取窗口大小配置
-        window_width = config_manager.get("app.window_width", 1000)
-        window_height = config_manager.get("app.window_height", 700)
-        self.main_window.geometry(f"{window_width}x{window_height}")
-        
         # 自动保存相关属性
         self.auto_save_enabled = config_manager.get("saving.auto_save", True)
         self.auto_save_interval = config_manager.get("saving.auto_save_interval", 30)  # 默认30秒
         self.last_auto_save_time = None
         self.auto_save_job = None
-        
-        # 创建菜单栏
-        self.menu_bar = create_menu(self.main_window, self)
-        self.main_window.config(menu=self.menu_bar)
         
         # 创建工具栏
         self.toolbar = Toolbar(self.main_window, self)
@@ -73,8 +65,27 @@ class QuickEditApp:
         # 设置状态栏引用以便其他组件可以更新状态
         self.main_window.status_bar = self.status_bar
         
+        # 创建文本编辑区域 - 去掉圆角，确保完全填充
+        self.text_area = ctk.CTkTextbox(
+            self.main_window.text_frame,
+            wrap="none",
+            undo=True,
+            font=self.main_window.current_font
+        )
+        self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
+        
+        # 创建菜单栏
+        self.menu_bar = create_menu(self.main_window, self)
+        self.main_window.config(menu=self.menu_bar)
+        
+        # 将文本区域引用保存到主窗口
+        self.main_window.text_area = self.text_area
+        
         # 确保文本编辑区域在工具栏和状态栏之间
         self.main_window.text_frame.pack(after=self.toolbar, before=self.status_bar, fill="both", expand=True)
+        
+        # 绑定文本区域事件
+        self._bind_text_events()
         
         # 初始化状态栏显示
         self._init_status_bar()
@@ -140,6 +151,61 @@ class QuickEditApp:
                 self.main_window.after_cancel(self.auto_save_job)
                 self.auto_save_job = None
             self.status_bar.set_auto_save_enabled(False)
+            
+    def _bind_text_events(self):
+        """绑定文本区域事件"""
+        # 绑定按键事件
+        self.text_area.bind("<KeyRelease>", self._on_text_change)
+        self.text_area.bind("<Button-1>", self._on_cursor_move)
+        self.text_area.bind("<<Selection>>", self._on_selection_change)
+        
+        # 绑定鼠标滚轮事件
+        self.text_area.bind("<MouseWheel>", self._on_cursor_move)
+        
+    def _on_text_change(self, event=None):
+        """文本改变事件处理"""
+        self._update_status_bar()
+        
+    def _on_cursor_move(self, event=None):
+        """光标移动事件处理"""
+        self._update_status_bar()
+        
+    def _on_selection_change(self, event=None):
+        """选择内容改变事件处理"""
+        self._update_status_bar()
+        
+    def _update_status_bar(self):
+        """更新状态栏信息"""
+        # 获取光标位置
+        cursor_pos = self.text_area.index(ctk.INSERT)
+        row, col = cursor_pos.split('.')
+        row, col = int(row), int(col) + 1  # 转换为1基索引
+        
+        # 获取总字符数
+        content = self.text_area.get("1.0", ctk.END)
+        total_chars = len(content) - 1  # 减去末尾的换行符
+        
+        # 获取选中字符数
+        try:
+            selected_content = self.text_area.get(ctk.SEL_FIRST, ctk.SEL_LAST)
+            selected_chars = len(selected_content)
+            
+            # 计算选中的行数
+            selected_lines = selected_content.count('\n') + 1
+        except tk.TclError:
+            # 没有选中内容
+            selected_chars = None
+            selected_lines = None
+        
+        # 更新状态栏
+        if hasattr(self, 'status_bar'):
+            self.status_bar.set_status_info(
+                row=row, 
+                col=col, 
+                total_chars=total_chars, 
+                selected_chars=selected_chars, 
+                selected_lines=selected_lines
+            )
             
     def run(self):
         """运行应用"""

@@ -11,21 +11,21 @@ from ui.dialogs.font_dialog import show_font_dialog
 from config.config_manager import config_manager
 
 
-def on_font_confirm(font_info, text_area=None):
+def on_font_confirm(font_info, text_widget=None):
     """
     字体设置确认回调函数
     
     Args:
         font_info: 字体配置字典，包含family、size、weight等属性
-        text_area: 文本框组件引用
+        text_widget: 文本框组件引用
     """
-    if not text_area:
+    if not text_widget:
         return
         
     try:
-        # 应用字体到文本区域
+        # 创建新的CTkFont对象，确保字体正确应用
         from customtkinter import CTkFont
-        font = CTkFont(
+        new_font = CTkFont(
             family=font_info.get("family", "Microsoft YaHei UI"),
             size=font_info.get("size", 12),
             weight=font_info.get("weight", "normal"),
@@ -33,33 +33,39 @@ def on_font_confirm(font_info, text_area=None):
             underline=font_info.get("underline", False),
             overstrike=font_info.get("overstrike", False)
         )
-        text_area.configure(font=font)
+        
+        # 直接应用新字体对象到文本框
+        text_widget.configure(font=new_font)
+        
+        # 如果文本框有main_window属性，更新其current_font引用
+        if hasattr(text_widget, 'master') and hasattr(text_widget.master, 'current_font'):
+            text_widget.master.current_font = new_font
         
         # 保存字体配置到配置管理器
-        if hasattr(text_area, 'main_window'):
-            text_area.main_window.update_font(font_info)
+        if hasattr(text_widget, 'master'):
+            text_widget.master.update_font(font_info)
         
         print(f"字体已应用: {font_info.get('family', 'Microsoft YaHei UI')} {font_info.get('size', 12)}pt")
     except Exception as e:
         print(f"应用字体失败: {e}")
 
 
-
 def create_menu(root, main_window=None):
     """创建菜单栏"""
-    # 由于customtkinter没有直接的菜单栏组件，我们需要使用tkinter的菜单
-    # 这里我们创建一个隐藏的tkinter菜单栏
-    
     # 从配置管理器获取菜单字体设置
-    menu_font = config_manager.get_font_config("menu")
-    menu_font_family = menu_font.get("family", "Microsoft YaHei UI")
-    menu_font_size = menu_font.get("size", 10)
+    menu_font = config_manager.get_font_config("menu_bar")
+    menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
+    menu_font_size = menu_font.get("font_size", 12)
+    menu_font_bold = menu_font.get("font_bold", False)
+    
+    # 创建字体元组，用于所有菜单项
+    menu_font_tuple = (menu_font_family, menu_font_size, "bold" if menu_font_bold else "normal")
     
     # 创建主菜单
-    main_menu = tk.Menu(root, font=(menu_font_family, menu_font_size))
+    main_menu = tk.Menu(root, font=menu_font_tuple)
     
     # 创建文件菜单
-    file_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     
     # 第一组：基本文件操作
     file_menu.add_command(label="新建", command=lambda: print("新建文件"))
@@ -73,7 +79,7 @@ def create_menu(root, main_window=None):
     
     # 第二组：文件编码
     # 创建文件编码子菜单
-    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
     
     # 获取当前编码设置
     current_encoding = config_manager.get("file.default_encoding", "UTF-8")
@@ -91,7 +97,7 @@ def create_menu(root, main_window=None):
     file_menu.add_cascade(label="文件编码", menu=encoding_submenu)
 
     # 创建换行符子菜单
-    newline_submenu = tk.Menu(file_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    newline_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
     
     # 获取当前换行符设置
     current_newline = config_manager.get("file.default_line_ending", "CRLF")
@@ -126,7 +132,7 @@ def create_menu(root, main_window=None):
     main_menu.add_cascade(label="文件", menu=file_menu)
     
     # 创建编辑菜单
-    edit_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    edit_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     edit_menu.add_command(label="撤销", command=lambda: print("撤销"))
     edit_menu.add_command(label="重做", command=lambda: print("重做"))
     edit_menu.add_separator()
@@ -155,38 +161,30 @@ def create_menu(root, main_window=None):
     edit_menu.add_command(label="清空剪贴板", command=lambda: print("清空剪贴板"))
     
     # 创建复制到剪贴板子菜单
-    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
     edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
     
     # 创建选中文本操作子菜单
-    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
     edit_menu.add_cascade(label="选中文本操作", menu=selected_text_submenu)
     
     # 创建插入子菜单
-    insert_submenu = tk.Menu(edit_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    insert_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
     
     # 将编辑菜单添加到主菜单
     main_menu.add_cascade(label="编辑", menu=edit_menu)
     
     # 创建格式菜单
-    format_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    format_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     format_menu.add_command(label="字体", command=lambda: show_font_dialog(root, main_window.text_area if hasattr(main_window, 'text_area') else None, on_font_confirm))
     format_menu.add_command(label="背景色", command=lambda: print("设置背景色"))
-    format_menu.add_separator()
-    format_menu.add_command(label="加粗", command=lambda: print("设置文字加粗"))
-    format_menu.add_command(label="斜体", command=lambda: print("设置文字斜体"))
-    format_menu.add_command(label="下划线", command=lambda: print("设置文字下划线"))
-    format_menu.add_command(label="删除线", command=lambda: print("设置文字删除线"))
-    format_menu.add_separator()
-    
-    # 注意：已移除光标样式子菜单，使用系统默认光标样式
     
     # 将格式菜单添加到主菜单
     main_menu.add_cascade(label="格式", menu=format_menu)
     
     # 创建主题菜单
-    theme_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    theme_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     
     # 外观模式分组（3种模式）
     # 获取当前外观模式
@@ -224,7 +222,7 @@ def create_menu(root, main_window=None):
     main_menu.add_cascade(label="主题", menu=theme_menu)
     
     # 创建设置菜单
-    settings_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    settings_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     
     # 第一组：界面设置
     # 获取工具栏显示状态
@@ -235,7 +233,7 @@ def create_menu(root, main_window=None):
     )
     
     # 创建窗口标题显示子菜单
-    title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
     title_display_submenu.add_checkbutton(label="显示文件名", command=lambda: print("切换文件名显示"))
     title_display_submenu.add_checkbutton(label="显示文件路径", command=lambda: print("切换文件路径显示"))
     title_display_submenu.add_checkbutton(label="显示状态信息", command=lambda: print("切换状态信息显示"))
@@ -251,7 +249,7 @@ def create_menu(root, main_window=None):
     )
     
     # 创建制表符设置子菜单
-    tab_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    tab_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
     
     # 获取当前制表符宽度
     tab_width = config_manager.get("text_editor.tab_width", 4)
@@ -291,7 +289,7 @@ def create_menu(root, main_window=None):
     )
     
     # 创建自动保存间隔子菜单
-    autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
     
     # 获取当前自动保存间隔
     auto_save_interval = config_manager.get("saving.auto_save_interval", 60)
@@ -326,7 +324,7 @@ def create_menu(root, main_window=None):
     main_menu.add_cascade(label="设置", menu=settings_menu)
     
     # 创建帮助菜单
-    help_menu = tk.Menu(main_menu, tearoff=0, font=(menu_font_family, menu_font_size))
+    help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     help_menu.add_command(label="文档统计信息", command=lambda: print("显示文档统计信息"))
     help_menu.add_command(label="关于", command=lambda: print("显示关于信息"))
     
@@ -432,3 +430,32 @@ def toggle_backup():
     config_manager.set("saving.backup_enabled", not current)
     config_manager.save_config()
     print(f"备份已设置为: {not current}")
+
+
+def apply_menu_font(font_config=None):
+    """
+    应用菜单字体设置
+    
+    Args:
+        font_config (dict, optional): 字体配置字典，包含font, font_size, font_bold
+                                    如果为None，则从配置管理器获取当前配置
+    """
+    # 如果没有提供字体配置，则从配置管理器获取
+    if font_config is None:
+        font_config = config_manager.get_font_config("menu_bar")
+    
+    # 保存字体配置到配置管理器
+    config_manager.set_font_config("menu_bar", font_config)
+    config_manager.save_config()
+    
+    # 构建字体元组
+    font_family = font_config.get("font", "Microsoft YaHei UI")
+    font_size = font_config.get("font_size", 12)
+    font_bold = font_config.get("font_bold", False)
+    font_tuple = (font_family, font_size, "bold" if font_bold else "normal")
+    
+    print(f"菜单字体已更新: {font_family} {font_size}pt {'加粗' if font_bold else '常规'}")
+    
+    # 注意：由于tkinter菜单在创建后无法直接修改字体，
+    # 这里我们只是保存了配置，实际应用需要重启应用程序
+    print("菜单字体设置将在下次启动应用程序时生效")
