@@ -135,16 +135,12 @@ def create_menu(root):
     # 将编辑菜单添加到主菜单
     main_menu.add_cascade(label="编辑", menu=edit_menu)
     
-    # 创建格式菜单
-    format_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    format_menu.add_command(label="字体", command=lambda: show_font_dialog(root.text_area))
-    format_menu.add_command(label="背景色", command=lambda: print("设置背景色"))
-    
-    # 将格式菜单添加到主菜单
-    main_menu.add_cascade(label="格式", menu=format_menu)
-    
     # 创建主题菜单
     theme_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+
+    # 字体
+    theme_menu.add_command(label="字体", command=lambda: show_font_dialog(root.text_area))
+    theme_menu.add_separator()
     
     # 外观模式分组（3种模式）
     # 获取当前外观模式
