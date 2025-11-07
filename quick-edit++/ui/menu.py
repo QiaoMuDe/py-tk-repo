@@ -284,7 +284,7 @@ def create_menu(root):
     
     # 第四组：配置管理
     settings_menu.add_command(label="查看配置", command=lambda: print("查看当前配置"))
-    settings_menu.add_command(label="重置设置", command=lambda: print("重置所有设置"))
+    settings_menu.add_command(label="重置设置", command=lambda: reset_settings())
     
     # 将设置菜单添加到主菜单
     main_menu.add_cascade(label="设置", menu=settings_menu)
@@ -432,3 +432,37 @@ def toggle_backup():
     config_manager.set("saving.backup_enabled", not current)
     config_manager.save_config()
     print(f"备份已设置为: {not current}")
+
+def reset_settings():
+    """
+    重置所有设置到默认值
+    
+    功能：
+    - 获取用户确认
+    - 调用配置管理器重置配置
+    - 显示操作结果提示
+    - 提示用户重启应用以应用更改
+    """
+    import tkinter as tk
+    from tkinter import messagebox
+    
+    # 弹出确认对话框
+    confirmed = messagebox.askyesno(
+        "确认重置", 
+        "确定要将所有设置重置为默认值吗？\n此操作不可撤销。"
+    )
+    
+    if confirmed:
+        # 调用配置管理器重置配置
+        success = config_manager.reset()
+        
+        if success:
+            messagebox.showinfo(
+                "重置成功", 
+                "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。"
+            )
+        else:
+            messagebox.showerror(
+                "重置失败", 
+                "设置重置失败，请检查配置文件权限。"
+            )
