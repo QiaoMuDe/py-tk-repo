@@ -28,6 +28,11 @@ class StatusBar(ctk.CTkFrame):
         # 初始化文件信息
         self.filename = None
         
+        # 通知相关属性
+        self.notification_active = False
+        self.notification_job = None
+        self.original_status_text = ""
+        
         # 配置网格布局权重
         self.grid_columnconfigure(0, weight=1)  # 左侧
         self.grid_columnconfigure(1, weight=1)  # 中间
@@ -41,7 +46,7 @@ class StatusBar(ctk.CTkFrame):
             "bold" if font_config.get("font_bold", False) else "normal"
         )
         
-        # 创建左侧标签（行号信息和文件编辑状态）
+        # 创建左侧标签（显示行号、列号和临时通知信息）
         self.left_label = ctk.CTkLabel(
             self,
             text="就绪 | 第1行 | 第1列",
@@ -50,7 +55,7 @@ class StatusBar(ctk.CTkFrame):
         )
         self.left_label.grid(row=0, column=0, padx=10, pady=2, sticky="w")
         
-        # 创建中间标签（自动保存提示）- 真正居中
+        # 创建中间标签（显示自动保存状态信息）
         self.center_label = ctk.CTkLabel(
             self,
             text=f"自动保存: 从未(间隔{self.auto_save_interval}秒)",
@@ -59,7 +64,7 @@ class StatusBar(ctk.CTkFrame):
         )
         self.center_label.grid(row=0, column=1, padx=10, pady=2, sticky="ew")
         
-        # 创建右侧标签（文件名、编码和换行符类型）
+        # 创建右侧标签（显示文件名、编码和换行符类型）
         self.right_label = ctk.CTkLabel(
             self,
             text=f"{self.encoding} | {self.line_ending}",
@@ -186,3 +191,45 @@ class StatusBar(ctk.CTkFrame):
             print(f"已成功更新状态栏字体设置: {font}")
         except Exception as e:
             print(f"更新状态栏字体设置时出错: {e}")
+            
+    def show_notification(self, message, duration=3000):
+        """
+        在状态栏左侧标签显示临时通知信息
+        
+        Args:
+            message (str): 要显示的通知消息
+            duration (int): 显示持续时间，单位毫秒，默认为3000毫秒(3秒)
+        """
+        # 取消之前的定时器
+        if self.notification_job:
+            self.after_cancel(self.notification_job)
+            self.notification_job = None
+            
+        # 保存当前状态栏左侧内容
+        self.original_status_text = self.left_label.cget("text")
+        
+        # 设置通知活动标志
+        self.notification_active = True
+        
+        # 显示通知消息
+        self.left_label.configure(text=message)
+        
+        # 设置定时器，在指定时间后恢复原始内容
+        self.notification_job = self.after(duration, self._restore_status_after_notification)
+        
+    def _restore_status_after_notification(self):
+        """恢复状态栏左侧标签内容并重置通知状态"""
+        self.notification_active = False
+        self.notification_job = None
+        
+        # 恢复左侧标签的原始内容
+        self.left_label.configure(text=self.original_status_text)
+        
+    def can_update_status(self):
+        """
+        检查是否可以更新状态栏信息
+        
+        Returns:
+            bool: 如果当前没有通知活动，返回True；否则返回False
+        """
+        return not self.notification_active

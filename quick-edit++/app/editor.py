@@ -172,34 +172,22 @@ class QuickEditApp(ctk.CTk):
         if self.auto_save_enabled:
             self.status_bar.set_auto_save_enabled(True)
             self._schedule_auto_save()
+            self.status_bar.show_notification("自动保存已启用")
         else:
             # 取消自动保存任务
             if self.auto_save_job:
                 self.after_cancel(self.auto_save_job)
                 self.auto_save_job = None
             self.status_bar.set_auto_save_enabled(False)
-
-    def update_font(self, font_info):
-        """更新字体配置并保存到配置管理器
-
-        Args:
-            font_info: 字体配置字典，包含family、size等信息
-        """
-        # 保存字体配置到配置管理器
-        config_manager.set_font_config("text_editor", font_info)
-        config_manager.save_config()
-
-        print(f"字体配置已保存: {font_info}")
+            self.status_bar.show_notification("自动保存已禁用")
 
     def _bind_text_events(self):
         """绑定文本区域事件"""
         # 绑定按键事件
-        self.text_area.bind("<KeyRelease>", self._on_text_change)
-        self.text_area.bind("<Button-1>", self._on_cursor_move)
-        self.text_area.bind("<<Selection>>", self._on_selection_change)
-
-        # 绑定鼠标滚轮事件
-        self.text_area.bind("<MouseWheel>", self._on_cursor_move)
+        self.text_area.bind("<KeyRelease>", self._on_text_change) # 监听文本改变事件
+        self.text_area.bind("<Button-1>", self._on_cursor_move) # 监听鼠标点击事件
+        self.text_area.bind("<<Selection>>", self._on_selection_change) # 监听选择内容改变事件
+        self.text_area.bind("<MouseWheel>", self._on_cursor_move) # 监听鼠标滚轮事件
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
@@ -215,6 +203,10 @@ class QuickEditApp(ctk.CTk):
 
     def _update_status_bar(self):
         """更新状态栏信息"""
+        # 如果当前有通知活动，不更新状态栏
+        if not self.status_bar.can_update_status():
+            return
+            
         # 获取光标位置
         cursor_pos = self.text_area.index(ctk.INSERT)
         row, col = cursor_pos.split(".")
@@ -244,7 +236,7 @@ class QuickEditApp(ctk.CTk):
             selected_chars=selected_chars,
             selected_lines=selected_lines,
         )
-
+        
     def run(self):
         """运行应用"""
         self.mainloop()

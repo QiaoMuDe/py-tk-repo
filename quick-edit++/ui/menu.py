@@ -142,7 +142,7 @@ def create_menu(root):
     theme_menu.add_command(label="字体", command=lambda: show_font_dialog(root.text_area))
     theme_menu.add_separator()
     
-    # 外观模式分组（3种模式）
+    # 外观模式分组（3种模式）- 使用单选按钮
     # 获取当前外观模式
     current_theme = config_manager.get("app.theme_mode", "system")
     theme_options = [
@@ -151,15 +151,20 @@ def create_menu(root):
         ("跟随系统", "system")
     ]
     
+    # 创建外观模式变量
+    theme_var = tk.StringVar(value=current_theme)
+    
     for label, value in theme_options:
-        theme_menu.add_command(
+        theme_menu.add_radiobutton(
             label=label, 
-            command=lambda tm=value: set_theme_mode(tm)
+            variable=theme_var,
+            value=value,
+            command=lambda: set_theme_mode(theme_var.get(), root)
         )
     
     theme_menu.add_separator()
     
-    # 主题颜色分组（3种主题）
+    # 主题颜色分组（3种主题）- 使用单选按钮
     # 获取当前颜色主题
     current_color = config_manager.get("app.color_theme", "blue")
     color_options = [
@@ -168,10 +173,15 @@ def create_menu(root):
         ("深蓝色主题", "dark-blue")
     ]
     
+    # 创建颜色主题变量
+    color_var = tk.StringVar(value=current_color)
+    
     for label, value in color_options:
-        theme_menu.add_command(
+        theme_menu.add_radiobutton(
             label=label, 
-            command=lambda ct=value: set_color_theme(ct)
+            variable=color_var,
+            value=value,
+            command=lambda: set_color_theme(color_var.get(), root)
         )
     
     # 将主题菜单添加到主菜单
@@ -310,19 +320,55 @@ def set_file_line_ending(line_ending):
 # 注意：已移除光标样式设置函数，使用系统默认光标样式
 
 
-def set_theme_mode(mode):
-    """设置主题模式"""
+def set_theme_mode(mode, root=None):
+    """
+    设置主题模式
+    
+    Args:
+        mode (str): 主题模式，可选值: "light", "dark", "system"
+        root (ctk.CTk, optional): 主窗口实例。
+    """
+    # 保存配置
     config_manager.set("app.theme_mode", mode)
     config_manager.save_config()
+    
+    # 应用主题模式
     ctk.set_appearance_mode(mode)
+    
+    # 显示通知
+    mode_text = {"light": "浅色模式", "dark": "深色模式", "system": "跟随系统"}
+    mode_name = mode_text.get(mode, mode)
+    
+    # 显示通知
+    if root is not None:
+        root.status_bar.show_notification(f"主题模式已切换为: {mode_name}")
+    
     print(f"主题模式已设置为: {mode}")
 
 
-def set_color_theme(theme):
-    """设置颜色主题"""
+def set_color_theme(theme, root=None):
+    """
+    设置颜色主题
+    
+    Args:
+        theme (str): 颜色主题，可选值: "blue", "green", "dark-blue"
+        root (ctk.CTk, optional): 主窗口实例。
+    """
+    # 保存配置
     config_manager.set("app.color_theme", theme)
     config_manager.save_config()
+    
+    # 应用颜色主题
     ctk.set_default_color_theme(theme)
+    
+    # 显示通知
+    theme_text = {"blue": "蓝色主题", "green": "绿色主题", "dark-blue": "深蓝色主题"}
+    theme_name = theme_text.get(theme, theme)
+    
+    # 显示通知
+    if root is not None:
+        root.status_bar.show_notification(f"颜色主题已切换为: {theme_name}, 请重启应用以生效")
+    
     print(f"颜色主题已设置为: {theme}")
 
 
@@ -386,32 +432,3 @@ def toggle_backup():
     config_manager.set("saving.backup_enabled", not current)
     config_manager.save_config()
     print(f"备份已设置为: {not current}")
-
-
-def apply_menu_font(font_config=None):
-    """
-    应用菜单字体设置
-    
-    Args:
-        font_config (dict, optional): 字体配置字典，包含font, font_size, font_bold
-                                    如果为None，则从配置管理器获取当前配置
-    """
-    # 如果没有提供字体配置，则从配置管理器获取
-    if font_config is None:
-        font_config = config_manager.get_font_config("menu_bar")
-    
-    # 保存字体配置到配置管理器
-    config_manager.set_font_config("menu_bar", font_config)
-    config_manager.save_config()
-    
-    # 构建字体元组
-    font_family = font_config.get("font", "Microsoft YaHei UI")
-    font_size = font_config.get("font_size", 12)
-    font_bold = font_config.get("font_bold", False)
-    font_tuple = (font_family, font_size, "bold" if font_bold else "normal")
-    
-    print(f"菜单字体已更新: {font_family} {font_size}pt {'加粗' if font_bold else '常规'}")
-    
-    # 注意：由于tkinter菜单在创建后无法直接修改字体，
-    # 这里我们只是保存了配置，实际应用需要重启应用程序
-    print("菜单字体设置将在下次启动应用程序时生效")
