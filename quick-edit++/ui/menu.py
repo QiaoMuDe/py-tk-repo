@@ -80,7 +80,7 @@ def create_menu(root):
     
     # 第三组：文件选项
     file_menu.add_command(label="打开文件所在目录", command=lambda: print("打开文件所在目录"))
-    file_menu.add_checkbutton(label="只读模式", command=lambda: print("切换只读模式"))
+    file_menu.add_checkbutton(label="只读模式", command=lambda: root.toggle_read_only())
     
     # 分隔符
     file_menu.add_separator()

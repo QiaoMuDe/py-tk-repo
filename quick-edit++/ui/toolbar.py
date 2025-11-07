@@ -94,7 +94,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("切换只读模式")
+            command=self.parent.toggle_read_only
         )
         self.readonly_button.pack(side="left", padx=2, pady=10)
         

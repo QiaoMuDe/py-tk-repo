@@ -90,6 +90,9 @@ class QuickEditApp(ctk.CTk):
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.is_new_file = False  # 是否为新文件状态
         
+        # 从配置文件中读取只读模式状态
+        self.is_read_only = config_manager.get("text_editor.read_only", False)  # 是否为只读模式
+        
         # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
         self.text_frame = ctk.CTkFrame(self)
 
@@ -123,6 +126,13 @@ class QuickEditApp(ctk.CTk):
 
         # 初始化状态栏显示
         self._init_status_bar()
+
+        # 设置初始只读模式状态
+        if self.is_read_only:
+            # 设置为只读模式
+            self.text_area.configure(state="disabled")
+            # 更新工具栏按钮外观
+            self.toolbar.readonly_button.configure(fg_color="#FF6B6B", hover_color="#FF5252")
 
         # 启动自动保存功能
         self._start_auto_save()
@@ -345,21 +355,41 @@ class QuickEditApp(ctk.CTk):
         
     def open_file(self):
         """打开文件并加载到文本编辑区域"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
+            return
         # 直接调用文件操作处理器的打开文件方法
         self.file_ops.open_file()
     
     def save_file(self):
         """保存当前文件"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
+            return False
         # 直接调用文件操作处理器的保存文件方法
         return self.file_ops.save_file()
     
     def save_file_as(self):
         """另存为文件"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
+            return False
         # 直接调用文件操作处理器的另存为方法
         return self.file_ops.save_file_as()
     
     def close_file(self):
-        """关闭当前文件，重置窗口和状态栏状态"""
+        """关闭当前文件"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
+            return
         # 直接调用文件操作处理器的关闭文件方法
         self.file_ops.close_file()
         
@@ -370,8 +400,39 @@ class QuickEditApp(ctk.CTk):
     
     def new_file(self):
         """创建新文件"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再创建新文件")
+            return
         # 直接调用文件操作处理器的新建文件方法
         self.file_ops.new_file()
+    
+    def toggle_read_only(self):
+        """切换只读模式"""
+        self.is_read_only = not self.is_read_only
+        
+        # 保存只读模式状态到配置文件
+        from config.config_manager import config_manager
+        config_manager.set("text_editor.read_only", self.is_read_only)
+        config_manager.save_config()
+        
+        # 根据只读模式状态设置文本编辑区域
+        if self.is_read_only:
+            # 设置为只读模式
+            self.text_area.configure(state="disabled")
+            self.status_bar.show_notification("已切换到只读模式")
+            # 更新工具栏按钮外观
+            self.toolbar.readonly_button.configure(fg_color="#FF6B6B", hover_color="#FF5252")
+        else:
+            # 设置为编辑模式
+            self.text_area.configure(state="normal")
+            self.status_bar.show_notification("已切换到编辑模式")
+            # 恢复工具栏按钮默认外观
+            from customtkinter import ThemeManager
+            default_fg_color = ThemeManager.theme["CTkButton"]["fg_color"]
+            default_hover_color = ThemeManager.theme["CTkButton"]["hover_color"]
+            self.toolbar.readonly_button.configure(fg_color=default_fg_color, hover_color=default_hover_color)
     
     def run(self):
         """运行应用"""
