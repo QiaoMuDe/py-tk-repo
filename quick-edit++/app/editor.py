@@ -86,7 +86,7 @@ class QuickEditApp(ctk.CTk):
         # 初始化文件相关属性
         self.current_file_path = None  # 当前文件路径
         self.current_encoding = 'UTF-8'  # 当前文件编码
-        self.current_line_ending = 'LF'  # 当前文件换行符
+        self.current_line_ending = config_manager.get("app.default_line_ending", "LF")  # 从配置中读取默认换行符
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.is_new_file = False  # 是否为新文件状态
         
@@ -145,8 +145,12 @@ class QuickEditApp(ctk.CTk):
         # 暂时隐藏自动保存信息，因为功能尚未开发完成
         # self.status_bar.set_auto_save_info("从未")
 
-        # 设置初始文件信息
-        self.status_bar.set_file_info()
+        # 设置初始文件信息，包括默认换行符
+        self.status_bar.set_file_info(
+            filename=None,
+            encoding=self.current_encoding,
+            line_ending=self.current_line_ending
+        )
 
         # 暂时隐藏自动保存间隔，因为功能尚未开发完成
         # self.status_bar.set_auto_save_interval(self.auto_save_interval)

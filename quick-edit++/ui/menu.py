@@ -70,7 +70,7 @@ def create_menu(root):
     for label, value in newline_options:
         newline_submenu.add_command(
             label=label, 
-            command=lambda nl=value: set_file_line_ending(nl)
+            command=lambda nl=value: set_file_line_ending(nl, root)
         )
     
     file_menu.add_cascade(label="换行符", menu=newline_submenu)
@@ -310,11 +310,27 @@ def set_file_encoding(encoding):
     print(f"文件编码已设置为: {encoding}")
 
 
-def set_file_line_ending(line_ending):
-    """设置文件换行符"""
+def set_file_line_ending(line_ending, app_instance=None):
+    """设置文件换行符
+    
+    Args:
+        line_ending: 换行符类型 ('CRLF', 'LF', 'CR')
+        app_instance: APP类的实例，用于直接更新当前状态
+    """
     config_manager.set("file.default_line_ending", line_ending)
     config_manager.save_config()
     print(f"文件换行符已设置为: {line_ending}")
+    
+    # 如果提供了APP实例，直接更新当前状态
+    if app_instance:
+        app_instance.current_line_ending = line_ending
+        # 更新状态栏显示
+        if hasattr(app_instance, 'status_bar'):
+            app_instance.status_bar.set_file_info(
+                filename=getattr(app_instance, 'current_file_path', None),
+                encoding=getattr(app_instance, 'current_encoding', 'UTF-8'),
+                line_ending=line_ending
+            )
 
 
 # 注意：已移除光标样式设置函数，使用系统默认光标样式

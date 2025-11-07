@@ -84,8 +84,9 @@ class FileOperations:
             # 更新状态栏文件信息
             file_name = os.path.basename(file_path)
             self.editor.status_bar.set_file_info(
-                filename=file_name,
-                encoding=encoding
+                filename=file_name, # 显示文件名
+                encoding=encoding, # 显示编码
+                line_ending=line_ending # 显示换行符类型
             )
             
             # 更新状态栏
@@ -131,7 +132,8 @@ class FileOperations:
             
             # 获取当前编码和换行符设置
             encoding = getattr(self.editor, 'current_encoding', 'UTF-8')
-            line_ending = getattr(self.editor, 'current_line_ending', 'LF')
+            # 优先使用编辑器的当前换行符设置，如果没有则使用配置中的默认换行符
+            line_ending = getattr(self.editor, 'current_line_ending', self.config_manager.get("app.default_line_ending", "LF"))
             
             # 使用核心类转换换行符格式
             content = self.file_core.convert_line_endings(content, line_ending)
@@ -142,6 +144,15 @@ class FileOperations:
             
             # 更新状态栏
             self.editor.status_bar.set_status_info("文件已保存")
+            
+            # 更新状态栏文件信息（包括换行符）
+            if self.editor.current_file_path:
+                file_name = os.path.basename(self.editor.current_file_path)
+                self.editor.status_bar.set_file_info(
+                    filename=file_name,
+                    encoding=encoding,
+                    line_ending=line_ending  # 确保状态栏显示正确的换行符
+                )
             
             # 重置修改状态
             self.editor.is_modified = False  # 清除修改状态标志
@@ -196,7 +207,8 @@ class FileOperations:
             
             # 获取当前编码和换行符设置
             encoding = getattr(self.editor, 'current_encoding', 'UTF-8')
-            line_ending = getattr(self.editor, 'current_line_ending', 'LF')
+            # 优先使用编辑器的当前换行符设置，如果没有则使用配置中的默认换行符
+            line_ending = getattr(self.editor, 'current_line_ending', self.config_manager.get("app.default_line_ending", "LF"))
             
             # 使用核心类转换换行符格式
             content = self.file_core.convert_line_endings(content, line_ending)
@@ -218,7 +230,8 @@ class FileOperations:
             file_name = os.path.basename(file_path)
             self.editor.status_bar.set_file_info(
                 filename=file_name,
-                encoding=encoding
+                encoding=encoding,
+                line_ending=line_ending  # 确保状态栏显示正确的换行符
             )
             
             # 更新状态栏
@@ -245,11 +258,18 @@ class FileOperations:
         # 设置新文件状态标志
         self.editor.is_new_file = True
         
+        # 获取配置中的默认换行符
+        default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
+        
+        # 更新编辑器的当前换行符
+        self.editor.current_line_ending = default_line_ending
+        
         # 更新状态栏为新文件状态
         self.editor.status_bar.set_status_info("新文件")
         self.editor.status_bar.set_file_info(
             filename="新文件",
-            encoding="UTF-8"
+            encoding="UTF-8",
+            line_ending=default_line_ending  # 确保状态栏显示默认换行符
         )
         
         # 更新窗口标题为新文件
@@ -264,17 +284,20 @@ class FileOperations:
         # 清空编辑器内容
         self.editor.text_area.delete("1.0", tk.END)
         
+        # 获取配置中的默认换行符
+        default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
+        
         # 重置文件相关属性
         self.editor.current_file_path = None
         self.editor.current_encoding = 'UTF-8'
-        self.editor.current_line_ending = 'LF'
+        self.editor.current_line_ending = default_line_ending  # 重置为配置中的默认换行符
         self.editor.is_modified = False
         self.editor.is_new_file = False  # 清除新文件状态标志
         
         # 更新状态栏
         self.editor.status_bar.set_status_info("就绪")
-        # 重置状态栏右侧文件信息，不传递filename参数，这样会显示默认的编码和换行符
-        self.editor.status_bar.set_file_info(filename=None, encoding="UTF-8", line_ending="LF")
+        # 重置状态栏右侧文件信息，传递空字符串作为文件名，这样会显示默认的编码和换行符
+        self.editor.status_bar.set_file_info(filename="", encoding="UTF-8", line_ending=default_line_ending)
         
         # 更新窗口标题
         self.editor._update_window_title()

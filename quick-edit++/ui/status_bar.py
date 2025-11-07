@@ -136,10 +136,14 @@ class StatusBar(ctk.CTkFrame):
         if line_ending is not None:
             self.line_ending = line_ending
             
+        # 使用当前值构建显示文本
+        current_encoding = encoding if encoding is not None else self.encoding
+        current_line_ending = line_ending if line_ending is not None else self.line_ending
+        
         if self.filename is None:
-            text = f"{self.encoding} | {self.line_ending}"
+            text = f"{current_encoding} | {current_line_ending}"
         else:
-            text = f"{self.filename} | {self.encoding} | {self.line_ending}"
+            text = f"{self.filename} | {current_encoding} | {current_line_ending}"
             
         self.right_label.configure(text=text)
         
