@@ -28,10 +28,10 @@ def create_menu(root):
     file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     
     # 第一组：基本文件操作
-    file_menu.add_command(label="新建", command=lambda: print("新建文件"))
-    file_menu.add_command(label="打开", command=lambda: print("打开文件"))
-    file_menu.add_command(label="保存", command=lambda: print("保存文件"))
-    file_menu.add_command(label="另存为", command=lambda: print("另存为"))
+    file_menu.add_command(label="新建", command=lambda: root.new_file())
+    file_menu.add_command(label="打开", command=lambda: root.open_file())
+    file_menu.add_command(label="保存", command=lambda: root.save_file())
+    file_menu.add_command(label="另存为", command=lambda: root.save_file_as())
     file_menu.add_command(label="关闭文件", command=lambda: print("关闭当前文件"))
     
     # 分隔符

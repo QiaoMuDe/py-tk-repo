@@ -20,6 +20,7 @@ from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
+from app.file_operations import FileOperations
 
 
 class QuickEditApp(ctk.CTk):
@@ -79,6 +80,15 @@ class QuickEditApp(ctk.CTk):
         self.last_auto_save_time = None
         self.auto_save_job = None
 
+        # 初始化文件操作处理器
+        self.file_ops = FileOperations(self, self)
+        
+        # 初始化文件相关属性
+        self.current_file_path = None  # 当前文件路径
+        self.current_encoding = 'UTF-8'  # 当前文件编码
+        self.current_line_ending = 'LF'  # 当前文件换行符
+        self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
+        
         # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
         self.text_frame = ctk.CTkFrame(self)
 
@@ -121,22 +131,26 @@ class QuickEditApp(ctk.CTk):
         # 设置初始状态信息
         self.status_bar.set_status_info()
 
-        # 设置初始自动保存信息
-        self.status_bar.set_auto_save_info("从未")
+        # 暂时隐藏自动保存信息，因为功能尚未开发完成
+        # self.status_bar.set_auto_save_info("从未")
 
         # 设置初始文件信息
         self.status_bar.set_file_info()
 
-        # 设置自动保存间隔
-        self.status_bar.set_auto_save_interval(self.auto_save_interval)
+        # 暂时隐藏自动保存间隔，因为功能尚未开发完成
+        # self.status_bar.set_auto_save_interval(self.auto_save_interval)
 
     def _start_auto_save(self):
         """启动自动保存功能"""
+        # 暂时禁用自动保存功能，因为功能尚未开发完成
+        self.auto_save_enabled = False
         if self.auto_save_enabled:
             self.status_bar.set_auto_save_enabled(True)
             self._schedule_auto_save()
         else:
-            self.status_bar.set_auto_save_enabled(False)
+            # 暂时注释掉自动保存状态显示
+            # self.status_bar.set_auto_save_enabled(False)
+            pass
 
     def _schedule_auto_save(self):
         """安排下一次自动保存"""
@@ -152,22 +166,32 @@ class QuickEditApp(ctk.CTk):
 
     def _perform_auto_save(self):
         """执行自动保存操作"""
+        # 暂时禁用自动保存功能，因为功能尚未开发完成
         if self.auto_save_enabled:
             # 这里应该实现实际的保存逻辑
             # 目前只是更新状态栏显示
             self.last_auto_save_time = datetime.now().strftime("%H:%M:%S")
-            self.status_bar.set_auto_save_info("成功")
+            # 暂时注释掉自动保存状态显示
+            # self.status_bar.set_auto_save_info("成功")
 
             # 安排下一次自动保存
             self._schedule_auto_save()
 
     def _on_closing(self):
         """窗口关闭事件处理"""
-        # 这里可以添加保存确认等逻辑
-        self.destroy()
+        # 检查是否需要保存当前文件
+        if self.check_save_before_close():
+            self.destroy()
+        # 如果用户取消保存，则不关闭窗口
 
     def _toggle_auto_save(self):
         """切换自动保存功能"""
+        # 暂时禁用自动保存功能，因为功能尚未开发完成
+        self.status_bar.show_notification("自动保存功能尚未开发完成")
+        return
+        
+        # 以下是原始实现，暂时注释掉
+        """
         self.auto_save_enabled = not self.auto_save_enabled
         if self.auto_save_enabled:
             self.status_bar.set_auto_save_enabled(True)
@@ -180,6 +204,7 @@ class QuickEditApp(ctk.CTk):
                 self.auto_save_job = None
             self.status_bar.set_auto_save_enabled(False)
             self.status_bar.show_notification("自动保存已禁用")
+        """
 
     def _bind_text_events(self):
         """绑定文本区域事件"""
@@ -191,6 +216,14 @@ class QuickEditApp(ctk.CTk):
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
+        # 如果当前有文件路径，则标记为已修改
+        # 如果没有文件路径（新文件），只有当内容不为空时才标记为已修改
+        if self.current_file_path:
+            self.is_modified = True
+        else:
+            content = self.text_area.get("1.0", ctk.END).strip()
+            self.is_modified = len(content) > 0
+        
         self._update_status_bar()
 
     def _on_cursor_move(self, event=None):
@@ -247,8 +280,12 @@ class QuickEditApp(ctk.CTk):
             selected_chars = None
             selected_lines = None
 
+        # 根据文件修改状态确定状态文本
+        status = "已修改" if self.is_modified else "就绪"
+
         # 更新状态栏
         self.status_bar.set_status_info(
+            status=status,
             row=row,
             col=col,
             total_chars=total_chars,
@@ -256,6 +293,83 @@ class QuickEditApp(ctk.CTk):
             selected_lines=selected_lines,
         )
         
+        # 更新窗口标题
+        self._update_window_title()
+        
+    def _update_window_title(self):
+        """根据文件修改状态更新窗口标题"""
+        # 获取配置中的窗口标题模式
+        from ..config.config_manager import ConfigManager
+        config_manager = ConfigManager()
+        title_mode = config_manager.get("app.window_title_mode", "filename")
+        
+        # 根据文件修改状态和路径构建标题
+        if self.current_file_path:
+            # 有文件路径的情况
+            file_path = self.current_file_path
+            file_name = os.path.basename(file_path)
+            
+            # 根据配置的模式构建标题
+            if title_mode == "filepath":
+                # 完整文件路径模式
+                title_part = file_path
+            elif title_mode == "filename_and_dir":
+                # 文件名和目录模式
+                dir_name = os.path.dirname(file_path)
+                # 只取最后一层目录
+                dir_name = os.path.basename(dir_name) if dir_name else ""
+                title_part = f"{file_name} [{dir_name}]" if dir_name else file_name
+            else:  # 默认为 "filename" 模式
+                title_part = file_name
+        else:
+            # 没有文件路径的情况
+            content = self.text_area.get("1.0", ctk.END).strip()
+            if content:
+                title_part = "未命名"
+            else:
+                title_part = None
+        
+        # 构建最终标题
+        if title_part:
+            # 根据修改状态添加星号
+            prefix = "*" if self.is_modified else ""
+            title = f"{prefix}{title_part} - QuickEdit++"
+        else:
+            # 没有内容时只显示程序名
+            title = "QuickEdit++"
+          
+        self.title(title)
+        
+    def open_file(self):
+        """打开文件并加载到文本编辑区域"""
+        # 直接调用文件操作处理器的打开文件方法
+        self.file_ops.open_file()
+    
+    def save_file(self):
+        """保存当前文件"""
+        # 直接调用文件操作处理器的保存文件方法
+        return self.file_ops.save_file()
+    
+    def save_file_as(self):
+        """另存为文件"""
+        # 直接调用文件操作处理器的另存为方法
+        return self.file_ops.save_file_as()
+    
+    def close_file(self):
+        """关闭当前文件，重置窗口和状态栏状态"""
+        # 直接调用文件操作处理器的关闭文件方法
+        self.file_ops.close_file()
+        
+    def check_save_before_close(self):
+        """在关闭文件前检查是否需要保存"""
+        # 直接调用文件操作处理器的检查保存方法
+        return self.file_ops.check_save_before_close()
+    
+    def new_file(self):
+        """创建新文件"""
+        # 直接调用文件操作处理器的新建文件方法
+        self.file_ops.new_file()
+    
     def run(self):
         """运行应用"""
         self.mainloop()
