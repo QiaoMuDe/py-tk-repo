@@ -85,7 +85,7 @@ class QuickEditApp(ctk.CTk):
         self._auto_save_job = None  # 自动保存任务ID
 
         # 初始化文件操作处理器
-        self.file_ops = FileOperations(self, self)
+        self.file_ops = FileOperations(self)
 
         # 初始化文件相关属性
         self.current_file_path = None  # 当前文件路径
@@ -468,7 +468,10 @@ class QuickEditApp(ctk.CTk):
             # 更新上次自动保存时间
             self.last_auto_save_time = time.time()
             # 更新状态栏的自动保存信息，显示具体的保存时间
-            self.status_bar.show_auto_save_status()
+            self.status_bar.show_auto_save_status(file_modified=True)
+        else:
+            # 文件未修改或没有文件路径，仅更新状态栏显示上次执行时间
+            self.status_bar.show_auto_save_status(file_modified=False)
 
         # 调度下一次自动保存
         self._auto_save_job = self.after(

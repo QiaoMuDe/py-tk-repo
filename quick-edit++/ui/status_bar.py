@@ -6,7 +6,17 @@
 """
 
 import customtkinter as ctk
+import tkinter as tk
 from config.config_manager import config_manager
+import time
+import datetime
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from ui.menu import create_encoding_submenu, set_file_encoding
+from config.config_manager import config_manager
+from ui.menu import set_file_line_ending
 
 
 class StatusBar(ctk.CTkFrame):
@@ -66,7 +76,7 @@ class StatusBar(ctk.CTkFrame):
         )
         self.center_label = ctk.CTkLabel(
             self,
-            text=f"自动保存: 从未(间隔{auto_save_interval}秒)",
+            text=f"自动保存: 从未执行 (间隔{auto_save_interval}秒)",
             anchor="center",
             font=font,
         )
@@ -139,17 +149,52 @@ class StatusBar(ctk.CTkFrame):
             1500, self._show_auto_save_normal_status
         )
 
-    def show_auto_save_status(self):
+    def _format_auto_save_time(self, save_time):
         """
-        辅助方法：显示自动保存的日常状态
+        格式化自动保存时间的显示格式
 
-        根据自动保存启用状态和上次保存时间显示相应的信息
-        格式为: "自动保存: 从未(间隔时间)" 或 "自动保存: 成功(间隔时间)"
+        根据时间差选择合适的显示格式：
+        - 1分钟内：显示"X秒前"
+        - 1小时内：显示"X分钟前"
+        - 1天内：显示"X小时前"
+        - 超过1天：显示"MM-DD HH:MM"
+
+        Args:
+            save_time (float): 上次自动保存的时间戳
+
+        Returns:
+            str: 格式化后的时间字符串
         """
-        if not config_manager.get("status_bar.show_auto_save_info", True):
-            self.center_label.configure(text="")
-            return
+        # 获取当前时间
+        current_time = time.time()
 
+        # 计算时间差
+        time_diff = current_time - save_time
+
+        # 格式化保存时间
+        save_datetime = datetime.datetime.fromtimestamp(save_time)
+
+        # 根据时间差选择合适的显示格式
+        if time_diff < 60:  # 1分钟内
+            return f"{int(time_diff)}秒前"
+        elif time_diff < 3600:  # 1小时内
+            return f"{int(time_diff // 60)}分钟前"
+        elif time_diff < 86400:  # 1天内
+            return f"{int(time_diff // 3600)}小时前"
+        else:  # 超过1天
+            return save_datetime.strftime("%m-%d %H:%M")
+
+    def show_auto_save_status(self, file_modified=False):
+        """
+        显示自动保存的日常状态
+
+        根据自动保存启用状态、上次保存时间和文件修改状态显示相应的信息
+
+        Args:
+            file_modified (bool): 文件是否已被修改，默认为False
+                                - True: 显示自动保存成功信息
+                                - False: 显示上次执行时间信息
+        """
         # 获取自动保存设置
         auto_save_enabled = (
             self.app.auto_save_enabled
@@ -163,25 +208,37 @@ class StatusBar(ctk.CTkFrame):
         )
 
         if not auto_save_enabled:
-            text = "自动保存: 已禁用"
+            text = f"自动保存: 已禁用"
+            # 设置为黑色字体
+            self.center_label.configure(text=text, text_color="#000000")
         else:
             # 检查是否有上次自动保存时间
             if (
                 hasattr(self.app, "last_auto_save_time")
                 and self.app.last_auto_save_time > 0
             ):
-                # 有上次保存时间，显示具体的保存时间
-                import time
+                if file_modified:
+                    # 文件已修改，显示自动保存成功信息
+                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                    text = (
+                        f"自动保存: 已保存于{current_time} (间隔{auto_save_interval}秒)"
+                    )
+                    # 设置绿色文本表示成功保存
+                    self.center_label.configure(text=text, text_color="#00AA00")
+                else:
+                    # 文件未修改，显示上次执行时间信息
+                    # 使用辅助函数格式化时间
+                    time_str = self._format_auto_save_time(self.app.last_auto_save_time)
 
-                save_time = time.strftime(
-                    "%Y-%m-%d %H:%M:%S", time.localtime(self.app.last_auto_save_time)
-                )
-                text = f"自动保存: 上次执行于{save_time}(间隔{auto_save_interval}秒)"
+                    # 构建美观的显示文本
+                    text = f"自动保存: {time_str} (间隔{auto_save_interval}秒)"
+                    # 设置为黑色字体
+                    self.center_label.configure(text=text, text_color="#000000")
             else:
                 # 没有上次保存时间，显示"从未"状态
-                text = f"自动保存: 从未(间隔{auto_save_interval}秒)"
-
-        self.center_label.configure(text=text)
+                text = f"自动保存: 从未执行 (间隔{auto_save_interval}秒)"
+                # 设置为黑色字体
+                self.center_label.configure(text=text, text_color="#000000")
 
     def set_file_info(self, filename=None, encoding=None, line_ending=None):
         """设置右侧文件信息（文件名、编码和换行符类型）"""
@@ -354,8 +411,6 @@ class StatusBar(ctk.CTkFrame):
         """获取文本在指定字体下的显示宽度"""
         try:
             # 创建一个临时的标签来测量文本宽度
-            import tkinter as tk
-
             temp_label = tk.Label(self.right_label.master, text=text, font=font)
             width = temp_label.winfo_reqwidth()
             # 如果宽度为0（例如因为标签还没有被渲染），则使用估算值
@@ -372,16 +427,6 @@ class StatusBar(ctk.CTkFrame):
     def _show_encoding_menu(self, event):
         """显示编码选择菜单，复用文件菜单中的编码菜单逻辑"""
         try:
-            # 导入必要的模块
-            import sys
-            import os
-            import tkinter as tk
-
-            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-            from ui.menu import create_encoding_submenu, set_file_encoding
-            from config.config_manager import config_manager
-
             # 创建弹出菜单
             popup_menu = tk.Menu(self.right_label, tearoff=0)
 
@@ -420,16 +465,6 @@ class StatusBar(ctk.CTkFrame):
     def _show_line_ending_menu(self, event):
         """显示换行符选择菜单，复用文件菜单中的换行符菜单逻辑"""
         try:
-            # 导入必要的模块
-            import sys
-            import os
-            import tkinter as tk
-
-            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-            from ui.menu import set_file_line_ending
-            from config.config_manager import config_manager
-
             # 创建弹出菜单
             popup_menu = tk.Menu(self.right_label, tearoff=0)
 

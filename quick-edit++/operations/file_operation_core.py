@@ -226,13 +226,54 @@ class FileOperationCore:
         Returns:
             str: 转换后的文本内容
         """
-        # 先将所有换行符统一为LF
-        normalized_content = content.replace('\r\n', '\n').replace('\r', '\n')
+        # 如果内容为空，直接返回
+        if not content:
+            return content
+            
+        # 检测当前内容的换行符格式
+        has_crlf = '\r\n' in content
+        has_lf = '\n' in content
+        has_cr = '\r' in content
         
-        # 然后根据目标格式转换
+        # 如果已经是目标格式，直接返回原内容
+        if line_ending == "CRLF" and has_crlf and not has_lf and not has_cr:
+            return content
+        elif line_ending == "LF" and has_lf and not has_crlf and not has_cr:
+            return content
+        elif line_ending == "CR" and has_cr and not has_crlf and not has_lf:
+            return content
+            
+        # 需要转换，使用更高效的方法
         if line_ending == "CRLF":
-            return normalized_content.replace('\n', '\r\n')
+            # 如果内容只有LF，直接替换
+            if has_lf and not has_crlf and not has_cr:
+                return content.replace('\n', '\r\n')
+            # 如果内容只有CR，先转换为LF再转换为CRLF
+            elif has_cr and not has_crlf and not has_lf:
+                return content.replace('\r', '\r\n')
+            # 混合格式，先统一为LF再转换为CRLF
+            else:
+                normalized_content = content.replace('\r\n', '\n').replace('\r', '\n')
+                return normalized_content.replace('\n', '\r\n')
         elif line_ending == "CR":
-            return normalized_content.replace('\n', '\r')
+            # 如果内容只有LF，直接替换
+            if has_lf and not has_crlf and not has_cr:
+                return content.replace('\n', '\r')
+            # 如果内容只有CRLF，先转换为LF再转换为CR
+            elif has_crlf and not has_lf and not has_cr:
+                normalized_content = content.replace('\r\n', '\n')
+                return normalized_content.replace('\n', '\r')
+            # 混合格式，先统一为LF再转换为CR
+            else:
+                normalized_content = content.replace('\r\n', '\n').replace('\r', '\n')
+                return normalized_content.replace('\n', '\r')
         else:  # LF
-            return normalized_content
+            # 如果内容只有CRLF，直接替换
+            if has_crlf and not has_lf and not has_cr:
+                return content.replace('\r\n', '\n')
+            # 如果内容只有CR，直接替换
+            elif has_cr and not has_crlf and not has_lf:
+                return content.replace('\r', '\n')
+            # 混合格式，先统一为LF
+            else:
+                return content.replace('\r\n', '\n').replace('\r', '\n')
