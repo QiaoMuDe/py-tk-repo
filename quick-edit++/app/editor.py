@@ -73,10 +73,11 @@ class QuickEditApp(ctk.CTk):
 
         # 自动保存相关属性
         self.auto_save_enabled = config_manager.get(
-            "saving.auto_save", False
+            "app.auto_save", False
         )  # 是否启用自动保存
+        print(f"自动保存已启用: {self.auto_save_enabled}")
         self.auto_save_interval = config_manager.get(
-            "saving.auto_save_interval", 5
+            "app.auto_save_interval", 5
         )  # 自动保存间隔，单位秒
         self.last_auto_save_time = 0  # 上次自动保存时间
         self._auto_save_job = None  # 自动保存任务ID
@@ -101,13 +102,13 @@ class QuickEditApp(ctk.CTk):
             "text_editor.read_only", False
         )  # 是否为只读模式
 
-        # 初始化菜单状态变量
-        self.toolbar_var = None
-        self.auto_wrap_var = None
-        self.quick_insert_var = None
-        self.auto_save_var = None
-        self.backup_var = None
-        self.auto_save_interval_var = None
+        # 初始化菜单状态变量，从配置管理器加载默认值
+        self.toolbar_var = tk.BooleanVar(value=config_manager.get("app.show_toolbar", True))
+        self.auto_wrap_var = tk.BooleanVar(value=config_manager.get("text_editor.auto_wrap", True))
+        self.quick_insert_var = tk.BooleanVar(value=config_manager.get("text_editor.quick_insert", True))
+        self.auto_save_var = tk.BooleanVar(value=config_manager.get("app.auto_save", False))
+        self.backup_var = tk.BooleanVar(value=config_manager.get("app.backup_enabled", False))
+        self.auto_save_interval_var = tk.StringVar(value=str(config_manager.get("app.auto_save_interval", 5)))
 
         # 初始化窗口标题模式变量
         current_title_mode = config_manager.get("app.window_title_mode", "filename")

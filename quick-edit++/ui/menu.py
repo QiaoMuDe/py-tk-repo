@@ -390,7 +390,7 @@ def create_menu(root):
 
     # 第三组：保存设置
     # 获取自动保存设置
-    auto_save = config_manager.get("saving.auto_save", True)
+    auto_save = config_manager.get("app.auto_save", False)
     if root.auto_save_var is None:
         root.auto_save_var = tk.BooleanVar(value=auto_save)
     else:
@@ -405,7 +405,7 @@ def create_menu(root):
     autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 
     # 获取当前自动保存间隔
-    auto_save_interval = config_manager.get("saving.auto_save_interval", 5)
+    auto_save_interval = config_manager.get("app.auto_save_interval", 5)
 
     # 定义可用的间隔选项
     interval_options = [
@@ -443,7 +443,7 @@ def create_menu(root):
     settings_menu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
 
     # 获取备份设置
-    backup_enabled = config_manager.get("saving.backup_enabled", True)
+    backup_enabled = config_manager.get("app.backup_enabled", True)
     if root.backup_var is None:
         root.backup_var = tk.BooleanVar(value=backup_enabled)
     else:
@@ -734,12 +734,12 @@ def toggle_quick_insert(root):
 def toggle_auto_save(root):
     """切换自动保存模式"""
     # 获取当前自动保存状态
-    current_state = config_manager.get("saving.auto_save", True)
+    current_state = config_manager.get("app.auto_save", False)
     # 切换状态
     new_state = not current_state
 
     # 保存配置
-    config_manager.set("saving.auto_save", new_state)
+    config_manager.set("app.auto_save", new_state)
     config_manager.save_config()
 
     # 更新APP类中的变量
@@ -773,7 +773,7 @@ def set_auto_save_interval(interval, root=None):
         root: 主窗口实例，用于更新APP类中的变量
     """
     # 保存配置
-    config_manager.set("saving.auto_save_interval", interval)
+    config_manager.set("app.auto_save_interval", interval)
     config_manager.save_config()
 
     if root is not None:
@@ -801,11 +801,12 @@ def set_auto_save_interval(interval, root=None):
 def toggle_backup(root):
     """切换备份模式"""
     # 获取当前备份状态
-    current_state = config_manager.get("saving.backup_enabled", True)
+    current_state = config_manager.get("app.backup_enabled", False)
     # 切换状态
     new_state = not current_state
+
     # 保存配置
-    config_manager.set("saving.backup_enabled", new_state)
+    config_manager.set("app.backup_enabled", new_state)
     config_manager.save_config()
 
     # 更新APP类中的变量

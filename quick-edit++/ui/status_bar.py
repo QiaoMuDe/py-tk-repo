@@ -72,7 +72,7 @@ class StatusBar(ctk.CTkFrame):
         auto_save_interval = (
             self.app.auto_save_interval
             if self.app
-            else config_manager.get("saving.auto_save_interval", 30)
+            else config_manager.get("app.auto_save_interval", 5)
         )
         self.center_label = ctk.CTkLabel(
             self,
@@ -137,7 +137,7 @@ class StatusBar(ctk.CTkFrame):
         auto_save_enabled = (
             self.app.auto_save_enabled
             if self.app
-            else config_manager.get("saving.auto_save", False)
+            else config_manager.get("app.auto_save", False)
         )
 
         if auto_save_enabled:
@@ -204,12 +204,12 @@ class StatusBar(ctk.CTkFrame):
         auto_save_enabled = (
             self.app.auto_save_enabled
             if self.app
-            else config_manager.get("saving.auto_save", False)
+            else config_manager.get("app.auto_save", False)
         )
         auto_save_interval = (
             self.app.auto_save_interval
             if self.app
-            else config_manager.get("saving.auto_save_interval", 30)
+            else config_manager.get("app.auto_save_interval", 5)
         )
 
         if not auto_save_enabled:
