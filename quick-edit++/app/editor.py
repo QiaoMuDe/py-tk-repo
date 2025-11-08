@@ -175,9 +175,6 @@ class QuickEditApp(ctk.CTk):
         # 设置初始状态信息
         self.status_bar.set_status_info()
 
-        # 暂时隐藏自动保存信息，因为功能尚未开发完成
-        # self.status_bar.set_auto_save_info("从未")
-
         # 设置初始文件信息，包括默认换行符
         self.status_bar.set_file_info(
             filename=None,
@@ -185,15 +182,10 @@ class QuickEditApp(ctk.CTk):
             line_ending=self.current_line_ending,
         )
 
-        # 暂时隐藏自动保存间隔，因为功能尚未开发完成
-        # self.status_bar.set_auto_save_interval(self.auto_save_interval)
-
     def _on_closing(self):
         """窗口关闭事件处理"""
         # 取消自动保存任务（如果有）
-        if hasattr(self, "_auto_save_job") and self._auto_save_job is not None:
-            self.after_cancel(self._auto_save_job)
-            self._auto_save_job = None
+        self._stop_auto_save()
 
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
@@ -245,11 +237,11 @@ class QuickEditApp(ctk.CTk):
         """
         文本区域失去焦点事件处理
         
-        当焦点离开文本框时，调用自动保存方法
-        所有检查逻辑都在_auto_save方法内部处理
+        当焦点离开文本框时，调用自动保存检查方法
+        所有检查逻辑都在_auto_save_check方法内部处理
         """
-        # 直接调用自动保存方法，内部会检查是否需要保存
-        self._auto_save()
+        # 直接调用自动保存检查方法，内部会检查是否需要保存
+        self._auto_save_check()
     
     def _focus_text_area(self):
         """
@@ -537,45 +529,64 @@ class QuickEditApp(ctk.CTk):
         """
         启动自动保存功能
 
-        创建一个定时任务，根据设定的间隔时间自动保存文件内容
+        创建一个每秒运行的定时任务，检查是否需要自动保存文件内容
         """
         # 先停止现有的自动保存任务
         self._stop_auto_save()
 
-        # 立即执行一次自动保存，所有检查逻辑都在_auto_save方法内部
-        self._auto_save()
+        # 记录自动保存启动时间
+        self.auto_save_start_time = time.time()
+        
+        # 启动每秒运行一次的检查任务
+        self._auto_save_job = self.after(1000, self._auto_save_check)
 
+    def _auto_save_check(self):
+        """
+        每秒运行一次的自动保存检查方法
+        
+        此方法每秒都会被调用，但只有在达到指定间隔时间时才会执行实际的自动保存
+        """
+        # 检查是否启用了自动保存功能
+        if not self.auto_save_enabled:
+            # 如果自动保存被禁用，则不再调度下一次检查
+            return
+        
+        # 计算距离上次自动保存的时间间隔
+        current_time = time.time()
+        time_since_last_save = current_time - self.last_auto_save_time
+        
+        # 检查是否达到了指定的自动保存间隔
+        if time_since_last_save >= self.auto_save_interval:
+            # 达到间隔时间，执行自动保存
+            self._auto_save()
+        else:
+            # 未达到间隔时间，只更新状态栏显示倒计时
+            remaining_time = self.auto_save_interval - time_since_last_save
+            self.status_bar.show_auto_save_countdown(remaining_time)
+        
+        # 调度下一次检查（每秒一次）
+        self._auto_save_job = self.after(1000, self._auto_save_check)
+    
     def _auto_save(self):
         """
         执行自动保存操作
-
-        集中处理所有自动保存相关的检查逻辑：
-        1. 检查是否启用了自动保存功能
-        2. 检查文件是否已修改
-        3. 检查是否有文件路径
-        4. 如果满足条件，则保存文件并更新状态
-        5. 无论是否保存，都调度下一次自动保存
-        """
-        #  检查是否启用了自动保存功能
-        if not self.auto_save_enabled:
-            return
         
+        此方法在达到指定间隔时间时被调用，执行实际的文件保存操作
+        """
         # 检查文件是否已修改且持有文件路径
-        if  self.is_modified and self.current_file_path:
+        if self.is_modified and self.current_file_path:
             # 执行保存操作
             self.save_file()
             # 更新上次自动保存时间
             self.last_auto_save_time = time.time()
             # 更新状态栏的自动保存信息，显示具体的保存时间
-            self.status_bar.show_auto_save_status(file_modified=True)
+            self.status_bar.show_auto_save_status(saved=True)
+            
         else:
-            # 文件未修改、没有文件路径，仅更新状态栏显示上次执行时间
-            self.status_bar.show_auto_save_status(file_modified=False)
-
-        # 调度下一次自动保存
-        self._auto_save_job = self.after(
-            self.auto_save_interval * 1000, self._auto_save
-        )
+            # 文件未修改或没有文件路径，更新状态栏显示检查状态
+            self.status_bar.show_auto_save_status(saved=False)
+            # 即使没有保存，也要更新上次自动保存时间，以重置计时器
+            self.last_auto_save_time = time.time()
 
     def get_char_count(self):
         """

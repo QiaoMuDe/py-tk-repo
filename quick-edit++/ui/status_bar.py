@@ -189,16 +189,33 @@ class StatusBar(ctk.CTkFrame):
         else:  # 超过1天
             return save_datetime.strftime("%m-%d %H:%M")
 
-    def show_auto_save_status(self, file_modified=False):
+    def show_auto_save_countdown(self, remaining_time):
         """
-        显示自动保存的日常状态
-
-        根据自动保存启用状态、上次保存时间和文件修改状态显示相应的信息
-
+        显示自动保存倒计时状态
+        
         Args:
-            file_modified (bool): 文件是否已被修改，默认为False
-                                - True: 显示自动保存成功信息
-                                - False: 显示上次执行时间信息
+            remaining_time (float): 距离下次自动保存的剩余时间（秒）
+        """
+        # 获取自动保存间隔
+        auto_save_interval = (
+            self.app.auto_save_interval
+            if self.app
+            else config_manager.get("app.auto_save_interval", 5)
+        )
+        
+        # 显示倒计时信息，保留一位小数
+        text = f"自动保存: {remaining_time:.1f}秒后保存 (间隔{auto_save_interval}秒)"
+        # 设置为蓝色字体表示倒计时
+        self.center_label.configure(text=text, text_color="#0066CC")
+
+    def show_auto_save_status(self, saved=False):
+        """
+        显示自动保存的日常状态或保存成功状态
+        
+        Args:
+            saved (bool): 是否刚刚执行了保存操作，默认为False
+                           - True: 显示自动保存成功信息
+                           - False: 显示日常状态信息
         """
         # 获取自动保存设置
         auto_save_enabled = (
@@ -216,34 +233,30 @@ class StatusBar(ctk.CTkFrame):
             text = f"自动保存: 已禁用"
             # 设置为黑色字体
             self.center_label.configure(text=text, text_color="#000000")
+
+        elif saved:
+            # 刚刚执行了保存操作，显示保存成功信息
+            text = f"自动保存: 保存成功 (间隔{auto_save_interval}秒)"
+            # 设置绿色文本表示成功保存
+            self.center_label.configure(text=text, text_color="#00AA00")
+
         else:
+            # 显示日常状态信息
             # 检查是否有上次自动保存时间
             if (
                 hasattr(self.app, "last_auto_save_time")
                 and self.app.last_auto_save_time > 0
             ):
-                if file_modified:
-                    # 文件已修改，显示自动保存成功信息
-                    current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    text = (
-                        f"自动保存: 已保存于{current_time} (间隔{auto_save_interval}秒)"
-                    )
-                    # 设置绿色文本表示成功保存
-                    self.center_label.configure(text=text, text_color="#00AA00")
-                else:
-                    # 文件未修改，显示上次执行时间信息
-                    # 使用辅助函数格式化时间
-                    time_str = self._format_auto_save_time(self.app.last_auto_save_time)
-
-                    # 构建美观的显示文本
-                    text = f"自动保存: {time_str} (间隔{auto_save_interval}秒)"
-                    # 设置为黑色字体
-                    self.center_label.configure(text=text, text_color="#000000")
+                # 使用辅助函数格式化时间
+                time_str = self._format_auto_save_time(self.app.last_auto_save_time)
+                # 构建美观的显示文本
+                text = f"自动保存: {time_str} (间隔{auto_save_interval}秒)"
             else:
                 # 没有上次保存时间，显示"从未"状态
                 text = f"自动保存: 从未执行 (间隔{auto_save_interval}秒)"
-                # 设置为黑色字体
-                self.center_label.configure(text=text, text_color="#000000")
+            
+            # 设置为黑色字体
+            self.center_label.configure(text=text, text_color="#000000")
 
     def set_file_info(self, filename=None, encoding=None, line_ending=None):
         """设置右侧文件信息（文件名、编码和换行符类型）"""
