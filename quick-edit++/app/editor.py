@@ -17,6 +17,7 @@ from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from operations.file_operations import FileOperations
+from tkinter import messagebox
 
 
 class QuickEditApp(ctk.CTk):
@@ -414,8 +415,9 @@ class QuickEditApp(ctk.CTk):
         """通过指定路径打开文件"""
         # 设置当前文件路径
         self.current_file_path = file_path
-        # 调用现有的打开文件方法
-        self.open_file()
+        
+        # 调用FileOperations类中的辅助方法
+        self.file_ops._open_file_with_path_helper(file_path)
 
     def save_file(self):
         """保存当前文件"""
@@ -459,8 +461,6 @@ class QuickEditApp(ctk.CTk):
         """创建新文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            from tkinter import messagebox
-
             messagebox.showinfo(
                 "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
             )

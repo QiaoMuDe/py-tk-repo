@@ -136,7 +136,7 @@ class FileOperationCore:
                 file_size = os.path.getsize(file_path)
                 if file_size > max_file_size:
                     if error_callback:
-                        error_callback(f"文件过大 ({file_size/1024/1024:.2f}MB)，超过最大限制 ({max_file_size/1024/1024:.2f}MB)")
+                        error_callback(f"无法打开文件：文件大小为 {file_size/1024/1024:.2f} MB，超过了最大文件打开限制 {max_file_size/1024/1024:.2f} MB。\n请使用其他专业的编辑器打开此文件。")
                     return
                 
                 # 只打开一次文件，读取样本数据用于所有检测

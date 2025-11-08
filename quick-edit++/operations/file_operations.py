@@ -33,11 +33,6 @@ class FileOperations:
             return  # 用户取消了操作
 
         try:
-            # 获取配置的最大文件大小
-            max_file_size = (
-                self.config_manager.get("max_file_size", 10) * 1024 * 1024
-            )  # 转换为字节
-
             # 打开文件选择对话框
             file_path = filedialog.askopenfilename(
                 title="选择文件",
@@ -61,6 +56,11 @@ class FileOperations:
 
             if not file_path:
                 return  # 用户取消了选择
+
+            # 获取配置的最大文件大小
+            max_file_size = (
+                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
+            )  # 转换为字节
 
             # 使用核心类异步读取文件
             self.file_core.async_read_file(
@@ -123,7 +123,12 @@ class FileOperations:
 
     def _on_file_read_error(self, error_message):
         """文件读取错误回调"""
-        messagebox.showerror("错误", f"无法打开文件: {error_message}")
+        # 检查是否是文件大小超限的错误
+        if "超过了最大文件打开限制" in error_message:
+            from tkinter import messagebox
+            messagebox.showerror("文件过大", error_message)
+        else:
+            messagebox.showerror("错误", f"无法打开文件: {error_message}")
 
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""
@@ -146,7 +151,7 @@ class FileOperations:
 
             # 获取配置的最大文件大小
             max_file_size = (
-                self.config_manager.get("max_file_size", 10) * 1024 * 1024
+                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
             )  # 转换为字节
 
             # 直接使用配置文件路径，不显示文件选择对话框
@@ -372,15 +377,27 @@ class FileOperations:
         # 使用辅助方法创建新文件
         self._new_file_helper()
 
+    def _open_file_with_path_helper(self, file_path):
+        """通过指定路径打开文件的辅助方法"""
+        try:
+            # 获取配置的最大文件大小
+            max_file_size = (
+                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
+            )  # 转换为字节
+
+            # 异步读取文件
+            self.file_core.async_read_file(
+                file_path=file_path,
+                callback=self._on_file_read_complete,
+                error_callback=self._on_file_read_error,
+                max_file_size=max_file_size,
+            )
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
+
     def new_file_with_path(self, file_path):
         """通过指定路径创建新文件"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        # 关闭当前文件
-        self.close_file()
-        
         # 设置当前文件路径
         self.root.current_file_path = file_path
         
