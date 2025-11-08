@@ -409,6 +409,13 @@ class QuickEditApp(ctk.CTk):
             return
         # 直接调用文件操作处理器的打开文件方法
         self.file_ops.open_file()
+    
+    def open_file_with_path(self, file_path):
+        """通过指定路径打开文件"""
+        # 设置当前文件路径
+        self.current_file_path = file_path
+        # 调用现有的打开文件方法
+        self.open_file()
 
     def save_file(self):
         """保存当前文件"""
@@ -460,6 +467,11 @@ class QuickEditApp(ctk.CTk):
             return
         # 直接调用文件操作处理器的新建文件方法
         self.file_ops.new_file()
+    
+    def new_file_with_path(self, file_path):
+        """通过指定路径创建新文件"""
+        # 调用FileOperations类的新方法
+        self.file_ops.new_file_with_path(file_path)
 
     def toggle_read_only(self):
         """切换只读模式"""

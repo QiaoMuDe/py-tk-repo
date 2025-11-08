@@ -333,15 +333,12 @@ class FileOperations:
             messagebox.showerror("错误", f"另存为文件时出错: {str(e)}")
             return False
 
-    def new_file(self):
-        """创建新文件"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        # 关闭当前文件
-        self.close_file()
-
+    def _new_file_helper(self, filename="新文件"):
+        """新建文件的辅助方法
+        
+        Args:
+            filename: 文件名，默认为"新文件"
+        """
         # 设置新文件状态标志
         self.root.is_new_file = True
 
@@ -354,15 +351,42 @@ class FileOperations:
         self.root.current_encoding = default_encoding
 
         # 更新状态栏为新文件状态
-        self.root.status_bar.set_status_info("新文件")
         self.root.status_bar.set_file_info(
-            filename="新文件",
+            filename=filename,
             encoding=default_encoding,
             line_ending=default_line_ending,  # 确保状态栏显示默认换行符
         )
 
         # 更新窗口标题为新文件
-        self.root.title("新文件 - QuickEdit++")
+        self.root.title(f"{filename} - QuickEdit++")
+
+    def new_file(self):
+        """创建新文件"""
+        # 检查是否需要保存当前文件
+        if not self.check_save_before_close():
+            return  # 用户取消了操作
+
+        # 关闭当前文件
+        self.close_file()
+
+        # 使用辅助方法创建新文件
+        self._new_file_helper()
+
+    def new_file_with_path(self, file_path):
+        """通过指定路径创建新文件"""
+        # 检查是否需要保存当前文件
+        if not self.check_save_before_close():
+            return  # 用户取消了操作
+
+        # 关闭当前文件
+        self.close_file()
+        
+        # 设置当前文件路径
+        self.root.current_file_path = file_path
+        
+        # 使用辅助方法创建新文件，传入文件名
+        filename = os.path.basename(file_path)
+        self._new_file_helper(filename)
 
     def close_file(self):
         """关闭当前文件，重置窗口和状态栏状态"""
