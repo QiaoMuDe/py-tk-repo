@@ -130,9 +130,13 @@ class QuickEditApp(ctk.CTk):
         self.text_frame = ctk.CTkFrame(self)
         self.text_frame.grid(row=1, column=0, sticky="nsew")
 
+        # 获取自动换行设置
+        auto_wrap = config_manager.get("text_editor.auto_wrap", True)
+        wrap_mode = "word" if auto_wrap else "none"
+        
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.text_area = ctk.CTkTextbox(
-            self.text_frame, wrap="none", undo=True, font=self.current_font
+            self.text_frame, wrap=wrap_mode, undo=True, font=self.current_font
         )
         self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
 

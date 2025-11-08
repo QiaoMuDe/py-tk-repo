@@ -35,7 +35,7 @@ DEFAULT_CONFIG = {
     # 文本编辑器配置
     "text_editor": {
         "font": "Microsoft YaHei UI",  # 字体
-        "font_size": 13,  # 字体大小
+        "font_size": 15,  # 字体大小
         "font_bold": False,  # 是否使用粗体
         "auto_wrap": True,  # 是否自动换行
         "tab_size": 4,  # 制表符宽度

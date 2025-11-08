@@ -681,9 +681,16 @@ def toggle_auto_wrap(root):
     if root.auto_wrap_var is not None:
         root.auto_wrap_var.set(new_state)
     
-    # 获取当前活动的文本编辑器实例
-    if root.current_editor:
-        root.current_editor.toggle_wrap_mode(new_state)
+    # 直接设置文本框的自动换行属性
+    if hasattr(root, 'text_area'):
+        # 设置文本框的自动换行属性
+        wrap_mode = "word" if new_state else "none"
+        root.text_area.configure(wrap=wrap_mode)
+        
+        # 显示通知
+        status_text = "已启用" if new_state else "已禁用"
+        if hasattr(root, 'status_bar'):
+            root.status_bar.show_notification(f"自动换行{status_text}")
 
 
 def set_tab_width(width):
