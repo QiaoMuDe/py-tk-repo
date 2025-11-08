@@ -346,35 +346,6 @@ def create_menu(root):
         variable=root.auto_wrap_var
     )
     
-    # 创建制表符设置子菜单
-    tab_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
-    
-    # 获取当前制表符宽度
-    tab_width = config_manager.get("text_editor.tab_width", 4)
-    tab_options = [2, 4, 8]
-    
-    for width in tab_options:
-        tab_settings_submenu.add_command(
-            label=f"制表符宽度: {width}", 
-            command=lambda w=width: set_tab_width(w)
-        )
-    
-    tab_settings_submenu.add_separator()
-    
-    # 获取空格代替制表符设置
-    use_spaces = config_manager.get("text_editor.use_spaces_for_tabs", False)
-    if root.use_spaces_var is None:
-        root.use_spaces_var = tk.BooleanVar(value=use_spaces)
-    else:
-        root.use_spaces_var.set(use_spaces)
-    tab_settings_submenu.add_checkbutton(
-        label="使用空格代替制表符", 
-        command=lambda: toggle_use_spaces(root),
-        variable=root.use_spaces_var
-    )
-    
-    settings_menu.add_cascade(label="制表符设置", menu=tab_settings_submenu)
-    
     # 获取快捷插入设置
     quick_insert = config_manager.get("text_editor.quick_insert_enabled", True)
     if root.quick_insert_var is None:
@@ -691,32 +662,6 @@ def toggle_auto_wrap(root):
         status_text = "已启用" if new_state else "已禁用"
         if hasattr(root, 'status_bar'):
             root.status_bar.show_notification(f"自动换行{status_text}")
-
-
-def set_tab_width(width):
-    """设置制表符宽度"""
-    config_manager.set("text_editor.tab_width", width)
-    config_manager.save_config()
-    print(f"制表符宽度已设置为: {width}")
-
-
-def toggle_use_spaces(root):
-    """切换空格替代制表符模式"""
-    # 获取当前空格替代制表符状态
-    current_state = config_manager.get("text_editor.use_spaces_for_tabs", False)
-    # 切换状态
-    new_state = not current_state
-    # 保存配置
-    config_manager.set("text_editor.use_spaces_for_tabs", new_state)
-    config_manager.save_config()
-    
-    # 更新APP类中的变量
-    if root.use_spaces_var is not None:
-        root.use_spaces_var.set(new_state)
-    
-    # 获取当前活动的文本编辑器实例
-    if root.current_editor:
-        root.current_editor.toggle_spaces_mode(new_state)
 
 
 def toggle_quick_insert(root):

@@ -96,7 +96,6 @@ class QuickEditApp(ctk.CTk):
         # 初始化菜单状态变量
         self.toolbar_var = None
         self.auto_wrap_var = None
-        self.use_spaces_var = None
         self.quick_insert_var = None
         self.auto_save_var = None
         self.backup_var = None
