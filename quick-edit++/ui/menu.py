@@ -7,7 +7,7 @@
 
 import tkinter as tk
 import customtkinter as ctk
-from ui.dialogs.font_dialog import show_font_dialog
+from ui.font_dialog import show_font_dialog
 from config.config_manager import config_manager
 import codecs
 import os
