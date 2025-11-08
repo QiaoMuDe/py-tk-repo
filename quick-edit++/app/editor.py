@@ -93,18 +93,42 @@ class QuickEditApp(ctk.CTk):
         # 从配置文件中读取只读模式状态
         self.is_read_only = config_manager.get("text_editor.read_only", False)  # 是否为只读模式
         
-        # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
-        self.text_frame = ctk.CTkFrame(self)
+        # 初始化菜单状态变量
+        self.toolbar_var = None
+        self.auto_wrap_var = None
+        self.use_spaces_var = None
+        self.quick_insert_var = None
+        self.auto_save_var = None
+        self.backup_var = None
+        
+        # 初始化窗口标题模式变量
+        current_title_mode = config_manager.get("app.window_title_mode", "filename")
+        self.title_mode_var = tk.StringVar(value=current_title_mode)
+        
+        # 配置主窗口的网格布局
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)  # 文本区域所在行可扩展
+        
+        # 防止窗口大小变化时的重新计算，减少闪烁
+        self.grid_propagate(False)
 
         # 创建工具栏
-        self.toolbar = Toolbar(self)
-        if config_manager.get("toolbar.show_toolbar", True):
-            self.toolbar.pack(side="top", fill="x")
+        if config_manager.get("app.show_toolbar", True):
+            self.toolbar = Toolbar(self)
+            self.toolbar.grid(row=0, column=0, sticky="ew")
+        else:
+            # 如果配置为不显示工具栏，仍然创建工具栏对象但不显示
+            self.toolbar = Toolbar(self)
+            # 不调用grid，因此工具栏不会显示
 
         # 创建状态栏并放置在主窗口底部
         self.status_bar = StatusBar(self)
         if config_manager.get("status_bar.show_status_bar", True):
-            self.status_bar.pack(side="bottom", fill="x")
+            self.status_bar.grid(row=2, column=0, sticky="ew")
+
+        # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
+        self.text_frame = ctk.CTkFrame(self)
+        self.text_frame.grid(row=1, column=0, sticky="nsew")
 
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.text_area = ctk.CTkTextbox(
@@ -115,11 +139,6 @@ class QuickEditApp(ctk.CTk):
         # 创建菜单栏
         self.menu_bar = create_menu(self)
         self.config(menu=self.menu_bar)
-
-        # 确保文本编辑区域在工具栏和状态栏之间
-        self.text_frame.pack(
-            after=self.toolbar, before=self.status_bar, fill="both", expand=True
-        )
 
         # 绑定文本区域事件
         self._bind_text_events()
@@ -133,9 +152,6 @@ class QuickEditApp(ctk.CTk):
             self.text_area.configure(state="disabled")
             # 更新工具栏按钮外观
             self.toolbar.readonly_button.configure(fg_color="#FF6B6B", hover_color="#FF5252")
-
-        # 启动自动保存功能
-        self._start_auto_save()
 
     def _init_status_bar(self):
         """初始化状态栏显示"""
@@ -155,71 +171,12 @@ class QuickEditApp(ctk.CTk):
         # 暂时隐藏自动保存间隔，因为功能尚未开发完成
         # self.status_bar.set_auto_save_interval(self.auto_save_interval)
 
-    def _start_auto_save(self):
-        """启动自动保存功能"""
-        # 暂时禁用自动保存功能，因为功能尚未开发完成
-        self.auto_save_enabled = False
-        if self.auto_save_enabled:
-            self.status_bar.set_auto_save_enabled(True)
-            self._schedule_auto_save()
-        else:
-            # 暂时注释掉自动保存状态显示
-            # self.status_bar.set_auto_save_enabled(False)
-            pass
-
-    def _schedule_auto_save(self):
-        """安排下一次自动保存"""
-        if self.auto_save_enabled:
-            # 取消之前的自动保存任务
-            if self.auto_save_job:
-                self.after_cancel(self.auto_save_job)
-
-            # 安排新的自动保存任务
-            self.auto_save_job = self.after(
-                self.auto_save_interval * 1000, self._perform_auto_save  # 转换为毫秒
-            )
-
-    def _perform_auto_save(self):
-        """执行自动保存操作"""
-        # 暂时禁用自动保存功能，因为功能尚未开发完成
-        if self.auto_save_enabled:
-            # 这里应该实现实际的保存逻辑
-            # 目前只是更新状态栏显示
-            self.last_auto_save_time = datetime.now().strftime("%H:%M:%S")
-            # 暂时注释掉自动保存状态显示
-            # self.status_bar.set_auto_save_info("成功")
-
-            # 安排下一次自动保存
-            self._schedule_auto_save()
-
     def _on_closing(self):
         """窗口关闭事件处理"""
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
             self.destroy()
         # 如果用户取消保存，则不关闭窗口
-
-    def _toggle_auto_save(self):
-        """切换自动保存功能"""
-        # 暂时禁用自动保存功能，因为功能尚未开发完成
-        self.status_bar.show_notification("自动保存功能尚未开发完成")
-        return
-        
-        # 以下是原始实现，暂时注释掉
-        """
-        self.auto_save_enabled = not self.auto_save_enabled
-        if self.auto_save_enabled:
-            self.status_bar.set_auto_save_enabled(True)
-            self._schedule_auto_save()
-            self.status_bar.show_notification("自动保存已启用")
-        else:
-            # 取消自动保存任务
-            if self.auto_save_job:
-                self.after_cancel(self.auto_save_job)
-                self.auto_save_job = None
-            self.status_bar.set_auto_save_enabled(False)
-            self.status_bar.show_notification("自动保存已禁用")
-        """
 
     def _bind_text_events(self):
         """绑定文本区域事件"""
@@ -313,9 +270,8 @@ class QuickEditApp(ctk.CTk):
         
     def _update_window_title(self):
         """根据文件修改状态更新窗口标题"""
-        # 获取配置中的窗口标题模式
-        from config.config_manager import config_manager
-        title_mode = config_manager.get("app.window_title_mode", "filename")
+        # 使用类属性获取窗口标题模式
+        title_mode = self.title_mode_var.get()
         
         # 根据文件修改状态和路径构建标题
         if self.current_file_path:
@@ -330,8 +286,6 @@ class QuickEditApp(ctk.CTk):
             elif title_mode == "filename_and_dir":
                 # 文件名和目录模式
                 dir_name = os.path.dirname(file_path)
-                # 只取最后一层目录
-                dir_name = os.path.basename(dir_name) if dir_name else ""
                 title_part = f"{file_name} [{dir_name}]" if dir_name else file_name
             else:  # 默认为 "filename" 模式
                 title_part = file_name

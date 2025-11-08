@@ -11,7 +11,7 @@ from ui.dialogs.font_dialog import show_font_dialog
 from config.config_manager import config_manager
 import codecs
 import os
-
+  
 def get_supported_encodings():
     """获取支持的编码列表
     
@@ -181,7 +181,7 @@ def create_menu(root):
     file_menu.add_separator()
     
     # 第三组：文件选项
-    file_menu.add_command(label="打开文件所在目录", command=lambda: print("打开文件所在目录"))
+    file_menu.add_command(label="打开文件所在目录", command=lambda: open_containing_folder(root))
     file_menu.add_checkbutton(label="只读模式", command=lambda: root.toggle_read_only())
     
     # 分隔符
@@ -294,26 +294,56 @@ def create_menu(root):
     
     # 第一组：界面设置
     # 获取工具栏显示状态
-    show_toolbar = config_manager.get("toolbar.show_toolbar", True)
+    show_toolbar = config_manager.get("app.show_toolbar", True)
+    # 初始化或更新APP类中的变量
+    if root.toolbar_var is None:
+        root.toolbar_var = tk.BooleanVar(value=show_toolbar)
+    else:
+        root.toolbar_var.set(show_toolbar)
+    
     settings_menu.add_checkbutton(
         label="显示工具栏", 
-        command=lambda: toggle_toolbar()
+        command=lambda: toggle_toolbar_visibility(root),
+        variable=root.toolbar_var
     )
     
     # 创建窗口标题显示子菜单
     title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
-    title_display_submenu.add_checkbutton(label="显示文件名", command=lambda: print("切换文件名显示"))
-    title_display_submenu.add_checkbutton(label="显示文件路径", command=lambda: print("切换文件路径显示"))
-    title_display_submenu.add_checkbutton(label="显示状态信息", command=lambda: print("切换状态信息显示"))
+    
+    # 添加标题显示选项
+    title_display_submenu.add_radiobutton(
+        label="仅显示文件名", 
+        variable=root.title_mode_var,
+        value="filename",
+        command=lambda: set_window_title_mode(root.title_mode_var.get(), root)
+    )
+    title_display_submenu.add_radiobutton(
+        label="显示完整文件路径", 
+        variable=root.title_mode_var,
+        value="filepath",
+        command=lambda: set_window_title_mode(root.title_mode_var.get(), root)
+    )
+    title_display_submenu.add_radiobutton(
+        label="显示文件名和目录路径", 
+        variable=root.title_mode_var,
+        value="filename_and_dir",
+        command=lambda: set_window_title_mode(root.title_mode_var.get(), root)
+    )
+    
     settings_menu.add_cascade(label="窗口标题显示", menu=title_display_submenu)
     settings_menu.add_separator()
     
     # 第二组：编辑设置
     # 获取自动换行设置
     auto_wrap = config_manager.get("text_editor.auto_wrap", True)
+    if root.auto_wrap_var is None:
+        root.auto_wrap_var = tk.BooleanVar(value=auto_wrap)
+    else:
+        root.auto_wrap_var.set(auto_wrap)
     settings_menu.add_checkbutton(
         label="启用自动换行", 
-        command=lambda: toggle_auto_wrap()
+        command=lambda: toggle_auto_wrap(root),
+        variable=root.auto_wrap_var
     )
     
     # 创建制表符设置子菜单
@@ -333,27 +363,42 @@ def create_menu(root):
     
     # 获取空格代替制表符设置
     use_spaces = config_manager.get("text_editor.use_spaces_for_tabs", False)
+    if root.use_spaces_var is None:
+        root.use_spaces_var = tk.BooleanVar(value=use_spaces)
+    else:
+        root.use_spaces_var.set(use_spaces)
     tab_settings_submenu.add_checkbutton(
         label="使用空格代替制表符", 
-        command=lambda: toggle_use_spaces()
+        command=lambda: toggle_use_spaces(root),
+        variable=root.use_spaces_var
     )
     
     settings_menu.add_cascade(label="制表符设置", menu=tab_settings_submenu)
     
     # 获取快捷插入设置
     quick_insert = config_manager.get("text_editor.quick_insert_enabled", True)
+    if root.quick_insert_var is None:
+        root.quick_insert_var = tk.BooleanVar(value=quick_insert)
+    else:
+        root.quick_insert_var.set(quick_insert)
     settings_menu.add_checkbutton(
         label="启用快捷插入(@)", 
-        command=lambda: toggle_quick_insert()
+        command=lambda: toggle_quick_insert(root),
+        variable=root.quick_insert_var
     )
     settings_menu.add_separator()
     
     # 第三组：保存设置
     # 获取自动保存设置
     auto_save = config_manager.get("saving.auto_save", True)
+    if root.auto_save_var is None:
+        root.auto_save_var = tk.BooleanVar(value=auto_save)
+    else:
+        root.auto_save_var.set(auto_save)
     settings_menu.add_checkbutton(
         label="启用自动保存", 
-        command=lambda: toggle_auto_save()
+        command=lambda: toggle_auto_save(root),
+        variable=root.auto_save_var
     )
     
     # 创建自动保存间隔子菜单
@@ -378,9 +423,14 @@ def create_menu(root):
     
     # 获取备份设置
     backup_enabled = config_manager.get("saving.backup_enabled", True)
+    if root.backup_var is None:
+        root.backup_var = tk.BooleanVar(value=backup_enabled)
+    else:
+        root.backup_var.set(backup_enabled)
     settings_menu.add_checkbutton(
         label="启用副本备份", 
-        command=lambda: toggle_backup()
+        command=lambda: toggle_backup(root),
+        variable=root.backup_var
     )
     settings_menu.add_separator()
     
@@ -498,6 +548,73 @@ def set_file_line_ending(line_ending, app_instance=None):
                 app_instance._update_status_bar()
 
 
+def toggle_toolbar_visibility(root):
+    """切换工具栏的显示/隐藏状态
+    
+    Args:
+        root: 主窗口实例，用于访问工具栏组件
+    """
+    # 获取当前工具栏显示状态
+    current_state = config_manager.get("app.show_toolbar", True)
+    
+    # 切换状态
+    new_state = not current_state
+    
+    # 先更新配置管理器中的值
+    config_manager.set("app.show_toolbar", new_state)
+    # 然后调用保存方法
+    config_manager.save_config()
+    
+    # 更新APP类中的变量
+    if root.toolbar_var is not None:
+        root.toolbar_var.set(new_state)
+    
+    # 暂时捕获所有事件，防止用户交互
+    root.grab_set()
+    
+    # 使用after方法延迟执行，减少闪烁
+    def toggle_toolbar():
+        try:
+            # 切换工具栏显示状态
+            if hasattr(root, 'toolbar'):
+                if new_state:
+                    # 显示工具栏
+                    root.toolbar.grid(row=0, column=0, sticky="ew")
+                else:
+                    # 隐藏工具栏，但保留布局空间
+                    root.toolbar.grid_remove()
+        finally:
+            # 释放事件捕获
+            root.grab_release()
+    
+    # 延迟10毫秒执行，让界面有时间完成当前操作
+    root.after(10, toggle_toolbar)
+
+
+def open_containing_folder(root):
+    """打开当前文件所在的文件夹
+    
+    Args:
+        root: 主窗口实例，用于访问当前文件路径
+    """
+    if hasattr(root, 'current_file_path') and root.current_file_path:
+        try:
+            # 获取文件所在的目录
+            directory = os.path.dirname(root.current_file_path)
+            if os.path.exists(directory):
+                # 在Windows上使用explorer命令打开文件夹
+                os.startfile(directory)
+            else:
+                from tkinter import messagebox
+                messagebox.showerror("错误", "文件所在目录不存在")
+        except Exception as e:
+            from tkinter import messagebox
+            messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
+    else:
+        from tkinter import messagebox
+        messagebox.showinfo("提示", "当前没有打开的文件")
+
+
 def set_theme_mode(mode, root=None):
     """
     设置主题模式
@@ -550,20 +667,23 @@ def set_color_theme(theme, root=None):
     print(f"颜色主题已设置为: {theme}")
 
 
-def toggle_toolbar():
-    """切换工具栏显示"""
-    current = config_manager.get("toolbar.show_toolbar", True)
-    config_manager.set("toolbar.show_toolbar", not current)
+def toggle_auto_wrap(root):
+    """切换自动换行模式"""
+    # 获取当前自动换行状态
+    current_state = config_manager.get("text_editor.auto_wrap", True)
+    # 切换状态
+    new_state = not current_state
+    # 保存配置
+    config_manager.set("text_editor.auto_wrap", new_state)
     config_manager.save_config()
-    print(f"工具栏显示已设置为: {not current}")
-
-
-def toggle_auto_wrap():
-    """切换自动换行"""
-    current = config_manager.get("text_editor.auto_wrap", True)
-    config_manager.set("text_editor.auto_wrap", not current)
-    config_manager.save_config()
-    print(f"自动换行已设置为: {not current}")
+    
+    # 更新APP类中的变量
+    if root.auto_wrap_var is not None:
+        root.auto_wrap_var.set(new_state)
+    
+    # 获取当前活动的文本编辑器实例
+    if root.current_editor:
+        root.current_editor.toggle_wrap_mode(new_state)
 
 
 def set_tab_width(width):
@@ -573,28 +693,61 @@ def set_tab_width(width):
     print(f"制表符宽度已设置为: {width}")
 
 
-def toggle_use_spaces():
-    """切换使用空格代替制表符"""
-    current = config_manager.get("text_editor.use_spaces_for_tabs", False)
-    config_manager.set("text_editor.use_spaces_for_tabs", not current)
+def toggle_use_spaces(root):
+    """切换空格替代制表符模式"""
+    # 获取当前空格替代制表符状态
+    current_state = config_manager.get("text_editor.use_spaces_for_tabs", False)
+    # 切换状态
+    new_state = not current_state
+    # 保存配置
+    config_manager.set("text_editor.use_spaces_for_tabs", new_state)
     config_manager.save_config()
-    print(f"使用空格代替制表符已设置为: {not current}")
+    
+    # 更新APP类中的变量
+    if root.use_spaces_var is not None:
+        root.use_spaces_var.set(new_state)
+    
+    # 获取当前活动的文本编辑器实例
+    if root.current_editor:
+        root.current_editor.toggle_spaces_mode(new_state)
 
 
-def toggle_quick_insert():
-    """切换快捷插入"""
-    current = config_manager.get("text_editor.quick_insert_enabled", True)
-    config_manager.set("text_editor.quick_insert_enabled", not current)
+def toggle_quick_insert(root):
+    """切换快速插入模式"""
+    # 获取当前快速插入状态
+    current_state = config_manager.get("text_editor.quick_insert_enabled", True)
+    # 切换状态
+    new_state = not current_state
+    # 保存配置
+    config_manager.set("text_editor.quick_insert_enabled", new_state)
     config_manager.save_config()
-    print(f"快捷插入已设置为: {not current}")
+    
+    # 更新APP类中的变量
+    if root.quick_insert_var is not None:
+        root.quick_insert_var.set(new_state)
+    
+    # 获取当前活动的文本编辑器实例
+    if root.current_editor:
+        root.current_editor.toggle_quick_insert(new_state)
 
 
-def toggle_auto_save():
-    """切换自动保存"""
-    current = config_manager.get("saving.auto_save", True)
-    config_manager.set("saving.auto_save", not current)
+def toggle_auto_save(root):
+    """切换自动保存模式"""
+    # 获取当前自动保存状态
+    current_state = config_manager.get("saving.auto_save", True)
+    # 切换状态
+    new_state = not current_state
+    # 保存配置
+    config_manager.set("saving.auto_save", new_state)
     config_manager.save_config()
-    print(f"自动保存已设置为: {not current}")
+    
+    # 更新APP类中的变量
+    if root.auto_save_var is not None:
+        root.auto_save_var.set(new_state)
+    
+    # 获取当前活动的文本编辑器实例
+    if root.current_editor:
+        root.current_editor.toggle_auto_save(new_state)
 
 
 def set_auto_save_interval(interval):
@@ -604,12 +757,24 @@ def set_auto_save_interval(interval):
     print(f"自动保存间隔已设置为: {interval}秒")
 
 
-def toggle_backup():
-    """切换备份"""
-    current = config_manager.get("saving.backup_enabled", True)
-    config_manager.set("saving.backup_enabled", not current)
+def toggle_backup(root):
+    """切换备份模式"""
+    # 获取当前备份状态
+    current_state = config_manager.get("saving.backup_enabled", True)
+    # 切换状态
+    new_state = not current_state
+    # 保存配置
+    config_manager.set("saving.backup_enabled", new_state)
     config_manager.save_config()
-    print(f"备份已设置为: {not current}")
+    
+    # 更新APP类中的变量
+    if root.backup_var is not None:
+        root.backup_var.set(new_state)
+    
+    # 获取当前活动的文本编辑器实例
+    if root.current_editor:
+        root.current_editor.toggle_backup(new_state)
+
 
 def reset_settings():
     """
@@ -644,3 +809,28 @@ def reset_settings():
                 "重置失败", 
                 "设置重置失败，请检查配置文件权限。"
             )
+
+
+def set_window_title_mode(mode, root):
+    """
+    设置窗口标题显示模式
+    
+    Args:
+        mode (str): 标题显示模式，可选值: "filename", "filepath", "filename_and_dir"
+        root: 主窗口实例，用于更新窗口标题
+    """
+    # 保存配置
+    config_manager.set("app.window_title_mode", mode)
+    config_manager.save_config()
+    
+    # 直接调用主窗口的更新窗口标题方法
+    if hasattr(root, '_update_window_title'):
+        root._update_window_title()
+    
+    # 显示模式名称
+    mode_names = {
+        "filename": "仅显示文件名",
+        "filepath": "显示完整文件路径",
+        "filename_and_dir": "显示文件名和目录路径"
+    }
+    mode_name = mode_names.get(mode, mode)
