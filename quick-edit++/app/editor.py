@@ -75,7 +75,6 @@ class QuickEditApp(ctk.CTk):
         self.auto_save_enabled = config_manager.get(
             "app.auto_save", False
         )  # 是否启用自动保存
-        print(f"自动保存已启用: {self.auto_save_enabled}")
         self.auto_save_interval = config_manager.get(
             "app.auto_save_interval", 5
         )  # 自动保存间隔，单位秒
