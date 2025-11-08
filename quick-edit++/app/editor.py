@@ -555,14 +555,19 @@ class QuickEditApp(ctk.CTk):
         current_time = time.time()
         time_since_last_save = current_time - self.last_auto_save_time
         
-        # 检查是否达到了指定的自动保存间隔
-        if time_since_last_save >= self.auto_save_interval:
-            # 达到间隔时间，执行自动保存
-            self._auto_save()
+        # 检查是否有当前打开的文件
+        if self.current_file_path:
+            # 检查是否达到了指定的自动保存间隔
+            if time_since_last_save >= self.auto_save_interval:
+                # 达到间隔时间，执行自动保存
+                self._auto_save()
+            else:
+                # 未达到间隔时间，只更新状态栏显示倒计时
+                remaining_time = self.auto_save_interval - time_since_last_save
+                self.status_bar.show_auto_save_countdown(remaining_time)
         else:
-            # 未达到间隔时间，只更新状态栏显示倒计时
-            remaining_time = self.auto_save_interval - time_since_last_save
-            self.status_bar.show_auto_save_countdown(remaining_time)
+            # 没有打开的文件，不执行自动保存
+            self.status_bar.show_auto_save_status(saved=False)
         
         # 调度下一次检查（每秒一次）
         self._auto_save_job = self.after(1000, self._auto_save_check)
@@ -573,8 +578,8 @@ class QuickEditApp(ctk.CTk):
         
         此方法在达到指定间隔时间时被调用，执行实际的文件保存操作
         """
-        # 检查文件是否已修改且持有文件路径
-        if self.is_modified and self.current_file_path:
+        # 检查文件是否已修改
+        if self.is_modified:
             # 执行保存操作
             self.save_file()
             # 更新上次自动保存时间
@@ -583,7 +588,7 @@ class QuickEditApp(ctk.CTk):
             self.status_bar.show_auto_save_status(saved=True)
             
         else:
-            # 文件未修改或没有文件路径，更新状态栏显示检查状态
+            # 文件未修改，更新状态栏显示检查状态
             self.status_bar.show_auto_save_status(saved=False)
             # 即使没有保存，也要更新上次自动保存时间，以重置计时器
             self.last_auto_save_time = time.time()
