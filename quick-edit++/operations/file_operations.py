@@ -114,9 +114,8 @@ class FileOperations:
             # 更新窗口标题
             self.root._update_window_title()
 
-            # 检查并启动自动保存（仅在自动保存已启用且当前没有运行任务时）
-            if self.root.auto_save_enabled and self.root._auto_save_job is None:
-                self.root._start_auto_save()
+            # 启动自动保存(内部会判断是否启用)
+            self.root._start_auto_save()
 
         except Exception as e:
             messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
@@ -240,9 +239,8 @@ class FileOperations:
             # 更新窗口标题
             self.root._update_window_title()
 
-            # 检查并启动自动保存（仅在自动保存已启用且当前没有运行任务时）
-            if self.root.auto_save_enabled and self.root._auto_save_job is None:
-                self.root._start_auto_save()
+            # 启动自动保存(内部会判断是否启用)
+            self.root._start_auto_save()
 
             return True
 

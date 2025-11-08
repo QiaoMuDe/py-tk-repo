@@ -167,9 +167,8 @@ class QuickEditApp(ctk.CTk):
         # 初始化状态栏显示
         self._init_status_bar()
 
-        # 启动自动保存功能（如果已启用）
-        if self.auto_save_enabled:
-            self._start_auto_save()
+        # 启动自动保存功能
+        self._start_auto_save()
 
     def _init_status_bar(self):
         """初始化状态栏显示"""
