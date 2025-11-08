@@ -376,18 +376,39 @@ def create_menu(root):
     autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
     
     # 获取当前自动保存间隔
-    auto_save_interval = config_manager.get("saving.auto_save_interval", 60)
+    auto_save_interval = config_manager.get("saving.auto_save_interval", 5)
+    
+    # 定义可用的间隔选项
     interval_options = [
+        ("3秒", 3),
+        ("5秒", 5),
+        ("10秒", 10),
+        ("15秒", 15),
         ("30秒", 30),
+        ("45秒", 45),
         ("1分钟", 60),
-        ("5分钟", 300),
-        ("10分钟", 600)
+        ("3分钟", 180),
+        ("5分钟", 300)
     ]
     
+    # 初始化APP类中的auto_save_interval_var变量
+    if root.auto_save_interval_var is None:
+        root.auto_save_interval_var = tk.StringVar()
+    
+    # 检查配置文件中的值是否在选项列表中
+    interval_values = [value for _, value in interval_options]
+    if auto_save_interval not in interval_values:
+        # 如果不在列表中，使用默认值5秒
+        auto_save_interval = 5
+    
+    # 设置当前选中的间隔
+    root.auto_save_interval_var.set(str(auto_save_interval))
+    
+    # 创建菜单项
     for label, value in interval_options:
         autosave_submenu.add_command(
             label=label, 
-            command=lambda interval=value: set_auto_save_interval(interval)
+            command=lambda interval=value: set_auto_save_interval(interval, root)
         )
     
     settings_menu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
@@ -689,6 +710,7 @@ def toggle_auto_save(root):
     current_state = config_manager.get("saving.auto_save", True)
     # 切换状态
     new_state = not current_state
+    
     # 保存配置
     config_manager.set("saving.auto_save", new_state)
     config_manager.save_config()
@@ -697,16 +719,63 @@ def toggle_auto_save(root):
     if root.auto_save_var is not None:
         root.auto_save_var.set(new_state)
     
-    # 获取当前活动的文本编辑器实例
-    if root.current_editor:
-        root.current_editor.toggle_auto_save(new_state)
+    # 更新APP类中的自动保存状态
+    root.auto_save_enabled = new_state
+    
+    # 使用状态栏的方法更新显示
+    if hasattr(root, 'status_bar'):
+        root.status_bar.show_auto_save_status()
+    
+    # 根据新状态启动或停止自动保存
+    if new_state:
+        # 启用自动保存，启动自动保存任务
+        root._start_auto_save()
+        # 显示通知
+        if hasattr(root, 'status_bar'):
+            root.status_bar.show_notification("自动保存已启用")
+    else:
+        # 禁用自动保存，取消自动保存任务
+        root._stop_auto_save()
+
+        # 将上次的自动保存时间设置为0
+        root.last_save_time = 0
+
+        # 显示通知
+        if hasattr(root, 'status_bar'):
+            root.status_bar.show_notification("自动保存已禁用")
 
 
-def set_auto_save_interval(interval):
-    """设置自动保存间隔"""
+def set_auto_save_interval(interval, root=None):
+    """设置自动保存间隔
+    
+    Args:
+        interval (int): 保存间隔，单位为秒
+        root: 主窗口实例，用于更新APP类中的变量
+    """
+    # 保存配置
     config_manager.set("saving.auto_save_interval", interval)
     config_manager.save_config()
-    print(f"自动保存间隔已设置为: {interval}秒")
+    
+    if root is not None:
+        # 更新APP类中的自动保存间隔
+        root.auto_save_interval = interval
+        
+        # 更新auto_save_interval_var变量
+        if root.auto_save_interval_var is not None:
+            root.auto_save_interval_var.set(str(interval))
+        
+        # 使用状态栏的方法更新显示
+        if hasattr(root, 'status_bar'):
+            root.status_bar.show_auto_save_status()
+        
+        # 如果自动保存已启用，重新启动自动保存任务
+        if root.auto_save_enabled:
+            # 启动新的自动保存任务（_start_auto_save方法会自动取消现有任务）
+            root._start_auto_save()
+        
+        # 显示通知
+        if hasattr(root, 'status_bar'):
+            root.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")
 
 
 def toggle_backup(root):

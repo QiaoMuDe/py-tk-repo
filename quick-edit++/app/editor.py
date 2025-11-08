@@ -54,7 +54,9 @@ class QuickEditApp(ctk.CTk):
         window_height = config_manager.get("app.window_height", 800)
 
         # 设置窗口大小, 相对居中显示
-        self.geometry(f"{window_width}x{window_height}+{window_width//2}+{window_height//3}")
+        self.geometry(
+            f"{window_width}x{window_height}+{window_width//2}+{window_height//3}"
+        )
 
         # 设置最小窗口大小
         min_width = config_manager.get("app.min_width", 800)
@@ -73,41 +75,48 @@ class QuickEditApp(ctk.CTk):
         self.protocol("WM_DELETE_WINDOW", self._on_closing)
 
         # 自动保存相关属性
-        self.auto_save_enabled = config_manager.get("saving.auto_save", True)
+        self.auto_save_enabled = config_manager.get(
+            "saving.auto_save", False
+        )  # 是否启用自动保存
         self.auto_save_interval = config_manager.get(
             "saving.auto_save_interval", 5
-        )  # 默认5秒
-        self.last_auto_save_time = None
-        self.auto_save_job = None
+        )  # 自动保存间隔，单位秒
+        self.last_auto_save_time = 0  # 上次自动保存时间
+        self._auto_save_job = None  # 自动保存任务ID
 
         # 初始化文件操作处理器
         self.file_ops = FileOperations(self, self)
-        
+
         # 初始化文件相关属性
         self.current_file_path = None  # 当前文件路径
-        self.current_encoding = 'UTF-8'  # 当前文件编码
-        self.current_line_ending = config_manager.get("app.default_line_ending", "LF")  # 从配置中读取默认换行符
+        self.current_encoding = "UTF-8"  # 当前文件编码
+        self.current_line_ending = config_manager.get(
+            "app.default_line_ending", "LF"
+        )  # 从配置中读取默认换行符
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.is_new_file = False  # 是否为新文件状态
-        
+
         # 从配置文件中读取只读模式状态
-        self.is_read_only = config_manager.get("text_editor.read_only", False)  # 是否为只读模式
-        
+        self.is_read_only = config_manager.get(
+            "text_editor.read_only", False
+        )  # 是否为只读模式
+
         # 初始化菜单状态变量
         self.toolbar_var = None
         self.auto_wrap_var = None
         self.quick_insert_var = None
         self.auto_save_var = None
         self.backup_var = None
-        
+        self.auto_save_interval_var = None
+
         # 初始化窗口标题模式变量
         current_title_mode = config_manager.get("app.window_title_mode", "filename")
         self.title_mode_var = tk.StringVar(value=current_title_mode)
-        
+
         # 配置主窗口的网格布局
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)  # 文本区域所在行可扩展
-        
+
         # 防止窗口大小变化时的重新计算，减少闪烁
         self.grid_propagate(False)
 
@@ -120,8 +129,8 @@ class QuickEditApp(ctk.CTk):
             self.toolbar = Toolbar(self)
             # 不调用grid，因此工具栏不会显示
 
-        # 创建状态栏并放置在主窗口底部
-        self.status_bar = StatusBar(self)
+        # 创建状态栏并放置在主窗口底部，传入APP实例
+        self.status_bar = StatusBar(self, app=self)
         if config_manager.get("status_bar.show_status_bar", True):
             self.status_bar.grid(row=2, column=0, sticky="ew")
 
@@ -132,7 +141,7 @@ class QuickEditApp(ctk.CTk):
         # 获取自动换行设置
         auto_wrap = config_manager.get("text_editor.auto_wrap", True)
         wrap_mode = "word" if auto_wrap else "none"
-        
+
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.text_area = ctk.CTkTextbox(
             self.text_frame, wrap=wrap_mode, undo=True, font=self.current_font
@@ -154,7 +163,13 @@ class QuickEditApp(ctk.CTk):
             # 设置为只读模式
             self.text_area.configure(state="disabled")
             # 更新工具栏按钮外观
-            self.toolbar.readonly_button.configure(fg_color="#FF6B6B", hover_color="#FF5252")
+            self.toolbar.readonly_button.configure(
+                fg_color="#FF6B6B", hover_color="#FF5252"
+            )
+
+        # 启动自动保存功能（如果已启用）
+        if self.auto_save_enabled:
+            self._start_auto_save()
 
     def _init_status_bar(self):
         """初始化状态栏显示"""
@@ -168,7 +183,7 @@ class QuickEditApp(ctk.CTk):
         self.status_bar.set_file_info(
             filename=None,
             encoding=self.current_encoding,
-            line_ending=self.current_line_ending
+            line_ending=self.current_line_ending,
         )
 
         # 暂时隐藏自动保存间隔，因为功能尚未开发完成
@@ -176,6 +191,11 @@ class QuickEditApp(ctk.CTk):
 
     def _on_closing(self):
         """窗口关闭事件处理"""
+        # 取消自动保存任务（如果有）
+        if hasattr(self, "_auto_save_job") and self._auto_save_job is not None:
+            self.after_cancel(self._auto_save_job)
+            self._auto_save_job = None
+
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
             self.destroy()
@@ -184,10 +204,12 @@ class QuickEditApp(ctk.CTk):
     def _bind_text_events(self):
         """绑定文本区域事件"""
         # 绑定按键事件
-        self.text_area.bind("<KeyRelease>", self._on_text_change) # 监听文本改变事件
-        self.text_area.bind("<Button-1>", self._on_cursor_move) # 监听鼠标点击事件
-        self.text_area.bind("<<Selection>>", self._on_selection_change) # 监听选择内容改变事件
-        self.text_area.bind("<MouseWheel>", self._on_cursor_move) # 监听鼠标滚轮事件
+        self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
+        self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
+        self.text_area.bind(
+            "<<Selection>>", self._on_selection_change
+        )  # 监听选择内容改变事件
+        self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
@@ -198,7 +220,7 @@ class QuickEditApp(ctk.CTk):
         else:
             content = self.text_area.get("1.0", ctk.END).strip()
             self.is_modified = len(content) > 0
-        
+
         self._update_status_bar()
 
     def _on_cursor_move(self, event=None):
@@ -214,7 +236,7 @@ class QuickEditApp(ctk.CTk):
         # 如果当前有通知活动，不更新状态栏
         if not self.status_bar.can_update_status():
             return
-            
+
         # 获取光标位置
         cursor_pos = self.text_area.index(ctk.INSERT)
         row, col = cursor_pos.split(".")
@@ -232,14 +254,14 @@ class QuickEditApp(ctk.CTk):
             # 获取选中的起始和结束位置
             start_pos = self.text_area.index(ctk.SEL_FIRST)
             end_pos = self.text_area.index(ctk.SEL_LAST)
-            
+
             # 提取起始和结束行号
             start_row = int(start_pos.split(".")[0])
             end_row = int(end_pos.split(".")[0])
-            
+
             # 计算选中的行数
             selected_lines = end_row - start_row + 1
-            
+
             # 特殊情况处理：
             # 1. 如果选中内容为空，不显示行数
             # 2. 如果全选且末尾没有字符（即end_col为0），则减去一行
@@ -249,7 +271,7 @@ class QuickEditApp(ctk.CTk):
             elif end_col == 0 and end_row > start_row:
                 # 全选情况，末尾位置在行首，减去一行
                 selected_lines = end_row - start_row
-                
+
         except tk.TclError:
             # 没有选中内容
             selected_chars = None
@@ -267,21 +289,21 @@ class QuickEditApp(ctk.CTk):
             selected_chars=selected_chars,
             selected_lines=selected_lines,
         )
-        
+
         # 更新窗口标题
         self._update_window_title()
-        
+
     def _update_window_title(self):
         """根据文件修改状态更新窗口标题"""
         # 使用类属性获取窗口标题模式
         title_mode = self.title_mode_var.get()
-        
+
         # 根据文件修改状态和路径构建标题
         if self.current_file_path:
             # 有文件路径的情况
             file_path = self.current_file_path
             file_name = os.path.basename(file_path)
-            
+
             # 根据配置的模式构建标题
             if title_mode == "filepath":
                 # 完整文件路径模式
@@ -302,7 +324,7 @@ class QuickEditApp(ctk.CTk):
                 title_part = "未命名"
             else:
                 title_part = None
-        
+
         # 构建最终标题
         if title_part:
             # 根据修改状态添加星号
@@ -311,90 +333,148 @@ class QuickEditApp(ctk.CTk):
         else:
             # 没有内容时只显示程序名
             title = "QuickEdit++"
-          
+
         self.title(title)
-        
+
     def open_file(self):
         """打开文件并加载到文本编辑区域"""
         # 检查是否为只读模式
         if self.is_read_only:
             from tkinter import messagebox
+
             messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
             return
         # 直接调用文件操作处理器的打开文件方法
         self.file_ops.open_file()
-    
+
     def save_file(self):
         """保存当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
             from tkinter import messagebox
+
             messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
             return False
         # 直接调用文件操作处理器的保存文件方法
         return self.file_ops.save_file()
-    
+
     def save_file_as(self):
         """另存为文件"""
         # 检查是否为只读模式
         if self.is_read_only:
             from tkinter import messagebox
+
             messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
             return False
         # 直接调用文件操作处理器的另存为方法
         return self.file_ops.save_file_as()
-    
+
     def close_file(self):
         """关闭当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
             from tkinter import messagebox
+
             messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
             return
         # 直接调用文件操作处理器的关闭文件方法
         self.file_ops.close_file()
-        
+
     def check_save_before_close(self):
         """在关闭文件前检查是否需要保存"""
         # 直接调用文件操作处理器的检查保存方法
         return self.file_ops.check_save_before_close()
-    
+
     def new_file(self):
         """创建新文件"""
         # 检查是否为只读模式
         if self.is_read_only:
             from tkinter import messagebox
-            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再创建新文件")
+
+            messagebox.showinfo(
+                "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
+            )
             return
         # 直接调用文件操作处理器的新建文件方法
         self.file_ops.new_file()
-    
+
     def toggle_read_only(self):
         """切换只读模式"""
         self.is_read_only = not self.is_read_only
-        
+
         # 保存只读模式状态到配置文件
         from config.config_manager import config_manager
+
         config_manager.set("text_editor.read_only", self.is_read_only)
         config_manager.save_config()
-        
+
         # 根据只读模式状态设置文本编辑区域
         if self.is_read_only:
             # 设置为只读模式
             self.text_area.configure(state="disabled")
             self.status_bar.show_notification("已切换到只读模式")
             # 更新工具栏按钮外观
-            self.toolbar.readonly_button.configure(fg_color="#FF6B6B", hover_color="#FF5252")
+            self.toolbar.readonly_button.configure(
+                fg_color="#FF6B6B", hover_color="#FF5252"
+            )
         else:
             # 设置为编辑模式
             self.text_area.configure(state="normal")
             self.status_bar.show_notification("已切换到编辑模式")
             # 恢复工具栏按钮默认外观
             from customtkinter import ThemeManager
+
             default_fg_color = ThemeManager.theme["CTkButton"]["fg_color"]
             default_hover_color = ThemeManager.theme["CTkButton"]["hover_color"]
-            self.toolbar.readonly_button.configure(fg_color=default_fg_color, hover_color=default_hover_color)
-    
+            self.toolbar.readonly_button.configure(
+                fg_color=default_fg_color, hover_color=default_hover_color
+            )
+
+    def _stop_auto_save(self):
+        """
+        停止自动保存功能
+
+        取消现有的自动保存任务（如果有）
+        """
+        if hasattr(self, "_auto_save_job") and self._auto_save_job is not None:
+            self.after_cancel(self._auto_save_job)
+            self._auto_save_job = None
+
+    def _start_auto_save(self):
+        """
+        启动自动保存功能
+
+        创建一个定时任务，根据设定的间隔时间自动保存文件内容
+        """
+        # 先停止现有的自动保存任务
+        self._stop_auto_save()
+
+        # 如果自动保存已启用且有文件路径，则启动自动保存
+        if self.auto_save_enabled and self.current_file_path:
+            # 调度下一次自动保存
+            self._auto_save_job = self.after(
+                self.auto_save_interval * 1000, self._auto_save
+            )
+
+    def _auto_save(self):
+        """
+        执行自动保存操作
+
+        如果文件已修改且有文件路径，则保存文件；否则仅调度下一次自动保存
+        """
+        # 如果文件已修改且有文件路径，则保存文件
+        if self.is_modified and self.current_file_path:
+            self.save_file()
+            # 更新上次自动保存时间
+            self.last_auto_save_time = time.time()
+            # 更新状态栏的自动保存信息，显示具体的保存时间
+            self.status_bar.show_auto_save_status()
+
+        # 调度下一次自动保存
+        self._auto_save_job = self.after(
+            self.auto_save_interval * 1000, self._auto_save
+        )
+
     def run(self):
         """运行应用"""
         self.mainloop()
