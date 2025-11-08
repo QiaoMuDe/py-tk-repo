@@ -9,6 +9,115 @@ import tkinter as tk
 import customtkinter as ctk
 from ui.dialogs.font_dialog import show_font_dialog
 from config.config_manager import config_manager
+import codecs
+import os
+
+def get_supported_encodings():
+    """获取支持的编码列表
+    
+    Returns:
+        list: 支持的编码列表，常用编码在前
+    """
+    # 常用编码选项
+    common_encodings = [
+        "UTF-8", "UTF-16", "UTF-32", "ASCII", 
+        "GB2312", "GBK", "GB18030", "BIG5",
+        "ISO-8859-1", "ISO-8859-2", "ISO-8859-15",
+        "Windows-1252", "Windows-1251", "Windows-1256",
+        "Shift_JIS", "EUC-JP", "KOI8-R", "KOI8-U"
+    ]
+    
+    try:
+        # 从encodings模块获取所有支持的编码
+        import encodings
+        
+        all_encodings = [
+            f[:-3]  # 移除.py扩展名
+            for f in os.listdir(os.path.dirname(encodings.__file__))
+            if f.endswith(".py") and not f.startswith("_")
+        ]
+        
+        # 合并常用编码和所有支持的编码，保持常用编码在前
+        supported_encodings = common_encodings[:]
+        for enc in all_encodings:
+            if enc.upper() not in [e.upper() for e in supported_encodings]:
+                supported_encodings.append(enc)
+        
+        return supported_encodings
+    except:
+        # 如果获取所有编码失败，返回常用编码列表
+        return common_encodings
+
+
+def create_encoding_submenu(parent_menu, root, show_common_only=False, font_tuple=None):
+    """创建编码选择子菜单
+    
+    Args:
+        parent_menu: 父菜单对象
+        root: 根窗口对象
+        show_common_only (bool): 是否只显示常用编码，默认False显示完整编码列表
+        font_tuple: 字体元组，包含字体名称、大小和样式
+    """
+    if font_tuple is None:
+        # 如果没有提供字体元组，从配置管理器获取菜单字体设置
+        menu_font = config_manager.get_font_config("menu_bar")
+        menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
+        menu_font_size = menu_font.get("font_size", 12)
+        menu_font_bold = menu_font.get("font_bold", True)
+        font_tuple = (menu_font_family, menu_font_size, "bold" if menu_font_bold else "normal")
+    
+    if show_common_only:
+        # 只显示常用编码
+        common_encodings = [
+            "UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"
+        ]
+        
+        for enc in common_encodings:
+            parent_menu.add_command(
+                label=enc, 
+                command=lambda e=enc: set_file_encoding(e, root),
+                font=font_tuple
+            )
+        
+        # 添加"更多"选项，点击后显示完整编码列表
+        parent_menu.add_separator()
+        
+        # 创建更多编码的子菜单
+        more_encodings_menu = tk.Menu(parent_menu, tearoff=0, font=font_tuple)
+        parent_menu.add_cascade(label="更多编码...", menu=more_encodings_menu, font=font_tuple)
+        
+        # 填充更多编码菜单
+        encodings = get_supported_encodings()
+        # 按字母顺序排序
+        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
+        
+        # 为了避免菜单过长，将编码分成几组
+        group_size = 20  # 每组20个编码
+        for i in range(0, len(encodings_sorted), group_size):
+            group_name = f"{encodings_sorted[i]} - {encodings_sorted[min(i+group_size-1, len(encodings_sorted)-1)]}"
+            group_menu = tk.Menu(more_encodings_menu, tearoff=0, font=font_tuple)
+            more_encodings_menu.add_cascade(label=group_name, menu=group_menu, font=font_tuple)
+            
+            for j in range(i, min(i+group_size, len(encodings_sorted))):
+                enc = encodings_sorted[j]
+                group_menu.add_command(
+                    label=enc, 
+                    command=lambda e=enc: set_file_encoding(e, root),
+                    font=font_tuple
+                )
+    else:
+        # 显示完整编码列表
+        encodings = get_supported_encodings()
+        # 按字母顺序排序
+        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
+        
+        for enc in encodings_sorted:
+            parent_menu.add_command(
+                label=enc, 
+                command=lambda e=enc: set_file_encoding(e, root),
+                font=font_tuple
+            )
+
 
 def create_menu(root):
     """创建菜单栏"""
@@ -43,16 +152,9 @@ def create_menu(root):
     
     # 获取当前编码设置
     current_encoding = config_manager.get("file.default_encoding", "UTF-8")
-    encoding_options = ["UTF-8", "GBK", "UTF-16", "ASCII"]
     
-    for encoding in encoding_options:
-        encoding_submenu.add_command(
-            label=encoding, 
-            command=lambda enc=encoding: set_file_encoding(enc)
-        )
-    
-    encoding_submenu.add_separator()
-    encoding_submenu.add_command(label="其他编码...", command=lambda: print("选择其他编码"))
+    # 创建常用编码子菜单
+    create_encoding_submenu(encoding_submenu, root, show_common_only=True, font_tuple=menu_font_tuple)
     
     file_menu.add_cascade(label="文件编码", menu=encoding_submenu)
 
@@ -303,37 +405,54 @@ def create_menu(root):
     return main_menu
 
 
-def set_file_encoding(encoding):
-    """设置文件编码"""
-    config_manager.set("file.default_encoding", encoding)
-    config_manager.save_config()
-    print(f"文件编码已设置为: {encoding}")
+def set_file_encoding(encoding, app_instance=None):
+    """设置文件编码
+    
+    Args:
+        encoding (str): 编码名称
+        app_instance: APP类的实例，用于直接更新当前状态
+    """
+    # 如果提供了APP实例，直接更新当前状态
+    if app_instance:
+        # 更新APP实例的当前编码
+        app_instance.current_encoding = encoding
+        
+        # 更新状态栏显示
+        if hasattr(app_instance, 'status_bar'):
+            # 获取当前文件名（如果有）
+            filename = os.path.basename(app_instance.current_file_path) if app_instance.current_file_path else None
+            
+            # 更新状态栏信息
+            app_instance.status_bar.set_file_info(
+                filename=filename,
+                encoding=encoding,
+                line_ending=getattr(app_instance, 'current_line_ending', 'LF')
+            )
 
 
 def set_file_line_ending(line_ending, app_instance=None):
     """设置文件换行符
     
     Args:
-        line_ending: 换行符类型 ('CRLF', 'LF', 'CR')
+        line_ending (str): 换行符类型 ('CRLF', 'LF', 'CR')
         app_instance: APP类的实例，用于直接更新当前状态
     """
-    config_manager.set("file.default_line_ending", line_ending)
-    config_manager.save_config()
-    print(f"文件换行符已设置为: {line_ending}")
-    
     # 如果提供了APP实例，直接更新当前状态
     if app_instance:
+        # 更新APP实例的当前换行符
         app_instance.current_line_ending = line_ending
+        
         # 更新状态栏显示
         if hasattr(app_instance, 'status_bar'):
+            # 获取当前文件名（如果有）
+            filename = os.path.basename(app_instance.current_file_path) if app_instance.current_file_path else None
+            
+            # 更新状态栏信息
             app_instance.status_bar.set_file_info(
-                filename=getattr(app_instance, 'current_file_path', None),
+                filename=filename,
                 encoding=getattr(app_instance, 'current_encoding', 'UTF-8'),
                 line_ending=line_ending
             )
-
-
-# 注意：已移除光标样式设置函数，使用系统默认光标样式
 
 
 def set_theme_mode(mode, root=None):

@@ -140,7 +140,7 @@ class StatusBar(ctk.CTkFrame):
         current_encoding = encoding if encoding is not None else self.encoding
         current_line_ending = line_ending if line_ending is not None else self.line_ending
         
-        if self.filename is None:
+        if self.filename is None or self.filename == "":
             text = f"{current_encoding} | {current_line_ending}"
         else:
             text = f"{self.filename} | {current_encoding} | {current_line_ending}"

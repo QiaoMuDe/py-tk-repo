@@ -258,17 +258,19 @@ class FileOperations:
         # 设置新文件状态标志
         self.editor.is_new_file = True
         
-        # 获取配置中的默认换行符
+        # 获取配置中的默认换行符和编码
         default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
+        default_encoding = self.config_manager.get("app.default_encoding", "UTF-8")
         
-        # 更新编辑器的当前换行符
+        # 更新编辑器的当前换行符和编码
         self.editor.current_line_ending = default_line_ending
+        self.editor.current_encoding = default_encoding
         
         # 更新状态栏为新文件状态
         self.editor.status_bar.set_status_info("新文件")
         self.editor.status_bar.set_file_info(
             filename="新文件",
-            encoding="UTF-8",
+            encoding=default_encoding,
             line_ending=default_line_ending  # 确保状态栏显示默认换行符
         )
         
@@ -284,12 +286,13 @@ class FileOperations:
         # 清空编辑器内容
         self.editor.text_area.delete("1.0", tk.END)
         
-        # 获取配置中的默认换行符
+        # 获取配置中的默认换行符和编码
         default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
+        default_encoding = self.config_manager.get("app.default_encoding", "UTF-8")
         
         # 重置文件相关属性
         self.editor.current_file_path = None
-        self.editor.current_encoding = 'UTF-8'
+        self.editor.current_encoding = default_encoding  # 重置为配置中的默认编码
         self.editor.current_line_ending = default_line_ending  # 重置为配置中的默认换行符
         self.editor.is_modified = False
         self.editor.is_new_file = False  # 清除新文件状态标志
@@ -297,7 +300,7 @@ class FileOperations:
         # 更新状态栏
         self.editor.status_bar.set_status_info("就绪")
         # 重置状态栏右侧文件信息，传递空字符串作为文件名，这样会显示默认的编码和换行符
-        self.editor.status_bar.set_file_info(filename="", encoding="UTF-8", line_ending=default_line_ending)
+        self.editor.status_bar.set_file_info(filename="", encoding=default_encoding, line_ending=default_line_ending)
         
         # 更新窗口标题
         self.editor._update_window_title()
