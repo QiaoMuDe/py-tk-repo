@@ -151,12 +151,6 @@ class QuickEditApp(ctk.CTk):
         self.menu_bar = create_menu(self)
         self.config(menu=self.menu_bar)
         
-        # 绑定应用程序事件和快捷方式
-        self._bind_app_events()
-
-        # 初始化状态栏显示
-        self._init_status_bar()
-
         # 设置初始只读模式状态
         if self.is_read_only:
             # 设置为只读模式
@@ -165,6 +159,12 @@ class QuickEditApp(ctk.CTk):
             self.toolbar.readonly_button.configure(
                 fg_color="#FF6B6B", hover_color="#FF5252"
             )
+
+        # 绑定应用程序事件和快捷方式
+        self._bind_app_events()
+
+        # 初始化状态栏显示
+        self._init_status_bar()
 
         # 启动自动保存功能（如果已启用）
         if self.auto_save_enabled:
@@ -215,11 +215,18 @@ class QuickEditApp(ctk.CTk):
             "<<Selection>>", self._on_selection_change
         )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
+        
+        # 绑定文件操作快捷键
+        self.bind("<Control-n>", lambda e: self.new_file())  # 新建文件
+        self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件
+        self.bind("<Control-s>", lambda e: self.save_file())  # 保存文件
+        self.bind("<Control-Shift-S>", lambda e: self.save_file_as())  # 另存为
+        self.bind("<Control-w>", lambda e: self.close_file())  # 关闭文件
+        self.bind("<Control-e>", lambda e: self.open_containing_folder())  # 打开文件所在目录
+        self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
+        
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
-        
-        # 可以在这里添加更多快捷键绑定
-        # 例如: self.bind("<Control-s>", lambda e: self.save_file())
     
     def _on_app_startup(self):
         """
@@ -485,6 +492,25 @@ class QuickEditApp(ctk.CTk):
             self.toolbar.readonly_button.configure(
                 fg_color=default_fg_color, hover_color=default_hover_color
             )
+
+    def open_containing_folder(self):
+        """打开当前文件所在的文件夹"""
+        if self.current_file_path:
+            try:
+                # 获取文件所在的目录
+                directory = os.path.dirname(self.current_file_path)
+                if os.path.exists(directory):
+                    # 在Windows上使用explorer命令打开文件夹
+                    os.startfile(directory)
+                else:
+                    from tkinter import messagebox
+                    messagebox.showerror("错误", "文件所在目录不存在")
+            except Exception as e:
+                from tkinter import messagebox
+                messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
+        else:
+            from tkinter import messagebox
+            messagebox.showinfo("提示", "当前没有打开的文件")
 
     def _stop_auto_save(self):
         """
