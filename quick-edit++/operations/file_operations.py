@@ -102,6 +102,39 @@ class FileOperations:
         """文件读取错误回调"""
         messagebox.showerror("错误", f"无法打开文件: {error_message}")
     
+    def open_config_file(self):
+        """打开配置文件并加载到编辑器"""
+        # 检查是否需要保存当前文件
+        if not self.check_save_before_close():
+            return  # 用户取消了操作
+            
+        try:
+            # 获取配置文件路径
+            from config.config_manager import CONFIG_PATH
+            
+            # 检查配置文件是否存在
+            if not os.path.exists(CONFIG_PATH):
+                from tkinter import messagebox
+                messagebox.showinfo("提示", "配置文件不存在，将在首次修改设置时自动创建")
+                return
+            
+            # 获取配置的最大文件大小
+            max_file_size = self.config_manager.get("max_file_size", 10) * 1024 * 1024  # 转换为字节
+            
+            # 直接使用配置文件路径，不显示文件选择对话框
+            file_path = CONFIG_PATH
+            
+            # 使用核心类异步读取文件
+            self.file_core.async_read_file(
+                file_path=file_path,
+                callback=self._on_file_read_complete,
+                error_callback=self._on_file_read_error,
+                max_file_size=max_file_size
+            )
+            
+        except Exception as e:
+            messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
+    
     def save_file(self):
         """保存当前文件"""
         # 获取文本框内容

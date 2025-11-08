@@ -406,7 +406,7 @@ def create_menu(root):
     settings_menu.add_separator()
     
     # 第四组：配置管理
-    settings_menu.add_command(label="查看配置", command=lambda: print("查看当前配置"))
+    settings_menu.add_command(label="查看配置", command=lambda: root.file_ops.open_config_file())
     settings_menu.add_command(label="重置设置", command=lambda: reset_settings())
     
     # 将设置菜单添加到主菜单
