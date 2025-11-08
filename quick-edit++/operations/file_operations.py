@@ -387,6 +387,41 @@ class FileOperations:
             
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
+    
+    def handle_dropped_files(self, files):
+        """
+        处理拖拽文件事件
+        
+        Args:
+            files: 拖拽的文件列表，可能是字节串或字符串
+        """
+        for file_path in files:
+            # 如果是字节串，需要解码
+            if isinstance(file_path, bytes):
+                file_path = file_path.decode('gbk')
+            
+            # 检查文件是否存在
+            if os.path.exists(file_path):
+                # 检查是否需要保存当前文件
+                if not self.check_save_before_close():
+                    return  # 用户取消了操作
+                
+                # 文件存在，直接打开
+                self._open_file_with_path_helper(file_path)
+
+            else:
+                # 文件不存在，检查上级目录是否存在
+                dir_path = os.path.dirname(file_path)
+                if dir_path and not os.path.exists(dir_path):
+                    messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
+                    return
+                
+                # 检查是否需要保存当前文件
+                if not self.check_save_before_close():
+                    return  # 用户取消了操作
+                
+                # 作为新文件创建
+                self.new_file_with_path(file_path)
 
     def new_file_with_path(self, file_path):
         """通过指定路径创建新文件"""
@@ -438,15 +473,15 @@ class FileOperations:
             return True
 
         # 如果文件已修改，提示用户
-        from tkinter import messagebox
-
         result = messagebox.askyesnocancel(
             "未保存的更改", "当前文件有未保存的更改，是否保存？"
         )
 
         if result is True:  # 用户选择保存
             return self.save_file()
+
         elif result is False:  # 用户选择不保存
             return True
+            
         else:  # 用户选择取消
             return False

@@ -751,7 +751,7 @@ def toggle_auto_save(root):
 
     # 使用状态栏的方法更新显示
     if hasattr(root, "status_bar"):
-        root.status_bar.show_auto_save_status(file_modified=False)
+        root.status_bar.set_auto_save_status()
 
     # 根据新状态启动或停止自动保存
     if new_state:
@@ -786,7 +786,7 @@ def set_auto_save_interval(interval, root=None):
 
         # 使用状态栏的方法更新显示
         if hasattr(root, "status_bar"):
-            root.status_bar.show_auto_save_status(file_modified=False)
+            root.status_bar.show_auto_save_status()
 
         # 如果自动保存已启用，重新启动自动保存任务
         if root.auto_save_enabled:

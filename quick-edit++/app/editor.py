@@ -170,6 +170,24 @@ class QuickEditApp(ctk.CTk):
         # 启动自动保存功能
         self._start_auto_save()
 
+    def init_drag_drop(self):
+        """
+        初始化拖拽功能
+        
+        使用windnd库实现文件拖拽功能
+        """
+        try:
+            import windnd as wd
+            
+            # 注册拖拽目标，使用文件操作类的处理方法
+            wd.hook_dropfiles(self, func=self.file_ops.handle_dropped_files)
+
+        except ImportError:
+            print("警告: 未安装windnd库, 拖拽功能将不可用")
+            print("请使用以下命令安装: pip install windnd")
+        except Exception as e:
+            pass
+
     def _init_status_bar(self):
         """初始化状态栏显示"""
         # 设置初始状态信息

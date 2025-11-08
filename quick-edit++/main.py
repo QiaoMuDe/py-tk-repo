@@ -27,6 +27,9 @@ def main():
     # 创建并运行应用
     app = QuickEditApp()
     
+    # 初始化拖拽功能
+    app.init_drag_drop()
+    
     # 如果提供了文件路径参数
     if args.file:
         # 检查文件是否存在

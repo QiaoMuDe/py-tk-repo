@@ -151,7 +151,7 @@ class StatusBar(ctk.CTkFrame):
         if hasattr(self, "_auto_save_status_timer"):
             self.after_cancel(self._auto_save_status_timer)
         self._auto_save_status_timer = self.after(
-            1500, self._show_auto_save_normal_status
+            800, self.show_auto_save_status
         )
 
     def _format_auto_save_time(self, save_time):
