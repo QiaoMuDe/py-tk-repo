@@ -96,21 +96,26 @@ class StatusBar(ctk.CTkFrame):
         status="就绪",
         row=1,
         col=1,
-        total_chars=None,
         selected_chars=None,
         selected_lines=None,
     ):
-        """设置左侧状态信息（行号信息和文件编辑状态）"""
-        if not config_manager.get("status_bar.show_line_info", True):
-            self.left_label.configure(text="")
-            return
-
-        if total_chars is None and selected_chars is None and selected_lines is None:
-            # 默认状态
-            text = f"{status} | 第{row}行 | 第{col}列"
-        elif selected_chars is None and selected_lines is None:
-            # 有总字符数但无选中内容
-            text = f"{status} | 第{row}行 | 第{col}列 | {total_chars}个字符"
+        """
+        设置左侧状态信息（行号信息和文件编辑状态）
+        :param status: 状态信息，默认为"就绪"
+        :param row: 当前行号，默认为1
+        :param col: 当前列号，默认为1
+        :param selected_chars: 选中文本的字符数，默认为None
+        :param selected_lines: 选中文本的行数，默认为None
+        """
+        # 根据参数生成状态栏文本
+        if selected_chars is None and selected_lines is None:
+            # 根据是否有总字符数判断是否显示字符数
+            if self.app.get_char_count() == 0:
+                # 默认状态
+                text = f"{status} | 第{row}行 | 第{col}列"
+            else:
+                # 有总字符数但无选中内容
+                text = f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符"
         else:
             # 有选中内容
             selection_text = ""
@@ -118,7 +123,7 @@ class StatusBar(ctk.CTkFrame):
                 selection_text += f"已选中{selected_chars}个字符"
             if selected_lines is not None and selected_lines > 1:
                 selection_text += f"({selected_lines}行)"
-            text = f"{status} | 第{row}行 | 第{col}列 | {total_chars}个字符 | {selection_text}"
+            text = f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符 | {selection_text}"
 
         self.left_label.configure(text=text)
 
@@ -298,8 +303,29 @@ class StatusBar(ctk.CTkFrame):
         self.notification_active = False
         self.notification_job = None
 
-        # 恢复左侧标签的原始内容
-        self.left_label.configure(text=self.original_status_text)
+        # 尝试获取当前的光标位置和字符数，而不是恢复之前保存的文本
+        try:
+            # 检查是否有应用程序实例和文本区域
+            if hasattr(self, "app") and self.app and hasattr(self.app, "text_area"):
+                # 获取当前光标位置
+                cursor_pos = self.app.text_area.index("insert")
+                row, col = cursor_pos.split(".")
+                row = int(row)
+                col = int(col) + 1  # 转换为1基索引
+
+                # 获取当前状态
+                status = "就绪"
+                if hasattr(self.app, "is_modified") and self.app.is_modified:
+                    status = "已修改"
+
+                # 更新状态栏信息
+                self.set_status_info(status=status, row=row, col=col)
+            else:
+                # 如果没有应用程序实例，则恢复原始文本
+                self.left_label.configure(text=self.original_status_text)
+        except Exception:
+            # 如果获取位置失败，则恢复原始文本
+            self.left_label.configure(text=self.original_status_text)
 
     def can_update_status(self):
         """

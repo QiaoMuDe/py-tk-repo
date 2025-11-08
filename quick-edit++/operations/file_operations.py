@@ -96,6 +96,9 @@ class FileOperations:
             # 重置修改状态
             self.root.is_modified = False  # 清除修改状态标志
             self.root.is_new_file = False  # 清除新文件状态标志
+            
+            # 更新缓存的字符数
+            self.root.update_char_count()
 
             # 更新状态栏文件信息
             file_name = os.path.basename(file_path)
@@ -209,7 +212,24 @@ class FileOperations:
                 line_ending=line_ending,  # 确保状态栏显示正确的换行符
             )
 
-            # 更新状态栏
+            # 获取当前光标位置
+            try:
+                cursor_pos = self.root.text_area.index("insert")
+                row, col = cursor_pos.split('.')
+                row = int(row)
+                col = int(col) + 1  # 转换为1基索引
+                
+                # 更新状态栏状态信息（从"已修改"改为"就绪"）
+                self.root.status_bar.set_status_info(
+                    status="就绪",
+                    row=row,
+                    col=col
+                )
+            except Exception:
+                # 如果获取位置失败，使用默认值
+                self.root.status_bar.set_status_info(status="就绪")
+            
+            # 显示保存通知
             self.root.status_bar.show_notification(f"文件已保存")
 
             # 更新窗口标题

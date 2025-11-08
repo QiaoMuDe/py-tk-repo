@@ -95,6 +95,9 @@ class QuickEditApp(ctk.CTk):
         )  # 从配置中读取默认换行符
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.is_new_file = False  # 是否为新文件状态
+        
+        # 字符数缓存
+        self._total_chars = 0  # 缓存的总字符数
 
         # 从配置文件中读取只读模式状态
         self.is_read_only = config_manager.get(
@@ -151,9 +154,9 @@ class QuickEditApp(ctk.CTk):
         # 创建菜单栏
         self.menu_bar = create_menu(self)
         self.config(menu=self.menu_bar)
-
-        # 绑定文本区域事件
-        self._bind_text_events()
+        
+        # 绑定应用程序事件和快捷方式
+        self._bind_app_events()
 
         # 初始化状态栏显示
         self._init_status_bar()
@@ -201,15 +204,73 @@ class QuickEditApp(ctk.CTk):
             self.destroy()
         # 如果用户取消保存，则不关闭窗口
 
-    def _bind_text_events(self):
-        """绑定文本区域事件"""
-        # 绑定按键事件
+    def _bind_app_events(self):
+        """
+        绑定应用程序级别的事件和快捷方式
+        
+        包括自动保存触发事件和焦点管理事件
+        """
+        # 绑定文本框焦点离开事件，触发自动保存
+        self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
+         # 绑定按键事件
         self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
             "<<Selection>>", self._on_selection_change
         )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
+        # 设置应用程序启动后获取焦点
+        self.after(100, self._on_app_startup)
+        
+        # 可以在这里添加更多快捷键绑定
+        # 例如: self.bind("<Control-s>", lambda e: self.save_file())
+    
+    def _on_app_startup(self):
+        """
+        应用程序启动时的焦点设置
+        
+        先让窗口获取焦点，然后设置文本区域焦点
+        """
+        # 确保窗口完全显示并获取焦点
+        self.focus_force()
+        self.update()
+        
+        # 然后设置文本区域焦点
+        self._focus_text_area()
+    
+    def _on_text_area_focus_out(self, event=None):
+        """
+        文本区域失去焦点事件处理
+        
+        当焦点离开文本框时，调用自动保存方法
+        所有检查逻辑都在_auto_save方法内部处理
+        """
+        # 直接调用自动保存方法，内部会检查是否需要保存
+        self._auto_save()
+    
+    def _focus_text_area(self):
+        """
+        将焦点设置到文本编辑区域
+        
+        如果文本区域可编辑（非只读模式），则将焦点设置到文本区域
+        """
+        if not self.is_read_only:
+            # 确保窗口已经完全显示
+            # self.update()
+            # 设置焦点到文本区域
+            self.text_area.focus_set()
+            # 将光标移动到文本末尾或当前位置
+            try:
+                # 如果有内容，将光标移动到末尾
+                content = self.text_area.get("1.0", "end-1c")
+                if content:
+                    self.text_area.mark_set("insert", "end")
+                else:
+                    # 如果没有内容，将光标设置到开始位置
+                    self.text_area.mark_set("insert", "1.0")
+            except:
+                # 如果出现异常，至少确保焦点在文本区域
+                pass
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
@@ -220,6 +281,9 @@ class QuickEditApp(ctk.CTk):
         else:
             content = self.text_area.get("1.0", ctk.END).strip()
             self.is_modified = len(content) > 0
+
+        # 更新缓存的字符数
+        self.update_char_count()
 
         self._update_status_bar()
 
@@ -242,13 +306,10 @@ class QuickEditApp(ctk.CTk):
         row, col = cursor_pos.split(".")
         row, col = int(row), int(col) + 1  # 转换为1基索引
 
-        # 获取总字符数
-        content = self.text_area.get("1.0", ctk.END)
-        total_chars = len(content) - 1  # 减去末尾的换行符
-
         # 获取选中字符数
         try:
             selected_content = self.text_area.get(ctk.SEL_FIRST, ctk.SEL_LAST)
+            # 计算选中内容的字符数，不特殊处理换行符
             selected_chars = len(selected_content)
 
             # 获取选中的起始和结束位置
@@ -280,12 +341,11 @@ class QuickEditApp(ctk.CTk):
         # 根据文件修改状态确定状态文本
         status = "已修改" if self.is_modified else "就绪"
 
-        # 更新状态栏
+        # 更新状态栏，不再传递total_chars参数，让set_status_info内部获取
         self.status_bar.set_status_info(
             status=status,
             row=row,
             col=col,
-            total_chars=total_chars,
             selected_chars=selected_chars,
             selected_lines=selected_lines,
         )
@@ -449,34 +509,58 @@ class QuickEditApp(ctk.CTk):
         # 先停止现有的自动保存任务
         self._stop_auto_save()
 
-        # 如果自动保存已启用且有文件路径，则启动自动保存
-        if self.auto_save_enabled and self.current_file_path:
-            # 调度下一次自动保存
-            self._auto_save_job = self.after(
-                self.auto_save_interval * 1000, self._auto_save
-            )
+        # 立即执行一次自动保存，所有检查逻辑都在_auto_save方法内部
+        self._auto_save()
 
     def _auto_save(self):
         """
         执行自动保存操作
 
-        如果文件已修改且有文件路径，则保存文件；否则仅调度下一次自动保存
+        集中处理所有自动保存相关的检查逻辑：
+        1. 检查是否启用了自动保存功能
+        2. 检查文件是否已修改
+        3. 检查是否有文件路径
+        4. 如果满足条件，则保存文件并更新状态
+        5. 无论是否保存，都调度下一次自动保存
         """
-        # 如果文件已修改且有文件路径，则保存文件
-        if self.is_modified and self.current_file_path:
+        #  检查是否启用了自动保存功能
+        if not self.auto_save_enabled:
+            return
+        
+        # 检查文件是否已修改且持有文件路径
+        if  self.is_modified and self.current_file_path:
+            # 执行保存操作
             self.save_file()
             # 更新上次自动保存时间
             self.last_auto_save_time = time.time()
             # 更新状态栏的自动保存信息，显示具体的保存时间
             self.status_bar.show_auto_save_status(file_modified=True)
         else:
-            # 文件未修改或没有文件路径，仅更新状态栏显示上次执行时间
+            # 文件未修改、没有文件路径，仅更新状态栏显示上次执行时间
             self.status_bar.show_auto_save_status(file_modified=False)
 
         # 调度下一次自动保存
         self._auto_save_job = self.after(
             self.auto_save_interval * 1000, self._auto_save
         )
+
+    def get_char_count(self):
+        """
+        获取文本区域的字符数，使用缓存机制提高性能
+        
+        Returns:
+            int: 文本区域的字符数
+        """
+        return self._total_chars
+    
+    def update_char_count(self):
+        """
+        更新缓存的字符数
+        
+        在文件内容发生变化时调用此方法
+        """
+        # 使用end-1c获取文本，这会自动排除末尾的换行符
+        self._total_chars = len(self.text_area.get("1.0", "end-1c"))
 
     def run(self):
         """运行应用"""
