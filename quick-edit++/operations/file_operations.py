@@ -74,7 +74,15 @@ class FileOperations:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
 
     def _on_file_read_complete(self, file_path, content, encoding, line_ending):
-        """文件读取完成回调"""
+        """
+        文件读取完成回调
+
+        Args:
+            file_path: 文件路径
+            content: 文件内容
+            encoding: 文件编码
+            line_ending: 文件换行符类型
+        """
         try:
             # 更新编辑器内容
             self.root.text_area.delete("1.0", tk.END)
