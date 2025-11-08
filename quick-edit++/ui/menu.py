@@ -428,6 +428,25 @@ def set_file_encoding(encoding, app_instance=None):
                 encoding=encoding,
                 line_ending=getattr(app_instance, 'current_line_ending', 'LF')
             )
+            
+            # 显示通知
+            app_instance.status_bar.show_notification(f"编码已更改为: {encoding}")
+        
+        # 如果有文件路径或文本框有内容，则标记文件为已修改
+        has_file_path = hasattr(app_instance, 'current_file_path') and app_instance.current_file_path
+        has_content = False
+        if hasattr(app_instance, 'text_area'):
+            content = app_instance.text_area.get("1.0", "end-1c")
+            has_content = bool(content.strip())
+            
+        if has_file_path or has_content:
+            # 标记文件为已修改
+            if hasattr(app_instance, 'is_modified'):
+                app_instance.is_modified = True
+                
+            # 更新状态栏
+            if hasattr(app_instance, '_update_status_bar'):
+                app_instance._update_status_bar()
 
 
 def set_file_line_ending(line_ending, app_instance=None):
@@ -453,6 +472,30 @@ def set_file_line_ending(line_ending, app_instance=None):
                 encoding=getattr(app_instance, 'current_encoding', 'UTF-8'),
                 line_ending=line_ending
             )
+            
+            # 显示通知
+            line_ending_names = {
+                "CRLF": "Windows (CRLF)",
+                "LF": "Linux/Unix (LF)",
+                "CR": "Mac (CR)"
+            }
+            app_instance.status_bar.show_notification(f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}")
+        
+        # 如果有文件路径或文本框有内容，则标记文件为已修改
+        has_file_path = hasattr(app_instance, 'current_file_path') and app_instance.current_file_path
+        has_content = False
+        if hasattr(app_instance, 'text_area'):
+            content = app_instance.text_area.get("1.0", "end-1c")
+            has_content = bool(content.strip())
+            
+        if has_file_path or has_content:
+            # 标记文件为已修改
+            if hasattr(app_instance, 'is_modified'):
+                app_instance.is_modified = True
+                
+            # 更新状态栏
+            if hasattr(app_instance, '_update_status_bar'):
+                app_instance._update_status_bar()
 
 
 def set_theme_mode(mode, root=None):

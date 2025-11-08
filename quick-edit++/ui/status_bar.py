@@ -73,6 +73,9 @@ class StatusBar(ctk.CTkFrame):
         )
         self.right_label.grid(row=0, column=2, padx=10, pady=2, sticky="e")
         
+        # 绑定事件
+        self.bind_events()
+        
     def set_status_info(self, status="就绪", row=1, col=1, total_chars=None, selected_chars=None, selected_lines=None):
         """设置左侧状态信息（行号信息和文件编辑状态）"""
         if not config_manager.get("status_bar.show_line_info", True):
@@ -237,3 +240,215 @@ class StatusBar(ctk.CTkFrame):
             bool: 如果当前没有通知活动，返回True；否则返回False
         """
         return not self.notification_active
+    
+    def bind_events(self):
+        """绑定事件"""
+        self.right_label.bind("<Button-3>", self._on_right_click)  # 右键点击事件
+        
+    def _on_right_click(self, event):
+        """处理右键点击事件，根据点击位置判断是编码还是换行符"""
+        try:
+            # 获取标签的文本内容
+            text = self.right_label.cget("text")
+            
+            # 获取点击位置相对于标签的x坐标
+            x = event.x
+            
+            # 获取标签的字体信息
+            font = self.right_label.cget("font")
+            
+            # 如果没有文本，直接返回
+            if not text:
+                return
+                
+            # 解析状态栏文本，判断格式
+            # 格式可能是: "文件名 | 编码 | 换行符" 或 "编码 | 换行符"
+            parts = [part.strip() for part in text.split("|")]
+            
+            if len(parts) == 3:
+                # 有文件名的情况: "文件名 | 编码 | 换行符"
+                filename_part = parts[0]
+                encoding_part = parts[1]
+                line_ending_part = parts[2]
+                
+                # 使用更精确的方法计算各部分的宽度
+                # 获取标签的实际宽度
+                label_width = self.right_label.winfo_width()
+                
+                # 计算各部分文本的相对宽度比例
+                total_text_length = len(filename_part) + len(encoding_part) + len(line_ending_part) + 6  # 6是两个" | "分隔符的总长度
+                
+                # 计算各部分的相对位置（基于字符长度的比例）
+                filename_ratio = len(filename_part) / total_text_length
+                encoding_ratio = len(encoding_part) / total_text_length
+                separator_ratio = 3 / total_text_length  # " | "的长度为3
+                
+                # 计算各部分的x坐标范围
+                filename_end = label_width * filename_ratio
+                encoding_start = filename_end + label_width * separator_ratio
+                encoding_end = encoding_start + label_width * encoding_ratio
+                line_ending_start = encoding_end + label_width * separator_ratio
+                
+                # 添加一些容错范围
+                tolerance = 10  # 10像素的容错范围
+                
+                # 判断点击位置
+                if encoding_start - tolerance <= x <= encoding_end + tolerance:
+                    # 点击了编码部分
+                    self._show_encoding_menu(event)
+                elif x >= line_ending_start - tolerance:
+                    # 点击了换行符部分
+                    self._show_line_ending_menu(event)
+                    
+            elif len(parts) == 2:
+                # 没有文件名的情况: "编码 | 换行符"
+                encoding_part = parts[0]
+                line_ending_part = parts[1]
+                
+                # 使用更精确的方法计算各部分的宽度
+                # 获取标签的实际宽度
+                label_width = self.right_label.winfo_width()
+                
+                # 计算各部分文本的相对宽度比例
+                total_text_length = len(encoding_part) + len(line_ending_part) + 3  # 3是" | "分隔符的长度
+                
+                # 计算各部分的相对位置（基于字符长度的比例）
+                encoding_ratio = len(encoding_part) / total_text_length
+                separator_ratio = 3 / total_text_length  # " | "的长度为3
+                
+                # 计算各部分的x坐标范围
+                encoding_end = label_width * encoding_ratio
+                line_ending_start = encoding_end + label_width * separator_ratio
+                
+                # 添加一些容错范围
+                tolerance = 10  # 10像素的容错范围
+                
+                # 判断点击位置
+                if x <= encoding_end + tolerance:
+                    # 点击了编码部分
+                    self._show_encoding_menu(event)
+                else:
+                    # 点击了换行符部分
+                    self._show_line_ending_menu(event)
+                    
+        except Exception as e:
+            print(f"处理右键点击事件时出错: {e}")
+    
+    def _get_text_width(self, text, font):
+        """获取文本在指定字体下的显示宽度"""
+        try:
+            # 创建一个临时的标签来测量文本宽度
+            import tkinter as tk
+            temp_label = tk.Label(self.right_label.master, text=text, font=font)
+            width = temp_label.winfo_reqwidth()
+            # 如果宽度为0（例如因为标签还没有被渲染），则使用估算值
+            if width <= 0:
+                # 估算每个字符的平均宽度（这个值可能需要根据实际字体调整）
+                avg_char_width = 8
+                width = len(text) * avg_char_width
+            return width
+        except Exception:
+            # 如果获取宽度宽度失败，则使用估算值
+            avg_char_width = 8
+            return len(text) * avg_char_width
+    
+    def _show_encoding_menu(self, event):
+        """显示编码选择菜单，复用文件菜单中的编码菜单逻辑"""
+        try:
+            # 导入必要的模块
+            import sys
+            import os
+            import tkinter as tk
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
+            from ui.menu import create_encoding_submenu, set_file_encoding
+            from config.config_manager import config_manager
+            
+            # 创建弹出菜单
+            popup_menu = tk.Menu(self.right_label, tearoff=0)
+            
+            # 获取菜单字体配置
+            menu_font_config = config_manager.get_font_config("menu_bar")
+            menu_font_tuple = (
+                menu_font_config.get("font", "Microsoft YaHei UI"),
+                menu_font_config.get("font_size", 12),
+                "bold" if menu_font_config.get("font_bold", False) else "normal"
+            )
+            
+            # 设置菜单字体
+            popup_menu.configure(font=menu_font_tuple)
+            
+            # 获取应用实例
+            app_instance = self.master
+            
+            # 直接创建编码子菜单，使用与文件菜单相同的逻辑
+            create_encoding_submenu(
+                popup_menu, 
+                app_instance, 
+                show_common_only=True, 
+                font_tuple=menu_font_tuple
+            )
+            
+            # 在鼠标位置显示菜单
+            try:
+                popup_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                # 确保菜单能够被正确释放
+                popup_menu.grab_release()
+                
+        except Exception as e:
+            print(f"显示编码菜单时出错: {e}")
+    
+    def _show_line_ending_menu(self, event):
+        """显示换行符选择菜单，复用文件菜单中的换行符菜单逻辑"""
+        try:
+            # 导入必要的模块
+            import sys
+            import os
+            import tkinter as tk
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            
+            from ui.menu import set_file_line_ending
+            from config.config_manager import config_manager
+            
+            # 创建弹出菜单
+            popup_menu = tk.Menu(self.right_label, tearoff=0)
+            
+            # 获取菜单字体配置
+            menu_font_config = config_manager.get_font_config("menu_bar")
+            menu_font_tuple = (
+                menu_font_config.get("font", "Microsoft YaHei UI"),
+                menu_font_config.get("font_size", 12),
+                "bold" if menu_font_config.get("font_bold", False) else "normal"
+            )
+            
+            # 设置菜单字体
+            popup_menu.configure(font=menu_font_tuple)
+            
+            # 获取应用实例
+            app_instance = self.master
+            
+            # 换行符选项，与文件菜单中的选项保持一致
+            newline_options = [
+                ("Windows (CRLF)", "CRLF"),
+                ("Linux/Unix (LF)", "LF"),
+                ("Mac (CR)", "CR")
+            ]
+            
+            # 添加换行符选项，使用与文件菜单相同的处理函数
+            for label, value in newline_options:
+                popup_menu.add_command(
+                    label=label, 
+                    command=lambda nl=value: set_file_line_ending(nl, app_instance),
+                    font=menu_font_tuple
+                )
+            
+            # 在鼠标位置显示菜单
+            try:
+                popup_menu.tk_popup(event.x_root, event.y_root)
+            finally:
+                # 确保菜单能够被正确释放
+                popup_menu.grab_release()
+                
+        except Exception as e:
+            print(f"显示换行符菜单时出错: {e}")
