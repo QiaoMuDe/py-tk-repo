@@ -5,6 +5,7 @@
 import codecs
 import os
 import sys
+import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from customtkinter import CTk
@@ -56,6 +57,10 @@ class FileOperations:
 
             if not file_path:
                 return  # 用户取消了选择
+
+            # 在文件打开前检查备份恢复
+            if self._check_and_handle_backup_recovery(file_path):
+                return  # 备份恢复已处理，无需继续打开原文件
 
             # 获取配置的最大文件大小
             max_file_size = self.config_manager.get(
@@ -443,6 +448,10 @@ class FileOperations:
             if not self.check_save_before_close():
                 return  # 用户取消了操作
 
+            # 检查并处理备份恢复
+            if self._check_and_handle_backup_recovery(file_path):
+                return  # 已处理备份恢复，不再继续打开原文件
+
             # 文件存在，直接打开
             self._open_file_with_path_helper(file_path)
         else:
@@ -527,3 +536,82 @@ class FileOperations:
 
         else:  # 用户选择取消
             return False
+
+    def _check_and_handle_backup_recovery(self, file_path):
+        """在文件打开前检查并处理备份恢复逻辑
+        
+        Args:
+            file_path: 要打开的文件路径
+            
+        Returns:
+            bool: 如果已处理备份恢复返回True，否则返回False
+        """
+        # 检查是否启用了备份功能
+        if not self.config_manager.get("backup.enabled", False):
+            return False
+            
+        # 构建备份文件路径
+        backup_path = file_path + ".bak"
+        
+        # 检查备份文件是否存在
+        if not os.path.exists(backup_path):
+            return False
+            
+        # 获取文件和备份文件的修改时间
+        try:
+            file_mtime = os.path.getmtime(file_path)
+            backup_mtime = os.path.getmtime(backup_path)
+            
+            # 格式化时间显示
+            file_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(file_mtime))
+            backup_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(backup_mtime))
+            
+            # 显示备份恢复对话框
+            from ui.simple_backup_dialog import SimpleBackupDialog
+            dialog = SimpleBackupDialog(self.root, file_path, backup_path, file_time, backup_time)
+            choice = dialog.show()
+            
+            # 处理用户选择
+            if choice == "cancel":
+                return True  # 用户取消，不打开任何文件
+                
+            elif choice == "open_source":
+                # 从源文件打开
+                self._open_file_with_path_helper(file_path)
+                return True  # 已处理，无需继续打开原文件
+                
+            elif choice == "open_source_delete_backup":
+                # 从源文件打开并删除备份文件
+                try:
+                    os.remove(backup_path)
+                    self._open_file_with_path_helper(file_path) 
+                    return False  # 继续正常流程打开原文件
+                except Exception as e:
+                    messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
+                    return True  # 出错，不打开任何文件
+                    
+            elif choice == "open_backup_rename":
+                # 从备份文件打开并重命名为原文件
+                try:
+                    # 先删除原文件
+                    os.remove(file_path)
+                    # 重命名备份文件为原文件名
+                    os.rename(backup_path, file_path)
+                    # 打开重命名后的文件
+                    self._open_file_with_path_helper(file_path) 
+                    return True  # 已处理，无需继续打开原文件
+                except Exception as e:
+                    messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
+                    return True  # 出错，不打开任何文件
+                    
+            elif choice == "open_backup":
+                # 从备份文件打开（不重命名）
+                # 直接打开备份文件
+                self._open_file_with_path_helper(backup_path)
+                return True  # 已处理，无需继续打开原文件
+                
+        except Exception as e:
+            messagebox.showerror("错误", f"处理备份文件时出错: {str(e)}")
+            return True  # 出错，不打开任何文件
+            
+        return False
