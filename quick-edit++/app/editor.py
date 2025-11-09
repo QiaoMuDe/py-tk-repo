@@ -62,9 +62,13 @@ class QuickEditApp(ctk.CTk):
 
     def _on_closing(self):
         """窗口关闭事件处理"""
-        # 取消自动保存任务（如果有）
+        # 取消自动保存任务 (如果有)
         self.auto_save_manager.stop_auto_save()
 
+        # 如果启用自动保存并且有当前打开的文件，尝试自动保存
+        if self.auto_save_manager.auto_save_enabled and self.current_file_path:
+            self.auto_save_manager._auto_save()
+        
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
             self.destroy()
@@ -136,15 +140,12 @@ class QuickEditApp(ctk.CTk):
         如果文本区域可编辑（非只读模式），则将焦点设置到文本区域
         """
         if not self.is_read_only:
-            # 确保窗口已经完全显示
-            # self.update()
             # 设置焦点到文本区域
             self.text_area.focus_set()
             # 将光标移动到文本末尾或当前位置
             try:
                 # 如果有内容，将光标移动到末尾
-                content = self.text_area.get("1.0", "end-1c")
-                if content:
+                if self.get_char_count() > 0:
                     self.text_area.mark_set("insert", "end")
                 else:
                     # 如果没有内容，将光标设置到开始位置
@@ -155,18 +156,39 @@ class QuickEditApp(ctk.CTk):
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
-         # 更新缓存的字符数
-        self.update_char_count()
-
-        # 如果当前有文件路径，则标记为已修改
-        # 如果没有文件路径（新文件），只有当内容不为空时才标记为已修改
-        if self.current_file_path:
-            self.is_modified = True
-        else:
-            self.is_modified = self.get_char_count() > 0
+        
+        # 获取当前修改状态
+        is_modified = self.is_modified()
+        
+        # 如果为已修改状态，更新缓存的字符数
+        if is_modified:
+            self.update_char_count()
+        
+        # 如果是新文件或没有打开文件，且文本框内容为空，重置为未修改状态
+        if (self.is_new_file or self.current_file_path is None) and self.get_char_count() == 0:
+            self.set_modified(False)
 
         # 显示自动保存状态
         self._update_status_bar()
+
+    def set_modified(self, modified=False):
+        """
+        设置文本区域修改状态
+        
+        Args:
+            modified (bool): True表示标记为已修改，False表示标记为未修改，默认为True
+        """
+        self.text_area.edit_modified(modified)
+    
+    def is_modified(self):
+        """
+        获取文本区域修改状态
+        
+        Returns:
+            bool: True表示已修改，False表示未修改
+        """
+        status = self.text_area.edit_modified()
+        return status != 0  # CTK返回0表示未修改，非0表示已修改
 
     def _on_cursor_move(self, event=None):
         """光标移动事件处理"""
@@ -220,7 +242,7 @@ class QuickEditApp(ctk.CTk):
             selected_lines = None
 
         # 根据文件修改状态确定状态文本
-        status = "已修改" if self.is_modified else "就绪"
+        status = "已修改" if self.is_modified() else "就绪"
 
         # 更新状态栏，不再传递total_chars参数，让set_status_info内部获取
         self.status_bar.set_status_info(
@@ -268,7 +290,7 @@ class QuickEditApp(ctk.CTk):
         # 构建最终标题
         if title_part:
             # 根据修改状态添加星号
-            prefix = "*" if self.is_modified else ""
+            prefix = "*" if self.is_modified() else ""
             title = f"{prefix}{title_part} - QuickEdit++"
         else:
             # 没有内容时只显示程序名

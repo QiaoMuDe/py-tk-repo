@@ -86,7 +86,6 @@ class AppInitializer:
         self.app.current_line_ending = config_manager.get(
             "app.default_line_ending", "LF"
         )  # 从配置中读取默认换行符
-        self.app.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.app.is_new_file = False  # 是否为新文件状态
 
         # 字符数缓存

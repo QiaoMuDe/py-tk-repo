@@ -286,7 +286,7 @@ class StatusBar(ctk.CTkFrame):
 
                 # 获取当前状态，使用app实例的is_modified属性
                 status = "就绪"
-                if self.app.is_modified:
+                if self.app.is_modified():
                     status = "已修改"
 
                 # 更新状态栏信息

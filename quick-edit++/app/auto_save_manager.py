@@ -97,7 +97,7 @@ class AutoSaveManager:
         此方法在达到指定间隔时间时被调用，执行实际的文件保存操作
         """
         # 检查文件是否已修改
-        if self.app.is_modified:
+        if self.app.is_modified():
             # 执行保存操作
             self.app.save_file()
             # 更新上次自动保存时间

@@ -94,7 +94,7 @@ class FileOperations:
             self.root.current_line_ending = line_ending
 
             # 重置修改状态
-            self.root.is_modified = False  # 清除修改状态标志
+            self.root.set_modified(False)  # 清除修改状态标志
             self.root.is_new_file = False  # 清除新文件状态标志
             
             # 更新缓存的字符数
@@ -182,13 +182,9 @@ class FileOperations:
             content = self.root.text_area.get("1.0", tk.END).rstrip("\n")
 
             # 获取当前编码和换行符设置
-            encoding = getattr(self.root, "current_encoding", self.config_manager.get("app.default_encoding", "UTF-8"))
+            encoding = self.root.current_encoding
             # 优先使用编辑器的当前换行符设置，如果没有则使用配置中的默认换行符
-            line_ending = getattr(
-                self.root,
-                "current_line_ending",
-                self.config_manager.get("app.default_line_ending", "LF"),
-            )
+            line_ending = self.root.current_line_ending 
 
             # 使用核心类转换换行符格式
             content = self.file_core.convert_line_endings(content, line_ending)
@@ -204,7 +200,7 @@ class FileOperations:
                 self.root.current_line_ending = line_ending
 
             # 重置修改状态
-            self.root.is_modified = False  # 清除修改状态标志
+            self.root.set_modified(False)  # 清除修改状态标志
             self.root.is_new_file = False  # 清除新文件状态标志
 
             # 更新状态栏文件信息
@@ -251,15 +247,11 @@ class FileOperations:
 
         # 情况1：没有打开文件且文本框没有内容
         if not has_file_path and not content:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "没有内容可保存")
             return False
 
         # 情况2：已经打开文件，检查是否修改
-        if has_file_path and not self.root.is_modified:
-            from tkinter import messagebox
-
+        if has_file_path and not self.root.is_modified():
             messagebox.showinfo("提示", "文件未修改，无需保存")
             return True
 
@@ -282,15 +274,11 @@ class FileOperations:
 
         # 情况1：没有打开文件且文本框没有内容
         if not has_file_path and not content:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "没有内容可保存")
             return False
 
         # 情况2：已经打开文件，检查是否修改
-        if has_file_path and not self.root.is_modified:
-            from tkinter import messagebox
-
+        if has_file_path and not self.root.is_modified():
             messagebox.showinfo("提示", "文件未修改，无需保存")
             return True
 
@@ -448,7 +436,7 @@ class FileOperations:
         self.root.current_file_path = None
         self.root.current_encoding = default_encoding  # 重置为配置中的默认编码
         self.root.current_line_ending = default_line_ending  # 重置为配置中的默认换行符
-        self.root.is_modified = False
+        self.root.set_modified(False)  # 重置文件修改状态
         self.root.is_new_file = False  # 清除新文件状态标志
 
         # 更新状态栏
@@ -475,7 +463,7 @@ class FileOperations:
             bool: 如果可以继续关闭操作返回True，如果用户取消则返回False
         """
         # 如果文件未修改，直接返回True
-        if not self.root.is_modified:
+        if not self.root.is_modified():
             return True
 
         # 如果文件已修改，提示用户

@@ -514,7 +514,7 @@ def set_file_encoding(encoding, app_instance=None):
     # 如果有文件路径或总字符数大于0，则标记文件为已修改   
     if app_instance.current_file_path or app_instance.get_char_count() > 0:
         # 标记文件为已修改
-        app_instance.is_modified = True
+        app_instance.set_modified(True)
         # 更新状态栏
         app_instance._update_status_bar()
 
@@ -550,7 +550,7 @@ def set_file_line_ending(line_ending, app_instance=None):
     # 如果有文件路径或总字符数大于0，则标记文件为已修改
     if app_instance.current_file_path or app_instance.get_char_count() > 0:
         # 标记文件为已修改
-        app_instance.is_modified = True
+        app_instance.set_modified(True)
         # 更新状态栏
         app_instance._update_status_bar()
 
