@@ -168,6 +168,48 @@ class FileOperations:
         except Exception as e:
             messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 
+    def _create_backup_copy(self, file_path):
+        """
+        创建文件的副本备份
+        
+        Args:
+            file_path: 原文件路径
+        """
+        try:
+            import shutil
+            import threading
+            
+            # 构建备份文件路径（在原文件名后添加.bak扩展名）
+            backup_path = f"{file_path}.bak"
+            
+            # 如果备份文件已存在，先删除
+            if os.path.exists(backup_path):
+                os.remove(backup_path)
+            
+            # 获取文件大小，决定是否使用新线程
+            file_size = os.path.getsize(file_path)
+            
+            # 定义备份操作函数
+            def backup_operation():
+                try:
+                    # 使用copy2保留元数据
+                    shutil.copy2(file_path, backup_path)
+                    # 在主线程中显示通知
+                    self.root.after(0, lambda: self.root.status_bar.show_notification("已创建副本备份"))
+                except Exception as e:
+                    # 在主线程中显示错误
+                    self.root.after(0, lambda: messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}"))
+            
+            # 如果文件大于1MB，使用新线程执行备份操作
+            if file_size > 1024 * 1024:  # 1MB
+                threading.Thread(target=backup_operation, daemon=True).start()
+            else:
+                # 小文件直接在主线程执行
+                backup_operation()
+                
+        except Exception as e:
+            messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
+
     def _save_file_content(self, file_path, update_current_file_info=True):
         """
         保存文件内容的通用方法
@@ -194,6 +236,10 @@ class FileOperations:
             # 写入文件
             with codecs.open(file_path, "w", encoding=encoding) as f:
                 f.write(content)
+
+            # 如果启用了副本备份功能，则创建副本备份
+            if self.config_manager.get("app.backup_enabled", False):
+                self._create_backup_copy(file_path)
 
             # 如果需要，更新当前文件信息
             if update_current_file_info:

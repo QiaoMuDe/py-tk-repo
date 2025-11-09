@@ -451,11 +451,6 @@ def create_menu(root):
     settings_menu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
 
     # 获取备份设置
-    backup_enabled = config_manager.get("app.backup_enabled", True)
-    if root.backup_var is None:
-        root.backup_var = tk.BooleanVar(value=backup_enabled)
-    else:
-        root.backup_var.set(backup_enabled)
     settings_menu.add_checkbutton(
         label="启用副本备份",
         command=lambda: toggle_backup(root),
@@ -714,7 +709,7 @@ def toggle_backup(root):
     # 切换状态
     new_state = not current_state
 
-    # 保存配置
+    # 保存配置 
     config_manager.set("app.backup_enabled", new_state)
     config_manager.save_config()
 
@@ -722,10 +717,9 @@ def toggle_backup(root):
     if root.backup_var is not None:
         root.backup_var.set(new_state)
 
-    # 获取当前活动的文本编辑器实例
-    if root.current_editor:
-        root.current_editor.toggle_backup(new_state)
-
+    # 开启的时候立即备份一次
+    if new_state and root.current_file_path and not root.is_modified(): 
+        root.file_operations._create_backup_copy(root.current_file_path)
 
 def set_window_title_mode(mode, root):
     """
