@@ -27,14 +27,14 @@ class QuickEditApp(ctk.CTk):
 
     def __init__(self):
         """初始化应用"""
+        # 创建自动保存管理器
+        self.auto_save_manager = AutoSaveManager(self)
+
         # 创建应用初始化器
         self.initializer = AppInitializer(self)
         
         # 执行完整的应用初始化流程
         self.initializer.initialize_app()
-
-        # 创建自动保存管理器
-        self.auto_save_manager = AutoSaveManager(self)
 
         # 绑定应用程序事件和快捷方式
         self._bind_app_events()

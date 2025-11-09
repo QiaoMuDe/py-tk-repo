@@ -10,18 +10,19 @@ import time
 import tkinter as tk
 from config.config_manager import config_manager
 
+
 class AutoSaveManager:
     """自动保存管理器类"""
 
     def __init__(self, app):
         """
         初始化自动保存管理器
-        
+
         Args:
             app: 应用程序实例
         """
         self.app = app
-        
+
         # 自动保存相关属性
         self.auto_save_enabled = config_manager.get(
             "app.auto_save", False
@@ -30,7 +31,7 @@ class AutoSaveManager:
             "app.auto_save_interval", 5
         )  # 自动保存间隔，单位秒
         self.last_auto_save_time = 0  # 上次自动保存时间
-        self._auto_save_job = None  # 自动保存任务ID
+        self._auto_save_job = None  # 自动保存任务ID        
 
     def start_auto_save(self):
         """
@@ -53,9 +54,9 @@ class AutoSaveManager:
 
         取消现有的自动保存任务（如果有）
         """
-        if hasattr(self, "_auto_save_job") and self._auto_save_job is not None:
-            self.app.after_cancel(self._auto_save_job)
-            self._auto_save_job = None
+        if self._auto_save_job is not None:
+            self.app.after_cancel(self._auto_save_job)  # 取消自动保存任务
+            self._auto_save_job = None  # 清除自动保存任务ID
 
     def _auto_save_check(self):
         """
@@ -122,46 +123,81 @@ class AutoSaveManager:
             # 立即执行保存操作
             self._auto_save()
 
-    def toggle_auto_save(self, enabled=None):
+    def toggle_auto_save(self):
         """
-        切换或设置自动保存状态
-        
-        Args:
-            enabled (bool, optional): 如果提供，则设置自动保存为指定状态；
-                                     如果为None，则切换当前状态
-        """
-        if enabled is not None:
-            self.auto_save_enabled = enabled
-        else:
-            self.auto_save_enabled = not self.auto_save_enabled
+        切换自动保存模式
 
-        # 保存设置到配置文件
-        config_manager.set("app.auto_save", self.auto_save_enabled)
+        功能：
+        - 获取当前自动保存状态
+        - 切换状态并保存配置
+        - 更新APP类中的变量
+        - 更新状态栏显示
+        - 根据新状态启动或停止自动保存
+        """
+        # 获取当前自动保存状态
+        current_state = config_manager.get("app.auto_save", False)
+        # 切换状态
+        new_state = not current_state
+
+        # 保存配置
+        config_manager.set("app.auto_save", new_state)
         config_manager.save_config()
 
-        # 根据状态启动或停止自动保存
-        if self.auto_save_enabled:
+        # 更新内部状态
+        self.auto_save_enabled = new_state
+
+        # 更新APP类中的变量
+        if self.app.auto_save_var is not None:
+            self.app.auto_save_var.set(new_state)
+
+        # 更新APP类中的自动保存状态
+        self.app.auto_save_enabled = new_state
+
+        # 使用状态栏的方法更新显示
+        if hasattr(self.app, "status_bar"):
+            self.app.status_bar.set_auto_save_status()
+
+        # 根据新状态启动或停止自动保存
+        if new_state:
+            # 启用自动保存，启动自动保存任务
             self.start_auto_save()
-            self.app.status_bar.show_notification("自动保存已启用")
         else:
+            # 禁用自动保存，取消自动保存任务
             self.stop_auto_save()
-            self.app.status_bar.show_notification("自动保存已禁用")
+
+            # 禁用自动保存后，将上次的自动保存时间设置为0
+            self.last_auto_save_time = 0
 
     def set_auto_save_interval(self, interval):
         """
         设置自动保存间隔
-        
+
         Args:
-            interval (int): 自动保存间隔，单位秒
+            interval (int): 保存间隔，单位为秒
         """
-        self.auto_save_interval = interval
-        
-        # 保存设置到配置文件
+        # 保存配置
         config_manager.set("app.auto_save_interval", interval)
         config_manager.save_config()
-        
-        # 如果自动保存已启用，重启以应用新间隔
+
+        # 更新内部状态
+        self.auto_save_interval = interval
+
+        # 更新APP类中的自动保存间隔
+        self.app.auto_save_interval = interval
+
+        # 更新auto_save_interval_var变量
+        if self.app.auto_save_interval_var is not None:
+            self.app.auto_save_interval_var.set(str(interval))
+
+        # 使用状态栏的方法更新显示
+        if hasattr(self.app, "status_bar"):
+            self.app.status_bar.show_auto_save_status()
+
+        # 如果自动保存已启用，重新启动自动保存任务
         if self.auto_save_enabled:
+            # 启动新的自动保存任务（start_auto_save方法会自动取消现有任务）
             self.start_auto_save()
-            
-        self.app.status_bar.show_notification(f"自动保存间隔已设置为{interval}秒")
+
+        # 显示通知
+        if hasattr(self.app, "status_bar"):
+            self.app.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")

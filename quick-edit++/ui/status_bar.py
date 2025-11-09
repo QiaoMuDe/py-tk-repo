@@ -70,8 +70,8 @@ class StatusBar(ctk.CTkFrame):
         # 创建中间标签（显示自动保存状态信息）
         # 获取自动保存间隔，如果APP实例不可用则使用默认值
         auto_save_interval = (
-            self.app.auto_save_interval
-            if self.app
+            self.app.auto_save_manager.auto_save_interval
+            if hasattr(self.app, "auto_save_manager")
             else config_manager.get("app.auto_save_interval", 5)
         )
         self.center_label = ctk.CTkLabel(
@@ -135,8 +135,8 @@ class StatusBar(ctk.CTkFrame):
         """
         # 获取应用程序中的自动保存状态
         auto_save_enabled = (
-            self.app.auto_save_enabled
-            if self.app
+            self.app.auto_save_manager.auto_save_enabled
+            if hasattr(self.app, "auto_save_manager")
             else config_manager.get("app.auto_save", False)
         )
 
@@ -198,8 +198,8 @@ class StatusBar(ctk.CTkFrame):
         """
         # 获取自动保存间隔
         auto_save_interval = (
-            self.app.auto_save_interval
-            if self.app
+            self.app.auto_save_manager.auto_save_interval
+            if hasattr(self.app, "auto_save_manager")
             else config_manager.get("app.auto_save_interval", 5)
         )
         
@@ -219,13 +219,13 @@ class StatusBar(ctk.CTkFrame):
         """
         # 获取自动保存设置
         auto_save_enabled = (
-            self.app.auto_save_enabled
-            if self.app
+            self.app.auto_save_manager.auto_save_enabled
+            if hasattr(self.app, "auto_save_manager")
             else config_manager.get("app.auto_save", False)
         )
         auto_save_interval = (
-            self.app.auto_save_interval
-            if self.app
+            self.app.auto_save_manager.auto_save_interval
+            if hasattr(self.app, "auto_save_manager")
             else config_manager.get("app.auto_save_interval", 5)
         )
 
@@ -244,11 +244,11 @@ class StatusBar(ctk.CTkFrame):
             # 显示日常状态信息
             # 检查是否有上次自动保存时间
             if (
-                hasattr(self.app, "last_auto_save_time")
-                and self.app.last_auto_save_time > 0
+                hasattr(self.app, "auto_save_manager") 
+                and self.app.auto_save_manager.last_auto_save_time > 0
             ):
                 # 使用辅助函数格式化时间
-                time_str = self._format_auto_save_time(self.app.last_auto_save_time)
+                time_str = self._format_auto_save_time(self.app.auto_save_manager.last_auto_save_time)
                 # 构建美观的显示文本
                 text = f"自动保存: {time_str} (间隔{auto_save_interval}秒)"
             else:

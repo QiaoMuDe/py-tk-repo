@@ -97,18 +97,6 @@ class AppInitializer:
             "text_editor.read_only", False
         )  # 是否为只读模式
     
-    def init_auto_save_attributes(self):
-        """初始化自动保存相关属性"""
-        # 自动保存相关属性
-        self.app.auto_save_enabled = config_manager.get(
-            "app.auto_save", False
-        )  # 是否启用自动保存
-        self.app.auto_save_interval = config_manager.get(
-            "app.auto_save_interval", 5
-        )  # 自动保存间隔，单位秒
-        self.app.last_auto_save_time = 0  # 上次自动保存时间
-        self.app._auto_save_job = None  # 自动保存任务ID
-    
     def init_menu_variables(self):
         """初始化菜单状态变量"""
         # 初始化菜单状态变量，从配置管理器加载默认值
@@ -121,19 +109,22 @@ class AppInitializer:
         self.app.quick_insert_var = tk.BooleanVar(
             value=config_manager.get("text_editor.quick_insert", True)
         )
-        self.app.auto_save_var = tk.BooleanVar(
-            value=config_manager.get("app.auto_save", False)
-        )
+        # 注意：auto_save_var 和 auto_save_interval_var 现在由 AutoSaveManager 类管理
         self.app.backup_var = tk.BooleanVar(
             value=config_manager.get("app.backup_enabled", False)
-        )
-        self.app.auto_save_interval_var = tk.StringVar(
-            value=str(config_manager.get("app.auto_save_interval", 5))
         )
 
         # 初始化窗口标题模式变量
         current_title_mode = config_manager.get("app.window_title_mode", "filename")
         self.app.title_mode_var = tk.StringVar(value=current_title_mode)
+
+        # 初始化自动保存状态变量
+        self.app.auto_save_var = tk.BooleanVar(
+            value=self.app.auto_save_manager.auto_save_enabled
+        )
+        self.app.auto_save_interval_var = tk.StringVar(
+            value=str(self.app.auto_save_manager.auto_save_interval)
+        )
     
     def init_window_layout(self):
         """初始化窗口布局配置"""
@@ -210,7 +201,6 @@ class AppInitializer:
         self.init_window_properties()
         self.init_font_settings()
         self.init_file_attributes()
-        self.init_auto_save_attributes()
         self.init_menu_variables()
         self.init_window_layout()
         self.init_toolbar()
