@@ -272,11 +272,12 @@ class StatusBar(ctk.CTkFrame):
             self.line_ending = line_ending
 
         # 使用当前值构建显示文本
-        current_encoding = encoding if encoding is not None else self.encoding
+        current_encoding = (encoding if encoding is not None else self.encoding).upper()
         current_line_ending = (
             line_ending if line_ending is not None else self.line_ending
         )
 
+        # 构建显示文本根据是否有文件名
         if self.filename is None or self.filename == "":
             text = f"{current_encoding} | {current_line_ending}"
         else:

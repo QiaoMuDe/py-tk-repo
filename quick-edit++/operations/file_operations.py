@@ -395,33 +395,45 @@ class FileOperations:
         Args:
             files: 拖拽的文件列表，可能是字节串或字符串
         """
-        for file_path in files:
-            # 如果是字节串，需要解码
-            if isinstance(file_path, bytes):
-                file_path = file_path.decode('gbk')
+        if not files:
+            return
             
-            # 检查文件是否存在
-            if os.path.exists(file_path):
-                # 检查是否需要保存当前文件
-                if not self.check_save_before_close():
-                    return  # 用户取消了操作
+        # 如果拖拽了多个文件，直接提示并返回
+        if len(files) > 1:
+            messagebox.showinfo("提示", "只支持打开单个文件，请一次只拖拽一个文件")
+            return
+            
+        # 解码文件路径
+        file_path = files[0]
+        if isinstance(file_path, bytes):
+            file_path = file_path.decode('gbk')
+        
+        # 检查路径是否存在
+        if os.path.exists(file_path):
+            # 检查是否是目录
+            if os.path.isdir(file_path):
+                messagebox.showwarning("不支持的操作", f"无法打开目录: {os.path.basename(file_path)}")
+                return
                 
-                # 文件存在，直接打开
-                self._open_file_with_path_helper(file_path)
-
-            else:
-                # 文件不存在，检查上级目录是否存在
-                dir_path = os.path.dirname(file_path)
-                if dir_path and not os.path.exists(dir_path):
-                    messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
-                    return
-                
-                # 检查是否需要保存当前文件
-                if not self.check_save_before_close():
-                    return  # 用户取消了操作
-                
-                # 作为新文件创建
-                self.new_file_with_path(file_path)
+            # 检查是否需要保存当前文件
+            if not self.check_save_before_close():
+                return  # 用户取消了操作
+            
+            # 文件存在，直接打开
+            self._open_file_with_path_helper(file_path)
+        else:
+            # 文件不存在，检查上级目录是否存在
+            dir_path = os.path.dirname(file_path)
+            if dir_path and not os.path.exists(dir_path):
+                messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
+                return
+            
+            # 检查是否需要保存当前文件
+            if not self.check_save_before_close():
+                return  # 用户取消了操作
+            
+            # 作为新文件创建
+            self.new_file_with_path(file_path)
 
     def new_file_with_path(self, file_path):
         """通过指定路径创建新文件"""

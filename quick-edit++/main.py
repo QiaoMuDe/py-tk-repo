@@ -24,6 +24,11 @@ def main():
     # 解析命令行参数
     args = parser.parse_args()
     
+    # 检查是否有多个参数
+    if len(sys.argv) > 2:
+        print("error: 只支持打开单个文件，请一次只提供一个文件路径")
+        sys.exit(1)
+    
     # 创建并运行应用
     app = QuickEditApp()
     
@@ -32,8 +37,13 @@ def main():
     
     # 如果提供了文件路径参数
     if args.file:
-        # 检查文件是否存在
+        # 检查路径是否存在
         if os.path.exists(args.file):
+            # 检查是否是目录
+            if os.path.isdir(args.file):
+                print(f"error: 无法打开目录: {args.file}")
+                sys.exit(1)
+            
             # 文件存在，直接打开
             app.open_file_with_path(args.file)
         else:
