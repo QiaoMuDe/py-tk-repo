@@ -215,7 +215,7 @@ def create_menu(root):
     file_menu.add_separator()
 
     # 第四组：退出程序
-    file_menu.add_command(label="退出", command=root._on_closing)
+    file_menu.add_command(label="退出", command=root._on_closing, accelerator="Ctrl+Q")
 
     # 将文件菜单添加到主菜单
     main_menu.add_cascade(label="文件", menu=file_menu)
