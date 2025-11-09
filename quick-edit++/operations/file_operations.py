@@ -359,11 +359,6 @@ class FileOperations:
 
     def new_file(self):
         """创建新文件"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        # 关闭当前文件
         self.close_file()
 
         # 使用辅助方法创建新文件
@@ -444,14 +439,13 @@ class FileOperations:
         filename = os.path.basename(file_path)
         self._new_file_helper(filename)
 
-    def close_file(self):
-        """关闭当前文件，重置窗口和状态栏状态"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
+    def _reset_editor_state(self):
+        """重置编辑器状态，包括清空内容、重置文件属性和更新状态栏"""
         # 清空编辑器内容
         self.root.text_area.delete("1.0", tk.END)
+        
+        # 更新字符数缓存，确保_total_chars为0
+        self.root.update_char_count()
 
         # 获取配置中的默认换行符和编码
         default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
@@ -473,6 +467,15 @@ class FileOperations:
 
         # 更新窗口标题
         self.root._update_window_title()
+
+    def close_file(self):
+        """关闭当前文件，重置窗口和状态栏状态"""
+        # 检查是否需要保存当前文件
+        if not self.check_save_before_close():
+            return  # 用户取消了操作
+
+        # 重置编辑器状态
+        self._reset_editor_state()
 
     def check_save_before_close(self):
         """在关闭文件前检查是否需要保存

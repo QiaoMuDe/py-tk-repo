@@ -98,6 +98,10 @@ class QuickEditApp(ctk.CTk):
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
+        
+        # 绑定配置管理快捷键
+        self.bind("<Control-Shift-C>", lambda e: self.file_ops.open_config_file())  # 查看配置
+        self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
@@ -416,6 +420,32 @@ class QuickEditApp(ctk.CTk):
         """
         # 使用end-1c获取文本，这会自动排除末尾的换行符
         self._total_chars = len(self.text_area.get("1.0", "end-1c"))
+
+    def _reset_settings(self):
+        """
+        重置所有设置到默认值
+
+        功能：
+        - 获取用户确认
+        - 调用配置管理器重置配置
+        - 显示操作结果提示
+        - 提示用户重启应用以应用更改
+        """
+        # 弹出确认对话框
+        confirmed = messagebox.askyesno(
+            "确认重置", "确定要将所有设置重置为默认值吗？\n此操作不可撤销。"
+        )
+
+        if confirmed:
+            # 调用配置管理器重置配置
+            success = config_manager.reset()
+
+            if success:
+                messagebox.showinfo(
+                    "重置成功", "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。"
+                )
+            else:
+                messagebox.showerror("重置失败", "设置重置失败，请检查配置文件权限。")
 
     def run(self):
         """运行应用"""

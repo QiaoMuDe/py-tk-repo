@@ -161,11 +161,21 @@ def create_menu(root):
     file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
     # 第一组：基本文件操作
-    file_menu.add_command(label="新建", command=lambda: root.new_file(), accelerator="Ctrl+N")
-    file_menu.add_command(label="打开", command=lambda: root.open_file(), accelerator="Ctrl+O")
-    file_menu.add_command(label="保存", command=lambda: root.save_file(), accelerator="Ctrl+S")
-    file_menu.add_command(label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S")
-    file_menu.add_command(label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W")
+    file_menu.add_command(
+        label="新建", command=lambda: root.new_file(), accelerator="Ctrl+N"
+    )
+    file_menu.add_command(
+        label="打开", command=lambda: root.open_file(), accelerator="Ctrl+O"
+    )
+    file_menu.add_command(
+        label="保存", command=lambda: root.save_file(), accelerator="Ctrl+S"
+    )
+    file_menu.add_command(
+        label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S"
+    )
+    file_menu.add_command(
+        label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W"
+    )
 
     # 分隔符
     file_menu.add_separator()
@@ -207,9 +217,13 @@ def create_menu(root):
 
     # 第三组：文件选项
     file_menu.add_command(
-        label="打开文件所在目录", command=lambda: root.open_containing_folder(), accelerator="Ctrl+E"
+        label="打开文件所在目录",
+        command=lambda: root.open_containing_folder(),
+        accelerator="Ctrl+E",
     )
-    file_menu.add_checkbutton(label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R")
+    file_menu.add_checkbutton(
+        label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
+    )
 
     # 分隔符
     file_menu.add_separator()
@@ -450,9 +464,15 @@ def create_menu(root):
 
     # 第四组：配置管理
     settings_menu.add_command(
-        label="查看配置", command=lambda: root.file_ops.open_config_file()
+        label="查看配置",
+        command=lambda: root.file_ops.open_config_file(),
+        accelerator="Ctrl+Shift+C",
     )
-    settings_menu.add_command(label="重置设置", command=lambda: reset_settings())
+    settings_menu.add_command(
+        label="重置设置",
+        command=lambda: root._reset_settings(),
+        accelerator="Ctrl+Shift+R",
+    )
 
     # 将设置菜单添加到主菜单
     main_menu.add_cascade(label="设置", menu=settings_menu)
@@ -759,36 +779,6 @@ def toggle_backup(root):
     # 获取当前活动的文本编辑器实例
     if root.current_editor:
         root.current_editor.toggle_backup(new_state)
-
-
-def reset_settings():
-    """
-    重置所有设置到默认值
-
-    功能：
-    - 获取用户确认
-    - 调用配置管理器重置配置
-    - 显示操作结果提示
-    - 提示用户重启应用以应用更改
-    """
-    import tkinter as tk
-    from tkinter import messagebox
-
-    # 弹出确认对话框
-    confirmed = messagebox.askyesno(
-        "确认重置", "确定要将所有设置重置为默认值吗？\n此操作不可撤销。"
-    )
-
-    if confirmed:
-        # 调用配置管理器重置配置
-        success = config_manager.reset()
-
-        if success:
-            messagebox.showinfo(
-                "重置成功", "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。"
-            )
-        else:
-            messagebox.showerror("重置失败", "设置重置失败，请检查配置文件权限。")
 
 
 def set_window_title_mode(mode, root):
