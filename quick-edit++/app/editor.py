@@ -92,7 +92,7 @@ class QuickEditApp(ctk.CTk):
         )  # 从配置中读取默认换行符
         self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
         self.is_new_file = False  # 是否为新文件状态
-        
+
         # 字符数缓存
         self._total_chars = 0  # 缓存的总字符数
 
@@ -102,12 +102,24 @@ class QuickEditApp(ctk.CTk):
         )  # 是否为只读模式
 
         # 初始化菜单状态变量，从配置管理器加载默认值
-        self.toolbar_var = tk.BooleanVar(value=config_manager.get("app.show_toolbar", True))
-        self.auto_wrap_var = tk.BooleanVar(value=config_manager.get("text_editor.auto_wrap", True))
-        self.quick_insert_var = tk.BooleanVar(value=config_manager.get("text_editor.quick_insert", True))
-        self.auto_save_var = tk.BooleanVar(value=config_manager.get("app.auto_save", False))
-        self.backup_var = tk.BooleanVar(value=config_manager.get("app.backup_enabled", False))
-        self.auto_save_interval_var = tk.StringVar(value=str(config_manager.get("app.auto_save_interval", 5)))
+        self.toolbar_var = tk.BooleanVar(
+            value=config_manager.get("app.show_toolbar", True)
+        )
+        self.auto_wrap_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.auto_wrap", True)
+        )
+        self.quick_insert_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.quick_insert", True)
+        )
+        self.auto_save_var = tk.BooleanVar(
+            value=config_manager.get("app.auto_save", False)
+        )
+        self.backup_var = tk.BooleanVar(
+            value=config_manager.get("app.backup_enabled", False)
+        )
+        self.auto_save_interval_var = tk.StringVar(
+            value=str(config_manager.get("app.auto_save_interval", 5))
+        )
 
         # 初始化窗口标题模式变量
         current_title_mode = config_manager.get("app.window_title_mode", "filename")
@@ -144,14 +156,18 @@ class QuickEditApp(ctk.CTk):
 
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.text_area = ctk.CTkTextbox(
-            self.text_frame, wrap=wrap_mode, undo=True, font=self.current_font
+            self.text_frame, # 父容器
+            wrap=wrap_mode,  # 换行模式
+            undo=True,  # 启用撤销功能
+            font=self.current_font,  # 字体设置
+            maxundo=config_manager.get("text_editor.max_undo", 50), # 最大撤销次数
         )
         self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
 
         # 创建菜单栏
         self.menu_bar = create_menu(self)
         self.config(menu=self.menu_bar)
-        
+
         # 设置初始只读模式状态
         if self.is_read_only:
             # 设置为只读模式
@@ -173,12 +189,12 @@ class QuickEditApp(ctk.CTk):
     def init_drag_drop(self):
         """
         初始化拖拽功能
-        
+
         使用windnd库实现文件拖拽功能
         """
         try:
             import windnd as wd
-            
+
             # 注册拖拽目标，使用文件操作类的处理方法
             wd.hook_dropfiles(self, func=self.file_ops.handle_dropped_files)
 
@@ -213,58 +229,62 @@ class QuickEditApp(ctk.CTk):
     def _bind_app_events(self):
         """
         绑定应用程序级别的事件和快捷方式
-        
+
         包括自动保存触发事件和焦点管理事件
         """
-        # 绑定文本框焦点离开事件，触发自动保存
-        self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
-         # 绑定按键事件
+        # 绑定按键事件
         self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
             "<<Selection>>", self._on_selection_change
         )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
-        
+
+        # 绑定文本框焦点离开事件，触发自动保存
+        self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
         # 绑定文件操作快捷键
         self.bind("<Control-n>", lambda e: self.new_file())  # 新建文件
         self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件
         self.bind("<Control-s>", lambda e: self.save_file())  # 保存文件
         self.bind("<Control-Shift-S>", lambda e: self.save_file_as())  # 另存为
         self.bind("<Control-w>", lambda e: self.close_file())  # 关闭文件
-        self.bind("<Control-e>", lambda e: self.open_containing_folder())  # 打开文件所在目录
+        self.bind(
+            "<Control-e>", lambda e: self.open_containing_folder()
+        )  # 打开文件所在目录
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
-        
+
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
-    
+
     def _on_app_startup(self):
         """
         应用程序启动时的焦点设置
-        
+
         先让窗口获取焦点，然后设置文本区域焦点
         """
         # 确保窗口完全显示并获取焦点
         self.focus_force()
         self.update()
-        
+
         # 然后设置文本区域焦点
         self._focus_text_area()
-    
+
     def _on_text_area_focus_out(self, event=None):
         """
         文本区域失去焦点事件处理
-        
-        当焦点离开文本框时，调用自动保存检查方法
-        所有检查逻辑都在_auto_save_check方法内部处理
+
+        当焦点离开文本框时，立即执行自动保存（如果文件已修改且自动保存已启用）
+        这与定时自动保存是独立的，确保在用户切换到其他应用时也能保存
         """
-        # 直接调用自动保存检查方法，内部会检查是否需要保存
-        self._auto_save_check()
-    
+        # 检查是否启用了自动保存功能
+        if self.auto_save_enabled and self.current_file_path:
+            # 立即执行保存操作
+            self._auto_save()
+
     def _focus_text_area(self):
         """
         将焦点设置到文本编辑区域
-        
+
         如果文本区域可编辑（非只读模式），则将焦点设置到文本区域
         """
         if not self.is_read_only:
@@ -419,12 +439,12 @@ class QuickEditApp(ctk.CTk):
             return
         # 直接调用文件操作处理器的打开文件方法
         self.file_ops.open_file()
-    
+
     def open_file_with_path(self, file_path):
         """通过指定路径打开文件"""
         # 设置当前文件路径
         self.current_file_path = file_path
-        
+
         # 调用FileOperations类中的辅助方法
         self.file_ops._open_file_with_path_helper(file_path)
 
@@ -476,7 +496,7 @@ class QuickEditApp(ctk.CTk):
             return
         # 直接调用文件操作处理器的新建文件方法
         self.file_ops.new_file()
-    
+
     def new_file_with_path(self, file_path):
         """通过指定路径创建新文件"""
         # 调用FileOperations类的新方法
@@ -525,12 +545,15 @@ class QuickEditApp(ctk.CTk):
                     os.startfile(directory)
                 else:
                     from tkinter import messagebox
+
                     messagebox.showerror("错误", "文件所在目录不存在")
             except Exception as e:
                 from tkinter import messagebox
+
                 messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
         else:
             from tkinter import messagebox
+
             messagebox.showinfo("提示", "当前没有打开的文件")
 
     def _stop_auto_save(self):
@@ -554,25 +577,25 @@ class QuickEditApp(ctk.CTk):
 
         # 记录自动保存启动时间
         self.auto_save_start_time = time.time()
-        
+
         # 启动每秒运行一次的检查任务
         self._auto_save_job = self.after(1000, self._auto_save_check)
 
     def _auto_save_check(self):
         """
         每秒运行一次的自动保存检查方法
-        
+
         此方法每秒都会被调用，但只有在达到指定间隔时间时才会执行实际的自动保存
         """
         # 检查是否启用了自动保存功能
         if not self.auto_save_enabled:
             # 如果自动保存被禁用，则不再调度下一次检查
             return
-        
+
         # 计算距离上次自动保存的时间间隔
         current_time = time.time()
         time_since_last_save = current_time - self.last_auto_save_time
-        
+
         # 检查是否有当前打开的文件
         if self.current_file_path:
             # 检查是否达到了指定的自动保存间隔
@@ -586,14 +609,14 @@ class QuickEditApp(ctk.CTk):
         else:
             # 没有打开的文件，不执行自动保存
             self.status_bar.show_auto_save_status(saved=False)
-        
+
         # 调度下一次检查（每秒一次）
         self._auto_save_job = self.after(1000, self._auto_save_check)
-    
+
     def _auto_save(self):
         """
         执行自动保存操作
-        
+
         此方法在达到指定间隔时间时被调用，执行实际的文件保存操作
         """
         # 检查文件是否已修改
@@ -604,7 +627,7 @@ class QuickEditApp(ctk.CTk):
             self.last_auto_save_time = time.time()
             # 更新状态栏的自动保存信息，显示具体的保存时间
             self.status_bar.show_auto_save_status(saved=True)
-            
+
         else:
             # 文件未修改，更新状态栏显示检查状态
             self.status_bar.show_auto_save_status(saved=False)
@@ -614,16 +637,16 @@ class QuickEditApp(ctk.CTk):
     def get_char_count(self):
         """
         获取文本区域的字符数，使用缓存机制提高性能
-        
+
         Returns:
             int: 文本区域的字符数
         """
         return self._total_chars
-    
+
     def update_char_count(self):
         """
         更新缓存的字符数
-        
+
         在文件内容发生变化时调用此方法
         """
         # 使用end-1c获取文本，这会自动排除末尾的换行符

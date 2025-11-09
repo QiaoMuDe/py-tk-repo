@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         "quick_insert": True,  # 是否启用快速插入
         "read_only": False,  # 是否只读模式
         "bg_color": "#F5F5F5",  # 背景色
+        "max_undo": 50,  # 最大撤销次数
     },
     # 工具栏配置
     "toolbar": {

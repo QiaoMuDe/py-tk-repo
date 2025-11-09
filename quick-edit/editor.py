@@ -3156,7 +3156,7 @@ class AdvancedTextEditor:
         if hasattr(self, "backup_enabled_var"):
             self.backup_enabled_var.set(self.backup_enabled)
 
-        # 监听窗口焦点变化，失去焦点时自动保存
+        # 监听窗口焦点变化，失去焦点时自动保存 
         self.root.bind("<FocusOut>", self.on_focus_out)
 
         # 如果配置中启用了自动保存，则启动计时器
