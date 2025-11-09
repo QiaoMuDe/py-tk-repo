@@ -155,17 +155,17 @@ class QuickEditApp(ctk.CTk):
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
+         # 更新缓存的字符数
+        self.update_char_count()
+
         # 如果当前有文件路径，则标记为已修改
         # 如果没有文件路径（新文件），只有当内容不为空时才标记为已修改
         if self.current_file_path:
             self.is_modified = True
         else:
-            content = self.text_area.get("1.0", ctk.END).strip()
-            self.is_modified = len(content) > 0
+            self.is_modified = self.get_char_count() > 0
 
-        # 更新缓存的字符数
-        self.update_char_count()
-
+        # 显示自动保存状态
         self._update_status_bar()
 
     def _on_cursor_move(self, event=None):
