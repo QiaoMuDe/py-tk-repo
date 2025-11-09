@@ -101,15 +101,10 @@ class FileOperations:
             self.root.update_char_count()
 
             # 更新状态栏文件信息
-            file_name = os.path.basename(file_path)
-            self.root.status_bar.set_file_info(
-                filename=file_name,  # 显示文件名
-                encoding=encoding,  # 显示编码
-                line_ending=line_ending,  # 显示换行符类型
-            )
+            self.root.status_bar.update_file_info()
 
             # 更新状态栏
-            self.root.status_bar.set_status_info(f"已打开: {file_name}")
+            self.root.status_bar.set_status_info(f"已打开: {os.path.basename(file_path)}")
 
             # 更新窗口标题
             self.root._update_window_title()
@@ -213,12 +208,7 @@ class FileOperations:
             self.root.is_new_file = False  # 清除新文件状态标志
 
             # 更新状态栏文件信息
-            file_name = os.path.basename(file_path)
-            self.root.status_bar.set_file_info(
-                filename=file_name,
-                encoding=encoding,
-                line_ending=line_ending,  # 确保状态栏显示正确的换行符
-            )
+            self.root.status_bar.update_file_info()
 
             # 获取当前光标位置
             try:
@@ -355,11 +345,7 @@ class FileOperations:
         self.root.current_encoding = default_encoding
 
         # 更新状态栏为新文件状态
-        self.root.status_bar.set_file_info(
-            filename=filename,
-            encoding=default_encoding,
-            line_ending=default_line_ending,  # 确保状态栏显示默认换行符
-        )
+        self.root.status_bar.update_file_info()
 
         # 更新窗口标题为新文件
         self.root.title(f"{filename} - QuickEdit++")
@@ -467,10 +453,8 @@ class FileOperations:
 
         # 更新状态栏
         self.root.status_bar.set_status_info("就绪")
-        # 重置状态栏右侧文件信息，传递空字符串作为文件名，这样会显示默认的编码和换行符
-        self.root.status_bar.set_file_info(
-            filename="", encoding=default_encoding, line_ending=default_line_ending
-        )
+        # 重置状态栏右侧文件信息
+        self.root.status_bar.update_file_info()
 
         # 更新窗口标题
         self.root._update_window_title()

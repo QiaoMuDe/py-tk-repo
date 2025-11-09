@@ -498,50 +498,27 @@ def set_file_encoding(encoding, app_instance=None):
 
     Args:
         encoding (str): 编码名称
-        app_instance: APP类的实例，用于直接更新当前状态
+    app_instance: APP类的实例，用于直接更新当前状态
     """
-    # 如果提供了APP实例，直接更新当前状态
-    if app_instance:
-        # 更新APP实例的当前编码
-        app_instance.current_encoding = encoding
+    # 如果没有提供APP实例，直接返回
+    if not app_instance:
+        return
+    
+    # 更新APP实例的当前编码
+    app_instance.current_encoding = encoding
+    
+    # 更新状态栏显示
+    app_instance.status_bar.update_file_info()
 
-        # 更新状态栏显示
-        if hasattr(app_instance, "status_bar"):
-            # 获取当前文件名（如果有）
-            filename = (
-                os.path.basename(app_instance.current_file_path)
-                if app_instance.current_file_path
-                else None
-            )
+    # 显示通知
+    app_instance.status_bar.show_notification(f"编码已更改为: {encoding}")
 
-            # 更新状态栏信息
-            app_instance.status_bar.set_file_info(
-                filename=filename,
-                encoding=encoding,
-                line_ending=getattr(app_instance, "current_line_ending", "LF"),
-            )
-
-            # 显示通知
-            app_instance.status_bar.show_notification(f"编码已更改为: {encoding}")
-
-        # 如果有文件路径或文本框有内容，则标记文件为已修改
-        has_file_path = (
-            hasattr(app_instance, "current_file_path")
-            and app_instance.current_file_path
-        )
-        has_content = False
-        if hasattr(app_instance, "text_area"):
-            content = app_instance.text_area.get("1.0", "end-1c")
-            has_content = bool(content.strip())
-
-        if has_file_path or has_content:
-            # 标记文件为已修改
-            if hasattr(app_instance, "is_modified"):
-                app_instance.is_modified = True
-
-            # 更新状态栏
-            if hasattr(app_instance, "_update_status_bar"):
-                app_instance._update_status_bar()
+    # 如果有文件路径或总字符数大于0，则标记文件为已修改   
+    if app_instance.current_file_path or app_instance.get_total_chars() > 0:
+        # 标记文件为已修改
+        app_instance.is_modified = True
+        # 更新状态栏
+        app_instance._update_status_bar()
 
 
 def set_file_line_ending(line_ending, app_instance=None):
@@ -551,55 +528,29 @@ def set_file_line_ending(line_ending, app_instance=None):
         line_ending (str): 换行符类型 ('CRLF', 'LF', 'CR')
         app_instance: APP类的实例，用于直接更新当前状态
     """
-    # 如果提供了APP实例，直接更新当前状态
-    if app_instance:
-        # 更新APP实例的当前换行符
-        app_instance.current_line_ending = line_ending
+    # 如果没有提供APP实例，直接返回
+    if not app_instance:
+        return
 
-        # 更新状态栏显示
-        if hasattr(app_instance, "status_bar"):
-            # 获取当前文件名（如果有）
-            filename = (
-                os.path.basename(app_instance.current_file_path)
-                if app_instance.current_file_path
-                else None
-            )
-
-            # 更新状态栏信息
-            app_instance.status_bar.set_file_info(
-                filename=filename,
-                encoding=getattr(app_instance, "current_encoding", "UTF-8"),
-                line_ending=line_ending,
-            )
-
-            # 显示通知
-            line_ending_names = {
-                "CRLF": "Windows (CRLF)",
-                "LF": "Linux/Unix (LF)",
-                "CR": "Mac (CR)",
-            }
-            app_instance.status_bar.show_notification(
-                f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}"
-            )
-
-        # 如果有文件路径或文本框有内容，则标记文件为已修改
-        has_file_path = (
-            hasattr(app_instance, "current_file_path")
-            and app_instance.current_file_path
-        )
-        has_content = False
-        if hasattr(app_instance, "text_area"):
-            content = app_instance.text_area.get("1.0", "end-1c")
-            has_content = bool(content.strip())
-
-        if has_file_path or has_content:
-            # 标记文件为已修改
-            if hasattr(app_instance, "is_modified"):
-                app_instance.is_modified = True
-
-            # 更新状态栏
-            if hasattr(app_instance, "_update_status_bar"):
-                app_instance._update_status_bar()
+    # 更新APP实例的当前换行符
+    app_instance.current_line_ending = line_ending
+    # 更新状态栏显示
+    app_instance.status_bar.update_file_info()
+    # 显示通知
+    line_ending_names = {
+        "CRLF": "Windows (CRLF)",
+        "LF": "Linux/Unix (LF)",
+        "CR": "Mac (CR)",
+    }
+    app_instance.status_bar.show_notification(
+        f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}"
+    )
+    # 如果有文件路径或总字符数大于0，则标记文件为已修改
+    if app_instance.current_file_path or app_instance.get_total_chars() > 0:
+        # 标记文件为已修改
+        app_instance.is_modified = True
+        # 更新状态栏
+        app_instance._update_status_bar()
 
 
 def toggle_toolbar_visibility(root):
@@ -668,8 +619,6 @@ def set_theme_mode(mode, root=None):
     if root is not None:
         root.status_bar.show_notification(f"主题模式已切换为: {mode_name}")
 
-    print(f"主题模式已设置为: {mode}")
-
 
 def set_color_theme(theme, root=None):
     """
@@ -695,8 +644,6 @@ def set_color_theme(theme, root=None):
         root.status_bar.show_notification(
             f"颜色主题已切换为: {theme_name}, 请重启应用以生效"
         )
-
-    print(f"颜色主题已设置为: {theme}")
 
 
 def toggle_auto_wrap(root):

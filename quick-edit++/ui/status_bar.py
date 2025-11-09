@@ -22,26 +22,21 @@ from ui.menu import set_file_line_ending
 class StatusBar(ctk.CTkFrame):
     """状态栏类"""
 
-    def __init__(self, parent, app=None):
+    def __init__(self, parent):
         """
         初始化状态栏
         :param parent: 父容器，通常是主窗口
-        :param app: APP类实例，用于获取自动保存相关属性
         """
         super().__init__(parent)
 
         # 设置状态栏高度
         self.configure(height=25)
 
-        # 从配置管理器获取初始设置
-        self.encoding = config_manager.get("file.default_encoding", "UTF-8")
-        self.line_ending = config_manager.get("file.default_line_ending", "LF")
-
-        # 保存APP类实例引用
-        self.app = app
-
         # 初始化文件信息
         self.filename = None
+
+        # app 实例引用
+        self.app = parent
 
         # 通知相关属性
         self.notification_active = False
@@ -49,9 +44,9 @@ class StatusBar(ctk.CTkFrame):
         self.original_status_text = ""
 
         # 配置网格布局权重
-        self.grid_columnconfigure(0, weight=1)  # 左侧
-        self.grid_columnconfigure(1, weight=1)  # 中间
-        self.grid_columnconfigure(2, weight=1)  # 右侧
+        self.grid_columnconfigure(0, weight=1)  # 左侧（状态信息）权重高，显示更多信息
+        self.grid_columnconfigure(1, weight=2)  # 中间（自动保存）权重增加，显示更宽
+        self.grid_columnconfigure(2, weight=1)  # 右侧（编码和换行符）权重中等
 
         # 获取状态栏字体配置
         font_config = config_manager.get_font_config("status_bar")
@@ -68,12 +63,8 @@ class StatusBar(ctk.CTkFrame):
         self.left_label.grid(row=0, column=0, padx=10, pady=2, sticky="w")
 
         # 创建中间标签（显示自动保存状态信息）
-        # 获取自动保存间隔，如果APP实例不可用则使用默认值
-        auto_save_interval = (
-            self.app.auto_save_manager.auto_save_interval
-            if hasattr(self.app, "auto_save_manager")
-            else config_manager.get("app.auto_save_interval", 5)
-        )
+        # 获取自动保存间隔
+        auto_save_interval = self.app.auto_save_manager.auto_save_interval
         self.center_label = ctk.CTkLabel(
             self,
             text=f"自动保存: 从未执行 (间隔{auto_save_interval}秒)",
@@ -84,7 +75,10 @@ class StatusBar(ctk.CTkFrame):
 
         # 创建右侧标签（显示文件名、编码和换行符类型）
         self.right_label = ctk.CTkLabel(
-            self, text=f"{self.encoding} | {self.line_ending}", anchor="e", font=font
+            self,
+            text=f"{self.app.current_encoding} | {self.app.current_line_ending}",
+            anchor="e",
+            font=font,
         )
         self.right_label.grid(row=0, column=2, padx=10, pady=2, sticky="e")
 
@@ -115,7 +109,9 @@ class StatusBar(ctk.CTkFrame):
                 text = f"{status} | 第{row}行 | 第{col}列"
             else:
                 # 有总字符数但无选中内容
-                text = f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符"
+                text = (
+                    f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符"
+                )
         else:
             # 有选中内容
             selection_text = ""
@@ -134,11 +130,7 @@ class StatusBar(ctk.CTkFrame):
         直接从应用程序获取当前的自动保存状态
         """
         # 获取应用程序中的自动保存状态
-        auto_save_enabled = (
-            self.app.auto_save_manager.auto_save_enabled
-            if hasattr(self.app, "auto_save_manager")
-            else config_manager.get("app.auto_save", False)
-        )
+        auto_save_enabled = self.app.auto_save_manager.auto_save_enabled
 
         if auto_save_enabled:
             text = "自动保存: 已启用"
@@ -150,9 +142,7 @@ class StatusBar(ctk.CTkFrame):
         # 1.5秒后恢复显示正常信息
         if hasattr(self, "_auto_save_status_timer"):
             self.after_cancel(self._auto_save_status_timer)
-        self._auto_save_status_timer = self.after(
-            800, self.show_auto_save_status
-        )
+        self._auto_save_status_timer = self.after(800, self.show_auto_save_status)
 
     def _format_auto_save_time(self, save_time):
         """
@@ -192,17 +182,13 @@ class StatusBar(ctk.CTkFrame):
     def show_auto_save_countdown(self, remaining_time):
         """
         显示自动保存倒计时状态
-        
+
         Args:
             remaining_time (float): 距离下次自动保存的剩余时间（秒）
         """
         # 获取自动保存间隔
-        auto_save_interval = (
-            self.app.auto_save_manager.auto_save_interval
-            if hasattr(self.app, "auto_save_manager")
-            else config_manager.get("app.auto_save_interval", 5)
-        )
-        
+        auto_save_interval = self.app.auto_save_manager.auto_save_interval
+
         # 显示倒计时信息，保留一位小数
         text = f"自动保存: {remaining_time:.1f}秒后保存 (间隔{auto_save_interval}秒)"
         # 设置为蓝色字体表示倒计时
@@ -211,23 +197,15 @@ class StatusBar(ctk.CTkFrame):
     def show_auto_save_status(self, saved=False):
         """
         显示自动保存的日常状态或保存成功状态
-        
+
         Args:
             saved (bool): 是否刚刚执行了保存操作，默认为False
                            - True: 显示自动保存成功信息
                            - False: 显示日常状态信息
         """
         # 获取自动保存设置
-        auto_save_enabled = (
-            self.app.auto_save_manager.auto_save_enabled
-            if hasattr(self.app, "auto_save_manager")
-            else config_manager.get("app.auto_save", False)
-        )
-        auto_save_interval = (
-            self.app.auto_save_manager.auto_save_interval
-            if hasattr(self.app, "auto_save_manager")
-            else config_manager.get("app.auto_save_interval", 5)
-        )
+        auto_save_enabled = self.app.auto_save_manager.auto_save_enabled
+        auto_save_interval = self.app.auto_save_manager.auto_save_interval
 
         if not auto_save_enabled:
             text = f"自动保存: 已禁用"
@@ -243,47 +221,26 @@ class StatusBar(ctk.CTkFrame):
         else:
             # 显示日常状态信息
             # 检查是否有上次自动保存时间
-            if (
-                hasattr(self.app, "auto_save_manager") 
-                and self.app.auto_save_manager.last_auto_save_time > 0
-            ):
+            if self.app.auto_save_manager.last_auto_save_time > 0:
                 # 使用辅助函数格式化时间
-                time_str = self._format_auto_save_time(self.app.auto_save_manager.last_auto_save_time)
+                time_str = self._format_auto_save_time(
+                    self.app.auto_save_manager.last_auto_save_time
+                )
                 # 构建美观的显示文本
                 text = f"自动保存: {time_str} (间隔{auto_save_interval}秒)"
             else:
                 # 没有上次保存时间，显示"从未"状态
                 text = f"自动保存: 从未执行 (间隔{auto_save_interval}秒)"
-            
+
             # 设置为黑色字体
             self.center_label.configure(text=text, text_color="#000000")
 
-    def set_file_info(self, filename=None, encoding=None, line_ending=None):
-        """设置右侧文件信息（文件名、编码和换行符类型）"""
-        if not config_manager.get("status_bar.show_file_info", True):
-            self.right_label.configure(text="")
-            return
-
-        # 总是更新这些值，即使它们是None
-        self.filename = filename
-        if encoding is not None:
-            self.encoding = encoding
-        if line_ending is not None:
-            self.line_ending = line_ending
-
-        # 使用当前值构建显示文本
-        current_encoding = (encoding if encoding is not None else self.encoding).upper()
-        current_line_ending = (
-            line_ending if line_ending is not None else self.line_ending
-        )
-
-        # 构建显示文本根据是否有文件名
-        if self.filename is None or self.filename == "":
-            text = f"{current_encoding} | {current_line_ending}"
-        else:
-            text = f"{self.filename} | {current_encoding} | {current_line_ending}"
-
-        self.right_label.configure(text=text)
+    def update_file_info(self):
+        """更新右侧文件信息（编码和换行符类型）"""
+        # 构建显示文本，只显示编码和换行符
+        current_encoding = self.app.current_encoding.upper()  # 编码转换为大写
+        current_line_ending = self.app.current_line_ending  # 换行符类型
+        self.right_label.configure(text=f"{current_encoding} | {current_line_ending}")
 
     def show_notification(self, message, duration=2000):
         """
@@ -320,7 +277,7 @@ class StatusBar(ctk.CTkFrame):
         # 尝试获取当前的光标位置和字符数，而不是恢复之前保存的文本
         try:
             # 检查是否有应用程序实例和文本区域
-            if hasattr(self, "app") and self.app and hasattr(self.app, "text_area"):
+            if self and self.text_area:
                 # 获取当前光标位置
                 cursor_pos = self.app.text_area.index("insert")
                 row, col = cursor_pos.split(".")
@@ -329,7 +286,7 @@ class StatusBar(ctk.CTkFrame):
 
                 # 获取当前状态
                 status = "就绪"
-                if hasattr(self.app, "is_modified") and self.app.is_modified:
+                if self.is_modified:
                     status = "已修改"
 
                 # 更新状态栏信息
@@ -363,56 +320,15 @@ class StatusBar(ctk.CTkFrame):
             # 获取点击位置相对于标签的x坐标
             x = event.x
 
-            # 获取标签的字体信息
-            font = self.right_label.cget("font")
-
             # 如果没有文本，直接返回
             if not text:
                 return
 
-            # 解析状态栏文本，判断格式
-            # 格式可能是: "文件名 | 编码 | 换行符" 或 "编码 | 换行符"
+            # 解析状态栏文本，格式为: "编码 | 换行符"
             parts = [part.strip() for part in text.split("|")]
 
-            if len(parts) == 3:
-                # 有文件名的情况: "文件名 | 编码 | 换行符"
-                filename_part = parts[0]
-                encoding_part = parts[1]
-                line_ending_part = parts[2]
-
-                # 使用更精确的方法计算各部分的宽度
-                # 获取标签的实际宽度
-                label_width = self.right_label.winfo_width()
-
-                # 计算各部分文本的相对宽度比例
-                total_text_length = (
-                    len(filename_part) + len(encoding_part) + len(line_ending_part) + 6
-                )  # 6是两个" | "分隔符的总长度
-
-                # 计算各部分的相对位置（基于字符长度的比例）
-                filename_ratio = len(filename_part) / total_text_length
-                encoding_ratio = len(encoding_part) / total_text_length
-                separator_ratio = 3 / total_text_length  # " | "的长度为3
-
-                # 计算各部分的x坐标范围
-                filename_end = label_width * filename_ratio
-                encoding_start = filename_end + label_width * separator_ratio
-                encoding_end = encoding_start + label_width * encoding_ratio
-                line_ending_start = encoding_end + label_width * separator_ratio
-
-                # 添加一些容错范围
-                tolerance = 10  # 10像素的容错范围
-
-                # 判断点击位置
-                if encoding_start - tolerance <= x <= encoding_end + tolerance:
-                    # 点击了编码部分
-                    self._show_encoding_menu(event)
-                elif x >= line_ending_start - tolerance:
-                    # 点击了换行符部分
-                    self._show_line_ending_menu(event)
-
-            elif len(parts) == 2:
-                # 没有文件名的情况: "编码 | 换行符"
+            if len(parts) >= 2:
+                # 只处理编码和换行符两部分
                 encoding_part = parts[0]
                 line_ending_part = parts[1]
 
@@ -445,7 +361,7 @@ class StatusBar(ctk.CTkFrame):
                     self._show_line_ending_menu(event)
 
         except Exception as e:
-            print(f"处理右键点击事件时出错: {e}")
+            messagebox.showerror("错误", f"处理右键点击事件时出错: {e}")
 
     def _get_text_width(self, text, font):
         """获取文本在指定字体下的显示宽度"""

@@ -149,7 +149,7 @@ class AppInitializer:
     def init_status_bar(self):
         """初始化状态栏"""
         # 创建状态栏并放置在主窗口底部，传入APP实例
-        self.app.status_bar = StatusBar(self.app, app=self.app)
+        self.app.status_bar = StatusBar(self.app)
         if config_manager.get("status_bar.show_status_bar", True):
             self.app.status_bar.grid(row=2, column=0, sticky="ew")
     
