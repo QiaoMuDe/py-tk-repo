@@ -198,6 +198,6 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("退出程序"),
+            command=self.parent._on_closing,
         )
         self.exit_button.pack(side="left", padx=2, pady=10)

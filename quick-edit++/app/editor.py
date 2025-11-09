@@ -252,6 +252,8 @@ class QuickEditApp(ctk.CTk):
             "<Control-e>", lambda e: self.open_containing_folder()
         )  # 打开文件所在目录
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
+        # 绑定退出应用程序事件
+        self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
