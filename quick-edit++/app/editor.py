@@ -18,6 +18,8 @@ from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from operations.file_operations import FileOperations
 from tkinter import messagebox
+from app.app_initializer import AppInitializer
+from app.auto_save_manager import AutoSaveManager
 
 
 class QuickEditApp(ctk.CTk):
@@ -25,166 +27,20 @@ class QuickEditApp(ctk.CTk):
 
     def __init__(self):
         """初始化应用"""
-        # 设置应用外观模式
-        theme_mode = config_manager.get("app.theme_mode", "light")
-        ctk.set_appearance_mode(theme_mode)  # 可选: "light", "dark", "system"
+        # 创建应用初始化器
+        self.initializer = AppInitializer(self)
+        
+        # 执行完整的应用初始化流程
+        self.initializer.initialize_app()
 
-        color_theme = config_manager.get("app.color_theme", "blue")
-        ctk.set_default_color_theme(color_theme)  # 可选: "blue", "green", "dark-blue"
-
-        # 启用DPI缩放支持
-        try:
-            from ctypes import windll
-
-            windll.shcore.SetProcessDpiAwareness(1)
-        except Exception as e:
-            print(f"警告: 无法启用DPI缩放支持: {e}")
-
-        # 初始化CTk主窗口
-        super().__init__()
-
-        # 设置窗口标题
-        self.title("QuickEdit++")
-
-        # 获取窗口大小配置
-        window_width = config_manager.get("app.window_width", 1200)
-        window_height = config_manager.get("app.window_height", 800)
-
-        # 设置窗口大小, 相对居中显示
-        self.geometry(
-            f"{window_width}x{window_height}+{window_width//2}+{window_height//3}"
-        )
-
-        # 设置最小窗口大小
-        min_width = config_manager.get("app.min_width", 800)
-        min_height = config_manager.get("app.min_height", 600)
-        self.minsize(min_width, min_height)
-
-        # 初始化字体设置
-        font_config = config_manager.get_font_config("text_editor")
-        self.current_font = ctk.CTkFont(
-            family=font_config.get("font", "Consolas"),
-            size=font_config.get("font_size", 12),
-            weight="bold" if font_config.get("font_bold", False) else "normal",
-        )
-
-        # 设置窗口关闭事件
-        self.protocol("WM_DELETE_WINDOW", self._on_closing)
-
-        # 自动保存相关属性
-        self.auto_save_enabled = config_manager.get(
-            "app.auto_save", False
-        )  # 是否启用自动保存
-        self.auto_save_interval = config_manager.get(
-            "app.auto_save_interval", 5
-        )  # 自动保存间隔，单位秒
-        self.last_auto_save_time = 0  # 上次自动保存时间
-        self._auto_save_job = None  # 自动保存任务ID
-
-        # 初始化文件操作处理器
-        self.file_ops = FileOperations(self)
-
-        # 初始化文件相关属性
-        self.current_file_path = None  # 当前文件路径
-        self.current_encoding = "UTF-8"  # 当前文件编码
-        self.current_line_ending = config_manager.get(
-            "app.default_line_ending", "LF"
-        )  # 从配置中读取默认换行符
-        self.is_modified = False  # 文件修改状态，False表示未修改，True表示已修改
-        self.is_new_file = False  # 是否为新文件状态
-
-        # 字符数缓存
-        self._total_chars = 0  # 缓存的总字符数
-
-        # 从配置文件中读取只读模式状态
-        self.is_read_only = config_manager.get(
-            "text_editor.read_only", False
-        )  # 是否为只读模式
-
-        # 初始化菜单状态变量，从配置管理器加载默认值
-        self.toolbar_var = tk.BooleanVar(
-            value=config_manager.get("app.show_toolbar", True)
-        )
-        self.auto_wrap_var = tk.BooleanVar(
-            value=config_manager.get("text_editor.auto_wrap", True)
-        )
-        self.quick_insert_var = tk.BooleanVar(
-            value=config_manager.get("text_editor.quick_insert", True)
-        )
-        self.auto_save_var = tk.BooleanVar(
-            value=config_manager.get("app.auto_save", False)
-        )
-        self.backup_var = tk.BooleanVar(
-            value=config_manager.get("app.backup_enabled", False)
-        )
-        self.auto_save_interval_var = tk.StringVar(
-            value=str(config_manager.get("app.auto_save_interval", 5))
-        )
-
-        # 初始化窗口标题模式变量
-        current_title_mode = config_manager.get("app.window_title_mode", "filename")
-        self.title_mode_var = tk.StringVar(value=current_title_mode)
-
-        # 配置主窗口的网格布局
-        self.grid_columnconfigure(0, weight=1)
-        self.grid_rowconfigure(1, weight=1)  # 文本区域所在行可扩展
-
-        # 防止窗口大小变化时的重新计算，减少闪烁
-        self.grid_propagate(False)
-
-        # 创建工具栏
-        if config_manager.get("app.show_toolbar", True):
-            self.toolbar = Toolbar(self)
-            self.toolbar.grid(row=0, column=0, sticky="ew")
-        else:
-            # 如果配置为不显示工具栏，仍然创建工具栏对象但不显示
-            self.toolbar = Toolbar(self)
-            # 不调用grid，因此工具栏不会显示
-
-        # 创建状态栏并放置在主窗口底部，传入APP实例
-        self.status_bar = StatusBar(self, app=self)
-        if config_manager.get("status_bar.show_status_bar", True):
-            self.status_bar.grid(row=2, column=0, sticky="ew")
-
-        # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
-        self.text_frame = ctk.CTkFrame(self)
-        self.text_frame.grid(row=1, column=0, sticky="nsew")
-
-        # 获取自动换行设置
-        auto_wrap = config_manager.get("text_editor.auto_wrap", True)
-        wrap_mode = "word" if auto_wrap else "none"
-
-        # 创建文本编辑区域 - 去掉圆角，确保完全填充
-        self.text_area = ctk.CTkTextbox(
-            self.text_frame, # 父容器
-            wrap=wrap_mode,  # 换行模式
-            undo=True,  # 启用撤销功能
-            font=self.current_font,  # 字体设置
-            maxundo=config_manager.get("text_editor.max_undo", 50), # 最大撤销次数
-        )
-        self.text_area.pack(fill="both", expand=True, padx=0, pady=0)
-
-        # 创建菜单栏
-        self.menu_bar = create_menu(self)
-        self.config(menu=self.menu_bar)
-
-        # 设置初始只读模式状态
-        if self.is_read_only:
-            # 设置为只读模式
-            self.text_area.configure(state="disabled")
-            # 更新工具栏按钮外观
-            self.toolbar.readonly_button.configure(
-                fg_color="#FF6B6B", hover_color="#FF5252"
-            )
+        # 创建自动保存管理器
+        self.auto_save_manager = AutoSaveManager(self)
 
         # 绑定应用程序事件和快捷方式
         self._bind_app_events()
 
-        # 初始化状态栏显示
-        self._init_status_bar()
-
         # 启动自动保存功能
-        self._start_auto_save()
+        self.auto_save_manager.start_auto_save()
 
     def init_drag_drop(self):
         """
@@ -204,22 +60,10 @@ class QuickEditApp(ctk.CTk):
         except Exception as e:
             pass
 
-    def _init_status_bar(self):
-        """初始化状态栏显示"""
-        # 设置初始状态信息
-        self.status_bar.set_status_info()
-
-        # 设置初始文件信息，包括默认换行符
-        self.status_bar.set_file_info(
-            filename=None,
-            encoding=self.current_encoding,
-            line_ending=self.current_line_ending,
-        )
-
     def _on_closing(self):
         """窗口关闭事件处理"""
         # 取消自动保存任务（如果有）
-        self._stop_auto_save()
+        self.auto_save_manager.stop_auto_save()
 
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
@@ -278,10 +122,8 @@ class QuickEditApp(ctk.CTk):
         当焦点离开文本框时，立即执行自动保存（如果文件已修改且自动保存已启用）
         这与定时自动保存是独立的，确保在用户切换到其他应用时也能保存
         """
-        # 检查是否启用了自动保存功能
-        if self.auto_save_enabled and self.current_file_path:
-            # 立即执行保存操作
-            self._auto_save()
+        # 使用自动保存管理器处理焦点离开事件
+        self.auto_save_manager.on_text_area_focus_out(event)
 
     def _focus_text_area(self):
         """
@@ -414,8 +256,7 @@ class QuickEditApp(ctk.CTk):
             title_part = "新文件"
         else:
             # 没有文件路径的情况
-            content = self.text_area.get("1.0", ctk.END).strip()
-            if content:
+            if self._total_chars > 0:
                 title_part = "未命名"
             else:
                 title_part = None
@@ -557,84 +398,6 @@ class QuickEditApp(ctk.CTk):
             from tkinter import messagebox
 
             messagebox.showinfo("提示", "当前没有打开的文件")
-
-    def _stop_auto_save(self):
-        """
-        停止自动保存功能
-
-        取消现有的自动保存任务（如果有）
-        """
-        if hasattr(self, "_auto_save_job") and self._auto_save_job is not None:
-            self.after_cancel(self._auto_save_job)
-            self._auto_save_job = None
-
-    def _start_auto_save(self):
-        """
-        启动自动保存功能
-
-        创建一个每秒运行的定时任务，检查是否需要自动保存文件内容
-        """
-        # 先停止现有的自动保存任务
-        self._stop_auto_save()
-
-        # 记录自动保存启动时间
-        self.auto_save_start_time = time.time()
-
-        # 启动每秒运行一次的检查任务
-        self._auto_save_job = self.after(1000, self._auto_save_check)
-
-    def _auto_save_check(self):
-        """
-        每秒运行一次的自动保存检查方法
-
-        此方法每秒都会被调用，但只有在达到指定间隔时间时才会执行实际的自动保存
-        """
-        # 检查是否启用了自动保存功能
-        if not self.auto_save_enabled:
-            # 如果自动保存被禁用，则不再调度下一次检查
-            return
-
-        # 计算距离上次自动保存的时间间隔
-        current_time = time.time()
-        time_since_last_save = current_time - self.last_auto_save_time
-
-        # 检查是否有当前打开的文件
-        if self.current_file_path:
-            # 检查是否达到了指定的自动保存间隔
-            if time_since_last_save >= self.auto_save_interval:
-                # 达到间隔时间，执行自动保存
-                self._auto_save()
-            else:
-                # 未达到间隔时间，只更新状态栏显示倒计时
-                remaining_time = self.auto_save_interval - time_since_last_save
-                self.status_bar.show_auto_save_countdown(remaining_time)
-        else:
-            # 没有打开的文件，不执行自动保存
-            self.status_bar.show_auto_save_status(saved=False)
-
-        # 调度下一次检查（每秒一次）
-        self._auto_save_job = self.after(1000, self._auto_save_check)
-
-    def _auto_save(self):
-        """
-        执行自动保存操作
-
-        此方法在达到指定间隔时间时被调用，执行实际的文件保存操作
-        """
-        # 检查文件是否已修改
-        if self.is_modified:
-            # 执行保存操作
-            self.save_file()
-            # 更新上次自动保存时间
-            self.last_auto_save_time = time.time()
-            # 更新状态栏的自动保存信息，显示具体的保存时间
-            self.status_bar.show_auto_save_status(saved=True)
-
-        else:
-            # 文件未修改，更新状态栏显示检查状态
-            self.status_bar.show_auto_save_status(saved=False)
-            # 即使没有保存，也要更新上次自动保存时间，以重置计时器
-            self.last_auto_save_time = time.time()
 
     def get_char_count(self):
         """
