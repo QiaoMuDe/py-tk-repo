@@ -38,7 +38,7 @@ class FontDialog:
         self.dialog = ctk.CTkToplevel()
         self.dialog.title(title)
         self.dialog.geometry("850x500+850+160")  # 设置固定大小
-        self.dialog.resizable(False, False) # 固定大小，不允许调整
+        self.dialog.resizable(False, False)  # 固定大小，不允许调整
         self.dialog.grab_set()  # 模态窗口
 
         # 使用导入的配置管理器实例
@@ -106,12 +106,12 @@ class FontDialog:
                 "bold" if component_font_config.get("font_bold", False) else "normal"
             ),
         )
-        
+
         # 创建标题字体，比组件字体大2号并加粗
         title_font = ctk.CTkFont(
             family=component_font_config.get("font", "Microsoft YaHei UI"),
             size=component_font_config.get("font_size", 12) + 2,
-            weight="bold"
+            weight="bold",
         )
 
         # 整体布局使用网格布局
@@ -193,7 +193,7 @@ class FontDialog:
         # 字体设置区域 - 重新设计
         size_frame = ctk.CTkFrame(left_frame)
         size_frame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
-        
+
         # 配置列权重，让布局更加灵活
         size_frame.grid_columnconfigure(0, weight=0)
         size_frame.grid_columnconfigure(1, weight=0)
@@ -201,15 +201,19 @@ class FontDialog:
         size_frame.grid_columnconfigure(3, weight=0)
         size_frame.grid_columnconfigure(4, weight=1)
         size_frame.grid_columnconfigure(5, weight=0)
-        
+
         # 字体设置标题 - 居中显示，包含大小范围信息
-        size_title_label = ctk.CTkLabel(size_frame, text="字体设置 (大小范围: 8-72)", font=title_font)
-        size_title_label.grid(row=0, column=0, columnspan=6, sticky="ew", padx=10, pady=(8, 12))
-        
+        size_title_label = ctk.CTkLabel(
+            size_frame, text="字体设置 (大小范围: 8-72)", font=title_font
+        )
+        size_title_label.grid(
+            row=0, column=0, columnspan=6, sticky="ew", padx=10, pady=(8, 12)
+        )
+
         # 字体大小标签
         size_label = ctk.CTkLabel(size_frame, text="大小:", font=component_font)
         size_label.grid(row=1, column=0, padx=(10, 10), pady=10, sticky="w")
-        
+
         # 减小字体按钮
         self.size_decrease_btn = ctk.CTkButton(
             size_frame,
@@ -220,7 +224,7 @@ class FontDialog:
             font=component_font,
         )
         self.size_decrease_btn.grid(row=1, column=1, padx=(0, 5), pady=10)
-        
+
         # 字体大小输入框
         self.size_var = tk.StringVar(value=str(self.temp_font["size"]))
         self.size_entry = ctk.CTkEntry(
@@ -229,11 +233,11 @@ class FontDialog:
             width=70,
             height=30,
             font=component_font,
-            justify="center"
+            justify="center",
         )
         self.size_entry.grid(row=1, column=2, padx=(0, 5), pady=10)
         self.size_entry.bind("<KeyRelease>", self._on_size_change)
-        
+
         # 增大字体按钮
         self.size_increase_btn = ctk.CTkButton(
             size_frame,
@@ -244,7 +248,7 @@ class FontDialog:
             font=component_font,
         )
         self.size_increase_btn.grid(row=1, column=3, padx=(0, 10), pady=10)
-        
+
         # 加粗选项 - 放在右侧并居中对齐
         self.bold_var = tk.BooleanVar(value=(self.temp_font["weight"] == "bold"))
         self.bold_checkbox = ctk.CTkCheckBox(
@@ -297,14 +301,22 @@ class FontDialog:
         button_container.grid(row=0, column=0, columnspan=2, pady=10)
 
         self.ok_button = ctk.CTkButton(
-            button_container, text="确定", command=self._on_ok, font=component_font, 
-            width=100, height=32
+            button_container,
+            text="确定",
+            command=self._on_ok,
+            font=component_font,
+            width=100,
+            height=32,
         )
         self.ok_button.grid(row=0, column=0, padx=(10, 5), pady=5)
 
         self.cancel_button = ctk.CTkButton(
-            button_container, text="取消", command=self._on_cancel, font=component_font,
-            width=100, height=32
+            button_container,
+            text="取消",
+            command=self._on_cancel,
+            font=component_font,
+            width=100,
+            height=32,
         )
         self.cancel_button.grid(row=0, column=1, padx=(5, 10), pady=5)
 
@@ -496,12 +508,12 @@ class FontDialog:
 
         # 保存配置
         self.config_manager.save_config()
-        
+
         # 更新文本框字体
         text_font = ctk.CTkFont(
             family=self.temp_font["family"],
             size=self.temp_font["size"],
-            weight=self.temp_font["weight"]
+            weight=self.temp_font["weight"],
         )
         self.text_widget.configure(font=text_font)
 

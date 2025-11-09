@@ -11,10 +11,4 @@ from .toolbar import Toolbar
 from .status_bar import StatusBar
 from .font_dialog import FontDialog, show_font_dialog
 
-__all__ = [
-    'create_menu',
-    'Toolbar',
-    'StatusBar',
-    'FontDialog',
-    'show_font_dialog'
-]
+__all__ = ["create_menu", "Toolbar", "StatusBar", "FontDialog", "show_font_dialog"]

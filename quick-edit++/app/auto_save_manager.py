@@ -31,7 +31,7 @@ class AutoSaveManager:
             "app.auto_save_interval", 5
         )  # 自动保存间隔，单位秒
         self.last_auto_save_time = 0  # 上次自动保存时间
-        self._auto_save_job = None  # 自动保存任务ID        
+        self._auto_save_job = None  # 自动保存任务ID
 
     def start_auto_save(self):
         """

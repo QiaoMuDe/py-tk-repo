@@ -32,7 +32,7 @@ class QuickEditApp(ctk.CTk):
 
         # 创建应用初始化器
         self.initializer = AppInitializer(self)
-        
+
         # 执行完整的应用初始化流程
         self.initializer.initialize_app()
 
@@ -68,7 +68,7 @@ class QuickEditApp(ctk.CTk):
         # 如果启用自动保存并且有当前打开的文件，尝试自动保存
         if self.auto_save_manager.auto_save_enabled and self.current_file_path:
             self.auto_save_manager._auto_save()
-        
+
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
             self.destroy()
@@ -102,9 +102,11 @@ class QuickEditApp(ctk.CTk):
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
-        
+
         # 绑定配置管理快捷键
-        self.bind("<Control-Shift-C>", lambda e: self.file_ops.open_config_file())  # 查看配置
+        self.bind(
+            "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
+        )  # 查看配置
         self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
 
         # 设置应用程序启动后获取焦点
@@ -156,16 +158,18 @@ class QuickEditApp(ctk.CTk):
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
-        
+
         # 获取当前修改状态
         is_modified = self.is_modified()
-        
+
         # 如果为已修改状态，更新缓存的字符数
         if is_modified:
             self.update_char_count()
-        
+
         # 如果是新文件或没有打开文件，且文本框内容为空，重置为未修改状态
-        if (self.is_new_file or self.current_file_path is None) and self.get_char_count() == 0:
+        if (
+            self.is_new_file or self.current_file_path is None
+        ) and self.get_char_count() == 0:
             self.set_modified(False)
 
         # 显示自动保存状态
@@ -174,16 +178,16 @@ class QuickEditApp(ctk.CTk):
     def set_modified(self, modified=False):
         """
         设置文本区域修改状态
-        
+
         Args:
             modified (bool): True表示标记为已修改，False表示标记为未修改，默认为True
         """
         self.text_area.edit_modified(modified)
-    
+
     def is_modified(self):
         """
         获取文本区域修改状态
-        
+
         Returns:
             bool: True表示已修改，False表示未修改
         """
@@ -464,7 +468,8 @@ class QuickEditApp(ctk.CTk):
 
             if success:
                 messagebox.showinfo(
-                    "重置成功", "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。"
+                    "重置成功",
+                    "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。",
                 )
             else:
                 messagebox.showerror("重置失败", "设置重置失败，请检查配置文件权限。")

@@ -17,7 +17,12 @@ class ThemeManager:
 
         if theme_name_or_path in cls._built_in_themes:
             customtkinter_path = pathlib.Path(script_directory).parent.parent.parent
-            with open(os.path.join(customtkinter_path, "assets", "themes", f"{theme_name_or_path}.json"), "r") as f:
+            with open(
+                os.path.join(
+                    customtkinter_path, "assets", "themes", f"{theme_name_or_path}.json"
+                ),
+                "r",
+            ) as f:
                 cls.theme = json.load(f)
         else:
             with open(theme_name_or_path, "r") as f:
@@ -50,6 +55,8 @@ class ThemeManager:
                 with open(cls._currently_loaded_theme, "r") as f:
                     json.dump(cls.theme, f, indent=2)
             else:
-                raise ValueError(f"cannot modify builtin theme '{cls._currently_loaded_theme}'")
+                raise ValueError(
+                    f"cannot modify builtin theme '{cls._currently_loaded_theme}'"
+                )
         else:
             raise ValueError(f"cannot save theme, no theme is loaded")

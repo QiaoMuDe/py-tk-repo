@@ -504,14 +504,14 @@ def set_file_encoding(encoding, app_instance=None):
     # 如果没有提供APP实例，直接返回
     if not app_instance:
         return
-    
+
     # 更新APP实例的当前编码
     app_instance.current_encoding = encoding
-    
+
     # 更新状态栏显示
     app_instance.status_bar.update_file_info()
 
-    # 如果有文件路径或总字符数大于0，则标记文件为已修改   
+    # 如果有文件路径或总字符数大于0，则标记文件为已修改
     if app_instance.current_file_path or app_instance.get_char_count() > 0:
         # 标记文件为已修改
         app_instance.set_modified(True)
@@ -545,8 +545,10 @@ def set_file_line_ending(line_ending, app_instance=None):
     }
 
     # 显示通知
-    messagebox.showinfo("通知", f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}")
-    
+    messagebox.showinfo(
+        "通知", f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}"
+    )
+
     # 如果有文件路径或总字符数大于0，则标记文件为已修改
     if app_instance.current_file_path or app_instance.get_char_count() > 0:
         # 标记文件为已修改

@@ -11,13 +11,13 @@ from .config_manager import (
     config_manager,
     CONFIG_PATH,
     DEFAULT_CONFIG,
-    merge_configs
+    merge_configs,
 )
 
 __all__ = [
-    'ConfigManager',
-    'config_manager',
-    'CONFIG_PATH',
-    'DEFAULT_CONFIG',
-    'merge_configs'
+    "ConfigManager",
+    "config_manager",
+    "CONFIG_PATH",
+    "DEFAULT_CONFIG",
+    "merge_configs",
 ]

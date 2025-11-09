@@ -17,16 +17,16 @@ from operations.file_operations import FileOperations
 
 class AppInitializer:
     """应用初始化器类 - 负责应用程序的初始化过程"""
-    
+
     def __init__(self, app):
         """
         初始化应用初始化器
-        
+
         Args:
             app: QuickEditApp实例
         """
         self.app = app
-    
+
     def init_app_theme(self):
         """初始化应用主题和外观设置"""
         # 设置应用外观模式
@@ -35,15 +35,16 @@ class AppInitializer:
 
         color_theme = config_manager.get("app.color_theme", "blue")
         ctk.set_default_color_theme(color_theme)  # 可选: "blue", "green", "dark-blue"
-    
+
     def init_dpi_support(self):
         """启用DPI缩放支持"""
         try:
             from ctypes import windll
+
             windll.shcore.SetProcessDpiAwareness(1)
         except Exception as e:
             print(f"警告: 无法启用DPI缩放支持: {e}")
-    
+
     def init_window_properties(self):
         """初始化窗口基本属性"""
         # 设置窗口标题
@@ -62,10 +63,10 @@ class AppInitializer:
         min_width = config_manager.get("app.min_width", 800)
         min_height = config_manager.get("app.min_height", 600)
         self.app.minsize(min_width, min_height)
-        
+
         # 设置窗口关闭事件
         self.app.protocol("WM_DELETE_WINDOW", self.app._on_closing)
-    
+
     def init_font_settings(self):
         """初始化字体设置"""
         font_config = config_manager.get_font_config("text_editor")
@@ -74,7 +75,7 @@ class AppInitializer:
             size=font_config.get("font_size", 15),
             weight="bold" if font_config.get("font_bold", False) else "normal",
         )
-    
+
     def init_file_attributes(self):
         """初始化文件相关属性"""
         # 初始化文件操作处理器
@@ -82,7 +83,9 @@ class AppInitializer:
 
         # 初始化文件相关属性
         self.app.current_file_path = None  # 当前文件路径
-        self.app.current_encoding = config_manager.get("app.default_encoding", "UTF-8")  # 当前文件编码
+        self.app.current_encoding = config_manager.get(
+            "app.default_encoding", "UTF-8"
+        )  # 当前文件编码
         self.app.current_line_ending = config_manager.get(
             "app.default_line_ending", "LF"
         )  # 从配置中读取默认换行符
@@ -95,7 +98,7 @@ class AppInitializer:
         self.app.is_read_only = config_manager.get(
             "text_editor.read_only", False
         )  # 是否为只读模式
-    
+
     def init_menu_variables(self):
         """初始化菜单状态变量"""
         # 初始化菜单状态变量，从配置管理器加载默认值
@@ -124,7 +127,7 @@ class AppInitializer:
         self.app.auto_save_interval_var = tk.StringVar(
             value=str(self.app.auto_save_manager.auto_save_interval)
         )
-    
+
     def init_window_layout(self):
         """初始化窗口布局配置"""
         # 配置主窗口的网格布局
@@ -133,7 +136,7 @@ class AppInitializer:
 
         # 防止窗口大小变化时的重新计算，减少闪烁
         self.app.grid_propagate(False)
-    
+
     def init_toolbar(self):
         """初始化工具栏"""
         # 创建工具栏
@@ -144,14 +147,14 @@ class AppInitializer:
             # 如果配置为不显示工具栏，仍然创建工具栏对象但不显示
             self.app.toolbar = Toolbar(self.app)
             # 不调用grid，因此工具栏不会显示
-    
+
     def init_status_bar(self):
         """初始化状态栏"""
         # 创建状态栏并放置在主窗口底部，传入APP实例
         self.app.status_bar = StatusBar(self.app)
         if config_manager.get("status_bar.show_status_bar", True):
             self.app.status_bar.grid(row=2, column=0, sticky="ew")
-    
+
     def init_text_area(self):
         """初始化文本编辑区域"""
         # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
@@ -164,20 +167,20 @@ class AppInitializer:
 
         # 创建文本编辑区域 - 去掉圆角，确保完全填充
         self.app.text_area = ctk.CTkTextbox(
-            self.app.text_frame, # 父容器
+            self.app.text_frame,  # 父容器
             wrap=wrap_mode,  # 换行模式
             undo=True,  # 启用撤销功能
             font=self.app.current_font,  # 字体设置
-            maxundo=config_manager.get("text_editor.max_undo", 50), # 最大撤销次数
+            maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
         )
         self.app.text_area.pack(fill="both", expand=True, padx=0, pady=0)
-    
+
     def init_menu_bar(self):
         """初始化菜单栏"""
         # 创建菜单栏
         self.app.menu_bar = create_menu(self.app)
         self.app.config(menu=self.app.menu_bar)
-    
+
     def init_read_only_mode(self):
         """设置初始只读模式状态"""
         if self.app.is_read_only:
@@ -187,16 +190,16 @@ class AppInitializer:
             self.app.toolbar.readonly_button.configure(
                 fg_color="#FF6B6B", hover_color="#FF5252"
             )
-    
+
     def initialize_app(self):
         """执行完整的应用初始化流程"""
         # 按顺序执行初始化步骤
         self.init_app_theme()
         self.init_dpi_support()
-        
+
         # 初始化CTk主窗口
         super(type(self.app), self.app).__init__()
-        
+
         self.init_window_properties()
         self.init_font_settings()
         self.init_file_attributes()

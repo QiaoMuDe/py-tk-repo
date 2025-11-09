@@ -58,8 +58,8 @@ class FileOperations:
                 return  # 用户取消了选择
 
             # 获取配置的最大文件大小
-            max_file_size = (
-                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
+            max_file_size = self.config_manager.get(
+                "app.max_file_size", 10 * 1024 * 1024
             )  # 转换为字节
 
             # 使用核心类异步读取文件
@@ -96,7 +96,7 @@ class FileOperations:
             # 重置修改状态
             self.root.set_modified(False)  # 清除修改状态标志
             self.root.is_new_file = False  # 清除新文件状态标志
-            
+
             # 更新缓存的字符数
             self.root.update_char_count()
 
@@ -104,7 +104,9 @@ class FileOperations:
             self.root.status_bar.update_file_info()
 
             # 更新状态栏
-            self.root.status_bar.set_status_info(f"已打开: {os.path.basename(file_path)}")
+            self.root.status_bar.set_status_info(
+                f"已打开: {os.path.basename(file_path)}"
+            )
 
             # 更新窗口标题
             self.root._update_window_title()
@@ -115,7 +117,7 @@ class FileOperations:
     def _on_file_read_error(self, title_or_message, message=None):
         """
         文件读取错误回调
-        
+
         Args:
             title_or_message: 错误标题，或者如果message为None，则作为完整的错误消息（兼容旧版本）
             message: 错误详细信息，可选
@@ -148,8 +150,8 @@ class FileOperations:
                 return
 
             # 获取配置的最大文件大小
-            max_file_size = (
-                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
+            max_file_size = self.config_manager.get(
+                "app.max_file_size", 10 * 1024 * 1024
             )  # 转换为字节
 
             # 直接使用配置文件路径，不显示文件选择对话框
@@ -184,7 +186,7 @@ class FileOperations:
             # 获取当前编码和换行符设置
             encoding = self.root.current_encoding
             # 优先使用编辑器的当前换行符设置，如果没有则使用配置中的默认换行符
-            line_ending = self.root.current_line_ending 
+            line_ending = self.root.current_line_ending
 
             # 使用核心类转换换行符格式
             content = self.file_core.convert_line_endings(content, line_ending)
@@ -209,20 +211,16 @@ class FileOperations:
             # 获取当前光标位置
             try:
                 cursor_pos = self.root.text_area.index("insert")
-                row, col = cursor_pos.split('.')
+                row, col = cursor_pos.split(".")
                 row = int(row)
                 col = int(col) + 1  # 转换为1基索引
-                
+
                 # 更新状态栏状态信息（从"已修改"改为"就绪"）
-                self.root.status_bar.set_status_info(
-                    status="就绪",
-                    row=row,
-                    col=col
-                )
+                self.root.status_bar.set_status_info(status="就绪", row=row, col=col)
             except Exception:
                 # 如果获取位置失败，使用默认值
                 self.root.status_bar.set_status_info(status="就绪")
-            
+
             # 显示保存通知
             self.root.status_bar.show_notification(f"文件已保存")
 
@@ -260,7 +258,9 @@ class FileOperations:
             return self.save_file_as()
 
         # 使用通用保存方法，不更新当前文件信息（因为已经是当前文件）
-        return self._save_file_content(self.root.current_file_path, update_current_file_info=False)
+        return self._save_file_content(
+            self.root.current_file_path, update_current_file_info=False
+        )
 
     def save_file_as(self):
         """另存为文件"""
@@ -317,7 +317,7 @@ class FileOperations:
 
     def _new_file_helper(self, filename="新文件"):
         """新建文件的辅助方法
-        
+
         Args:
             filename: 文件名，默认为"新文件"
         """
@@ -349,8 +349,8 @@ class FileOperations:
         """通过指定路径打开文件的辅助方法"""
         try:
             # 获取配置的最大文件大小
-            max_file_size = (
-                self.config_manager.get("app.max_file_size", 10 * 1024 * 1024)
+            max_file_size = self.config_manager.get(
+                "app.max_file_size", 10 * 1024 * 1024
             )  # 转换为字节
 
             # 异步读取文件
@@ -360,41 +360,43 @@ class FileOperations:
                 error_callback=self._on_file_read_error,
                 max_file_size=max_file_size,
             )
-            
+
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
-    
+
     def handle_dropped_files(self, files):
         """
         处理拖拽文件事件
-        
+
         Args:
             files: 拖拽的文件列表，可能是字节串或字符串
         """
         if not files:
             return
-            
+
         # 如果拖拽了多个文件，直接提示并返回
         if len(files) > 1:
             messagebox.showinfo("提示", "只支持打开单个文件，请一次只拖拽一个文件")
             return
-            
+
         # 解码文件路径
         file_path = files[0]
         if isinstance(file_path, bytes):
-            file_path = file_path.decode('gbk')
-        
+            file_path = file_path.decode("gbk")
+
         # 检查路径是否存在
         if os.path.exists(file_path):
             # 检查是否是目录
             if os.path.isdir(file_path):
-                messagebox.showwarning("不支持的操作", f"无法打开目录: {os.path.basename(file_path)}")
+                messagebox.showwarning(
+                    "不支持的操作", f"无法打开目录: {os.path.basename(file_path)}"
+                )
                 return
-                
+
             # 检查是否需要保存当前文件
             if not self.check_save_before_close():
                 return  # 用户取消了操作
-            
+
             # 文件存在，直接打开
             self._open_file_with_path_helper(file_path)
         else:
@@ -403,11 +405,11 @@ class FileOperations:
             if dir_path and not os.path.exists(dir_path):
                 messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
                 return
-            
+
             # 检查是否需要保存当前文件
             if not self.check_save_before_close():
                 return  # 用户取消了操作
-            
+
             # 作为新文件创建
             self.new_file_with_path(file_path)
 
@@ -415,7 +417,7 @@ class FileOperations:
         """通过指定路径创建新文件"""
         # 设置当前文件路径
         self.root.current_file_path = file_path
-        
+
         # 使用辅助方法创建新文件，传入文件名
         filename = os.path.basename(file_path)
         self._new_file_helper(filename)
@@ -424,7 +426,7 @@ class FileOperations:
         """重置编辑器状态，包括清空内容、重置文件属性和更新状态栏"""
         # 清空编辑器内容
         self.root.text_area.delete("1.0", tk.END)
-        
+
         # 更新字符数缓存，确保_total_chars为0
         self.root.update_char_count()
 
@@ -476,6 +478,6 @@ class FileOperations:
 
         elif result is False:  # 用户选择不保存
             return True
-            
+
         else:  # 用户选择取消
             return False

@@ -109,9 +109,7 @@ class StatusBar(ctk.CTkFrame):
                 text = f"{status} | 第{row}行 | 第{col}列"
             else:
                 # 有总字符数但无选中内容
-                text = (
-                    f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符"
-                )
+                text = f"{status} | 第{row}行 | 第{col}列 | {self.app.get_char_count()}个字符"
         else:
             # 有选中内容
             selection_text = ""
@@ -277,7 +275,7 @@ class StatusBar(ctk.CTkFrame):
         # 尝试获取当前的光标位置和字符数，而不是恢复之前保存的文本
         try:
             # 检查是否有应用程序实例和文本区域
-            if self.app and hasattr(self.app, 'text_area'):
+            if self.app and hasattr(self.app, "text_area"):
                 # 获取当前光标位置
                 cursor_pos = self.app.text_area.index("insert")
                 row, col = cursor_pos.split(".")
