@@ -277,16 +277,16 @@ class StatusBar(ctk.CTkFrame):
         # 尝试获取当前的光标位置和字符数，而不是恢复之前保存的文本
         try:
             # 检查是否有应用程序实例和文本区域
-            if self and self.text_area:
+            if self.app and hasattr(self.app, 'text_area'):
                 # 获取当前光标位置
                 cursor_pos = self.app.text_area.index("insert")
                 row, col = cursor_pos.split(".")
                 row = int(row)
                 col = int(col) + 1  # 转换为1基索引
 
-                # 获取当前状态
+                # 获取当前状态，使用app实例的is_modified属性
                 status = "就绪"
-                if self.is_modified:
+                if self.app.is_modified:
                     status = "已修改"
 
                 # 更新状态栏信息
