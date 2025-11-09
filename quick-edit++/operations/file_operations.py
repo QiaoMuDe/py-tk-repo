@@ -117,14 +117,21 @@ class FileOperations:
         except Exception as e:
             messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
 
-    def _on_file_read_error(self, error_message):
-        """文件读取错误回调"""
-        # 检查是否是文件大小超限的错误
-        if "超过了最大文件打开限制" in error_message:
-            from tkinter import messagebox
-            messagebox.showerror("文件过大", error_message)
+    def _on_file_read_error(self, title_or_message, message=None):
+        """
+        文件读取错误回调
+        
+        Args:
+            title_or_message: 错误标题，或者如果message为None，则作为完整的错误消息（兼容旧版本）
+            message: 错误详细信息，可选
+        """
+        # 兼容旧版本的单参数调用方式
+        if message is None:
+            # 如果只有一个参数，则使用默认标题"错误"
+            messagebox.showerror("错误", title_or_message)
         else:
-            messagebox.showerror("错误", f"无法打开文件: {error_message}")
+            # 如果有两个参数，则分别作为标题和内容
+            messagebox.showerror(title_or_message, message)
 
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""

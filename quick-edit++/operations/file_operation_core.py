@@ -122,7 +122,7 @@ class FileOperationCore:
         Args:
             file_path: 要读取的文件路径
             callback: 读取完成后的回调函数，接收参数 (file_path, content, encoding, line_ending)
-            error_callback: 错误回调函数，接收参数 (error_message)
+            error_callback: 错误回调函数，接收参数 (title, message) 或 (message) 兼容旧版本
             progress_callback: 进度回调函数，接收参数 (bytes_read, total_bytes)
             max_file_size: 最大允许的文件大小（字节），默认10MB
         """
@@ -136,7 +136,17 @@ class FileOperationCore:
                 file_size = os.path.getsize(file_path)
                 if file_size > max_file_size:
                     if error_callback:
-                        error_callback(f"无法打开文件：\n文件大小为: {file_size/1024/1024:.2f} MB\n超过了最大文件打开限制: {max_file_size/1024/1024:.2f} MB \n请使用其他专业的编辑器打开此文件。")
+                        # 使用format_file_size方法格式化文件大小显示
+                        current_size = self.format_file_size(file_size)
+                        max_size = self.format_file_size(max_file_size)
+                        error_callback(
+                            "文件过大，无法打开",
+                            f"文件大小: {current_size}\n"
+                            f"最大限制: {max_size}\n\n"
+                            f"建议：\n"
+                            f"• 使用专业的大型文件编辑器打开此文件\n"
+                            f"• 或在设置中增加最大文件大小限制"
+                        )
                     return
                 
                 # 只打开一次文件，读取样本数据用于所有检测
@@ -148,7 +158,13 @@ class FileOperationCore:
                 # 首先检测是否为二进制文件
                 if self.is_binary_file(sample_data=sample_data):
                     if error_callback:
-                        error_callback("文件似乎是二进制文件，无法作为文本文件打开")
+                        error_callback(
+                            "无法打开二进制文件",
+                            f"QuickEdit++ 是一个文本编辑器，不支持打开二进制文件。\n\n"
+                            f"建议：\n"
+                            f"• 使用十六进制编辑器查看此文件\n"
+                            f"• 或使用支持二进制文件的专业编辑器"
+                        )
                     return
                 
                 # 使用同一样本数据检测编码和换行符类型
@@ -184,7 +200,7 @@ class FileOperationCore:
             except Exception as e:
                 # 调用错误回调
                 if error_callback:
-                    error_callback(str(e))
+                    error_callback("错误", f"无法打开文件: {str(e)}")
         
         # 启动工作线程
         thread = threading.Thread(target=read_worker, daemon=True)
