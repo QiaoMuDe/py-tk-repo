@@ -94,7 +94,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 绑定文本框焦点离开事件，触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
-        
+
         # 绑定文件操作快捷键
         self.bind("<Control-n>", lambda e: self.new_file())  # 新建文件
         self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件
@@ -105,24 +105,24 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             "<Control-e>", lambda e: self.open_containing_folder()
         )  # 打开文件所在目录
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
-        
+
         # 绑定编辑操作快捷键
-        #self.bind("<Control-z>", lambda e: self.undo())  # 撤销
-        #self.bind("<Control-y>", lambda e: self.redo())  # 重做
-        #self.bind("<Control-x>", lambda e: self.cut())  # 剪切
-        #self.bind("<Control-c>", lambda e: self.copy())  # 复制
+        # self.bind("<Control-z>", lambda e: self.undo())  # 撤销
+        # self.bind("<Control-y>", lambda e: self.redo())  # 重做
+        # self.bind("<Control-x>", lambda e: self.cut())  # 剪切
+        # self.bind("<Control-c>", lambda e: self.copy())  # 复制
         # 移除了Ctrl+V的绑定，使用文本框默认的粘贴行为，避免重复粘贴
         # self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
-        #self.bind("<Control-a>", lambda e: self.select_all())  # 全选
+        # self.bind("<Control-a>", lambda e: self.select_all())  # 全选
         self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
-        
+
         # 绑定导航快捷键
         self.bind("<Home>", lambda e: self.goto_top())  # 转到文件顶部
         self.bind("<End>", lambda e: self.goto_bottom())  # 转到文件底部
         self.bind("<Prior>", lambda e: self.page_up())  # 向上翻页
         self.bind("<Next>", lambda e: self.page_down())  # 向下翻页
         self.bind("<Control-g>", lambda e: self.goto_line())  # 转到行
-        
+
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
 
