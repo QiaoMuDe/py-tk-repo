@@ -281,8 +281,65 @@ def create_menu(root):
 
     # 创建插入子菜单
     insert_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
-    insert_submenu.add_command(label="插入日期时间", command=lambda: root.insert_date_time())
-    insert_submenu.add_command(label="插入文件路径", command=lambda: root.insert_file_path())
+    
+    # 脚本相关插入
+    script_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="代码", menu=script_submenu)
+    script_submenu.add_command(label="脚本 Shebang 行", command=lambda: root.insert_shebang())
+    script_submenu.add_command(label="Python编码声明", command=lambda: root.insert_encoding())
+    script_submenu.add_command(label="Go语言基本结构", command=lambda: root.insert_go_basic())
+    
+    # 文件相关插入
+    file_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="文件", menu=file_submenu)
+    file_submenu.add_command(label="文件名", command=lambda: root.insert_filename())
+    file_submenu.add_command(label="文件路径", command=lambda: root.insert_filepath())
+    file_submenu.add_command(label="目录路径", command=lambda: root.insert_directory())
+    
+    # 日期相关插入
+    date_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="日期", menu=date_submenu)
+    date_submenu.add_command(label="YYYY-MM-DD", command=lambda: root.insert_date("ymd"))
+    date_submenu.add_command(label="YYYY/MM/DD", command=lambda: root.insert_date("ymd_slash"))
+    date_submenu.add_command(label="DD-MM-YYYY", command=lambda: root.insert_date("dmy"))
+    date_submenu.add_command(label="DD/MM/YYYY", command=lambda: root.insert_date("dmy_slash"))
+    date_submenu.add_command(label="MM-DD-YYYY", command=lambda: root.insert_date("mdy"))
+    date_submenu.add_command(label="MM/DD/YYYY", command=lambda: root.insert_date("mdy_slash"))
+    
+    # 时间相关插入
+    time_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="时间", menu=time_submenu)
+    time_submenu.add_command(label="24小时制 (HH:MM:SS)", command=lambda: root.insert_time("24h"))
+    time_submenu.add_command(label="12小时制 (HH:MM:SS AM/PM)", command=lambda: root.insert_time("12h"))
+    time_submenu.add_command(label="24小时制 (HH:MM)", command=lambda: root.insert_time("24h_short"))
+    time_submenu.add_command(label="12小时制 (HH:MM AM/PM)", command=lambda: root.insert_time("12h_short"))
+    
+    # 日期时间相关插入
+    datetime_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="日期时间", menu=datetime_submenu)
+    datetime_submenu.add_command(label="YYYY-MM-DD HH:MM:SS", command=lambda: root.insert_datetime("ymd_24h"))
+    datetime_submenu.add_command(label="YYYY-MM-DD HH:MM:SS AM/PM", command=lambda: root.insert_datetime("ymd_12h"))
+    datetime_submenu.add_command(label="YYYY/MM/DD HH:MM:SS", command=lambda: root.insert_datetime("ymd_slash_24h"))
+    datetime_submenu.add_command(label="YYYY/MM/DD HH:MM:SS AM/PM", command=lambda: root.insert_datetime("ymd_slash_12h"))
+    
+    # 其他插入
+    other_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="其他", menu=other_submenu)
+    other_submenu.add_command(label="时间戳", command=lambda: root.insert_timestamp())
+    
+    # UUID子菜单
+    uuid_submenu = tk.Menu(other_submenu, tearoff=0, font=menu_font_tuple)
+    other_submenu.add_cascade(label="UUID", menu=uuid_submenu)
+    uuid_submenu.add_command(label="UUID v4 (标准格式)", command=lambda: root.insert_uuid_v4())
+    uuid_submenu.add_command(label="无连字符UUID", command=lambda: root.insert_uuid_no_hyphens())
+    uuid_submenu.add_command(label="大写UUID", command=lambda: root.insert_uuid_uppercase())
+    uuid_submenu.add_command(label="大写无连字符UUID", command=lambda: root.insert_uuid_uppercase_no_hyphens())
+    uuid_submenu.add_command(label="带花括号的UUID", command=lambda: root.insert_uuid_with_braces())
+    uuid_submenu.add_command(label="带花括号的大写UUID", command=lambda: root.insert_uuid_uppercase_with_braces())
+    uuid_submenu.add_command(label="Base64编码UUID", command=lambda: root.insert_uuid_base64())
+    uuid_submenu.add_command(label="URN格式UUID", command=lambda: root.insert_uuid_urn())
+    uuid_submenu.add_command(label="UUID v1 (基于时间)", command=lambda: root.insert_uuid_v1())
+
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
 
     # 将编辑菜单添加到主菜单

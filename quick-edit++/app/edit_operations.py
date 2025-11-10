@@ -11,6 +11,9 @@ from tkinter import messagebox
 import customtkinter as ctk
 from config.config_manager import config_manager
 import os
+import datetime
+import uuid
+import base64
 
 
 class EditOperations:
@@ -64,6 +67,7 @@ class EditOperations:
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
                     # 更新状态栏
                     self._update_status_bar()
+                    # 更新
                     # 更新字符计数
                     self.update_char_count()
                     # 显示通知
@@ -207,6 +211,8 @@ class EditOperations:
                     self._update_status_bar()
                     # 更新字符计数
                     self.update_char_count()
+                    # 更新修改状态
+                    self.set_modified(True)
                     # 显示通知
                     self.status_bar.show_notification(f"已清除 {len(selected_text)} 个字符", 2000)
                 else:
@@ -215,7 +221,574 @@ class EditOperations:
                 # 没有选中文本
                 self.status_bar.show_notification("没有选中的文本", 2000)
         except Exception as e:
-            # 忽略清除选中操作异常
+            # 忽略清除操作异常
+            pass
+
+    def insert_text(self, text):
+        """在光标位置插入文本"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入文本
+            self.text_area.insert(tk.INSERT, text)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_shebang(self):
+        """脚本的shebang行"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入shebang行
+            self.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入脚本 shebang 行", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_encoding(self):
+        """插入Python脚本的编码声明"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入编码声明
+            self.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-\n")
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入编码声明", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_go_basic(self):
+        """插入Go语言基本结构"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入Go语言基本结构
+            go_code = """package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}"""
+            self.text_area.insert(tk.INSERT, go_code)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入Go语言基本结构", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_filename(self):
+        """插入当前文件名"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 获取当前文件名
+            if hasattr(self, 'current_file_path') and self.current_file_path:
+                filename = os.path.basename(self.current_file_path)
+                self.text_area.insert(tk.INSERT, filename)
+                
+                # 更新状态栏
+                self._update_status_bar()
+                # 更新字符计数
+                self.update_char_count()
+                # 更新修改状态
+                self.set_modified(True)
+                
+                # 显示通知
+                self.status_bar.show_notification(f"已插入文件名: {filename}", 2000)
+            else:
+                self.status_bar.show_notification("没有当前文件", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_filepath(self):
+        """插入当前文件路径"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 获取当前文件路径
+            if hasattr(self, 'current_file_path') and self.current_file_path:
+                self.text_area.insert(tk.INSERT, self.current_file_path)
+                
+                # 更新状态栏
+                self._update_status_bar()
+                # 更新字符计数
+                self.update_char_count()
+                # 更新修改状态
+                self.set_modified(True)
+                
+                # 显示通知
+                self.status_bar.show_notification(f"已插入文件路径: {self.current_file_path}", 2000)
+            else:
+                self.status_bar.show_notification("没有当前文件", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_directory(self):
+        """插入当前文件所在目录路径"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 获取当前文件所在目录
+            if hasattr(self, 'current_file_path') and self.current_file_path:
+                directory = os.path.dirname(self.current_file_path)
+                self.text_area.insert(tk.INSERT, directory)
+                
+                # 更新状态栏
+                self._update_status_bar()
+                # 更新字符计数
+                self.update_char_count()
+                # 更新修改状态
+                self.set_modified(True)
+                
+                # 显示通知
+                self.status_bar.show_notification(f"已插入目录路径: {directory}", 2000)
+            else:
+                self.status_bar.show_notification("没有当前文件", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_date(self, format_type="ymd"):
+        """插入当前日期"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 根据格式类型获取日期
+            now = datetime.datetime.now()
+            if format_type == "ymd":
+                date_str = now.strftime("%Y-%m-%d")
+            elif format_type == "ymd_slash":
+                date_str = now.strftime("%Y/%m/%d")
+            elif format_type == "dmy":
+                date_str = now.strftime("%d-%m-%Y")
+            elif format_type == "dmy_slash":
+                date_str = now.strftime("%d/%m/%Y")
+            elif format_type == "mdy":
+                date_str = now.strftime("%m-%d-%Y")
+            elif format_type == "mdy_slash":
+                date_str = now.strftime("%m/%d/%Y")
+            else:
+                date_str = now.strftime("%Y-%m-%d")
+
+            # 在光标位置插入日期
+            self.text_area.insert(tk.INSERT, date_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入日期: {date_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_time(self, format_type="24h"):
+        """插入当前时间"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 根据格式类型获取时间
+            now = datetime.datetime.now()
+            if format_type == "24h":
+                time_str = now.strftime("%H:%M:%S")
+            elif format_type == "12h":
+                time_str = now.strftime("%I:%M:%S %p")
+            elif format_type == "24h_short":
+                time_str = now.strftime("%H:%M")
+            elif format_type == "12h_short":
+                time_str = now.strftime("%I:%M %p")
+            else:
+                time_str = now.strftime("%H:%M:%S")
+
+            # 在光标位置插入时间
+            self.text_area.insert(tk.INSERT, time_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入时间: {time_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_datetime(self, format_type="ymd_24h"):
+        """插入当前日期和时间"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 根据格式类型获取日期时间
+            now = datetime.datetime.now()
+            if format_type == "ymd_24h":
+                datetime_str = now.strftime("%Y-%m-%d %H:%M:%S")
+            elif format_type == "ymd_12h":
+                datetime_str = now.strftime("%Y-%m-%d %I:%M:%S %p")
+            elif format_type == "ymd_slash_24h":
+                datetime_str = now.strftime("%Y/%m/%d %H:%M:%S")
+            elif format_type == "ymd_slash_12h":
+                datetime_str = now.strftime("%Y/%m/%d %I:%M:%S %p")
+            else:
+                datetime_str = now.strftime("%Y-%m-%d %H:%M:%S")
+
+            # 在光标位置插入日期时间
+            self.text_area.insert(tk.INSERT, datetime_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_timestamp(self):
+        """插入当前时间戳"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 获取当前时间戳
+            timestamp = str(int(datetime.datetime.now().timestamp()))
+
+            # 在光标位置插入时间戳
+            self.text_area.insert(tk.INSERT, timestamp)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入时间戳: {timestamp}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_v4(self):
+        """插入UUID v4"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4
+            uuid_str = str(uuid.uuid4())
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_no_hyphens(self):
+        """插入无连字符的UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4并移除连字符
+            uuid_str = str(uuid.uuid4()).replace("-", "")
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_uppercase(self):
+        """插入大写UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4并转换为大写
+            uuid_str = str(uuid.uuid4()).upper()
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_uppercase_no_hyphens(self):
+        """插入大写无连字符UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4，移除连字符并转换为大写
+            uuid_str = str(uuid.uuid4()).replace("-", "").upper()
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入大写无连字符UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_with_braces(self):
+        """插入带花括号的UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4并添加花括号
+            uuid_str = "{" + str(uuid.uuid4()) + "}"
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_uppercase_with_braces(self):
+        """插入带花括号的大写UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4，转换为大写并添加花括号
+            uuid_str = "{" + str(uuid.uuid4()).upper() + "}"
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入带花括号的大写UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_base64(self):
+        """插入Base64编码的UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v4并转换为Base64编码
+            import base64
+            uuid_bytes = uuid.uuid4().bytes
+            uuid_str = base64.b64encode(uuid_bytes).decode('utf-8')
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入Base64编码的UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_urn(self):
+        """插入URN格式UUID"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成URN格式的UUID v4
+            uuid_str = "urn:uuid:" + str(uuid.uuid4())
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_uuid_v1(self):
+        """插入UUID v1（基于时间）"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 生成UUID v1
+            uuid_str = str(uuid.uuid1())
+
+            # 在光标位置插入UUID
+            self.text_area.insert(tk.INSERT, uuid_str)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
             pass
 
     def goto_top(self):
