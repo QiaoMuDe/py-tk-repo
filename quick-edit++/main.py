@@ -54,7 +54,15 @@ def main():
                 sys.exit(1)
 
             # 作为新文件创建
-            app.new_file_with_path(args.file)
+            try:
+                # 先创建空文件
+                with open(args.file, 'w', encoding='utf-8') as f:
+                    f.write('')
+                # 然后通过文件操作打开它
+                app.open_file_with_path(args.file)
+            except Exception as e:
+                print(f"error: 无法创建文件: {str(e)}")
+                sys.exit(1)
 
     app.run()
 

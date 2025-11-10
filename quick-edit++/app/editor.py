@@ -374,17 +374,6 @@ class QuickEditApp(ctk.CTk):
         # 调用新建文件辅助方法
         self.file_ops._new_file_helper()
 
-    def new_file_with_path(self, file_path):
-        """通过指定路径创建新文件"""
-        # 设置当前文件路径
-        self.current_file_path = file_path
-
-        # 使用辅助方法创建新文件，传入文件名
-        filename = os.path.basename(file_path)
-
-        # 调用新建文件辅助方法，传入文件名
-        self.file_ops._new_file_helper(filename)
-
     def toggle_read_only(self):
         """切换只读模式"""
         self.is_read_only = not self.is_read_only

@@ -125,11 +125,14 @@ class FileOperations:
                 final_path = self.root.current_file_path
                 need_to_update_current_info = False
             else:
+                # 没有当前路径或强制另存为，显示另存为对话框
+
                 # 显示另存为对话框
                 final_path = filedialog.asksaveasfilename(
                     title="另存为",
                     defaultextension=".txt",
                     filetypes=self.FILE_TYPES,
+                    initialfile="新文件.txt"
                 )
 
                 # 如果用户取消了选择，返回
@@ -220,7 +223,7 @@ class FileOperations:
         # 重置文件路径
         self.root.current_file_path = None
 
-        # 设置修改状态为False（新文件初始未修改）
+        # 设置修改状态为False (新文件初始未修改)
         self.root.set_modified(False)
 
         # 获取配置中的默认换行符和编码
