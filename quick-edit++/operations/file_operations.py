@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import tkinter as tk
+import locale
 from tkinter import filedialog, messagebox
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
@@ -62,11 +63,16 @@ class FileOperations:
                 os.remove(backup_path)
 
             # 使用copy2保留元数据
-            shutil.copy2(file_path, backup_path)
-            self.root.status_bar.show_notification("已创建副本备份")
+            try:
+                shutil.copy2(file_path, backup_path)
+                self.root.status_bar.show_notification("已创建副本备份")
+            except (IOError, OSError, PermissionError) as e:
+                messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
+            except Exception as e:
+                messagebox.showerror("备份错误", f"创建备份时发生未知错误: {str(e)}")
 
         except Exception as e:
-            messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
+            messagebox.showerror("备份错误", f"备份处理失败: {str(e)}")
 
     def _save_file(self, file_path=None, force_save_as=False):
         """
@@ -141,8 +147,18 @@ class FileOperations:
             content = self.file_core.convert_line_endings(content, line_ending)
 
             # 写入文件
-            with codecs.open(final_path, "w", encoding=encoding) as f:
-                f.write(content)
+            try:
+                with codecs.open(final_path, "w", encoding=encoding) as f:
+                    f.write(content)
+            except (IOError, OSError, PermissionError) as e:
+                messagebox.showerror("保存错误", f"无法写入文件: {str(e)}")
+                return False
+            except UnicodeEncodeError as e:
+                messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
+                return False
+            except Exception as e:
+                messagebox.showerror("保存错误", f"保存文件时发生未知错误: {str(e)}")
+                return False
 
             # 如果启用了副本备份功能，则创建副本备份
             if self.config_manager.get("app.backup_enabled", False):
@@ -192,8 +208,20 @@ class FileOperations:
         Args:
             filename: 文件名，默认为"新文件"
         """
+        # 清空文本框内容
+        self.root.text_area.delete("1.0", tk.END)
+
+        # 更新字符数缓存，确保_total_chars为0
+        self.root.update_char_count()
+
         # 设置新文件状态标志
         self.root.is_new_file = True
+
+        # 重置文件路径
+        self.root.current_file_path = None
+
+        # 设置修改状态为False（新文件初始未修改）
+        self.root.set_modified(False)
 
         # 获取配置中的默认换行符和编码
         default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
@@ -207,14 +235,7 @@ class FileOperations:
         self.root.status_bar.update_file_info()
 
         # 更新窗口标题为新文件
-        self.root._update_window_title()
-
-    def new_file(self):
-        """创建新文件"""
-        self.close_file()
-
-        # 使用辅助方法创建新文件
-        self._new_file_helper()
+        self.root.title(f"{filename} - QuickEdit++")
 
     def handle_dropped_files(self, files):
         """
@@ -234,7 +255,16 @@ class FileOperations:
         # 解码文件路径
         file_path = files[0]
         if isinstance(file_path, bytes):
-            file_path = file_path.decode("gbk")
+            # 尝试多种编码方式解码文件路径
+            for encoding in ["utf-8", "gbk", "gb2312", locale.getpreferredencoding()]:
+                try:
+                    file_path = file_path.decode(encoding)
+                    break
+                except UnicodeDecodeError:
+                    continue
+            else:
+                # 如果所有编码都失败，使用替换策略
+                file_path = file_path.decode("utf-8", errors="replace")
 
         # 检查路径是否存在
         if os.path.exists(file_path):
@@ -251,26 +281,10 @@ class FileOperations:
             # 使用通用方法打开文件
             self._open_file(check_backup=True, file_path=file_path)
         else:
-            # 文件不存在，检查上级目录是否存在
-            dir_path = os.path.dirname(file_path)
-            if dir_path and not os.path.exists(dir_path):
-                messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
-                return
-
-            # 关闭当前文件
-            self.close_file()
-
-            # 作为新文件创建
-            self.new_file_with_path(file_path)
-
-    def new_file_with_path(self, file_path):
-        """通过指定路径创建新文件"""
-        # 设置当前文件路径
-        self.root.current_file_path = file_path
-
-        # 使用辅助方法创建新文件，传入文件名
-        filename = os.path.basename(file_path)
-        self._new_file_helper(filename)
+            # 路径不存在，提示用户
+            messagebox.showwarning(
+                "文件不存在", f"无法打开文件: {os.path.basename(file_path)}"
+            )
 
     def _reset_editor_state(self):
         """重置编辑器状态，包括清空内容、重置文件属性和更新状态栏"""
@@ -362,7 +376,7 @@ class FileOperations:
 
         # 新增的备份处理逻辑
         if result is True:  # 用户选择保存
-            save_success = self.save_file()
+            save_success = self._save_file()
             if save_success:
                 # 保存成功，处理备份文件
                 self._handle_backup_on_close(file_saved=True)
@@ -375,8 +389,6 @@ class FileOperations:
 
         else:  # 用户选择取消
             return False
-
-    # 以下为打开文件的核心逻辑 ##
 
     def _open_file(
         self, select_path=False, check_save=False, check_backup=False, file_path=None
@@ -518,6 +530,12 @@ class FileOperations:
                 messagebox.showerror(result["title"], result["message"])
                 return False
 
+        except (IOError, OSError, PermissionError) as e:
+            messagebox.showerror("文件访问错误", f"无法访问文件: {str(e)}")
+            return False
+        except UnicodeDecodeError as e:
+            messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
+            return False
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
             return False
@@ -537,6 +555,8 @@ class FileOperations:
 
             # 使用通用文件打开方法打开配置文件
             self._open_file(file_path=CONFIG_PATH, check_backup=True, check_save=True)
+        except (ImportError, AttributeError) as e:
+            messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
         except Exception as e:
             messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 

@@ -270,6 +270,7 @@ class StatsWorker(threading.Thread):
             self.progress_queue.put(("complete", "统计完成"))
 
         except Exception as e:
+            # 确保异常信息也被放入队列，而不是直接调用Tkinter组件
             self.progress_queue.put(("error", f"计算错误: {str(e)}"))
 
 
@@ -702,7 +703,10 @@ class DocumentStatsDialog(ctk.CTkToplevel):
                 elif progress_data[0] == "error":
                     self.progress_label.configure(text=progress_data[1])
                     self.cancel_button.configure(text="重新计算")
-                    messagebox.showerror("错误", progress_data[1])
+                    # 使用after方法确保在主线程中显示错误消息
+                    self.after(
+                        0, lambda: messagebox.showerror("错误", progress_data[1])
+                    )
 
             # 检查结果队列
             while not self.result_queue.empty():
@@ -718,9 +722,19 @@ class DocumentStatsDialog(ctk.CTkToplevel):
             # 如果工作线程还在运行，继续检查
             if self.worker and self.worker.is_alive():
                 self.after(100, self._check_progress)
+            else:
+                # 线程已结束，确保清理资源
+                self.worker = None
 
         except queue.Empty:
-            pass
+            # 队列为空是正常情况，继续检查
+            if self.worker and self.worker.is_alive():
+                self.after(100, self._check_progress)
+        except Exception as e:
+            # 捕获其他异常，防止程序崩溃
+            print(f"检查进度时发生错误: {str(e)}")
+            if self.worker and self.worker.is_alive():
+                self.after(100, self._check_progress)
 
     def _update_basic_stats_ui(self):
         """更新基本统计UI"""
@@ -802,6 +816,11 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         if self.worker and self.worker.is_alive():
             self.worker.stop()
             self.progress_label.configure(text="正在取消...")
+            # 等待线程结束，但设置超时防止无限等待
+            self.worker.join(timeout=1.0)
+            if self.worker.is_alive():
+                # 如果线程仍在运行，强制标记为已停止
+                self.progress_queue.put(("error", "计算已取消"))
         else:
             # 重新开始计算
             self.basic_stats = {}
@@ -986,6 +1005,17 @@ class DocumentStatsDialog(ctk.CTkToplevel):
             return f"{size_bytes / (1024 * 1024):.1f} MB"
         else:
             return f"{size_bytes / (1024 * 1024 * 1024):.1f} GB"
+
+    def destroy(self):
+        """销毁窗口，确保清理线程资源"""
+        # 停止工作线程
+        if self.worker and self.worker.is_alive():
+            self.worker.stop()
+            # 等待线程结束，但设置超时防止无限等待
+            self.worker.join(timeout=1.0)
+
+        # 调用父类销毁方法
+        super().destroy()
 
     def _center_window(self):
         """居中显示窗口"""

@@ -316,7 +316,7 @@ class QuickEditApp(ctk.CTk):
         if self.is_read_only:
             messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
             return
-        
+
         # 直接调用文件操作处理器的打开文件方法
         self.file_ops._open_file(check_save=True, check_backup=True, select_path=True)
 
@@ -330,7 +330,7 @@ class QuickEditApp(ctk.CTk):
         if self.is_read_only:
             messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
             return False
-        
+
         # 直接调用文件操作处理器的保存文件方法
         return self.file_ops._save_file()
 
@@ -340,7 +340,7 @@ class QuickEditApp(ctk.CTk):
         if self.is_read_only:
             messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
             return False
-        
+
         # 直接调用文件操作处理器的另存为方法
         return self.file_ops._save_file(force_save_as=True)
 
@@ -368,13 +368,22 @@ class QuickEditApp(ctk.CTk):
                 "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
             )
             return
-        # 直接调用文件操作处理器的新建文件方法
-        self.file_ops.new_file()
+        # 关闭当前文件
+        self.file_ops.close_file()
+
+        # 调用新建文件辅助方法
+        self.file_ops._new_file_helper()
 
     def new_file_with_path(self, file_path):
         """通过指定路径创建新文件"""
-        # 调用FileOperations类的新方法
-        self.file_ops.new_file_with_path(file_path)
+        # 设置当前文件路径
+        self.current_file_path = file_path
+
+        # 使用辅助方法创建新文件，传入文件名
+        filename = os.path.basename(file_path)
+
+        # 调用新建文件辅助方法，传入文件名
+        self.file_ops._new_file_helper(filename)
 
     def toggle_read_only(self):
         """切换只读模式"""
