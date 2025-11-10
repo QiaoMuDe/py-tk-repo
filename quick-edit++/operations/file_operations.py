@@ -260,7 +260,7 @@ class FileOperations:
                     "不支持的操作", f"无法打开目录: {os.path.basename(file_path)}"
                 )
                 return
-            
+
             # 关闭当前文件
             self.close_file()
 
@@ -392,7 +392,7 @@ class FileOperations:
         else:  # 用户选择取消
             return False
 
-# 以下为打开文件的核心逻辑 #
+    # 以下为打开文件的核心逻辑 #
 
     def _open_file(
         self, select_path=False, check_save=False, check_backup=False, file_path=None
@@ -405,11 +405,21 @@ class FileOperations:
             check_save (bool): 是否需要检查文件是否为保存状态
             check_backup (bool): 是否需要检查备份
             file_path (str): 文件路径
+
+        Returns:
+            bool: 如果文件成功打开返回True，否则返回False
+
+        Raises:
+            ValueError: 当select_path=False且file_path为None或空字符串时抛出
         """
+        # 参数验证：当不需要选择路径时，必须提供有效的文件路径
+        if not select_path and not file_path:
+            raise ValueError("当select_path=False时，必须提供有效的file_path参数")
+
         # 检查是否需要检查文件是否为保存状态
         if check_save:
             if not self.check_save_before_close():
-                return  # 用户取消了操作
+                return False  # 用户取消了操作
 
         # 是否需要选择文件路径界面
         if select_path:
@@ -420,22 +430,53 @@ class FileOperations:
             )
 
             if not file_path:
-                return  # 用户取消了选择
+                return False  # 用户取消了选择
+
+        # 验证文件路径有效性
+        if not os.path.exists(file_path):
+            messagebox.showerror("错误", f"文件不存在: {file_path}")
+            return False
+
+        if not os.path.isfile(file_path):
+            messagebox.showerror("错误", f"指定路径不是文件: {file_path}")
+            return False
 
         # 检查是否需要处理备份恢复逻辑
         if check_backup:
             if self._check_backup_recovery(file_path):
-                return  # 已处理备份恢复，无需继续打开文件
+                return True  # 已处理备份恢复，无需继续打开文件
 
         # 调用核心文件打开逻辑
-        self._open_file_core(file_path)
+        return self._open_file_core(file_path)
 
     def _open_file_core(self, file_path):
         """
-        核心文件打开逻辑
+        核心文件打开逻辑，负责读取文件内容并更新编辑器状态
+
+        此方法执行以下操作：
+        1. 获取配置的最大文件大小限制
+        2. 使用核心类同步读取文件内容
+        3. 处理文件编码和行结束符
+        4. 更新编辑器内容和状态
+        5. 更新状态栏和窗口标题
 
         Args:
-            file_path (str): 文件路径
+            file_path (str): 要打开的文件的绝对路径
+
+        Returns:
+            bool: 如果文件成功打开返回True，否则返回False
+
+        Raises:
+            FileNotFoundError: 当指定的文件路径不存在时抛出
+            PermissionError: 当没有足够权限读取文件时抛出
+            UnicodeDecodeError: 当文件编码无法正确解码时抛出
+            MemoryError: 当文件过大超出内存限制时抛出
+            ValueError: 当文件路径无效时抛出
+
+        Note:
+            - 此方法会显示错误消息框来通知用户文件打开失败的原因
+            - 成功打开文件后，会重置编辑器的修改状态
+            - 文件内容会被加载到编辑器的文本区域中
         """
         try:
             # 获取配置的最大文件大小
@@ -483,14 +524,19 @@ class FileOperations:
                     # 更新窗口标题
                     self.root._update_window_title()
 
+                    return True
+
                 except Exception as e:
                     messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
+                    return False
             else:
                 # 读取失败
                 messagebox.showerror(result["title"], result["message"])
+                return False
 
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
+            return False
 
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""
@@ -512,13 +558,37 @@ class FileOperations:
 
     def _check_backup_recovery(self, file_path):
         """
-        检查并处理备份恢复逻辑
+        检查并处理备份恢复逻辑，当检测到备份文件存在时提供恢复选项
+
+        此方法执行以下操作：
+        1. 检查备份功能是否启用
+        2. 验证备份文件是否存在
+        3. 比较原文件和备份文件的修改时间
+        4. 显示备份恢复对话框
+        5. 根据用户选择执行相应的恢复操作
 
         Args:
-            file_path: 要打开的文件路径
+            file_path (str): 要打开的文件的绝对路径
 
         Returns:
             bool: 如果已处理备份恢复返回True，否则返回False
+                 返回True表示已处理文件打开逻辑，调用者不应继续打开文件
+                 返回False表示未处理备份恢复，调用者应继续正常打开文件
+
+        Raises:
+            OSError: 当访问文件系统失败时抛出
+            PermissionError: 当没有足够权限访问文件时抛出
+            ValueError: 当文件路径无效时抛出
+
+        Note:
+            - 备份文件路径为原文件路径添加".bak"后缀
+            - 备份恢复操作包括：
+              * 打开原文件
+              * 打开原文件并删除备份
+              * 打开备份文件并重命名为原文件
+              * 打开备份文件（不重命名）
+            - 所有错误都会通过消息框显示给用户
+            - 如果用户取消操作或发生错误，方法返回True阻止继续打开文件
         """
         # 检查是否启用了备份功能
         if not self.config_manager.get("app.backup_enabled", False):
