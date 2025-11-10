@@ -282,12 +282,20 @@ def create_menu(root):
     # 创建插入子菜单
     insert_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
     
-    # 脚本相关插入
+    # 代码相关插入
     script_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
     insert_submenu.add_cascade(label="代码", menu=script_submenu)
     script_submenu.add_command(label="脚本 Shebang 行", command=lambda: root.insert_shebang())
-    script_submenu.add_command(label="Python编码声明", command=lambda: root.insert_encoding())
     script_submenu.add_command(label="Go语言基本结构", command=lambda: root.insert_go_basic())
+    script_submenu.add_command(label="GO函数模板", command=lambda: root.insert_go_function_template())
+    script_submenu.add_command(label="GO结构体模板", command=lambda: root.insert_go_struct_template())
+    script_submenu.add_command(label="Python编码声明", command=lambda: root.insert_encoding())
+    script_submenu.add_command(label="Python函数模板", command=lambda: root.insert_python_function_template())
+    script_submenu.add_command(label="Python类模板", command=lambda: root.insert_python_class_template())
+    script_submenu.add_command(label="HTML基本结构", command=lambda: root.insert_html_basic_structure())
+    script_submenu.add_command(label="CSS基本结构", command=lambda: root.insert_css_basic_structure())
+    script_submenu.add_command(label="JavaScript函数模板", command=lambda: root.insert_javascript_function_template())
+    script_submenu.add_command(label="SQL查询模板", command=lambda: root.insert_sql_query_template())
     
     # 文件相关插入
     file_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)

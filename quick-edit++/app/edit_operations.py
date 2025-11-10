@@ -321,6 +321,602 @@ class EditOperations:
             # 忽略插入操作异常
             pass
 
+    def insert_python_function_template(self):
+        """插入Python函数模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入Python函数模板
+            python_function = """def function_name(parameter1, parameter2):
+    \"\"\"
+    函数功能描述
+    
+    Args:
+        parameter1: 参数1描述
+        parameter2: 参数2描述
+        
+    Returns:
+        返回值描述
+    \"\"\"
+    # 函数实现
+    pass
+"""
+            self.text_area.insert(tk.INSERT, python_function)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入Python函数模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_python_class_template(self):
+        """插入Python类模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入Python类模板
+            python_class = """class ClassName:
+    \"\"\"
+    类功能描述
+    
+    Attributes:
+        attribute1: 属性1描述
+        attribute2: 属性2描述
+    \"\"\"
+    
+    def __init__(self, parameter1, parameter2):
+        \"\"\"
+        初始化方法
+        
+        Args:
+            parameter1: 参数1描述
+            parameter2: 参数2描述
+        \"\"\"
+        self.attribute1 = parameter1
+        self.attribute2 = parameter2
+    
+    def method_name(self, parameter):
+        \"\"\"
+        方法功能描述
+        
+        Args:
+            parameter: 参数描述
+            
+        Returns:
+            返回值描述
+        \"\"\"
+        # 方法实现
+        pass
+"""
+            self.text_area.insert(tk.INSERT, python_class)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入Python类模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_html_basic_structure(self):
+        """插入HTML基本结构"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入HTML基本结构
+            html_structure = """<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页标题</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>网站标题</h1>
+    </header>
+    
+    <main>
+        <section>
+            <h2>内容标题</h2>
+            <p>这是网页的内容部分。</p>
+        </section>
+    </main>
+    
+    <footer>
+        <p>&copy; 2023 版权所有</p>
+    </footer>
+    
+    <script src="script.js"></script>
+</body>
+</html>"""
+            self.text_area.insert(tk.INSERT, html_structure)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入HTML基本结构", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_css_basic_structure(self):
+        """插入CSS基本结构"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入CSS基本结构
+            css_structure = """/* CSS基本样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* 头部样式 */
+header {
+    background-color: #4285f4;
+    color: white;
+    padding: 1rem 0;
+    text-align: center;
+}
+
+/* 主要内容样式 */
+main {
+    padding: 2rem 0;
+}
+
+section {
+    margin-bottom: 2rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 1rem;
+}
+
+p {
+    margin-bottom: 1rem;
+}
+
+/* 底部样式 */
+footer {
+    background-color: #f1f1f1;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 10px;
+    }
+}"""
+            self.text_area.insert(tk.INSERT, css_structure)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入CSS基本结构", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_javascript_function_template(self):
+        """插入JavaScript函数模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入JavaScript函数模板
+            js_function = """/**
+ * 函数描述
+ * @param {参数类型} 参数名 - 参数描述
+ * @returns {返回类型} 返回值描述
+ */
+function functionName(param1, param2) {
+    // 验证参数
+    if (!param1 || !param2) {
+        throw new Error('缺少必要参数');
+    }
+    
+    try {
+        // 函数逻辑
+        const result = param1 + param2;
+        
+        // 返回结果
+        return result;
+    } catch (error) {
+        console.error('函数执行出错:', error);
+        throw error;
+    }
+}
+
+// 使用示例
+try {
+    const result = functionName('value1', 'value2');
+    console.log('结果:', result);
+} catch (error) {
+    console.error('调用失败:', error);
+}
+
+// ES6箭头函数示例
+const arrowFunction = (param1, param2) => {
+    // 函数逻辑
+    return param1 + param2;
+};"""
+            self.text_area.insert(tk.INSERT, js_function)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入JavaScript函数模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_sql_query_template(self):
+        """插入SQL查询模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入SQL查询模板
+            sql_query = """-- SQL查询模板
+-- 基本查询
+SELECT 
+    column1, 
+    column2, 
+    column3
+FROM 
+    table_name
+WHERE 
+    condition = 'value'
+ORDER BY 
+    column1 ASC
+LIMIT 100;
+
+-- 连接查询
+SELECT 
+    a.column1, 
+    b.column2
+FROM 
+    table_a AS a
+INNER JOIN 
+    table_b AS b ON a.id = b.id
+WHERE 
+    a.condition = 'value';
+
+-- 插入数据
+INSERT INTO table_name (column1, column2, column3)
+VALUES ('value1', 'value2', 'value3');
+
+-- 更新数据
+UPDATE table_name
+SET 
+    column1 = 'new_value1',
+    column2 = 'new_value2'
+WHERE 
+    id = 1;
+
+-- 删除数据
+DELETE FROM table_name
+WHERE 
+    condition = 'value';
+
+-- 创建表
+CREATE TABLE table_name (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    column1 VARCHAR(255) NOT NULL,
+    column2 INT,
+    column3 DECIMAL(10, 2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 创建索引
+CREATE INDEX idx_table_name_column1 ON table_name(column1);
+
+-- 分组查询
+SELECT 
+    column1, 
+    COUNT(*) AS count,
+    AVG(column2) AS average
+FROM 
+    table_name
+GROUP BY 
+    column1
+HAVING 
+    COUNT(*) > 1;"""
+            self.text_area.insert(tk.INSERT, sql_query)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入SQL查询模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_go_function_template(self):
+        """插入GO函数模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入GO函数模板
+            go_function = """// FunctionName 函数描述
+// 参数说明:
+//   - param1: 参数1描述
+//   - param2: 参数2描述
+// 返回值:
+//   - returnType: 返回值描述
+//   - error: 错误信息
+func FunctionName(param1 string, param2 int) (returnType string, err error) {
+    // 参数验证
+    if param1 == "" {
+        return "", errors.New("param1不能为空")
+    }
+    if param2 <= 0 {
+        return "", errors.New("param2必须大于0")
+    }
+    
+    // 函数逻辑
+    result := fmt.Sprintf("%s_%d", param1, param2)
+    
+    // 返回结果
+    return result, nil
+}
+
+// 示例调用函数
+func exampleFunction() {
+    // 调用FunctionName函数
+    result, err := FunctionName("example", 123)
+    if err != nil {
+        log.Printf("调用FunctionName出错: %v", err)
+        return
+    }
+    
+    fmt.Printf("结果: %s\\n", result)
+}
+
+// 带有接收者的方法
+func (s *StructType) MethodName(param string) (string, error) {
+    // 方法实现
+    return fmt.Sprintf("方法调用: %s", param), nil
+}
+
+// 带有多个返回值的函数
+func multiReturnFunction() (int, string, bool) {
+    return 42, "多返回值示例", true
+}
+
+// 变参函数
+func variadicFunction(params ...int) int {
+    sum := 0
+    for _, param := range params {
+        sum += param
+    }
+    return sum
+}
+
+// 闭包函数
+func closureFunction() func(int) int {
+    return func(x int) int {
+        return x * x
+    }
+}"""
+            self.text_area.insert(tk.INSERT, go_function)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入GO函数模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_go_struct_template(self):
+        """插入GO结构体模板"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 在光标位置插入GO结构体模板
+            go_struct = """// StructName 结构体描述
+type StructName struct {
+    // 字段描述
+    ID       int    `json:"id" db:"id"`              // ID字段
+    Name     string `json:"name" db:"name"`          // 名称字段
+    Email    string `json:"email" db:"email"`        // 邮箱字段
+    Age      int    `json:"age" db:"age"`            // 年龄字段
+    IsActive bool   `json:"is_active" db:"is_active"` // 是否激活
+    CreatedAt time.Time `json:"created_at" db:"created_at"` // 创建时间
+    UpdatedAt time.Time `json:"updated_at" db:"updated_at"` // 更新时间
+}
+
+// NewStructName 创建新的StructName实例
+func NewStructName(name, email string, age int) *StructName {
+    now := time.Now()
+    return &StructName{
+        ID:       0, // 数据库自动生成
+        Name:     name,
+        Email:    email,
+        Age:      age,
+        IsActive: true,
+        CreatedAt: now,
+        UpdatedAt: now,
+    }
+}
+
+// String 返回StructName的字符串表示
+func (s *StructName) String() string {
+    return fmt.Sprintf("StructName{ID: %d, Name: %s, Email: %s, Age: %d, IsActive: %t}",
+        s.ID, s.Name, s.Email, s.Age, s.IsActive)
+}
+
+// Validate 验证StructName的字段
+func (s *StructName) Validate() error {
+    if s.Name == "" {
+        return errors.New("名称不能为空")
+    }
+    if s.Email == "" {
+        return errors.New("邮箱不能为空")
+    }
+    if !strings.Contains(s.Email, "@") {
+        return errors.New("邮箱格式不正确")
+    }
+    if s.Age < 0 || s.Age > 150 {
+        return errors.New("年龄必须在0-150之间")
+    }
+    return nil
+}
+
+// Update 更新StructName的UpdatedAt字段
+func (s *StructName) Update() {
+    s.UpdatedAt = time.Now()
+}
+
+// Deactivate 停用StructName
+func (s *StructName) Deactivate() {
+    s.IsActive = false
+    s.Update()
+}
+
+// Activate 激活StructName
+func (s *StructName) Activate() {
+    s.IsActive = true
+    s.Update()
+}
+
+// ToJSON 将StructName转换为JSON字符串
+func (s *StructName) ToJSON() (string, error) {
+    jsonBytes, err := json.Marshal(s)
+    if err != nil {
+        return "", err
+    }
+    return string(jsonBytes), nil
+}
+
+// FromJSON 从JSON字符串创建StructName
+func FromJSON(jsonStr string) (*StructName, error) {
+    var s StructName
+    err := json.Unmarshal([]byte(jsonStr), &s)
+    if err != nil {
+        return nil, err
+    }
+    return &s, nil
+}
+
+// 嵌套结构体示例
+type Address struct {
+    Street  string `json:"street"`
+    City    string `json:"city"`
+    Country string `json:"country"`
+    ZipCode string `json:"zip_code"`
+}
+
+// 包含嵌套结构体的结构体
+type PersonWithAddress struct {
+    StructName
+    Address Address `json:"address"`
+}
+
+// 接口示例
+type Validator interface {
+    Validate() error
+}
+
+// 实现接口
+func (s *StructName) IsValid() bool {
+    return s.Validate() == nil
+}"""
+            self.text_area.insert(tk.INSERT, go_struct)
+            
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+            
+            # 显示通知
+            self.status_bar.show_notification("已插入GO结构体模板", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
     def insert_filename(self):
         """插入当前文件名"""
         try:
