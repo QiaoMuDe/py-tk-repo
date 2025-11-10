@@ -11,10 +11,29 @@ from tkinter import filedialog, messagebox
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
+import shutil
 
 
 class FileOperations:
     """处理文件操作相关的业务逻辑"""
+
+    # 通用文件类型列表，避免在多个方法中重复定义
+    FILE_TYPES = [
+        ("所有文件", "*.*"),
+        ("文本文件", "*.txt"),
+        ("Python文件", "*.py"),
+        ("Markdown文件", "*.md"),
+        ("JSON文件", "*.json"),
+        ("YAML文件", "*.yaml"),
+        ("INI文件", "*.ini"),
+        ("XML文件", "*.xml"),
+        ("HTML文件", "*.html"),
+        ("CSS文件", "*.css"),
+        ("JavaScript文件", "*.js"),
+        ("TypeScript文件", "*.ts"),
+        ("C文件", "*.c"),
+        ("Go文件", "*.go"),
+    ]
 
     def __init__(self, root):
         """
@@ -23,201 +42,9 @@ class FileOperations:
         Args:
             root: app实例
         """
-        self.root = root
-        self.config_manager = config_manager
+        self.root = root  # 保存app实例引用
+        self.config_manager = config_manager  # 保存配置管理器引用
         self.file_core = FileOperationCore()  # 初始化文件操作核心
-        self.current_file_future = None  # 跟踪当前文件读取的Future对象
-
-    def _check_future_status(self):
-        """检查Future对象状态并更新UI"""
-        if self.current_file_future is None:
-            return
-
-        if self.current_file_future.done():
-            # Future已完成，获取结果
-            try:
-                result = self.current_file_future.result()
-                self._handle_file_read_result(result)
-            except Exception as e:
-                # 处理异常
-                error_result = {
-                    "success": False,
-                    "title": "读取文件错误",
-                    "message": f"读取文件时发生异常: {str(e)}",
-                }
-                self._handle_file_read_result(error_result)
-        else:
-            # Future未完成，继续检查
-            self.root.after(100, self._check_future_status)
-
-    def _cancel_file_read(self):
-        """取消文件读取操作"""
-        if self.current_file_future and not self.current_file_future.done():
-            self.current_file_future.cancel()
-            self.file_core.cancel_all_reads()
-            # 显示取消消息
-            messagebox.showinfo("提示", "文件读取已取消")
-
-    def _handle_file_read_result(self, result):
-        """处理文件读取结果
-
-        Args:
-            result: 文件读取结果字典，包含success、data、title、message字段
-        """
-        if result["success"]:
-            # 读取成功
-            data = result["data"]
-            self._on_file_read_complete(data)
-        else:
-            # 读取失败
-            self._on_file_read_error(result["title"], result["message"])
-
-    def open_file(self):
-        """打开文件并加载到编辑器"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        try:
-            # 打开文件选择对话框
-            file_path = filedialog.askopenfilename(
-                title="选择文件",
-                filetypes=[
-                    ("所有文件", "*.*"),
-                    ("文本文件", "*.txt"),
-                    ("Python文件", "*.py"),
-                    ("Markdown文件", "*.md"),
-                    ("JSON文件", "*.json"),
-                    ("YAML文件", "*.yaml"),
-                    ("INI文件", "*.ini"),
-                    ("XML文件", "*.xml"),
-                    ("HTML文件", "*.html"),
-                    ("CSS文件", "*.css"),
-                    ("JavaScript文件", "*.js"),
-                    ("TypeScript文件", "*.ts"),
-                    ("C文件", "*.c"),
-                    ("Go文件", "*.go"),
-                ],
-            )
-
-            if not file_path:
-                return  # 用户取消了选择
-
-            # 在文件打开前检查备份恢复
-            if self._check_and_handle_backup_recovery(file_path):
-                return  # 备份恢复已处理，无需继续打开原文件
-
-            # 获取配置的最大文件大小
-            max_file_size = self.config_manager.get(
-                "app.max_file_size", 10 * 1024 * 1024
-            )  # 转换为字节
-
-            # 使用核心类异步读取文件
-            self._read_file_async(file_path, max_file_size)
-
-        except Exception as e:
-            messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
-
-    def _read_file_async(self, file_path, max_file_size):
-        """异步读取文件
-
-        Args:
-            file_path: 文件路径
-            max_file_size: 最大文件大小限制
-        """
-        # 取消之前的读取操作
-        if self.current_file_future and not self.current_file_future.done():
-            self.current_file_future.cancel()
-            self.file_core.cancel_all_reads()
-
-        # 开始新的异步读取
-        self.current_file_future = self.file_core.read_file_async(
-            file_path, max_file_size
-        )
-
-        # 开始检查Future状态
-        self._check_future_status()
-
-    def _on_file_read_complete(self, data):
-        """
-        文件读取完成回调
-
-        Args:
-            data: 文件数据字典，包含file_path、content、encoding、line_ending、file_size字段
-        """
-        try:
-            file_path = data["file_path"]
-            content = data["content"]
-            encoding = data["encoding"]
-            line_ending = data["line_ending"]
-
-            # 更新编辑器内容
-            self.root.text_area.delete("1.0", tk.END)
-            self.root.text_area.insert("1.0", content)
-
-            # 保存当前文件路径到编辑器实例
-            self.root.current_file_path = file_path
-            self.root.current_encoding = encoding
-            self.root.current_line_ending = line_ending
-
-            # 重置修改状态
-            self.root.set_modified(False)  # 清除修改状态标志
-            self.root.is_new_file = False  # 清除新文件状态标志
-
-            # 更新缓存的字符数
-            self.root.update_char_count()
-
-            # 更新状态栏文件信息
-            self.root.status_bar.update_file_info()
-
-            # 更新状态栏
-            self.root.status_bar.set_status_info(
-                f"已打开: {os.path.basename(file_path)}"
-            )
-
-            # 更新窗口标题
-            self.root._update_window_title()
-
-        except Exception as e:
-            messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
-
-    def _on_file_read_error(self, title, message):
-        """
-        文件读取错误回调
-
-        Args:
-            title: 错误标题
-            message: 错误详细信息
-        """
-        messagebox.showerror(title, message)
-
-    def open_config_file(self):
-        """打开配置文件并加载到编辑器"""
-        # 检查是否需要保存当前文件
-        if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        try:
-            # 获取配置文件路径
-            from config.config_manager import CONFIG_PATH
-
-            # 检查配置文件是否存在
-            if not os.path.exists(CONFIG_PATH):
-                from tkinter import messagebox
-
-                messagebox.showinfo(
-                    "提示", "配置文件不存在，将在首次修改设置时自动创建"
-                )
-                return
-
-            # 在文件打开前检查备份恢复
-            if self._check_and_handle_backup_recovery(CONFIG_PATH):
-                return  # 备份恢复已处理，无需继续打开原文件
-
-            # 直接使用配置文件路径，不显示文件选择对话框
-            self._open_file_with_path_helper(CONFIG_PATH)
-        except Exception as e:
-            messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 
     def _create_backup_copy(self, file_path):
         """
@@ -227,9 +54,6 @@ class FileOperations:
             file_path: 原文件路径
         """
         try:
-            import shutil
-            import threading
-
             # 构建备份文件路径（在原文件名后添加.bak扩展名）
             backup_path = f"{file_path}.bak"
 
@@ -237,36 +61,9 @@ class FileOperations:
             if os.path.exists(backup_path):
                 os.remove(backup_path)
 
-            # 获取文件大小，决定是否使用新线程
-            file_size = os.path.getsize(file_path)
-
-            # 定义备份操作函数
-            def backup_operation():
-                try:
-                    # 使用copy2保留元数据
-                    shutil.copy2(file_path, backup_path)
-                    # 在主线程中显示通知
-                    self.root.after(
-                        0,
-                        lambda: self.root.status_bar.show_notification(
-                            "已创建副本备份"
-                        ),
-                    )
-                except Exception as e:
-                    # 在主线程中显示错误
-                    self.root.after(
-                        0,
-                        lambda: messagebox.showerror(
-                            "备份错误", f"创建副本备份失败: {str(e)}"
-                        ),
-                    )
-
-            # 如果文件大于1MB，使用新线程执行备份操作
-            if file_size > 1024 * 1024:  # 1MB
-                threading.Thread(target=backup_operation, daemon=True).start()
-            else:
-                # 小文件直接在主线程执行
-                backup_operation()
+            # 使用copy2保留元数据
+            shutil.copy2(file_path, backup_path)
+            self.root.status_bar.show_notification("已创建副本备份")
 
         except Exception as e:
             messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
@@ -346,9 +143,7 @@ class FileOperations:
         content = self.root.text_area.get("1.0", tk.END).strip()
 
         # 检查是否有文件路径
-        has_file_path = (
-            hasattr(self.root, "current_file_path") and self.root.current_file_path
-        )
+        has_file_path = self.root.current_file_path
 
         # 情况1：没有打开文件且文本框没有内容
         if not has_file_path and not content:
@@ -394,22 +189,7 @@ class FileOperations:
             file_path = filedialog.asksaveasfilename(
                 title="另存为",
                 defaultextension=".txt",
-                filetypes=[
-                    ("所有文件", "*.*"),
-                    ("文本文件", "*.txt"),
-                    ("Python文件", "*.py"),
-                    ("Markdown文件", "*.md"),
-                    ("JSON文件", "*.json"),
-                    ("YAML文件", "*.yaml"),
-                    ("INI文件", "*.ini"),
-                    ("XML文件", "*.xml"),
-                    ("HTML文件", "*.html"),
-                    ("CSS文件", "*.css"),
-                    ("JavaScript文件", "*.js"),
-                    ("TypeScript文件", "*.ts"),
-                    ("C文件", "*.c"),
-                    ("Go文件", "*.go"),
-                ],
+                filetypes=self.FILE_TYPES,
             )
 
             if not file_path:
@@ -443,7 +223,7 @@ class FileOperations:
         self.root.status_bar.update_file_info()
 
         # 更新窗口标题为新文件
-        self.root.title(f"{filename} - QuickEdit++")
+        self.root._update_window_title()
 
     def new_file(self):
         """创建新文件"""
@@ -451,20 +231,6 @@ class FileOperations:
 
         # 使用辅助方法创建新文件
         self._new_file_helper()
-
-    def _open_file_with_path_helper(self, file_path):
-        """通过指定路径打开文件的辅助方法"""
-        try:
-            # 获取配置的最大文件大小
-            max_file_size = self.config_manager.get(
-                "app.max_file_size", 10 * 1024 * 1024
-            )  # 转换为字节
-
-            # 异步读取文件
-            self._read_file_async(file_path, max_file_size)
-
-        except Exception as e:
-            messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
 
     def handle_dropped_files(self, files):
         """
@@ -494,17 +260,12 @@ class FileOperations:
                     "不支持的操作", f"无法打开目录: {os.path.basename(file_path)}"
                 )
                 return
+            
+            # 关闭当前文件
+            self.close_file()
 
-            # 检查是否需要保存当前文件
-            if not self.check_save_before_close():
-                return  # 用户取消了操作
-
-            # 检查并处理备份恢复
-            if self._check_and_handle_backup_recovery(file_path):
-                return  # 已处理备份恢复，不再继续打开原文件
-
-            # 文件存在，直接打开
-            self._open_file_with_path_helper(file_path)
+            # 使用通用方法打开文件
+            self._open_file(check_backup=True, file_path=file_path)
         else:
             # 文件不存在，检查上级目录是否存在
             dir_path = os.path.dirname(file_path)
@@ -512,9 +273,8 @@ class FileOperations:
                 messagebox.showerror("错误", f"该文件的上级目录不存在: {dir_path}")
                 return
 
-            # 检查是否需要保存当前文件
-            if not self.check_save_before_close():
-                return  # 用户取消了操作
+            # 关闭当前文件
+            self.close_file()
 
             # 作为新文件创建
             self.new_file_with_path(file_path)
@@ -599,7 +359,8 @@ class FileOperations:
         self._reset_editor_state()
 
     def check_save_before_close(self):
-        """在关闭文件前检查是否需要保存
+        """
+        在关闭文件前检查是否需要保存
 
         Returns:
             bool: 如果可以继续关闭操作返回True，如果用户取消则返回False
@@ -631,8 +392,127 @@ class FileOperations:
         else:  # 用户选择取消
             return False
 
-    def _check_and_handle_backup_recovery(self, file_path):
-        """在文件打开前检查并处理备份恢复逻辑
+# 以下为打开文件的核心逻辑 #
+
+    def _open_file(
+        self, select_path=False, check_save=False, check_backup=False, file_path=None
+    ):
+        """
+        打开文件核心逻辑
+
+        Args:
+            select_path (bool): 是否需要选择文件路径界面
+            check_save (bool): 是否需要检查文件是否为保存状态
+            check_backup (bool): 是否需要检查备份
+            file_path (str): 文件路径
+        """
+        # 检查是否需要检查文件是否为保存状态
+        if check_save:
+            if not self.check_save_before_close():
+                return  # 用户取消了操作
+
+        # 是否需要选择文件路径界面
+        if select_path:
+            # 打开文件选择对话框
+            file_path = filedialog.askopenfilename(
+                title="选择文件",
+                filetypes=self.FILE_TYPES,
+            )
+
+            if not file_path:
+                return  # 用户取消了选择
+
+        # 检查是否需要处理备份恢复逻辑
+        if check_backup:
+            if self._check_backup_recovery(file_path):
+                return  # 已处理备份恢复，无需继续打开文件
+
+        # 调用核心文件打开逻辑
+        self._open_file_core(file_path)
+
+    def _open_file_core(self, file_path):
+        """
+        核心文件打开逻辑
+
+        Args:
+            file_path (str): 文件路径
+        """
+        try:
+            # 获取配置的最大文件大小
+            max_file_size = self.config_manager.get(
+                "app.max_file_size", 10 * 1024 * 1024
+            )  # 转换为字节
+
+            # 使用核心类同步读取文件
+            result = self.file_core.read_file_sync(file_path, max_file_size)
+
+            # 直接处理读取结果
+            if result["success"]:
+                # 读取成功
+                data = result["data"]
+                try:
+                    file_path = data["file_path"]
+                    content = data["content"]
+                    encoding = data["encoding"]
+                    line_ending = data["line_ending"]
+
+                    # 更新编辑器内容
+                    self.root.text_area.delete("1.0", tk.END)
+                    self.root.text_area.insert("1.0", content)
+
+                    # 保存当前文件路径到编辑器实例
+                    self.root.current_file_path = file_path
+                    self.root.current_encoding = encoding
+                    self.root.current_line_ending = line_ending
+
+                    # 重置修改状态
+                    self.root.set_modified(False)  # 清除修改状态标志
+                    self.root.is_new_file = False  # 清除新文件状态标志
+
+                    # 更新缓存的字符数
+                    self.root.update_char_count()
+
+                    # 更新状态栏文件信息
+                    self.root.status_bar.update_file_info()
+
+                    # 更新状态栏
+                    self.root.status_bar.set_status_info(
+                        f"已打开: {os.path.basename(file_path)}"
+                    )
+
+                    # 更新窗口标题
+                    self.root._update_window_title()
+
+                except Exception as e:
+                    messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
+            else:
+                # 读取失败
+                messagebox.showerror(result["title"], result["message"])
+
+        except Exception as e:
+            messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
+
+    def open_config_file(self):
+        """打开配置文件并加载到编辑器"""
+        try:
+            # 获取配置文件路径
+            from config.config_manager import CONFIG_PATH
+
+            # 检查配置文件是否存在
+            if not os.path.exists(CONFIG_PATH):
+                messagebox.showinfo(
+                    "提示", "配置文件不存在，将在首次修改设置时自动创建"
+                )
+                return
+
+            # 使用通用文件打开方法打开配置文件
+            self._open_file(file_path=CONFIG_PATH, check_backup=True, check_save=True)
+        except Exception as e:
+            messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
+
+    def _check_backup_recovery(self, file_path):
+        """
+        检查并处理备份恢复逻辑
 
         Args:
             file_path: 要打开的文件路径
@@ -645,7 +525,7 @@ class FileOperations:
             return False
 
         # 构建备份文件路径
-        backup_path = file_path + ".bak"
+        backup_path = f"{file_path}.bak"
 
         # 检查备份文件是否存在
         if not os.path.exists(backup_path):
@@ -666,14 +546,14 @@ class FileOperations:
 
             elif choice == BackupActions.OPEN_ORIGINAL:
                 # 从源文件打开
-                self._open_file_with_path_helper(file_path)
+                self._open_file_core(file_path)
                 return True  # 已处理，无需继续打开原文件
 
             elif choice == BackupActions.OPEN_ORIGINAL_DELETE_BACKUP:
                 # 从源文件打开并删除备份文件
                 try:
                     os.remove(backup_path)
-                    self._open_file_with_path_helper(file_path)
+                    self._open_file_core(file_path)
                     return True  # 已处理，无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
@@ -687,7 +567,7 @@ class FileOperations:
                     # 重命名备份文件为原文件名
                     os.rename(backup_path, file_path)
                     # 打开重命名后的文件
-                    self._open_file_with_path_helper(file_path)
+                    self._open_file_core(file_path)
                     return True  # 已处理，无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
@@ -696,7 +576,7 @@ class FileOperations:
             elif choice == BackupActions.OPEN_BACKUP:
                 # 从备份文件打开（不重命名）
                 # 直接打开备份文件
-                self._open_file_with_path_helper(backup_path)
+                self._open_file_core(backup_path)
                 return True  # 已处理，无需继续打开原文件
 
         except Exception as e:

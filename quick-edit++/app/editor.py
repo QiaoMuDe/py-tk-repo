@@ -314,22 +314,15 @@ class QuickEditApp(ctk.CTk):
         """打开文件并加载到文本编辑区域"""
         # 检查是否为只读模式
         if self.is_read_only:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
             return
+        
         # 直接调用文件操作处理器的打开文件方法
-        self.file_ops.open_file()
+        self.file_ops._open_file(check_save=True, check_backup=True, select_path=True)
 
     def open_file_with_path(self, file_path):
         """通过指定路径打开文件"""
-        # 检查是否通过备份处理(只在启用备份功能时检查)
-        if self.file_ops._check_and_handle_backup_recovery(file_path):
-            # 备份文件存在，恢复备份文件
-            return  # 已处理，无需继续打开原文件
-
-        # 文件存在，直接打开
-        self.file_ops._open_file_with_path_helper(file_path)
+        self.file_ops._open_file(check_backup=True, file_path=file_path)
 
     def save_file(self):
         """保存当前文件"""

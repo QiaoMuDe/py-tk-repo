@@ -6,37 +6,10 @@ import os
 import sys
 import codecs
 import chardet
-import concurrent.futures
 
 
 class FileOperationCore:
     """文件操作核心功能类，提供基础的文件操作功能"""
-
-    def __init__(self):
-        """初始化文件操作核心"""
-        # 创建线程池，最多同时处理1个文件读取任务
-        self.executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        # 跟踪当前正在执行的Future对象
-        self.current_futures = []
-        # 标记线程池是否已关闭
-        self._shutdown = False
-
-    def shutdown(self):
-        """关闭线程池，释放资源"""
-        if not self._shutdown:
-            # 取消所有未完成的任务
-            self.cancel_all_reads()
-            # 关闭线程池
-            self.executor.shutdown(wait=True)
-            self._shutdown = True
-
-    def __del__(self):
-        """析构函数，确保资源被释放"""
-        try:
-            self.shutdown()
-        except:
-            # 忽略析构时的异常
-            pass
 
     def is_binary_file(self, file_path=None, sample_data=None, sample_size=1024):
         """
@@ -107,16 +80,16 @@ class FileOperationCore:
                     # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
                     raw_data = file.read(1024)
 
-            # 检测编码 - 添加异常处理以防止chardet库的线程问题
+            # 检测编码
             if raw_data:
                 try:
                     result = chardet.detect(raw_data)
                     encoding = result["encoding"] if result["encoding"] else "UTF-8"
 
-                    # 改进：将ASCII编码统一显示为UTF-8，因为ASCII是UTF-8的子集
+                    # 将ASCII编码统一显示为UTF-8，因为ASCII是UTF-8的子集
                     if encoding and encoding.lower() == "ascii":
                         encoding = "UTF-8"
-                except Exception as e:
+                except Exception:
                     # 如果chardet检测失败，使用默认编码
                     encoding = "UTF-8"
             else:
@@ -136,129 +109,84 @@ class FileOperationCore:
         except Exception:
             return "UTF-8", "LF"  # 出错时返回默认值
 
-    def read_file_async(self, file_path, max_file_size=10 * 1024 * 1024):
+    def read_file_sync(self, file_path, max_file_size=10 * 1024 * 1024):
         """
-        异步读取文件内容
+        同步读取文件内容
 
         Args:
             file_path: 要读取的文件路径
             max_file_size: 最大允许的文件大小（字节），默认10MB
 
         Returns:
-            concurrent.futures.Future: Future对象，可通过result()方法获取结果字典
+            dict: 包含读取结果的字典
         """
-        # 检查线程池是否已关闭
-        if self._shutdown:
-            # 创建一个已完成的Future对象，返回错误结果
-            future = concurrent.futures.Future()
-            error_result = {
-                "success": False,
-                "data": None,
-                "title": "线程池已关闭",
-                "message": "文件读取功能已不可用，请重新启动应用程序",
-            }
-            future.set_result(error_result)
-            return future
+        result = {"success": False, "data": None, "title": "", "message": ""}
 
-        def _read_file():
-            """实际读取文件的工作函数"""
-            result = {"success": False, "data": None, "title": "", "message": ""}
+        try:
+            # 检查文件是否存在
+            if not os.path.exists(file_path):
+                result["title"] = "文件不存在"
+                result["message"] = f"指定的文件不存在：{file_path}"
+                return result
 
-            try:
-                # 检查文件是否存在
-                if not os.path.exists(file_path):
-                    result["title"] = "文件不存在"
-                    result["message"] = f"指定的文件不存在：{file_path}"
-                    return result
-
-                # 检查文件大小
-                file_size = os.path.getsize(file_path)
-                if file_size > max_file_size:
-                    result["title"] = "文件过大"
-                    result["message"] = (
-                        f"文件大小: {self.format_file_size(file_size)}\n"
-                        f"最大限制: {self.format_file_size(max_file_size)}\n\n"
-                        f"建议：\n"
-                        f"• 使用专业的大型文件编辑器打开此文件\n"
-                        f"• 或在设置中增加最大文件大小限制"
-                    )
-                    return result
-
-                # 读取样本数据用于检测
-                sample_data = None
-                with open(file_path, "rb") as file:
-                    # 读取1KB样本数据用于二进制文件检测、编码检测和换行符检测
-                    sample_data = file.read(1024)
-
-                # 检测是否为二进制文件
-                if self.is_binary_file(sample_data=sample_data):
-                    result["title"] = "无法打开二进制文件"
-                    result["message"] = (
-                        "QuickEdit++ 是一个文本编辑器，不支持打开二进制文件。\n\n"
-                        f"建议：\n"
-                        f"• 使用十六进制编辑器查看此文件\n"
-                        f"• 或使用支持二进制文件的专业编辑器"
-                    )
-                    return result
-
-                # 检测编码和换行符类型
-                encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                    sample_data=sample_data
+            # 检查文件大小
+            file_size = os.path.getsize(file_path)
+            if file_size > max_file_size:
+                result["title"] = "文件过大"
+                result["message"] = (
+                    f"文件大小: {self.format_file_size(file_size)}\n"
+                    f"最大限制: {self.format_file_size(max_file_size)}\n\n"
+                    f"建议：\n"
+                    f"• 使用专业的大型文件编辑器打开此文件\n"
+                    f"• 或在设置中增加最大文件大小限制"
                 )
-
-                # 全量读取文件内容
-                with codecs.open(
-                    file_path, "r", encoding=encoding, errors="replace"
-                ) as file:
-                    content = file.read()
-
-                # 构建成功结果
-                result["success"] = True
-                result["data"] = {
-                    "file_path": file_path,
-                    "content": content,
-                    "encoding": encoding,
-                    "line_ending": line_ending,
-                    "file_size": file_size,
-                }
-                result["title"] = "文件读取成功"
-                result["message"] = f"成功读取文件: {os.path.basename(file_path)}"
-
                 return result
 
-            except Exception as e:
-                result["title"] = "读取文件错误"
-                result["message"] = f"无法打开文件: {str(e)}"
+            # 读取1KB样本数据用于检测
+            sample_data = None
+            with open(file_path, "rb") as file:
+                sample_data = file.read(1024)
+
+            # 检测是否为二进制文件
+            if self.is_binary_file(sample_data=sample_data):
+                result["title"] = "无法打开二进制文件"
+                result["message"] = (
+                    "QuickEdit++ 是一个文本编辑器，不支持打开二进制文件。\n\n"
+                    f"建议：\n"
+                    f"• 使用十六进制编辑器查看此文件\n"
+                    f"• 或使用支持二进制文件的专业编辑器"
+                )
                 return result
 
-        # 提交任务到线程池
-        future = self.executor.submit(_read_file)
-        self.current_futures.append(future)
+            # 检测编码和换行符类型
+            encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                sample_data=sample_data
+            )
 
-        # 定期清理已完成的Future对象
-        self._cleanup_completed_futures()
+            # 全量读取文件内容
+            with codecs.open(
+                file_path, "r", encoding=encoding, errors="replace"
+            ) as file:
+                content = file.read()
 
-        return future
+            # 构建成功结果
+            result["success"] = True  # 读取成功
+            result["data"] = {  # 文件读取成功数据
+                "file_path": file_path,  # 文件路径
+                "content": content,  # 文件内容
+                "encoding": encoding,  # 文件编码
+                "line_ending": line_ending,  # 文件换行符格式
+                "file_size": file_size,  # 文件大小（字节）
+            }
+            result["title"] = "文件读取成功"
+            result["message"] = f"成功读取文件: {os.path.basename(file_path)}"
 
-    def _cleanup_completed_futures(self):
-        """清理已完成的Future对象，避免内存泄漏"""
-        # 使用列表推导式过滤掉已完成的Future对象
-        self.current_futures = [f for f in self.current_futures if not f.done()]
+            return result
 
-    def get_active_future_count(self):
-        """获取当前活跃的Future对象数量"""
-        self._cleanup_completed_futures()
-        return len(self.current_futures)
-
-    def cancel_all_reads(self):
-        """取消所有正在进行的文件读取操作"""
-        # 如果线程池已关闭，无需取消
-        if self._shutdown:
-            return
-
-        for future in self.current_futures:
-            future.cancel()
-        self.current_futures = []
+        except Exception as e:
+            result["title"] = "读取文件错误"
+            result["message"] = f"无法打开文件: {str(e)}"
+            return result
 
     def format_file_size(self, size_bytes):
         """
