@@ -102,7 +102,7 @@ class AppInitializer:
     def init_menu_variables(self):
         """初始化菜单状态变量"""
         # 初始化菜单状态变量，从配置管理器加载默认值
-        
+
         # 初始化工具栏状态变量
         self.app.toolbar_var = tk.BooleanVar(
             value=config_manager.get("app.show_toolbar", True)
@@ -117,7 +117,7 @@ class AppInitializer:
         self.app.quick_insert_var = tk.BooleanVar(
             value=config_manager.get("text_editor.quick_insert", True)
         )
-        
+
         # 注意：auto_save_var 和 auto_save_interval_var 现在由 AutoSaveManager 类管理
 
         # 创建备份状态变量

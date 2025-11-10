@@ -154,7 +154,7 @@ class FileOperations:
                     "提示", "配置文件不存在，将在首次修改设置时自动创建"
                 )
                 return
-            
+
             # 在文件打开前检查备份恢复
             if self._check_and_handle_backup_recovery(CONFIG_PATH):
                 return  # 备份恢复已处理，无需继续打开原文件
@@ -167,42 +167,52 @@ class FileOperations:
     def _create_backup_copy(self, file_path):
         """
         创建文件的副本备份
-        
+
         Args:
             file_path: 原文件路径
         """
         try:
             import shutil
             import threading
-            
+
             # 构建备份文件路径（在原文件名后添加.bak扩展名）
             backup_path = f"{file_path}.bak"
-            
+
             # 如果备份文件已存在，先删除
             if os.path.exists(backup_path):
                 os.remove(backup_path)
-            
+
             # 获取文件大小，决定是否使用新线程
             file_size = os.path.getsize(file_path)
-            
+
             # 定义备份操作函数
             def backup_operation():
                 try:
                     # 使用copy2保留元数据
                     shutil.copy2(file_path, backup_path)
                     # 在主线程中显示通知
-                    self.root.after(0, lambda: self.root.status_bar.show_notification("已创建副本备份"))
+                    self.root.after(
+                        0,
+                        lambda: self.root.status_bar.show_notification(
+                            "已创建副本备份"
+                        ),
+                    )
                 except Exception as e:
                     # 在主线程中显示错误
-                    self.root.after(0, lambda: messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}"))
-            
+                    self.root.after(
+                        0,
+                        lambda: messagebox.showerror(
+                            "备份错误", f"创建副本备份失败: {str(e)}"
+                        ),
+                    )
+
             # 如果文件大于1MB，使用新线程执行备份操作
             if file_size > 1024 * 1024:  # 1MB
                 threading.Thread(target=backup_operation, daemon=True).start()
             else:
                 # 小文件直接在主线程执行
                 backup_operation()
-                
+
         except Exception as e:
             messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
 
@@ -495,6 +505,40 @@ class FileOperations:
         # 更新窗口标题
         self.root._update_window_title()
 
+    def _handle_backup_on_close(self, file_saved):
+        """
+        在关闭窗口或关闭文件时处理备份文件的辅助方法
+
+        Args:
+            file_saved (bool): 文件是否已保存
+        """
+        # 检查是否启用了备份功能
+        if not self.config_manager.get("app.backup_enabled", False):
+            return
+
+        # 如果没有当前文件路径或者是新文件，不需要处理备份
+        if not self.root.current_file_path or self.root.is_new_file:
+            return
+
+        # 构建备份文件路径
+        backup_path = f"{self.root.current_file_path}.bak"
+
+        # 检查备份文件是否存在
+        if not os.path.exists(backup_path):
+            return
+
+        try:
+            if file_saved:
+                # 文件已保存，删除备份文件
+                os.remove(backup_path)
+                self.root.status_bar.show_notification("已删除备份文件")
+            else:
+                # 文件未保存，保留备份文件作为未保存内容的备份
+                self.root.status_bar.show_notification("已保留备份文件")
+        except Exception as e:
+            # 删除或处理备份文件出错，仅记录错误不影响关闭流程
+            self.root.status_bar.show_notification(f"处理备份文件时出错: {str(e)}")
+
     def close_file(self):
         """关闭当前文件，重置窗口和状态栏状态"""
         # 检查是否需要保存当前文件
@@ -512,6 +556,8 @@ class FileOperations:
         """
         # 如果文件未修改，直接返回True
         if not self.root.is_modified():
+            # 文件未修改，处理备份文件
+            self._handle_backup_on_close(file_saved=True)
             return True
 
         # 如果文件已修改，提示用户
@@ -519,10 +565,17 @@ class FileOperations:
             "未保存的更改", "当前文件有未保存的更改，是否保存？"
         )
 
+        # 新增的备份处理逻辑
         if result is True:  # 用户选择保存
-            return self.save_file()
+            save_success = self.save_file()
+            if save_success:
+                # 保存成功，处理备份文件
+                self._handle_backup_on_close(file_saved=True)
+            return save_success
 
         elif result is False:  # 用户选择不保存
+            # 不保存，处理备份文件
+            self._handle_backup_on_close(file_saved=False)
             return True
 
         else:  # 用户选择取消
@@ -530,52 +583,52 @@ class FileOperations:
 
     def _check_and_handle_backup_recovery(self, file_path):
         """在文件打开前检查并处理备份恢复逻辑
-        
+
         Args:
             file_path: 要打开的文件路径
-            
+
         Returns:
             bool: 如果已处理备份恢复返回True，否则返回False
         """
         # 检查是否启用了备份功能
         if not self.config_manager.get("app.backup_enabled", False):
             return False
-            
+
         # 构建备份文件路径
         backup_path = file_path + ".bak"
-        
+
         # 检查备份文件是否存在
         if not os.path.exists(backup_path):
             return False
-            
+
         # 获取文件和备份文件的修改时间
         try:
             file_mtime = os.path.getmtime(file_path)
             backup_mtime = os.path.getmtime(backup_path)
-            
+
             # 显示备份恢复对话框
             dialog = SimpleBackupDialog(self.root, file_path, backup_path)
             choice = dialog.result["action"]
-            
+
             # 处理用户选择
             if choice is None or choice == BackupActions.CANCEL:
                 return True  # 用户取消，不打开任何文件
-                
+
             elif choice == BackupActions.OPEN_ORIGINAL:
                 # 从源文件打开
                 self._open_file_with_path_helper(file_path)
                 return True  # 已处理，无需继续打开原文件
-                
+
             elif choice == BackupActions.OPEN_ORIGINAL_DELETE_BACKUP:
                 # 从源文件打开并删除备份文件
                 try:
                     os.remove(backup_path)
-                    self._open_file_with_path_helper(file_path) 
+                    self._open_file_with_path_helper(file_path)
                     return True  # 已处理，无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
                     return True  # 出错，不打开任何文件
-                    
+
             elif choice == BackupActions.OPEN_BACKUP_RENAME:
                 # 从备份文件打开并重命名为原文件
                 try:
@@ -584,20 +637,20 @@ class FileOperations:
                     # 重命名备份文件为原文件名
                     os.rename(backup_path, file_path)
                     # 打开重命名后的文件
-                    self._open_file_with_path_helper(file_path) 
+                    self._open_file_with_path_helper(file_path)
                     return True  # 已处理，无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
                     return True  # 出错，不打开任何文件
-                    
+
             elif choice == BackupActions.OPEN_BACKUP:
                 # 从备份文件打开（不重命名）
                 # 直接打开备份文件
                 self._open_file_with_path_helper(backup_path)
                 return True  # 已处理，无需继续打开原文件
-                
+
         except Exception as e:
             messagebox.showerror("错误", f"处理备份文件时出错: {str(e)}")
             return True  # 出错，不打开任何文件
-            
+
         return False

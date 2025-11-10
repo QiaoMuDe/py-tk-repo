@@ -318,8 +318,8 @@ class QuickEditApp(ctk.CTk):
         # 检查是否通过备份处理(只在启用备份功能时检查)
         if self.file_ops._check_and_handle_backup_recovery(file_path):
             # 备份文件存在，恢复备份文件
-            return # 已处理，无需继续打开原文件
-        
+            return  # 已处理，无需继续打开原文件
+
         # 文件存在，直接打开
         self.file_ops._open_file_with_path_helper(file_path)
 
