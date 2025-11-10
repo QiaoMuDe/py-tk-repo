@@ -23,9 +23,10 @@ from tkinter import messagebox
 from app.app_initializer import AppInitializer
 from app.auto_save_manager import AutoSaveManager
 from app.edit_operations import EditOperations
+from app.selection_operations import SelectionOperations
 
 
-class QuickEditApp(EditOperations, ctk.CTk):
+class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     """QuickEdit++ 主应用类 - 直接继承ctk.CTk作为主窗口"""
 
     def __init__(self):

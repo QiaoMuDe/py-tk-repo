@@ -109,7 +109,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("撤销操作"),
+            command=self.parent.undo,
         )
         self.undo_button.pack(side="left", padx=2, pady=10)
 
@@ -120,7 +120,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("重做操作"),
+            command=self.parent.redo,
         )
         self.redo_button.pack(side="left", padx=2, pady=10)
 
@@ -135,7 +135,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("剪切"),
+            command=self.parent.cut,
         )
         self.cut_button.pack(side="left", padx=2, pady=10)
 
@@ -146,7 +146,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("复制"),
+            command=self.parent.copy,
         )
         self.copy_button.pack(side="left", padx=2, pady=10)
 
@@ -157,7 +157,7 @@ class Toolbar(ctk.CTkFrame):
             width=60,
             height=30,
             font=self.button_font,
-            command=lambda: print("粘贴"),
+            command=self.parent.paste,
         )
         self.paste_button.pack(side="left", padx=2, pady=10)
 
