@@ -268,8 +268,9 @@ def create_menu(root):
 
     # 创建复制到剪贴板子菜单
     copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
-    copy_to_clipboard_submenu.add_command(label="复制文件名", command=lambda: root.copy_filename_to_clipboard())
-    copy_to_clipboard_submenu.add_command(label="复制文件路径", command=lambda: root.copy_filepath_to_clipboard())
+    copy_to_clipboard_submenu.add_command(label="文件名", command=lambda: root.copy_filename_to_clipboard())
+    copy_to_clipboard_submenu.add_command(label="文件路径", command=lambda: root.copy_filepath_to_clipboard())
+    copy_to_clipboard_submenu.add_command(label="目录", command=lambda: root.copy_directory_to_clipboard())
     edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
 
     # 创建选中文本操作子菜单

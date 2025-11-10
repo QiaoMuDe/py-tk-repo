@@ -110,7 +110,8 @@ class QuickEditApp(EditOperations, ctk.CTk):
         self.bind("<Control-y>", lambda e: self.redo())  # 重做
         self.bind("<Control-x>", lambda e: self.cut())  # 剪切
         self.bind("<Control-c>", lambda e: self.copy())  # 复制
-        self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
+        # 移除了Ctrl+V的绑定，使用文本框默认的粘贴行为，避免重复粘贴
+        # self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
         self.bind("<Control-a>", lambda e: self.select_all())  # 全选
         self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
         

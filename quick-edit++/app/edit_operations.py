@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
 from config.config_manager import config_manager
+import os
 
 
 class EditOperations:
@@ -314,6 +315,24 @@ class EditOperations:
                 self.status_bar.show_notification("当前没有打开的文件", 2000)
         except Exception as e:
             # 忽略复制文件路径操作异常
+            pass
+
+    def copy_directory_to_clipboard(self):
+        """复制文件所在目录路径到剪贴板"""
+        try:
+            if self.current_file_path:
+                # 获取文件所在目录路径
+                directory_path = os.path.dirname(self.current_file_path)
+                # 清空剪贴板
+                self.clipboard_clear()
+                # 添加目录路径到剪贴板
+                self.clipboard_append(directory_path)
+                # 显示通知
+                self.status_bar.show_notification(f"已复制目录路径: {directory_path}", 2000)
+            else:
+                self.status_bar.show_notification("当前没有打开的文件", 2000)
+        except Exception as e:
+            # 忽略复制目录路径操作异常
             pass
 
     def copy_selected_text_info(self):
