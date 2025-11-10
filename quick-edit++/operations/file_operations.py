@@ -132,7 +132,7 @@ class FileOperations:
                     title="另存为",
                     defaultextension=".txt",
                     filetypes=self.FILE_TYPES,
-                    initialfile="新文件.txt"
+                    initialfile="新文件.txt",
                 )
 
                 # 如果用户取消了选择，返回
@@ -454,7 +454,7 @@ class FileOperations:
 
         此方法执行以下操作：
         1. 获取配置的最大文件大小限制
-        2. 使用核心类同步读取文件内容
+        2. 使用核心类异步读取文件内容
         3. 处理文件编码和行结束符
         4. 更新编辑器内容和状态
         5. 更新状态栏和窗口标题
@@ -483,9 +483,49 @@ class FileOperations:
                 "app.max_file_size", 10 * 1024 * 1024
             )  # 转换为字节
 
-            # 使用核心类同步读取文件
-            result = self.file_core.read_file_sync(file_path, max_file_size)
+            # 在状态栏显示正在读取文件的提示
+            self.root.status_bar.show_notification("正在读取文件...")
 
+            # 定义文件读取完成后的回调函数
+            def _on_file_read_complete(result):
+                # 使用root.after确保在主线程中执行UI更新
+                self.root.after(
+                    0, lambda: self._process_file_read_result(result, file_path)
+                )
+
+            # 使用核心类异步读取文件
+            self.file_core.read_file_async(
+                file_path, max_file_size, _on_file_read_complete
+            )
+
+            # 异步操作已启动，返回True
+            return True
+
+        except (IOError, OSError, PermissionError) as e:
+            messagebox.showerror("文件访问错误", f"启动文件读取时出错: {str(e)}")
+            return False
+        except UnicodeDecodeError as e:
+            messagebox.showerror("编码错误", f"启动文件读取时编码错误: {str(e)}")
+            return False
+        except MemoryError as e:
+            messagebox.showerror("内存错误", f"启动文件读取时内存不足: {str(e)}")
+            return False
+        except ValueError as e:
+            messagebox.showerror("参数错误", f"启动文件读取时参数无效: {str(e)}")
+            return False
+        except Exception as e:
+            messagebox.showerror("错误", f"启动文件读取时出错: {str(e)}")
+            return False
+
+    def _process_file_read_result(self, result, file_path):
+        """
+        处理文件读取结果的回调方法，在主线程中执行UI更新
+
+        Args:
+            result: 文件读取结果字典
+            file_path: 文件路径
+        """
+        try:
             # 直接处理读取结果
             if result["success"]:
                 # 读取成功
@@ -534,13 +574,19 @@ class FileOperations:
                 return False
 
         except (IOError, OSError, PermissionError) as e:
-            messagebox.showerror("文件访问错误", f"无法访问文件: {str(e)}")
+            messagebox.showerror("文件访问错误", f"启动文件读取时出错: {str(e)}")
             return False
         except UnicodeDecodeError as e:
-            messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
+            messagebox.showerror("编码错误", f"启动文件读取时编码错误: {str(e)}")
+            return False
+        except MemoryError as e:
+            messagebox.showerror("内存错误", f"启动文件读取时内存不足: {str(e)}")
+            return False
+        except ValueError as e:
+            messagebox.showerror("参数错误", f"启动文件读取时参数无效: {str(e)}")
             return False
         except Exception as e:
-            messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
+            messagebox.showerror("错误", f"启动文件读取时出错: {str(e)}")
             return False
 
     def open_config_file(self):

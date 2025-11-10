@@ -246,13 +246,13 @@ class StatusBar(ctk.CTkFrame):
         current_line_ending = self.app.current_line_ending  # 换行符类型
         self.right_label.configure(text=f"{current_encoding} | {current_line_ending}")
 
-    def show_notification(self, message, duration=2000):
+    def show_notification(self, message, duration=3000):
         """
         在状态栏左侧标签显示临时通知信息
 
         Args:
             message (str): 要显示的通知消息
-            duration (int): 显示持续时间，单位毫秒，默认为2000毫秒(2秒)
+            duration (int): 显示持续时间，单位毫秒，默认为3000毫秒(3秒)
         """
         # 取消之前的定时器
         if self.notification_job:

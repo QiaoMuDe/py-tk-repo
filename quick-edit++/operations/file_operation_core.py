@@ -6,6 +6,7 @@ import os
 import sys
 import codecs
 import chardet
+import threading
 
 
 class FileOperationCore:
@@ -269,3 +270,34 @@ class FileOperationCore:
             # 混合格式，先统一为LF
             else:
                 return content.replace("\r\n", "\n").replace("\r", "\n")
+
+    def read_file_async(self, file_path, max_file_size=10 * 1024 * 1024, callback=None):
+        """
+        异步读取文件内容
+
+        此方法在新线程中执行文件读取操作，避免阻塞主线程UI
+
+        Args:
+            file_path: 要读取的文件路径
+            max_file_size: 最大允许的文件大小（字节），默认10MB
+            callback: 读取完成后的回调函数，接收一个参数（读取结果字典）
+
+        Returns:
+            None: 结果通过回调函数返回
+
+        Note:
+            - 回调函数在后台线程中执行，如果需要更新UI，请确保在主线程中执行
+            - 读取过程完全复用read_file_sync方法的逻辑
+        """
+
+        def _read_task():
+            # 在后台线程中执行同步读取
+            result = self.read_file_sync(file_path, max_file_size)
+            # 调用回调函数处理结果
+            if callback:
+                callback(result)
+
+        # 创建并启动线程
+        thread = threading.Thread(target=_read_task)
+        thread.daemon = True  # 设置为守护线程，主程序退出时自动结束
+        thread.start()
