@@ -8,6 +8,7 @@
 import tkinter as tk
 import customtkinter as ctk
 from ui.font_dialog import show_font_dialog
+from ui.about_dialog import show_about_dialog
 from config.config_manager import config_manager
 import codecs
 import os
@@ -478,7 +479,7 @@ def create_menu(root):
     help_menu.add_command(
         label="文档统计信息", command=lambda: print("显示文档统计信息")
     )
-    help_menu.add_command(label="关于", command=lambda: print("显示关于信息"))
+    help_menu.add_command(label="关于", command=lambda: show_about_dialog(root), accelerator="F1")
 
     # 将帮助菜单添加到主菜单
     main_menu.add_cascade(label="帮助", menu=help_menu)

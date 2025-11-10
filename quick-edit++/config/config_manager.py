@@ -31,6 +31,8 @@ DEFAULT_CONFIG = {
         "max_file_size": 10485760,  # 最大打开文件大小：10MB
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
+        "project_path": "https://gitee.com/MM-Q/py-tk-repo.git",  # 项目地址
+        "version": "v0.0.10", # 版本号
     },
     # 文本编辑器配置
     "text_editor": {

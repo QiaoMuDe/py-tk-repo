@@ -16,6 +16,7 @@ from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
+from ui.about_dialog import show_about_dialog
 from operations.file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
@@ -108,6 +109,9 @@ class QuickEditApp(ctk.CTk):
             "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
         )  # 查看配置
         self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
+        
+        # 绑定帮助快捷键
+        self.bind("<F1>", lambda e: show_about_dialog(self))  # 显示关于对话框
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
