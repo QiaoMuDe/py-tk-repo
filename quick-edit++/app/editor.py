@@ -109,7 +109,7 @@ class QuickEditApp(ctk.CTk):
             "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
         )  # 查看配置
         self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
-        
+
         # 绑定帮助快捷键
         self.bind("<F1>", lambda e: show_about_dialog(self))  # 显示关于对话框
 

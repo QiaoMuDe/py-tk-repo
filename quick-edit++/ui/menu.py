@@ -479,7 +479,9 @@ def create_menu(root):
     help_menu.add_command(
         label="文档统计信息", command=lambda: print("显示文档统计信息")
     )
-    help_menu.add_command(label="关于", command=lambda: show_about_dialog(root), accelerator="F1")
+    help_menu.add_command(
+        label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
+    )
 
     # 将帮助菜单添加到主菜单
     main_menu.add_cascade(label="帮助", menu=help_menu)

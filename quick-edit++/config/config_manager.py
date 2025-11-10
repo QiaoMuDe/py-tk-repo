@@ -9,6 +9,10 @@ import os
 import json
 from pathlib import Path
 
+# 应用程序常量
+APP_VERSION = "v0.0.10"  # 版本号
+PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"  # 项目地址
+
 # 默认配置文件路径：用户家目录下的.QuickEditPlus.json
 CONFIG_FILE_NAME = ".QuickEditPlus.json"
 CONFIG_PATH = os.path.join(str(Path.home()), CONFIG_FILE_NAME)
@@ -31,8 +35,6 @@ DEFAULT_CONFIG = {
         "max_file_size": 10485760,  # 最大打开文件大小：10MB
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
-        "project_path": "https://gitee.com/MM-Q/py-tk-repo.git",  # 项目地址
-        "version": "v0.0.10", # 版本号
     },
     # 文本编辑器配置
     "text_editor": {

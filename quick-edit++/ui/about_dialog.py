@@ -8,7 +8,7 @@
 import tkinter as tk
 import customtkinter as ctk
 import webbrowser
-from config.config_manager import config_manager
+from config.config_manager import config_manager, APP_VERSION, PROJECT_URL
 
 
 def show_about_dialog(parent):
@@ -17,23 +17,23 @@ def show_about_dialog(parent):
     Args:
         parent: 父窗口对象
     """
-    # 获取项目信息
-    project_path = config_manager.get("app.project_path", "")
-    version = config_manager.get("app.version", "v0.0.0")
+    # 使用导入的常量
+    version = APP_VERSION
+    project_path = PROJECT_URL
 
     # 创建关于对话框窗口
     about_window = ctk.CTkToplevel(parent)
     about_window.title("关于 QuickEdit++")
     about_window.resizable(False, False)
-    
+
     # 设置窗口模态
     about_window.transient(parent)
     about_window.grab_set()
-    
+
     # 居中显示
     about_window.update_idletasks()
-    width=500
-    height=500
+    width = 500
+    height = 500
     about_window.geometry(f"{width}x{height}+{width//2}+{height//2}")
 
     # 创建主框架
@@ -42,17 +42,13 @@ def show_about_dialog(parent):
 
     # 应用标题
     title_label = ctk.CTkLabel(
-        main_frame, 
-        text="QuickEdit++", 
-        font=ctk.CTkFont(size=24, weight="bold")
+        main_frame, text="QuickEdit++", font=ctk.CTkFont(size=24, weight="bold")
     )
     title_label.pack(pady=(20, 10))
 
     # 版本号
     version_label = ctk.CTkLabel(
-        main_frame, 
-        text=f"版本: {version}", 
-        font=ctk.CTkFont(size=14)
+        main_frame, text=f"版本: {version}", font=ctk.CTkFont(size=14)
     )
     version_label.pack(pady=(0, 20))
 
@@ -73,10 +69,7 @@ def show_about_dialog(parent):
 • 灵活的编辑设置"""
 
     intro_label = ctk.CTkLabel(
-        main_frame, 
-        text=intro_text, 
-        justify="left",
-        font=ctk.CTkFont(size=12)
+        main_frame, text=intro_text, justify="left", font=ctk.CTkFont(size=12)
     )
     intro_label.pack(pady=(0, 20), padx=20, anchor="w")
 
@@ -85,17 +78,15 @@ def show_about_dialog(parent):
     project_frame.pack(fill="x", pady=(0, 20), padx=20)
 
     project_label = ctk.CTkLabel(
-        project_frame, 
-        text="项目地址:", 
-        font=ctk.CTkFont(size=12, weight="bold")
+        project_frame, text="项目地址:", font=ctk.CTkFont(size=12, weight="bold")
     )
     project_label.pack(side="left", padx=(10, 5))
 
     project_url = ctk.CTkLabel(
-        project_frame, 
-        text=project_path, 
+        project_frame,
+        text=project_path,
         font=ctk.CTkFont(size=12),
-        text_color=("#1E6BA8", "#4A9FE8")  # 蓝色链接颜色
+        text_color=("#1E6BA8", "#4A9FE8"),  # 蓝色链接颜色
     )
     project_url.pack(side="left", padx=(0, 10))
 
@@ -103,29 +94,24 @@ def show_about_dialog(parent):
     def open_project_url(event=None):
         if project_path:
             webbrowser.open(project_path)
-    
+
     project_url.bind("<Button-1>", open_project_url)
     project_url.configure(cursor="hand2")
 
     # 版权信息
     copyright_label = ctk.CTkLabel(
-        main_frame, 
-        text="© 2025 QuickEdit++ 开发团队", 
-        font=ctk.CTkFont(size=10)
+        main_frame, text="© 2025 QuickEdit++ 开发团队", font=ctk.CTkFont(size=10)
     )
     copyright_label.pack(pady=(10, 0))
 
     # 关闭按钮
     close_button = ctk.CTkButton(
-        main_frame, 
-        text="关闭", 
-        command=about_window.destroy,
-        width=100
+        main_frame, text="关闭", command=about_window.destroy, width=100
     )
     close_button.pack(pady=(20, 0))
 
     # 确保窗口获得焦点
     about_window.focus_set()
-    
+
     # 按ESC键关闭窗口
     about_window.bind("<Escape>", lambda e: about_window.destroy())
