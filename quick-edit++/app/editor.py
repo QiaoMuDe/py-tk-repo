@@ -17,6 +17,7 @@ from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from ui.about_dialog import show_about_dialog
+from ui.document_stats_dialog import show_document_stats_dialog
 from operations.file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
@@ -112,6 +113,9 @@ class QuickEditApp(ctk.CTk):
 
         # 绑定帮助快捷键
         self.bind("<F1>", lambda e: show_about_dialog(self))  # 显示关于对话框
+        self.bind(
+            "<F2>", lambda e: show_document_stats_dialog(self)
+        )  # 显示文档统计对话框
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)

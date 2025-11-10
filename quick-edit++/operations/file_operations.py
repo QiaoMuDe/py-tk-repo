@@ -8,7 +8,6 @@ import sys
 import time
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from customtkinter import CTk
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
@@ -27,6 +26,51 @@ class FileOperations:
         self.root = root
         self.config_manager = config_manager
         self.file_core = FileOperationCore()  # 初始化文件操作核心
+        self.current_file_future = None  # 跟踪当前文件读取的Future对象
+
+    def _check_future_status(self):
+        """检查Future对象状态并更新UI"""
+        if self.current_file_future is None:
+            return
+
+        if self.current_file_future.done():
+            # Future已完成，获取结果
+            try:
+                result = self.current_file_future.result()
+                self._handle_file_read_result(result)
+            except Exception as e:
+                # 处理异常
+                error_result = {
+                    "success": False,
+                    "title": "读取文件错误",
+                    "message": f"读取文件时发生异常: {str(e)}",
+                }
+                self._handle_file_read_result(error_result)
+        else:
+            # Future未完成，继续检查
+            self.root.after(100, self._check_future_status)
+
+    def _cancel_file_read(self):
+        """取消文件读取操作"""
+        if self.current_file_future and not self.current_file_future.done():
+            self.current_file_future.cancel()
+            self.file_core.cancel_all_reads()
+            # 显示取消消息
+            messagebox.showinfo("提示", "文件读取已取消")
+
+    def _handle_file_read_result(self, result):
+        """处理文件读取结果
+
+        Args:
+            result: 文件读取结果字典，包含success、data、title、message字段
+        """
+        if result["success"]:
+            # 读取成功
+            data = result["data"]
+            self._on_file_read_complete(data)
+        else:
+            # 读取失败
+            self._on_file_read_error(result["title"], result["message"])
 
     def open_file(self):
         """打开文件并加载到编辑器"""
@@ -69,27 +113,44 @@ class FileOperations:
             )  # 转换为字节
 
             # 使用核心类异步读取文件
-            self.file_core.async_read_file(
-                file_path=file_path,
-                callback=self._on_file_read_complete,
-                error_callback=self._on_file_read_error,
-                max_file_size=max_file_size,
-            )
+            self._read_file_async(file_path, max_file_size)
 
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")
 
-    def _on_file_read_complete(self, file_path, content, encoding, line_ending):
+    def _read_file_async(self, file_path, max_file_size):
+        """异步读取文件
+
+        Args:
+            file_path: 文件路径
+            max_file_size: 最大文件大小限制
+        """
+        # 取消之前的读取操作
+        if self.current_file_future and not self.current_file_future.done():
+            self.current_file_future.cancel()
+            self.file_core.cancel_all_reads()
+
+        # 开始新的异步读取
+        self.current_file_future = self.file_core.read_file_async(
+            file_path, max_file_size
+        )
+
+        # 开始检查Future状态
+        self._check_future_status()
+
+    def _on_file_read_complete(self, data):
         """
         文件读取完成回调
 
         Args:
-            file_path: 文件路径
-            content: 文件内容
-            encoding: 文件编码
-            line_ending: 文件换行符类型
+            data: 文件数据字典，包含file_path、content、encoding、line_ending、file_size字段
         """
         try:
+            file_path = data["file_path"]
+            content = data["content"]
+            encoding = data["encoding"]
+            line_ending = data["line_ending"]
+
             # 更新编辑器内容
             self.root.text_area.delete("1.0", tk.END)
             self.root.text_area.insert("1.0", content)
@@ -120,21 +181,15 @@ class FileOperations:
         except Exception as e:
             messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
 
-    def _on_file_read_error(self, title_or_message, message=None):
+    def _on_file_read_error(self, title, message):
         """
         文件读取错误回调
 
         Args:
-            title_or_message: 错误标题，或者如果message为None，则作为完整的错误消息（兼容旧版本）
-            message: 错误详细信息，可选
+            title: 错误标题
+            message: 错误详细信息
         """
-        # 兼容旧版本的单参数调用方式
-        if message is None:
-            # 如果只有一个参数，则使用默认标题"错误"
-            messagebox.showerror("错误", title_or_message)
-        else:
-            # 如果有两个参数，则分别作为标题和内容
-            messagebox.showerror(title_or_message, message)
+        messagebox.showerror(title, message)
 
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""
@@ -406,12 +461,7 @@ class FileOperations:
             )  # 转换为字节
 
             # 异步读取文件
-            self.file_core.async_read_file(
-                file_path=file_path,
-                callback=self._on_file_read_complete,
-                error_callback=self._on_file_read_error,
-                max_file_size=max_file_size,
-            )
+            self._read_file_async(file_path, max_file_size)
 
         except Exception as e:
             messagebox.showerror("错误", f"打开文件时出错: {str(e)}")

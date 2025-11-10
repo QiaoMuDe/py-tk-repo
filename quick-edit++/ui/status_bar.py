@@ -62,6 +62,9 @@ class StatusBar(ctk.CTkFrame):
         )
         self.left_label.grid(row=0, column=0, padx=10, pady=2, sticky="w")
 
+        # 设置鼠标悬停时的光标样式为手型，提示可点击
+        self.left_label.configure(cursor="hand2")
+
         # 创建中间标签（显示自动保存状态信息）
         # 获取自动保存间隔
         auto_save_interval = self.app.auto_save_manager.auto_save_interval
@@ -81,6 +84,9 @@ class StatusBar(ctk.CTkFrame):
             font=font,
         )
         self.right_label.grid(row=0, column=2, padx=10, pady=2, sticky="e")
+
+        # 设置鼠标悬停时的光标样式为手型，提示可点击
+        self.right_label.configure(cursor="hand2")
 
         # 绑定事件
         self.bind_events()
@@ -308,6 +314,11 @@ class StatusBar(ctk.CTkFrame):
     def bind_events(self):
         """绑定事件"""
         self.right_label.bind("<Button-3>", self._on_right_click)  # 右键点击事件
+        self.right_label.bind(
+            "<Button-1>", self._on_right_click
+        )  # 左键点击事件，与右键功能相同
+        self.left_label.bind("<Button-1>", self._on_left_click)  # 左键点击事件
+        self.left_label.bind("<Button-3>", self._on_left_click)  # 右键点击事件
 
     def _on_right_click(self, event):
         """处理右键点击事件，根据点击位置判断是编码还是换行符"""
@@ -460,3 +471,14 @@ class StatusBar(ctk.CTkFrame):
 
         except Exception as e:
             print(f"显示换行符菜单时出错: {e}")
+
+    def _on_left_click(self, event):
+        """处理左侧标签点击事件，打开文档统计对话框"""
+        try:
+            # 导入文档统计对话框函数
+            from ui.document_stats_dialog import show_document_stats_dialog
+
+            # 打开文档统计对话框
+            show_document_stats_dialog(self.app)
+        except Exception as e:
+            messagebox.showerror("错误", f"打开文档统计对话框时出错: {e}")

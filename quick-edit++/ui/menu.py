@@ -9,6 +9,7 @@ import tkinter as tk
 import customtkinter as ctk
 from ui.font_dialog import show_font_dialog
 from ui.about_dialog import show_about_dialog
+from ui.document_stats_dialog import show_document_stats_dialog
 from config.config_manager import config_manager
 import codecs
 import os
@@ -477,7 +478,9 @@ def create_menu(root):
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     help_menu.add_command(
-        label="文档统计信息", command=lambda: print("显示文档统计信息")
+        label="文档统计信息",
+        command=lambda: show_document_stats_dialog(root),
+        accelerator="F2",
     )
     help_menu.add_command(
         label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
