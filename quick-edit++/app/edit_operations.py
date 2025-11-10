@@ -362,66 +362,6 @@ class EditOperations:
             # 忽略复制选中文本信息操作异常
             pass
 
-    def insert_date_time(self):
-        """插入当前日期和时间"""
-        try:
-            # 检查是否为只读模式
-            if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
-                return
-
-            # 获取当前日期和时间
-            from datetime import datetime
-            now = datetime.now()
-            date_time_str = now.strftime("%Y-%m-%d %H:%M:%S")
-            
-            # 检查是否有选中的文本
-            try:
-                # 如果有选中文本，则替换选中的文本
-                self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
-                self.text_area.insert(tk.INSERT, date_time_str)
-            except tk.TclError:
-                # 没有选中文本，在当前位置插入
-                self.text_area.insert(tk.INSERT, date_time_str)
-            
-            # 更新状态栏
-            self._update_status_bar()
-            # 更新字符计数
-            self.update_char_count()
-            # 显示通知
-            self.status_bar.show_notification(f"已插入日期时间: {date_time_str}", 2000)
-        except Exception as e:
-            self.status_bar.show_notification(f"插入日期时间失败: {str(e)}", 3000)
-
-    def insert_file_path(self):
-        """插入当前文件路径"""
-        try:
-            # 检查是否为只读模式
-            if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
-                return
-
-            if self.current_file_path:
-                # 检查是否有选中的文本
-                try:
-                    # 如果有选中文本，则替换选中的文本
-                    self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
-                    self.text_area.insert(tk.INSERT, self.current_file_path)
-                except tk.TclError:
-                    # 没有选中文本，在当前位置插入
-                    self.text_area.insert(tk.INSERT, self.current_file_path)
-                
-                # 更新状态栏
-                self._update_status_bar()
-                # 更新字符计数
-                self.update_char_count()
-                # 显示通知
-                self.status_bar.show_notification(f"已插入文件路径: {self.current_file_path}", 2000)
-            else:
-                self.status_bar.show_notification("当前没有打开的文件", 2000)
-        except Exception as e:
-            self.status_bar.show_notification(f"插入文件路径失败: {str(e)}", 3000)
-
     def goto_line(self):
         """
         转到指定行
