@@ -71,7 +71,9 @@ class EditOperations:
                     # 更新字符计数
                     self.update_char_count()
                     # 显示通知
-                    self.status_bar.show_notification(f"已剪切 {len(selected_text)} 个字符", 2000)
+                    self.status_bar.show_notification(
+                        f"已剪切 {len(selected_text)} 个字符", 2000
+                    )
                 else:
                     self.status_bar.show_notification("没有选中的文本", 2000)
             except tk.TclError:
@@ -92,7 +94,9 @@ class EditOperations:
                     self.clipboard_clear()
                     self.clipboard_append(selected_text)
                     # 显示通知
-                    self.status_bar.show_notification(f"已复制 {len(selected_text)} 个字符", 2000)
+                    self.status_bar.show_notification(
+                        f"已复制 {len(selected_text)} 个字符", 2000
+                    )
                 else:
                     self.status_bar.show_notification("没有选中的文本", 2000)
             except tk.TclError:
@@ -122,13 +126,15 @@ class EditOperations:
                     except tk.TclError:
                         # 没有选中文本，在当前位置插入
                         self.text_area.insert(tk.INSERT, clipboard_text)
-                    
+
                     # 更新状态栏
                     self._update_status_bar()
                     # 更新字符计数
                     self.update_char_count()
                     # 显示通知
-                    self.status_bar.show_notification(f"已粘贴 {len(clipboard_text)} 个字符", 2000)
+                    self.status_bar.show_notification(
+                        f"已粘贴 {len(clipboard_text)} 个字符", 2000
+                    )
                 else:
                     self.status_bar.show_notification("剪贴板为空", 2000)
             except tk.TclError:
@@ -166,7 +172,7 @@ class EditOperations:
 
             # 获取当前字符数
             total_chars = self.get_char_count()
-            
+
             # 如果没有内容，直接返回
             if total_chars == 0:
                 self.status_bar.show_notification("文本区域已经为空", 2000)
@@ -174,10 +180,9 @@ class EditOperations:
 
             # 确认是否清除所有文本
             confirmed = messagebox.askyesno(
-                "确认清除", 
-                f"确定要清除所有文本吗？\n这将删除 {total_chars} 个字符。"
+                "确认清除", f"确定要清除所有文本吗？\n这将删除 {total_chars} 个字符。"
             )
-            
+
             if confirmed:
                 # 清除所有文本
                 self.text_area.delete("1.0", tk.END)
@@ -214,7 +219,9 @@ class EditOperations:
                     # 更新修改状态
                     self.set_modified(True)
                     # 显示通知
-                    self.status_bar.show_notification(f"已清除 {len(selected_text)} 个字符", 2000)
+                    self.status_bar.show_notification(
+                        f"已清除 {len(selected_text)} 个字符", 2000
+                    )
                 else:
                     self.status_bar.show_notification("没有选中的文本", 2000)
             except tk.TclError:
@@ -234,14 +241,14 @@ class EditOperations:
 
             # 在光标位置插入文本
             self.text_area.insert(tk.INSERT, text)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 2000)
         except Exception as e:
@@ -258,14 +265,14 @@ class EditOperations:
 
             # 在光标位置插入shebang行
             self.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入脚本 shebang 行", 2000)
         except Exception as e:
@@ -282,14 +289,14 @@ class EditOperations:
 
             # 在光标位置插入编码声明
             self.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-\n")
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入编码声明", 2000)
         except Exception as e:
@@ -307,14 +314,14 @@ class EditOperations:
             # 在光标位置插入Go语言基本结构
             go_code = """package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}"""
             self.text_area.insert(tk.INSERT, go_code)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入Go语言基本结构", 2000)
         except Exception as e:
@@ -345,14 +352,14 @@ class EditOperations:
     pass
 """
             self.text_area.insert(tk.INSERT, python_function)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入Python函数模板", 2000)
         except Exception as e:
@@ -402,14 +409,14 @@ class EditOperations:
         pass
 """
             self.text_area.insert(tk.INSERT, python_class)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入Python类模板", 2000)
         except Exception as e:
@@ -453,14 +460,14 @@ class EditOperations:
 </body>
 </html>"""
             self.text_area.insert(tk.INSERT, html_structure)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入HTML基本结构", 2000)
         except Exception as e:
@@ -537,14 +544,14 @@ footer {
     }
 }"""
             self.text_area.insert(tk.INSERT, css_structure)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入CSS基本结构", 2000)
         except Exception as e:
@@ -597,14 +604,14 @@ const arrowFunction = (param1, param2) => {
     return param1 + param2;
 };"""
             self.text_area.insert(tk.INSERT, js_function)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入JavaScript函数模板", 2000)
         except Exception as e:
@@ -686,14 +693,14 @@ GROUP BY
 HAVING 
     COUNT(*) > 1;"""
             self.text_area.insert(tk.INSERT, sql_query)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入SQL查询模板", 2000)
         except Exception as e:
@@ -771,14 +778,14 @@ func closureFunction() func(int) int {
     }
 }"""
             self.text_area.insert(tk.INSERT, go_function)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入GO函数模板", 2000)
         except Exception as e:
@@ -903,14 +910,14 @@ func (s *StructName) IsValid() bool {
     return s.Validate() == nil
 }"""
             self.text_area.insert(tk.INSERT, go_struct)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification("已插入GO结构体模板", 2000)
         except Exception as e:
@@ -926,17 +933,17 @@ func (s *StructName) IsValid() bool {
                 return
 
             # 获取当前文件名
-            if hasattr(self, 'current_file_path') and self.current_file_path:
+            if hasattr(self, "current_file_path") and self.current_file_path:
                 filename = os.path.basename(self.current_file_path)
                 self.text_area.insert(tk.INSERT, filename)
-                
+
                 # 更新状态栏
                 self._update_status_bar()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
                 self.set_modified(True)
-                
+
                 # 显示通知
                 self.status_bar.show_notification(f"已插入文件名: {filename}", 2000)
             else:
@@ -954,18 +961,20 @@ func (s *StructName) IsValid() bool {
                 return
 
             # 获取当前文件路径
-            if hasattr(self, 'current_file_path') and self.current_file_path:
+            if hasattr(self, "current_file_path") and self.current_file_path:
                 self.text_area.insert(tk.INSERT, self.current_file_path)
-                
+
                 # 更新状态栏
                 self._update_status_bar()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
                 self.set_modified(True)
-                
+
                 # 显示通知
-                self.status_bar.show_notification(f"已插入文件路径: {self.current_file_path}", 2000)
+                self.status_bar.show_notification(
+                    f"已插入文件路径: {self.current_file_path}", 2000
+                )
             else:
                 self.status_bar.show_notification("没有当前文件", 2000)
         except Exception as e:
@@ -981,17 +990,17 @@ func (s *StructName) IsValid() bool {
                 return
 
             # 获取当前文件所在目录
-            if hasattr(self, 'current_file_path') and self.current_file_path:
+            if hasattr(self, "current_file_path") and self.current_file_path:
                 directory = os.path.dirname(self.current_file_path)
                 self.text_area.insert(tk.INSERT, directory)
-                
+
                 # 更新状态栏
                 self._update_status_bar()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
                 self.set_modified(True)
-                
+
                 # 显示通知
                 self.status_bar.show_notification(f"已插入目录路径: {directory}", 2000)
             else:
@@ -1027,14 +1036,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入日期
             self.text_area.insert(tk.INSERT, date_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入日期: {date_str}", 2000)
         except Exception as e:
@@ -1064,14 +1073,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入时间
             self.text_area.insert(tk.INSERT, time_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入时间: {time_str}", 2000)
         except Exception as e:
@@ -1101,14 +1110,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入日期时间
             self.text_area.insert(tk.INSERT, datetime_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 2000)
         except Exception as e:
@@ -1128,14 +1137,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入时间戳
             self.text_area.insert(tk.INSERT, timestamp)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入时间戳: {timestamp}", 2000)
         except Exception as e:
@@ -1155,14 +1164,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 2000)
         except Exception as e:
@@ -1182,14 +1191,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 2000)
         except Exception as e:
@@ -1209,14 +1218,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 2000)
         except Exception as e:
@@ -1236,16 +1245,18 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
-            self.status_bar.show_notification(f"已插入大写无连字符UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(
+                f"已插入大写无连字符UUID: {uuid_str}", 2000
+            )
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1263,14 +1274,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 2000)
         except Exception as e:
@@ -1290,16 +1301,18 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
-            self.status_bar.show_notification(f"已插入带花括号的大写UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(
+                f"已插入带花括号的大写UUID: {uuid_str}", 2000
+            )
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1314,21 +1327,24 @@ func (s *StructName) IsValid() bool {
 
             # 生成UUID v4并转换为Base64编码
             import base64
+
             uuid_bytes = uuid.uuid4().bytes
-            uuid_str = base64.b64encode(uuid_bytes).decode('utf-8')
+            uuid_str = base64.b64encode(uuid_bytes).decode("utf-8")
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
-            self.status_bar.show_notification(f"已插入Base64编码的UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(
+                f"已插入Base64编码的UUID: {uuid_str}", 2000
+            )
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1346,14 +1362,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 2000)
         except Exception as e:
@@ -1373,14 +1389,14 @@ func (s *StructName) IsValid() bool {
 
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
-            
+
             # 更新状态栏
             self._update_status_bar()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
             self.set_modified(True)
-            
+
             # 显示通知
             self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 2000)
         except Exception as e:
@@ -1479,7 +1495,9 @@ func (s *StructName) IsValid() bool {
                 # 添加文件路径到剪贴板
                 self.clipboard_append(self.current_file_path)
                 # 显示通知
-                self.status_bar.show_notification(f"已复制文件路径: {self.current_file_path}", 2000)
+                self.status_bar.show_notification(
+                    f"已复制文件路径: {self.current_file_path}", 2000
+                )
             else:
                 self.status_bar.show_notification("当前没有打开的文件", 2000)
         except Exception as e:
@@ -1497,7 +1515,9 @@ func (s *StructName) IsValid() bool {
                 # 添加目录路径到剪贴板
                 self.clipboard_append(directory_path)
                 # 显示通知
-                self.status_bar.show_notification(f"已复制目录路径: {directory_path}", 2000)
+                self.status_bar.show_notification(
+                    f"已复制目录路径: {directory_path}", 2000
+                )
             else:
                 self.status_bar.show_notification("当前没有打开的文件", 2000)
         except Exception as e:
@@ -1513,15 +1533,20 @@ func (s *StructName) IsValid() bool {
                 if selected_text:
                     # 计算字符数和行数
                     char_count = len(selected_text)
-                    line_count = selected_text.count('\n') + 1
+                    line_count = selected_text.count("\n") + 1
                     # 构建信息文本
-                    info_text = f"选中文本信息:\n字符数: {char_count}\n行数: {line_count}"
+                    info_text = (
+                        f"选中文本信息:\n字符数: {char_count}\n行数: {line_count}"
+                    )
                     # 清空剪贴板
                     self.clipboard_clear()
                     # 添加信息到剪贴板
                     self.clipboard_append(info_text)
                     # 显示通知
-                    self.status_bar.show_notification(f"已复制选中文本信息: {char_count} 个字符, {line_count} 行", 2000)
+                    self.status_bar.show_notification(
+                        f"已复制选中文本信息: {char_count} 个字符, {line_count} 行",
+                        2000,
+                    )
                 else:
                     self.status_bar.show_notification("没有选中的文本", 2000)
             except tk.TclError:
@@ -1548,26 +1573,28 @@ func (s *StructName) IsValid() bool {
         dialog.title("转到行")
         dialog.geometry("350x150")
         dialog.resizable(False, False)
-        
+
         # 设置窗口模态
         dialog.transient(self)
         dialog.grab_set()
-        
+
         # 创建输入框和标签
         frame = ctk.CTkFrame(dialog)
         frame.pack(padx=20, pady=20, fill="both", expand=True)
-        
-        label = ctk.CTkLabel(frame, text="请输入行号:", font=(font_family, font_size, font_weight))
+
+        label = ctk.CTkLabel(
+            frame, text="请输入行号:", font=(font_family, font_size, font_weight)
+        )
         label.pack(pady=(0, 10))
-        
+
         entry = ctk.CTkEntry(frame, font=(font_family, font_size, font_weight))
         entry.pack(pady=(0, 10), fill="x")
         entry.focus_set()
-        
+
         # 按钮框架
         button_frame = ctk.CTkFrame(frame)
         button_frame.pack(fill="x")
-        
+
         def on_ok():
             """确认按钮处理函数"""
             try:
@@ -1585,35 +1612,782 @@ func (s *StructName) IsValid() bool {
                 error_dialog.title("错误")
                 error_dialog.geometry("250x100")
                 error_dialog.resizable(False, False)
-                
-                error_label = ctk.CTkLabel(error_dialog, text="请输入有效的行号", font=(font_family, font_size, font_weight))
+
+                error_label = ctk.CTkLabel(
+                    error_dialog,
+                    text="请输入有效的行号",
+                    font=(font_family, font_size, font_weight),
+                )
                 error_label.pack(pady=20)
-                
-                ok_button = ctk.CTkButton(error_dialog, text="确定", font=(font_family, font_size, font_weight), command=error_dialog.destroy)
+
+                ok_button = ctk.CTkButton(
+                    error_dialog,
+                    text="确定",
+                    font=(font_family, font_size, font_weight),
+                    command=error_dialog.destroy,
+                )
                 ok_button.pack(pady=10)
-        
+
         def on_cancel():
             """取消按钮处理函数"""
             dialog.destroy()
-        
+
         # 创建按钮
-        ok_button = ctk.CTkButton(button_frame, text="确定", font=(font_family, font_size, font_weight), command=on_ok)
+        ok_button = ctk.CTkButton(
+            button_frame,
+            text="确定",
+            font=(font_family, font_size, font_weight),
+            command=on_ok,
+        )
         ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
-        
-        cancel_button = ctk.CTkButton(button_frame, text="取消", font=(font_family, font_size, font_weight), command=on_cancel)
+
+        cancel_button = ctk.CTkButton(
+            button_frame,
+            text="取消",
+            font=(font_family, font_size, font_weight),
+            command=on_cancel,
+        )
         cancel_button.pack(side="right", fill="x", expand=True)
-        
+
         # 绑定回车键
         entry.bind("<Return>", lambda e: on_ok())
-        
+
         # 绑定ESC键
         dialog.bind("<Escape>", lambda e: on_cancel())
-        
+
         # 居中显示对话框
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
         y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
         dialog.geometry(f"+{x}+{y}")
-        
+
         # 在对话框完全显示后设置焦点
         dialog.after(100, entry.focus_set)
+
+    def insert_special_character(self, char_type, char_value):
+        """
+        插入特殊字符
+
+        Args:
+            char_type (str): 字符类型
+            char_value (str): 字符值
+        """
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 插入特殊字符
+            self.text_area.insert(tk.INSERT, char_value)
+
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+
+            # 显示通知
+            self.status_bar.show_notification(f"已插入{char_type}: {char_value}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_copyright_symbol(self):
+        """插入版权符号 ©"""
+        self.insert_special_character("版权符号", "©")
+
+    def insert_trademark_symbol(self):
+        """插入商标符号 ®"""
+        self.insert_special_character("商标符号", "®")
+
+    def insert_registered_trademark_symbol(self):
+        """插入注册商标符号 ™"""
+        self.insert_special_character("注册商标符号", "™")
+
+    def insert_degree_symbol(self):
+        """插入度数符号 °"""
+        self.insert_special_character("度数符号", "°")
+
+    def insert_euro_symbol(self):
+        """插入欧元符号 €"""
+        self.insert_special_character("欧元符号", "€")
+
+    def insert_pound_symbol(self):
+        """插入英镑符号 £"""
+        self.insert_special_character("英镑符号", "£")
+
+    def insert_yen_symbol(self):
+        """插入日元符号 ¥"""
+        self.insert_special_character("日元符号", "¥")
+
+    def insert_section_symbol(self):
+        """插入章节符号 §"""
+        self.insert_special_character("章节符号", "§")
+
+    def insert_paragraph_symbol(self):
+        """插入段落符号 ¶"""
+        self.insert_special_character("段落符号", "¶")
+
+    def insert_ellipsis_symbol(self):
+        """插入省略号 …"""
+        self.insert_special_character("省略号", "…")
+
+    def insert_dagger_symbol(self):
+        """插入匕首符号 †"""
+        self.insert_special_character("匕首符号", "†")
+
+    def insert_double_dagger_symbol(self):
+        """插入双匕首符号 ‡"""
+        self.insert_special_character("双匕首符号", "‡")
+
+    def insert_bullet_symbol(self):
+        """插入圆点符号 •"""
+        self.insert_special_character("圆点符号", "•")
+
+    def insert_mathematical_symbol(self, symbol_type, symbol_value):
+        """
+        插入数学符号
+
+        Args:
+            symbol_type (str): 符号类型
+            symbol_value (str): 符号值
+        """
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 插入数学符号
+            self.text_area.insert(tk.INSERT, symbol_value)
+
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+
+            # 显示通知
+            self.status_bar.show_notification(
+                f"已插入{symbol_type}: {symbol_value}", 2000
+            )
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_plus_minus_symbol(self):
+        """插入正负号 ±"""
+        self.insert_mathematical_symbol("正负号", "±")
+
+    def insert_not_equal_symbol(self):
+        """插入不等号 ≠"""
+        self.insert_mathematical_symbol("不等号", "≠")
+
+    def insert_less_than_or_equal_symbol(self):
+        """插入小于等于号 ≤"""
+        self.insert_mathematical_symbol("小于等于号", "≤")
+
+    def insert_greater_than_or_equal_symbol(self):
+        """插入大于等于号 ≥"""
+        self.insert_mathematical_symbol("大于等于号", "≥")
+
+    def insert_infinity_symbol(self):
+        """插入无穷符号 ∞"""
+        self.insert_mathematical_symbol("无穷符号", "∞")
+
+    def insert_summation_symbol(self):
+        """插入求和符号 ∑"""
+        self.insert_mathematical_symbol("求和符号", "∑")
+
+    def insert_product_symbol(self):
+        """插入乘积符号 ∏"""
+        self.insert_mathematical_symbol("乘积符号", "∏")
+
+    def insert_integral_symbol(self):
+        """插入积分符号 ∫"""
+        self.insert_mathematical_symbol("积分符号", "∫")
+
+    def insert_partial_derivative_symbol(self):
+        """插入偏导数符号 ∂"""
+        self.insert_mathematical_symbol("偏导数符号", "∂")
+
+    def insert_nabla_symbol(self):
+        """插入梯度符号 ∇"""
+        self.insert_mathematical_symbol("梯度符号", "∇")
+
+    def insert_square_root_symbol(self):
+        """插入平方根符号 √"""
+        self.insert_mathematical_symbol("平方根符号", "√")
+
+    def insert_cubic_root_symbol(self):
+        """插入立方根符号 ∛"""
+        self.insert_mathematical_symbol("立方根符号", "∛")
+
+    def insert_fourth_root_symbol(self):
+        """插入四次根符号 ∜"""
+        self.insert_mathematical_symbol("四次根符号", "∜")
+
+    def insert_alpha_symbol(self):
+        """插入希腊字母 α"""
+        self.insert_mathematical_symbol("希腊字母α", "α")
+
+    def insert_beta_symbol(self):
+        """插入希腊字母 β"""
+        self.insert_mathematical_symbol("希腊字母β", "β")
+
+    def insert_gamma_symbol(self):
+        """插入希腊字母 γ"""
+        self.insert_mathematical_symbol("希腊字母γ", "γ")
+
+    def insert_delta_symbol(self):
+        """插入希腊字母 δ"""
+        self.insert_mathematical_symbol("希腊字母δ", "δ")
+
+    def insert_epsilon_symbol(self):
+        """插入希腊字母 ε"""
+        self.insert_mathematical_symbol("希腊字母ε", "ε")
+
+    def insert_zeta_symbol(self):
+        """插入希腊字母 ζ"""
+        self.insert_mathematical_symbol("希腊字母ζ", "ζ")
+
+    def insert_eta_symbol(self):
+        """插入希腊字母 η"""
+        self.insert_mathematical_symbol("希腊字母η", "η")
+
+    def insert_theta_symbol(self):
+        """插入希腊字母 θ"""
+        self.insert_mathematical_symbol("希腊字母θ", "θ")
+
+    def insert_iota_symbol(self):
+        """插入希腊字母 ι"""
+        self.insert_mathematical_symbol("希腊字母ι", "ι")
+
+    def insert_kappa_symbol(self):
+        """插入希腊字母 κ"""
+        self.insert_mathematical_symbol("希腊字母κ", "κ")
+
+    def insert_lambda_symbol(self):
+        """插入希腊字母 λ"""
+        self.insert_mathematical_symbol("希腊字母λ", "λ")
+
+    def insert_mu_symbol(self):
+        """插入希腊字母 μ"""
+        self.insert_mathematical_symbol("希腊字母μ", "μ")
+
+    def insert_nu_symbol(self):
+        """插入希腊字母 ν"""
+        self.insert_mathematical_symbol("希腊字母ν", "ν")
+
+    def insert_xi_symbol(self):
+        """插入希腊字母 ξ"""
+        self.insert_mathematical_symbol("希腊字母ξ", "ξ")
+
+    def insert_omicron_symbol(self):
+        """插入希腊字母 ο"""
+        self.insert_mathematical_symbol("希腊字母ο", "ο")
+
+    def insert_pi_symbol(self):
+        """插入希腊字母 π"""
+        self.insert_mathematical_symbol("希腊字母π", "π")
+
+    def insert_rho_symbol(self):
+        """插入希腊字母 ρ"""
+        self.insert_mathematical_symbol("希腊字母ρ", "ρ")
+
+    def insert_sigma_symbol(self):
+        """插入希腊字母 σ"""
+        self.insert_mathematical_symbol("希腊字母σ", "σ")
+
+    def insert_tau_symbol(self):
+        """插入希腊字母 τ"""
+        self.insert_mathematical_symbol("希腊字母τ", "τ")
+
+    def insert_upsilon_symbol(self):
+        """插入希腊字母 υ"""
+        self.insert_mathematical_symbol("希腊字母υ", "υ")
+
+    def insert_phi_symbol(self):
+        """插入希腊字母 φ"""
+        self.insert_mathematical_symbol("希腊字母φ", "φ")
+
+    def insert_chi_symbol(self):
+        """插入希腊字母 χ"""
+        self.insert_mathematical_symbol("希腊字母χ", "χ")
+
+    def insert_psi_symbol(self):
+        """插入希腊字母 ψ"""
+        self.insert_mathematical_symbol("希腊字母ψ", "ψ")
+
+    def insert_omega_symbol(self):
+        """插入希腊字母 ω"""
+        self.insert_mathematical_symbol("希腊字母ω", "ω")
+
+    def insert_capital_alpha_symbol(self):
+        """插入大写希腊字母 Α"""
+        self.insert_mathematical_symbol("大写希腊字母Α", "Α")
+
+    def insert_capital_beta_symbol(self):
+        """插入大写希腊字母 Β"""
+        self.insert_mathematical_symbol("大写希腊字母Β", "Β")
+
+    def insert_capital_gamma_symbol(self):
+        """插入大写希腊字母 Γ"""
+        self.insert_mathematical_symbol("大写希腊字母Γ", "Γ")
+
+    def insert_capital_delta_symbol(self):
+        """插入大写希腊字母 Δ"""
+        self.insert_mathematical_symbol("大写希腊字母Δ", "Δ")
+
+    def insert_capital_epsilon_symbol(self):
+        """插入大写希腊字母 Ε"""
+        self.insert_mathematical_symbol("大写希腊字母Ε", "Ε")
+
+    def insert_capital_zeta_symbol(self):
+        """插入大写希腊字母 Ζ"""
+        self.insert_mathematical_symbol("大写希腊字母Ζ", "Ζ")
+
+    def insert_capital_eta_symbol(self):
+        """插入大写希腊字母 Η"""
+        self.insert_mathematical_symbol("大写希腊字母Η", "Η")
+
+    def insert_capital_theta_symbol(self):
+        """插入大写希腊字母 Θ"""
+        self.insert_mathematical_symbol("大写希腊字母Θ", "Θ")
+
+    def insert_capital_iota_symbol(self):
+        """插入大写希腊字母 Ι"""
+        self.insert_mathematical_symbol("大写希腊字母Ι", "Ι")
+
+    def insert_capital_kappa_symbol(self):
+        """插入大写希腊字母 Κ"""
+        self.insert_mathematical_symbol("大写希腊字母Κ", "Κ")
+
+    def insert_capital_lambda_symbol(self):
+        """插入大写希腊字母 Λ"""
+        self.insert_mathematical_symbol("大写希腊字母Λ", "Λ")
+
+    def insert_capital_mu_symbol(self):
+        """插入大写希腊字母 Μ"""
+        self.insert_mathematical_symbol("大写希腊字母Μ", "Μ")
+
+    def insert_capital_nu_symbol(self):
+        """插入大写希腊字母 Ν"""
+        self.insert_mathematical_symbol("大写希腊字母Ν", "Ν")
+
+    def insert_capital_xi_symbol(self):
+        """插入大写希腊字母 Ξ"""
+        self.insert_mathematical_symbol("大写希腊字母Ξ", "Ξ")
+
+    def insert_capital_omicron_symbol(self):
+        """插入大写希腊字母 Ο"""
+        self.insert_mathematical_symbol("大写希腊字母Ο", "Ο")
+
+    def insert_capital_pi_symbol(self):
+        """插入大写希腊字母 Π"""
+        self.insert_mathematical_symbol("大写希腊字母Π", "Π")
+
+    def insert_capital_rho_symbol(self):
+        """插入大写希腊字母 Ρ"""
+        self.insert_mathematical_symbol("大写希腊字母Ρ", "Ρ")
+
+    def insert_capital_sigma_symbol(self):
+        """插入大写希腊字母 Σ"""
+        self.insert_mathematical_symbol("大写希腊字母Σ", "Σ")
+
+    def insert_capital_tau_symbol(self):
+        """插入大写希腊字母 Τ"""
+        self.insert_mathematical_symbol("大写希腊字母Τ", "Τ")
+
+    def insert_capital_upsilon_symbol(self):
+        """插入大写希腊字母 Υ"""
+        self.insert_mathematical_symbol("大写希腊字母Υ", "Υ")
+
+    def insert_capital_phi_symbol(self):
+        """插入大写希腊字母 Φ"""
+        self.insert_mathematical_symbol("大写希腊字母Φ", "Φ")
+
+    def insert_capital_chi_symbol(self):
+        """插入大写希腊字母 Χ"""
+        self.insert_mathematical_symbol("大写希腊字母Χ", "Χ")
+
+    def insert_capital_psi_symbol(self):
+        """插入大写希腊字母 Ψ"""
+        self.insert_mathematical_symbol("大写希腊字母Ψ", "Ψ")
+
+    def insert_capital_omega_symbol(self):
+        """插入大写希腊字母 Ω"""
+        self.insert_mathematical_symbol("大写希腊字母Ω", "Ω")
+
+    def insert_color_code(self, code_type, code_value):
+        """
+        插入颜色代码
+
+        Args:
+            code_type (str): 代码类型
+            code_value (str): 代码值
+        """
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                return
+
+            # 插入颜色代码
+            self.text_area.insert(tk.INSERT, code_value)
+
+            # 更新状态栏
+            self._update_status_bar()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+
+            # 显示通知
+            self.status_bar.show_notification(f"已插入{code_type}: {code_value}", 2000)
+        except Exception as e:
+            # 忽略插入操作异常
+            pass
+
+    def insert_hex_color_picker(self):
+        """插入HEX颜色代码选择器"""
+        # 获取组件字体配置
+        font_config = config_manager.get_font_config("components")
+        font_family = font_config.get("font", "Microsoft YaHei UI")
+        font_size = 15
+        font_weight = "bold"
+
+        # 创建自定义对话框窗口
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("HEX颜色代码选择器")
+        dialog.geometry("400x500")
+        dialog.resizable(False, False)
+
+        # 设置窗口模态
+        dialog.transient(self)
+        dialog.grab_set()
+
+        # 创建主框架
+        main_frame = ctk.CTkFrame(dialog)
+        main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        # 标题标签
+        title_label = ctk.CTkLabel(
+            main_frame, text="选择颜色", font=(font_family, font_size, font_weight)
+        )
+        title_label.pack(pady=(0, 10))
+
+        # 颜色预览框架
+        preview_frame = ctk.CTkFrame(main_frame)
+        preview_frame.pack(fill="x", pady=(0, 10))
+
+        # 颜色预览标签
+        preview_label = ctk.CTkLabel(
+            preview_frame,
+            text="颜色预览",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        preview_label.pack(side="left", padx=(10, 20))
+
+        # 颜色预览框
+        color_preview = ctk.CTkLabel(preview_frame, text="", width=100, height=30)
+        color_preview.pack(side="left", padx=(0, 10))
+        color_preview.configure(fg_color="#000000")
+
+        # HEX代码显示标签
+        hex_label = ctk.CTkLabel(
+            preview_frame, text="#000000", font=(font_family, font_size - 2)
+        )
+        hex_label.pack(side="left")
+
+        # 颜色选择器框架
+        color_frame = ctk.CTkFrame(main_frame)
+        color_frame.pack(fill="both", expand=True, pady=(0, 10))
+
+        # 预设颜色按钮
+        colors = [
+            "#000000",
+            "#FFFFFF",
+            "#FF0000",
+            "#00FF00",
+            "#0000FF",
+            "#FFFF00",
+            "#FF00FF",
+            "#00FFFF",
+            "#800000",
+            "#008000",
+            "#000080",
+            "#808000",
+            "#800080",
+            "#008080",
+            "#C0C0C0",
+            "#808080",
+            "#FFA500",
+            "#A52A2A",
+            "#8B4513",
+            "#FFD700",
+            "#32CD32",
+            "#87CEEB",
+            "#4169E1",
+            "#9400D3",
+        ]
+
+        # 创建颜色按钮网格
+        for i, color in enumerate(colors):
+            row = i // 6
+            col = i % 6
+
+            def on_color_click(c=color):
+                color_preview.configure(fg_color=c)
+                hex_label.configure(text=c)
+
+            color_button = ctk.CTkButton(
+                color_frame,
+                text="",
+                width=40,
+                height=30,
+                fg_color=color,
+                hover_color=color,
+                command=on_color_click,
+            )
+            color_button.grid(row=row, column=col, padx=5, pady=5)
+
+        # 自定义颜色输入框架
+        input_frame = ctk.CTkFrame(main_frame)
+        input_frame.pack(fill="x", pady=(0, 10))
+
+        # 自定义颜色标签
+        custom_label = ctk.CTkLabel(
+            input_frame,
+            text="自定义HEX颜色代码:",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        custom_label.pack(side="left", padx=(10, 10))
+
+        # 自定义颜色输入框
+        custom_entry = ctk.CTkEntry(
+            input_frame, font=(font_family, font_size - 2), width=100
+        )
+        custom_entry.pack(side="left", padx=(0, 10))
+        custom_entry.insert(0, "#000000")
+
+        def on_custom_change():
+            hex_code = custom_entry.get()
+            if hex_code.startswith("#") and len(hex_code) == 7:
+                try:
+                    # 验证HEX代码
+                    int(hex_code[1:], 16)
+                    color_preview.configure(fg_color=hex_code)
+                    hex_label.configure(text=hex_code)
+                except ValueError:
+                    pass
+
+        custom_entry.bind("<KeyRelease>", lambda e: on_custom_change())
+
+        # 按钮框架
+        button_frame = ctk.CTkFrame(main_frame)
+        button_frame.pack(fill="x")
+
+        def on_ok():
+            """确认按钮处理函数"""
+            hex_code = hex_label.cget("text")
+            self.insert_color_code("HEX颜色代码", hex_code)
+            dialog.destroy()
+
+        def on_cancel():
+            """取消按钮处理函数"""
+            dialog.destroy()
+
+        # 创建按钮
+        ok_button = ctk.CTkButton(
+            button_frame,
+            text="确定",
+            font=(font_family, font_size, font_weight),
+            command=on_ok,
+        )
+        ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
+
+        cancel_button = ctk.CTkButton(
+            button_frame,
+            text="取消",
+            font=(font_family, font_size, font_weight),
+            command=on_cancel,
+        )
+        cancel_button.pack(side="right", fill="x", expand=True)
+
+        # 居中显示对话框
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
+
+    def insert_rgb_color_picker(self):
+        """插入RGB颜色代码选择器"""
+        # 获取组件字体配置
+        font_config = config_manager.get_font_config("components")
+        font_family = font_config.get("font", "Microsoft YaHei UI")
+        font_size = 15
+        font_weight = "bold"
+
+        # 创建自定义对话框窗口
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("RGB颜色代码选择器")
+        dialog.geometry("400x500")
+        dialog.resizable(False, False)
+
+        # 设置窗口模态
+        dialog.transient(self)
+        dialog.grab_set()
+
+        # 创建主框架
+        main_frame = ctk.CTkFrame(dialog)
+        main_frame.pack(padx=20, pady=20, fill="both", expand=True)
+
+        # 标题标签
+        title_label = ctk.CTkLabel(
+            main_frame, text="选择颜色", font=(font_family, font_size, font_weight)
+        )
+        title_label.pack(pady=(0, 10))
+
+        # 颜色预览框架
+        preview_frame = ctk.CTkFrame(main_frame)
+        preview_frame.pack(fill="x", pady=(0, 10))
+
+        # 颜色预览标签
+        preview_label = ctk.CTkLabel(
+            preview_frame,
+            text="颜色预览",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        preview_label.pack(side="left", padx=(10, 20))
+
+        # 颜色预览框
+        color_preview = ctk.CTkLabel(preview_frame, text="", width=100, height=30)
+        color_preview.pack(side="left", padx=(0, 10))
+        color_preview.configure(fg_color="#000000")
+
+        # RGB代码显示标签
+        rgb_label = ctk.CTkLabel(
+            preview_frame, text="rgb(0, 0, 0)", font=(font_family, font_size - 2)
+        )
+        rgb_label.pack(side="left")
+
+        # RGB滑块框架
+        slider_frame = ctk.CTkFrame(main_frame)
+        slider_frame.pack(fill="both", expand=True, pady=(0, 10))
+
+        # 红色滑块
+        red_label = ctk.CTkLabel(
+            slider_frame,
+            text="红色 (R):",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        red_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
+
+        red_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
+        red_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
+        red_slider.set(0)
+
+        red_value_label = ctk.CTkLabel(
+            slider_frame, text="0", font=(font_family, font_size - 2)
+        )
+        red_value_label.pack(anchor="e", padx=(0, 10))
+
+        # 绿色滑块
+        green_label = ctk.CTkLabel(
+            slider_frame,
+            text="绿色 (G):",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        green_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
+
+        green_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
+        green_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
+        green_slider.set(0)
+
+        green_value_label = ctk.CTkLabel(
+            slider_frame, text="0", font=(font_family, font_size - 2)
+        )
+        green_value_label.pack(anchor="e", padx=(0, 10))
+
+        # 蓝色滑块
+        blue_label = ctk.CTkLabel(
+            slider_frame,
+            text="蓝色 (B):",
+            font=(font_family, font_size - 2, font_weight),
+        )
+        blue_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
+
+        blue_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
+        blue_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
+        blue_slider.set(0)
+
+        blue_value_label = ctk.CTkLabel(
+            slider_frame, text="0", font=(font_family, font_size - 2)
+        )
+        blue_value_label.pack(anchor="e", padx=(0, 10))
+
+        def update_color():
+            """更新颜色预览和RGB代码"""
+            r = int(red_slider.get())
+            g = int(green_slider.get())
+            b = int(blue_slider.get())
+
+            # 更新值标签
+            red_value_label.configure(text=str(r))
+            green_value_label.configure(text=str(g))
+            blue_value_label.configure(text=str(b))
+
+            # 转换为HEX
+            hex_color = f"#{r:02x}{g:02x}{b:02x}"
+
+            # 更新预览
+            color_preview.configure(fg_color=hex_color)
+
+            # 更新RGB代码
+            rgb_label.configure(text=f"rgb({r}, {g}, {b})")
+
+        # 绑定滑块事件
+        red_slider.configure(command=lambda v: update_color())
+        green_slider.configure(command=lambda v: update_color())
+        blue_slider.configure(command=lambda v: update_color())
+
+        # 按钮框架
+        button_frame = ctk.CTkFrame(main_frame)
+        button_frame.pack(fill="x")
+
+        def on_ok():
+            """确认按钮处理函数"""
+            rgb_code = rgb_label.cget("text")
+            self.insert_color_code("RGB颜色代码", rgb_code)
+            dialog.destroy()
+
+        def on_cancel():
+            """取消按钮处理函数"""
+            dialog.destroy()
+
+        # 创建按钮
+        ok_button = ctk.CTkButton(
+            button_frame,
+            text="确定",
+            font=(font_family, font_size, font_weight),
+            command=on_ok,
+        )
+        ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
+
+        cancel_button = ctk.CTkButton(
+            button_frame,
+            text="取消",
+            font=(font_family, font_size, font_weight),
+            command=on_cancel,
+        )
+        cancel_button.pack(side="right", fill="x", expand=True)
+
+        # 居中显示对话框
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
+        dialog.geometry(f"+{x}+{y}")
