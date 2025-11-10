@@ -328,23 +328,21 @@ class QuickEditApp(ctk.CTk):
         """保存当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
             return False
+        
         # 直接调用文件操作处理器的保存文件方法
-        return self.file_ops.save_file()
+        return self.file_ops._save_file()
 
     def save_file_as(self):
         """另存为文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
             return False
+        
         # 直接调用文件操作处理器的另存为方法
-        return self.file_ops.save_file_as()
+        return self.file_ops._save_file(force_save_as=True)
 
     def close_file(self):
         """关闭当前文件"""

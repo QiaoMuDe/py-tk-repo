@@ -68,21 +68,70 @@ class FileOperations:
         except Exception as e:
             messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
 
-    def _save_file_content(self, file_path, update_current_file_info=True):
+    def _save_file(self, file_path=None, force_save_as=False):
         """
-        保存文件内容的通用方法
+        统一的文件保存方法，整合保存和另存为功能
+
+        此方法执行以下操作：
+        1. 检查文件内容和状态
+        2. 根据需要显示文件选择对话框
+        3. 调用核心保存方法写入文件
+        4. 更新编辑器状态和界面
 
         Args:
-            file_path: 要保存的文件路径
-            update_current_file_info: 是否更新当前文件信息（路径、编码等）
+            file_path (str, optional): 要保存的文件路径。如果为None且当前有文件路径，则使用当前路径
+            force_save_as (bool): 是否强制执行另存为操作，即使已有文件路径
 
         Returns:
             bool: 保存是否成功
-        """
-        try:
-            # 获取编辑器内容
-            content = self.root.text_area.get("1.0", tk.END).rstrip("\n")
 
+        Note:
+            - 当file_path为None且当前没有文件路径时，会显示另存为对话框
+            - 当force_save_as为True时，即使有当前文件路径也会显示另存为对话框
+            - 如果文件内容为空且没有文件路径，会提示"没有内容可保存"
+            - 如果文件未修改且不是强制另存为，会提示"文件未修改，无需保存"
+        """
+        # 获取文本框内容（只获取一次）
+        # 使用rstrip("\n")而不是strip()，因为我们需要保留文件开头的空格和制表符
+        content = self.root.text_area.get("1.0", tk.END).rstrip("\n")
+
+        # 检查是否有文件路径
+        has_current_path = self.root.current_file_path is not None
+
+        # 情况1：没有打开文件且文本框没有内容
+        if not has_current_path and not content:
+            messagebox.showinfo("提示", "没有内容可保存")
+            return False
+
+        # 情况2：已经打开文件，检查是否修改（除非是强制另存为）
+        if has_current_path and not self.root.is_modified() and not force_save_as:
+            messagebox.showinfo("提示", "文件未修改，无需保存")
+            return True
+
+        # 确定最终保存路径
+        final_path = file_path
+        need_to_update_current_info = True  # 是否需要更新当前文件信息
+
+        if final_path is None:
+            # 没有指定路径，使用当前路径或显示另存为对话框
+            if has_current_path and not force_save_as:
+                # 使用当前文件路径，不更新文件信息
+                final_path = self.root.current_file_path
+                need_to_update_current_info = False
+            else:
+                # 显示另存为对话框
+                final_path = filedialog.asksaveasfilename(
+                    title="另存为",
+                    defaultextension=".txt",
+                    filetypes=self.FILE_TYPES,
+                )
+
+                # 如果用户取消了选择，返回
+                if not final_path:
+                    return False
+
+        # 实际的保存逻辑操作
+        try:
             # 获取当前编码和换行符设置
             encoding = self.root.current_encoding
             # 优先使用编辑器的当前换行符设置，如果没有则使用配置中的默认换行符
@@ -92,16 +141,16 @@ class FileOperations:
             content = self.file_core.convert_line_endings(content, line_ending)
 
             # 写入文件
-            with codecs.open(file_path, "w", encoding=encoding) as f:
+            with codecs.open(final_path, "w", encoding=encoding) as f:
                 f.write(content)
 
             # 如果启用了副本备份功能，则创建副本备份
             if self.config_manager.get("app.backup_enabled", False):
-                self._create_backup_copy(file_path)
+                self._create_backup_copy(final_path)
 
             # 如果需要，更新当前文件信息
-            if update_current_file_info:
-                self.root.current_file_path = file_path
+            if need_to_update_current_info:
+                self.root.current_file_path = final_path
                 self.root.current_encoding = encoding
                 self.root.current_line_ending = line_ending
 
@@ -135,71 +184,6 @@ class FileOperations:
 
         except Exception as e:
             messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
-            return False
-
-    def save_file(self):
-        """保存当前文件"""
-        # 获取文本框内容
-        content = self.root.text_area.get("1.0", tk.END).strip()
-
-        # 检查是否有文件路径
-        has_file_path = self.root.current_file_path
-
-        # 情况1：没有打开文件且文本框没有内容
-        if not has_file_path and not content:
-            messagebox.showinfo("提示", "没有内容可保存")
-            return False
-
-        # 情况2：已经打开文件，检查是否修改
-        if has_file_path and not self.root.is_modified():
-            messagebox.showinfo("提示", "文件未修改，无需保存")
-            return True
-
-        if not self.root.current_file_path:
-            # 如果没有当前文件路径，则执行另存为
-            return self.save_file_as()
-
-        # 使用通用保存方法，不更新当前文件信息（因为已经是当前文件）
-        return self._save_file_content(
-            self.root.current_file_path, update_current_file_info=False
-        )
-
-    def save_file_as(self):
-        """另存为文件"""
-        # 获取文本框内容
-        content = self.root.text_area.get("1.0", tk.END).strip()
-
-        # 检查是否有文件路径
-        has_file_path = (
-            hasattr(self.root, "current_file_path") and self.root.current_file_path
-        )
-
-        # 情况1：没有打开文件且文本框没有内容
-        if not has_file_path and not content:
-            messagebox.showinfo("提示", "没有内容可保存")
-            return False
-
-        # 情况2：已经打开文件，检查是否修改
-        if has_file_path and not self.root.is_modified():
-            messagebox.showinfo("提示", "文件未修改，无需保存")
-            return True
-
-        try:
-            # 打开另存为对话框
-            file_path = filedialog.asksaveasfilename(
-                title="另存为",
-                defaultextension=".txt",
-                filetypes=self.FILE_TYPES,
-            )
-
-            if not file_path:
-                return False  # 用户取消了选择
-
-            # 使用通用保存方法，更新当前文件信息（因为是另存为）
-            return self._save_file_content(file_path, update_current_file_info=True)
-
-        except Exception as e:
-            messagebox.showerror("错误", f"另存为文件时出错: {str(e)}")
             return False
 
     def _new_file_helper(self, filename="新文件"):
@@ -392,7 +376,7 @@ class FileOperations:
         else:  # 用户选择取消
             return False
 
-    # 以下为打开文件的核心逻辑 #
+    # 以下为打开文件的核心逻辑 ##
 
     def _open_file(
         self, select_path=False, check_save=False, check_backup=False, file_path=None
