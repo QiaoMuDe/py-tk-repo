@@ -7,6 +7,7 @@
 
 import os
 import json
+from tkinter import messagebox
 from pathlib import Path
 
 # 应用程序常量
@@ -140,7 +141,7 @@ class ConfigManager:
             return merge_configs(DEFAULT_CONFIG, config)
         except (json.JSONDecodeError, IOError) as e:
             # 配置文件解析失败或读取错误，返回默认配置
-            print(f"配置文件读取失败: {e}")
+            messagebox.showerror("配置文件错误", f"配置文件读取失败，已返回默认配置\n错误信息: {str(e)}")
             return DEFAULT_CONFIG.copy()
 
     def save_config(self, config=None):

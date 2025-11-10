@@ -21,6 +21,11 @@ def show_about_dialog(parent):
     version = APP_VERSION
     project_path = PROJECT_URL
 
+    # 获取组件字体配置
+    font_name = config_manager.get("components.font", "Microsoft YaHei UI")
+    font_size = config_manager.get("components.font_size", 13)
+    font_bold = config_manager.get("components.font_bold", False)
+
     # 创建关于对话框窗口
     about_window = ctk.CTkToplevel(parent)
     about_window.title("关于 QuickEdit++")
@@ -42,13 +47,17 @@ def show_about_dialog(parent):
 
     # 应用标题
     title_label = ctk.CTkLabel(
-        main_frame, text="QuickEdit++", font=ctk.CTkFont(size=24, weight="bold")
+        main_frame,
+        text="QuickEdit++",
+        font=ctk.CTkFont(size=font_size + 11, weight="bold", family=font_name),
     )
     title_label.pack(pady=(20, 10))
 
     # 版本号
     version_label = ctk.CTkLabel(
-        main_frame, text=f"版本: {version}", font=ctk.CTkFont(size=14)
+        main_frame,
+        text=f"版本: {version}",
+        font=ctk.CTkFont(size=font_size + 1, family=font_name),
     )
     version_label.pack(pady=(0, 20))
 
@@ -69,7 +78,10 @@ def show_about_dialog(parent):
 • 灵活的编辑设置"""
 
     intro_label = ctk.CTkLabel(
-        main_frame, text=intro_text, justify="left", font=ctk.CTkFont(size=12)
+        main_frame,
+        text=intro_text,
+        justify="left",
+        font=ctk.CTkFont(size=font_size - 1, family=font_name),
     )
     intro_label.pack(pady=(0, 20), padx=20, anchor="w")
 
@@ -78,14 +90,16 @@ def show_about_dialog(parent):
     project_frame.pack(fill="x", pady=(0, 20), padx=20)
 
     project_label = ctk.CTkLabel(
-        project_frame, text="项目地址:", font=ctk.CTkFont(size=12, weight="bold")
+        project_frame,
+        text="项目地址:",
+        font=ctk.CTkFont(size=font_size - 1, weight="bold", family=font_name),
     )
     project_label.pack(side="left", padx=(10, 5))
 
     project_url = ctk.CTkLabel(
         project_frame,
         text=project_path,
-        font=ctk.CTkFont(size=12),
+        font=ctk.CTkFont(size=font_size - 1, family=font_name),
         text_color=("#1E6BA8", "#4A9FE8"),  # 蓝色链接颜色
     )
     project_url.pack(side="left", padx=(0, 10))
@@ -100,13 +114,21 @@ def show_about_dialog(parent):
 
     # 版权信息
     copyright_label = ctk.CTkLabel(
-        main_frame, text="© 2025 QuickEdit++ 开发团队", font=ctk.CTkFont(size=10)
+        main_frame,
+        text="© 2025 QuickEdit++ 开发团队",
+        font=ctk.CTkFont(size=font_size - 3, family=font_name),
     )
     copyright_label.pack(pady=(10, 0))
 
     # 关闭按钮
     close_button = ctk.CTkButton(
-        main_frame, text="关闭", command=about_window.destroy, width=100
+        main_frame,
+        text="关闭",
+        command=about_window.destroy,
+        width=100,
+        font=ctk.CTkFont(
+            size=font_size, family=font_name, weight="bold" if font_bold else "normal"
+        ),
     )
     close_button.pack(pady=(20, 0))
 
