@@ -681,8 +681,12 @@ def toggle_quick_insert(root):
         root.quick_insert_var.set(new_state)
 
     # 获取当前活动的文本编辑器实例
-    if root.current_editor:
-        root.current_editor.toggle_quick_insert(new_state)
+    #if root.text_area:
+    #    root.text_area.toggle_quick_insert(new_state)
+        
+    # 显示通知
+    status_text = "已启用" if new_state else "已禁用"
+    messagebox.showinfo("通知", f"快速插入{status_text}")
 
 
 def toggle_auto_save(root):
@@ -720,6 +724,9 @@ def toggle_backup(root):
     # 开启的时候立即备份一次
     if new_state and root.current_file_path and not root.is_modified(): 
         root.file_operations._create_backup_copy(root.current_file_path)
+        
+    # 显示通知
+    messagebox.showinfo("通知", f"备份模式已切换为: {'已启用' if new_state else '已禁用'}")
 
 def set_window_title_mode(mode, root):
     """
