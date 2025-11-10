@@ -22,9 +22,10 @@ from operations.file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
 from app.auto_save_manager import AutoSaveManager
+from app.edit_operations import EditOperations
 
 
-class QuickEditApp(ctk.CTk):
+class QuickEditApp(EditOperations, ctk.CTk):
     """QuickEdit++ 主应用类 - 直接继承ctk.CTk作为主窗口"""
 
     def __init__(self):
@@ -92,6 +93,7 @@ class QuickEditApp(ctk.CTk):
 
         # 绑定文本框焦点离开事件，触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
+        
         # 绑定文件操作快捷键
         self.bind("<Control-n>", lambda e: self.new_file())  # 新建文件
         self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件
@@ -102,6 +104,23 @@ class QuickEditApp(ctk.CTk):
             "<Control-e>", lambda e: self.open_containing_folder()
         )  # 打开文件所在目录
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
+        
+        # 绑定编辑操作快捷键
+        self.bind("<Control-z>", lambda e: self.undo())  # 撤销
+        self.bind("<Control-y>", lambda e: self.redo())  # 重做
+        self.bind("<Control-x>", lambda e: self.cut())  # 剪切
+        self.bind("<Control-c>", lambda e: self.copy())  # 复制
+        self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
+        self.bind("<Control-a>", lambda e: self.select_all())  # 全选
+        self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
+        
+        # 绑定导航快捷键
+        self.bind("<Home>", lambda e: self.goto_top())  # 转到文件顶部
+        self.bind("<End>", lambda e: self.goto_bottom())  # 转到文件底部
+        self.bind("<Prior>", lambda e: self.page_up())  # 向上翻页
+        self.bind("<Next>", lambda e: self.page_down())  # 向下翻页
+        self.bind("<Control-g>", lambda e: self.goto_line())  # 转到行
+        
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
 
@@ -138,7 +157,7 @@ class QuickEditApp(ctk.CTk):
         文本区域失去焦点事件处理
 
         当焦点离开文本框时，立即执行自动保存（如果文件已修改且自动保存已启用）
-        这与定时自动保存是独立的，确保在用户切换到其他应用时也能保存
+        与此定时自动保存是独立的，确保在用户切换到其他应用时也能保存
         """
         # 使用自动保存管理器处理焦点离开事件
         self.auto_save_manager.on_text_area_focus_out(event)

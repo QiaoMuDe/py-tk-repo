@@ -206,8 +206,8 @@ class AppInitializer:
         self.init_app_theme()
         self.init_dpi_support()
 
-        # 初始化CTk主窗口
-        super(type(self.app), self.app).__init__()
+        # 初始化CTk主窗口 - 修复继承关系问题
+        ctk.CTk.__init__(self.app)
 
         self.init_window_properties()
         self.init_font_settings()

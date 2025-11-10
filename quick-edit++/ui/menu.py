@@ -239,43 +239,49 @@ def create_menu(root):
 
     # 创建编辑菜单
     edit_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    edit_menu.add_command(label="撤销", command=lambda: print("撤销"))
-    edit_menu.add_command(label="重做", command=lambda: print("重做"))
+    edit_menu.add_command(label="撤销", command=lambda: root.undo(), accelerator="Ctrl+Z")
+    edit_menu.add_command(label="重做", command=lambda: root.redo(), accelerator="Ctrl+Y")
     edit_menu.add_separator()
-    edit_menu.add_command(label="剪切", command=lambda: print("剪切"))
-    edit_menu.add_command(label="复制", command=lambda: print("复制"))
-    edit_menu.add_command(label="粘贴", command=lambda: print("粘贴"))
+    edit_menu.add_command(label="剪切", command=lambda: root.cut(), accelerator="Ctrl+X")
+    edit_menu.add_command(label="复制", command=lambda: root.copy(), accelerator="Ctrl+C")
+    edit_menu.add_command(label="粘贴", command=lambda: root.paste(), accelerator="Ctrl+V")
     edit_menu.add_separator()
     edit_menu.add_command(label="查找", command=lambda: print("查找"))
     edit_menu.add_command(label="替换", command=lambda: print("替换"))
     edit_menu.add_separator()
 
     # 全选、清除
-    edit_menu.add_command(label="全选", command=lambda: print("全选"))
-    edit_menu.add_command(label="清除", command=lambda: print("清除"))
+    edit_menu.add_command(label="全选", command=lambda: root.select_all(), accelerator="Ctrl+A")
+    edit_menu.add_command(label="清除", command=lambda: root.clear_all(), accelerator="Ctrl+Shift+D")
     edit_menu.add_separator()
 
     # 新增导航功能
-    edit_menu.add_command(label="转到文件顶部", command=lambda: print("转到文件顶部"))
-    edit_menu.add_command(label="转到文件底部", command=lambda: print("转到文件底部"))
-    edit_menu.add_command(label="向上翻页", command=lambda: print("向上翻页"))
-    edit_menu.add_command(label="向下翻页", command=lambda: print("向下翻页"))
-    edit_menu.add_command(label="转到行", command=lambda: print("转到行"))
+    edit_menu.add_command(label="转到文件顶部", command=lambda: root.goto_top(), accelerator="Home")
+    edit_menu.add_command(label="转到文件底部", command=lambda: root.goto_bottom(), accelerator="End")
+    edit_menu.add_command(label="向上翻页", command=lambda: root.page_up(), accelerator="PageUp")
+    edit_menu.add_command(label="向下翻页", command=lambda: root.page_down(), accelerator="PageDown")
+    edit_menu.add_command(label="转到行", command=lambda: root.goto_line(), accelerator="Ctrl+G")
     edit_menu.add_separator()
 
     # 新增剪贴板和文本操作功能组
-    edit_menu.add_command(label="清空剪贴板", command=lambda: print("清空剪贴板"))
+    edit_menu.add_command(label="清空剪贴板", command=lambda: root.clear_clipboard())
 
     # 创建复制到剪贴板子菜单
     copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    copy_to_clipboard_submenu.add_command(label="复制文件名", command=lambda: root.copy_filename_to_clipboard())
+    copy_to_clipboard_submenu.add_command(label="复制文件路径", command=lambda: root.copy_filepath_to_clipboard())
     edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
 
     # 创建选中文本操作子菜单
     selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    selected_text_submenu.add_command(label="复制选中文本信息", command=lambda: root.copy_selected_text_info())
+    selected_text_submenu.add_command(label="清除选中文本", command=lambda: root.clear_selection())
     edit_menu.add_cascade(label="选中文本操作", menu=selected_text_submenu)
 
     # 创建插入子菜单
     insert_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_command(label="插入日期时间", command=lambda: root.insert_date_time())
+    insert_submenu.add_command(label="插入文件路径", command=lambda: root.insert_file_path())
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
 
     # 将编辑菜单添加到主菜单
