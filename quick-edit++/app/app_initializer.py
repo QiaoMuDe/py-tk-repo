@@ -113,11 +113,6 @@ class AppInitializer:
             value=config_manager.get("text_editor.auto_wrap", True)
         )
 
-        # 初始化快速插入状态变量
-        self.app.quick_insert_var = tk.BooleanVar(
-            value=config_manager.get("text_editor.quick_insert", True)
-        )
-
         # 注意：auto_save_var 和 auto_save_interval_var 现在由 AutoSaveManager 类管理
 
         # 创建备份状态变量

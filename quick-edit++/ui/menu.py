@@ -67,532 +67,20 @@ def get_supported_encodings():
         return common_encodings
 
 
-def create_encoding_submenu(parent_menu, root, show_common_only=False, font_tuple=None):
-    """创建编码选择子菜单
-
-    Args:
-        parent_menu: 父菜单对象
-        root: 根窗口对象
-        show_common_only (bool): 是否只显示常用编码，默认False显示完整编码列表
-        font_tuple: 字体元组，包含字体名称、大小和样式
+def create_insert_submenu(parent_menu, root, menu_font_tuple):
     """
-    if font_tuple is None:
-        # 如果没有提供字体元组，从配置管理器获取菜单字体设置
-        menu_font = config_manager.get_font_config("menu_bar")
-        menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
-        menu_font_size = menu_font.get("font_size", 12)
-        menu_font_bold = menu_font.get("font_bold", True)
-        font_tuple = (
-            menu_font_family,
-            menu_font_size,
-            "bold" if menu_font_bold else "normal",
-        )
-
-    if show_common_only:
-        # 只显示常用编码
-        common_encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
-
-        for enc in common_encodings:
-            parent_menu.add_command(
-                label=enc,
-                command=lambda e=enc: set_file_encoding(e, root),
-                font=font_tuple,
-            )
-
-        # 添加"更多"选项，点击后显示完整编码列表
-        parent_menu.add_separator()
-
-        # 创建更多编码的子菜单
-        more_encodings_menu = tk.Menu(parent_menu, tearoff=0, font=font_tuple)
-        parent_menu.add_cascade(
-            label="更多编码...", menu=more_encodings_menu, font=font_tuple
-        )
-
-        # 填充更多编码菜单
-        encodings = get_supported_encodings()
-        # 按字母顺序排序
-        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
-
-        # 为了避免菜单过长，将编码分成几组
-        group_size = 20  # 每组20个编码
-        for i in range(0, len(encodings_sorted), group_size):
-            group_name = f"{encodings_sorted[i]} - {encodings_sorted[min(i+group_size-1, len(encodings_sorted)-1)]}"
-            group_menu = tk.Menu(more_encodings_menu, tearoff=0, font=font_tuple)
-            more_encodings_menu.add_cascade(
-                label=group_name, menu=group_menu, font=font_tuple
-            )
-
-            for j in range(i, min(i + group_size, len(encodings_sorted))):
-                enc = encodings_sorted[j]
-                group_menu.add_command(
-                    label=enc,
-                    command=lambda e=enc: set_file_encoding(e, root),
-                    font=font_tuple,
-                )
-    else:
-        # 显示完整编码列表
-        encodings = get_supported_encodings()
-        # 按字母顺序排序
-        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
-
-        for enc in encodings_sorted:
-            parent_menu.add_command(
-                label=enc,
-                command=lambda e=enc: set_file_encoding(e, root),
-                font=font_tuple,
-            )
-
-
-def create_menu(root):
-    """创建菜单栏"""
-    # 从配置管理器获取菜单字体设置
-    menu_font = config_manager.get_font_config("menu_bar")
-    menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
-    menu_font_size = menu_font.get("font_size", 12)
-    menu_font_bold = menu_font.get("font_bold", False)
-
-    # 创建字体元组，用于所有菜单项
-    menu_font_tuple = (
-        menu_font_family,
-        menu_font_size,
-        "bold" if menu_font_bold else "normal",
-    )
-
-    # 创建主菜单
-    main_menu = tk.Menu(root, font=menu_font_tuple)
-
-    # 创建文件菜单
-    file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-
-    # 第一组：基本文件操作
-    file_menu.add_command(
-        label="新建", command=lambda: root.new_file(), accelerator="Ctrl+N"
-    )
-    file_menu.add_command(
-        label="打开", command=lambda: root.open_file(), accelerator="Ctrl+O"
-    )
-    file_menu.add_command(
-        label="保存", command=lambda: root.save_file(), accelerator="Ctrl+S"
-    )
-    file_menu.add_command(
-        label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S"
-    )
-    file_menu.add_command(
-        label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W"
-    )
-
-    # 分隔符
-    file_menu.add_separator()
-
-    # 第二组：文件编码
-    # 创建文件编码子菜单
-    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
-
-    # 获取当前编码设置
-    current_encoding = config_manager.get("file.default_encoding", "UTF-8")
-
-    # 创建常用编码子菜单
-    create_encoding_submenu(
-        encoding_submenu, root, show_common_only=True, font_tuple=menu_font_tuple
-    )
-
-    file_menu.add_cascade(label="文件编码", menu=encoding_submenu)
-
-    # 创建换行符子菜单
-    newline_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
-
-    # 获取当前换行符设置
-    current_newline = config_manager.get("file.default_line_ending", "CRLF")
-    newline_options = [
-        ("Windows (CRLF)", "CRLF"),
-        ("Linux/Unix (LF)", "LF"),
-        ("Mac (CR)", "CR"),
-    ]
-
-    for label, value in newline_options:
-        newline_submenu.add_command(
-            label=label, command=lambda nl=value: set_file_line_ending(nl, root)
-        )
-
-    file_menu.add_cascade(label="换行符", menu=newline_submenu)
-
-    # 分隔符
-    file_menu.add_separator()
-
-    # 第三组：文件选项
-    file_menu.add_command(
-        label="打开文件所在目录",
-        command=lambda: root.open_containing_folder(),
-        accelerator="Ctrl+E",
-    )
-    file_menu.add_checkbutton(
-        label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
-    )
-
-    # 分隔符
-    file_menu.add_separator()
-
-    # 第四组：退出程序
-    file_menu.add_command(label="退出", command=root._on_closing, accelerator="Ctrl+Q")
-
-    # 将文件菜单添加到主菜单
-    main_menu.add_cascade(label="文件", menu=file_menu)
-
-    # 创建编辑菜单
-    edit_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    edit_menu.add_command(
-        label="撤销", command=lambda: root.undo(), accelerator="Ctrl+Z"
-    )
-    edit_menu.add_command(
-        label="重做", command=lambda: root.redo(), accelerator="Ctrl+Y"
-    )
-    edit_menu.add_separator()
-    edit_menu.add_command(
-        label="剪切", command=lambda: root.cut(), accelerator="Ctrl+X"
-    )
-    edit_menu.add_command(
-        label="复制", command=lambda: root.copy(), accelerator="Ctrl+C"
-    )
-    edit_menu.add_command(
-        label="粘贴", command=lambda: root.paste(), accelerator="Ctrl+V"
-    )
-    edit_menu.add_separator()
-    edit_menu.add_command(
-        label="查找替换", 
-        command=lambda: show_find_replace_dialog(root, root.text_area),
-        accelerator="Ctrl+F"
-    )
-    edit_menu.add_separator()
-
-    # 全选、清除
-    edit_menu.add_command(
-        label="全选", command=lambda: root.select_all(), accelerator="Ctrl+A"
-    )
-    edit_menu.add_command(
-        label="清除", command=lambda: root.clear_all(), accelerator="Ctrl+Shift+D"
-    )
-    edit_menu.add_separator()
-
-    # 新增导航功能
-    edit_menu.add_command(
-        label="转到文件顶部", command=lambda: root.goto_top(), accelerator="Home"
-    )
-    edit_menu.add_command(
-        label="转到文件底部", command=lambda: root.goto_bottom(), accelerator="End"
-    )
-    edit_menu.add_command(
-        label="向上翻页", command=lambda: root.page_up(), accelerator="PageUp"
-    )
-    edit_menu.add_command(
-        label="向下翻页", command=lambda: root.page_down(), accelerator="PageDown"
-    )
-    edit_menu.add_command(
-        label="转到行", command=lambda: root.goto_line(), accelerator="Ctrl+G"
-    )
-    edit_menu.add_separator()
-
-    # 新增剪贴板和文本操作功能组
-    edit_menu.add_command(label="清空剪贴板", command=lambda: root.clear_clipboard())
-
-    # 创建复制到剪贴板子菜单
-    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
-    copy_to_clipboard_submenu.add_command(
-        label="文件名", command=lambda: root.copy_filename_to_clipboard()
-    )
-    copy_to_clipboard_submenu.add_command(
-        label="文件路径", command=lambda: root.copy_filepath_to_clipboard()
-    )
-    copy_to_clipboard_submenu.add_command(
-        label="目录", command=lambda: root.copy_directory_to_clipboard()
-    )
-    edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
-
-    # 创建选中文本操作子菜单
-    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
-    edit_menu.add_cascade(label="选中文本操作", menu=selected_text_submenu)
-
-    # 在选中文本操作下创建各种子菜单
-    text_processing_submenu = tk.Menu(
-        selected_text_submenu, tearoff=0, font=menu_font_tuple
-    )
-    selected_text_submenu.add_cascade(label="文本处理", menu=text_processing_submenu)
-
-    # 添加空白处理菜单项
-    text_processing_submenu.add_command(
-        label="移除首尾空白", command=lambda: root.trim_whitespace()
-    )
-    text_processing_submenu.add_command(
-        label="移除左侧空白", command=lambda: root.trim_left_whitespace()
-    )
-    text_processing_submenu.add_command(
-        label="移除右侧空白", command=lambda: root.trim_right_whitespace()
-    )
-    text_processing_submenu.add_command(
-        label="移除多余空白", command=lambda: root.remove_extra_whitespace()
-    )
-    text_processing_submenu.add_separator()
-
-    # 创建命名转换子菜单
-    naming_conversion_submenu = tk.Menu(
-        text_processing_submenu, tearoff=0, font=menu_font_tuple
-    )
-    text_processing_submenu.add_cascade(
-        label="命名转换", menu=naming_conversion_submenu
-    )
-
-    # 创建基本转换子菜单
-    basic_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="基本转换", menu=basic_conversion_submenu
-    )
-
-    # 添加基本转换菜单项
-    basic_conversion_submenu.add_command(
-        label="下划线转驼峰", command=lambda: root.snake_to_camel()
-    )
-    basic_conversion_submenu.add_command(
-        label="驼峰转下划线", command=lambda: root.camel_to_snake()
-    )
-
-    # 创建扩展转换子菜单
-    extended_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="扩展转换", menu=extended_conversion_submenu
-    )
-
-    # 添加扩展转换菜单项
-    extended_conversion_submenu.add_command(
-        label="下划线转帕斯卡", command=lambda: root.snake_to_pascal()
-    )
-    extended_conversion_submenu.add_command(
-        label="帕斯卡转下划线", command=lambda: root.pascal_to_snake()
-    )
-    extended_conversion_submenu.add_command(
-        label="驼峰转帕斯卡", command=lambda: root.camel_to_pascal()
-    )
-    extended_conversion_submenu.add_command(
-        label="帕斯卡转驼峰", command=lambda: root.pascal_to_camel()
-    )
-    extended_conversion_submenu.add_command(
-        label="短横线转下划线", command=lambda: root.kebab_to_snake()
-    )
-    extended_conversion_submenu.add_command(
-        label="下划线转短横线", command=lambda: root.snake_to_kebab()
-    )
-    extended_conversion_submenu.add_command(
-        label="短横线转驼峰", command=lambda: root.kebab_to_camel()
-    )
-    extended_conversion_submenu.add_command(
-        label="驼峰转短横线", command=lambda: root.camel_to_kebab()
-    )
-
-    # 创建大小写转换子菜单
-    case_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="大小写转换", menu=case_conversion_submenu
-    )
-
-    # 添加大小写转换菜单项
-    case_conversion_submenu.add_command(
-        label="转为大写", command=lambda: root.to_upper_case()
-    )
-    case_conversion_submenu.add_command(
-        label="转为小写", command=lambda: root.to_lower_case()
-    )
-    case_conversion_submenu.add_command(
-        label="首字母大写", command=lambda: root.to_title_case()
-    )
-    case_conversion_submenu.add_command(
-        label="每个单词首字母大写", command=lambda: root.to_title_case()
-    )
-
-    # 创建分隔符转换子菜单
-    separator_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="分隔符转换", menu=separator_conversion_submenu
-    )
-
-    # 添加分隔符转换菜单项
-    separator_conversion_submenu.add_command(
-        label="空格转下划线", command=lambda: root.space_to_snake()
-    )
-    separator_conversion_submenu.add_command(
-        label="空格转短横线", command=lambda: root.space_to_kebab()
-    )
-    separator_conversion_submenu.add_command(
-        label="空格转驼峰", command=lambda: root.space_to_camel()
-    )
-    separator_conversion_submenu.add_command(
-        label="下划线转空格", command=lambda: root.snake_to_space()
-    )
-    separator_conversion_submenu.add_command(
-        label="短横线转空格", command=lambda: root.kebab_to_space()
-    )
-    separator_conversion_submenu.add_command(
-        label="驼峰转空格", command=lambda: root.camel_to_space()
-    )
-
-    # 创建编程规范子菜单
-    programming_convention_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="编程规范", menu=programming_convention_submenu
-    )
-
-    # 添加编程规范菜单项
-    programming_convention_submenu.add_command(
-        label="常量命名", command=lambda: root.to_constant_case()
-    )
-    programming_convention_submenu.add_command(
-        label="私有变量命名", command=lambda: root.to_private_variable()
-    )
-    programming_convention_submenu.add_command(
-        label="类命名", command=lambda: root.to_class_name()
-    )
-    programming_convention_submenu.add_command(
-        label="接口命名", command=lambda: root.to_interface_name()
-    )
-    programming_convention_submenu.add_command(
-        label="函数命名", command=lambda: root.to_function_name()
-    )
-
-    # 创建数据库相关子菜单
-    database_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
-    )
-    naming_conversion_submenu.add_cascade(
-        label="数据库相关", menu=database_conversion_submenu
-    )
-
-    # 添加数据库相关菜单项
-    database_conversion_submenu.add_command(
-        label="表名转换", command=lambda: root.to_table_name()
-    )
-    database_conversion_submenu.add_command(
-        label="列名转换", command=lambda: root.to_column_name()
-    )
-    database_conversion_submenu.add_command(
-        label="外键命名", command=lambda: root.to_foreign_key()
-    )
-
-    # 创建行处理子菜单
-    line_processing_submenu = tk.Menu(
-        selected_text_submenu, tearoff=0, font=menu_font_tuple
-    )
-    selected_text_submenu.add_cascade(label="行处理", menu=line_processing_submenu)
-
-    # 添加行处理菜单项
-    line_processing_submenu.add_command(
-        label="移除空白行", command=lambda: root.remove_empty_lines()
-    )
-    line_processing_submenu.add_command(
-        label="合并空白行", command=lambda: root.merge_empty_lines()
-    )
-    line_processing_submenu.add_command(
-        label="移除重复行", command=lambda: root.remove_duplicate_lines()
-    )
-    line_processing_submenu.add_command(
-        label="合并重复行", command=lambda: root.merge_duplicate_lines()
-    )
-
-    # 添加分隔符
-    line_processing_submenu.add_separator()
-
-    # 创建排序子菜单
-    sort_submenu = tk.Menu(line_processing_submenu, tearoff=0, font=menu_font_tuple)
-    line_processing_submenu.add_cascade(label="排序", menu=sort_submenu)
-
-    # 添加排序菜单项
-    sort_submenu.add_command(
-        label="升序排序", command=lambda: root.sort_lines_ascending()
-    )
-    sort_submenu.add_command(
-        label="降序排序", command=lambda: root.sort_lines_descending()
-    )
-
-    # 创建反转子菜单
-    reverse_submenu = tk.Menu(line_processing_submenu, tearoff=0, font=menu_font_tuple)
-    line_processing_submenu.add_cascade(label="反转", menu=reverse_submenu)
-
-    # 添加反转菜单项
-    reverse_submenu.add_command(
-        label="字符反转", command=lambda: root.reverse_characters()
-    )
-    reverse_submenu.add_command(label="行反转", command=lambda: root.reverse_lines())
-
-    # 创建格式化子菜单
-    formatting_submenu = tk.Menu(selected_text_submenu, tearoff=0, font=menu_font_tuple)
-    selected_text_submenu.add_cascade(label="格式化", menu=formatting_submenu)
-
-    # 创建JSON子菜单
-    json_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="JSON", menu=json_submenu)
-
-    # 添加JSON菜单项
-    json_submenu.add_command(label="格式化JSON", command=lambda: root.format_json())
-    json_submenu.add_command(label="压缩JSON", command=lambda: root.compress_json())
-
-    # 添加其他格式化菜单项
-    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
-
-    # 创建CSV格式化子菜单
-    csv_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="CSV", menu=csv_submenu)
-    csv_submenu.add_command(
-        label="格式化CSV", command=lambda: root.format_csv(compress=False)
-    )
-    csv_submenu.add_command(
-        label="压缩CSV", command=lambda: root.format_csv(compress=True)
-    )
-
-    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
-    formatting_submenu.add_command(
-        label="格式化Python", command=lambda: root.format_python()
-    )
-    formatting_submenu.add_command(
-        label="格式化YAML", command=lambda: root.format_yaml()
-    )
-
-    # 创建注释处理子菜单
-    comment_processing_submenu = tk.Menu(
-        selected_text_submenu, tearoff=0, font=menu_font_tuple
-    )
-    selected_text_submenu.add_cascade(label="注释处理", menu=comment_processing_submenu)
-    comment_processing_submenu.add_command(
-        label="添加#号注释", command=lambda: root.add_hash_comment()
-    )
-    comment_processing_submenu.add_command(
-        label="添加//注释", command=lambda: root.add_slash_comment()
-    )
-    comment_processing_submenu.add_command(
-        label="移除行注释", command=lambda: root.remove_line_comment()
-    )
-
-    # 创建编码解码子菜单
-    encoding_decoding_submenu = tk.Menu(
-        selected_text_submenu, tearoff=0, font=menu_font_tuple
-    )
-    selected_text_submenu.add_cascade(label="编码解码", menu=encoding_decoding_submenu)
-
-    # 添加编码解码菜单项
-    encoding_decoding_submenu.add_command(
-        label="Base64编码", command=lambda: root.base64_encode()
-    )
-    encoding_decoding_submenu.add_command(
-        label="Base64解码", command=lambda: root.base64_decode()
-    )
-
+    创建插入子菜单，包含所有插入功能
+
+    参数:
+        parent_menu: 父菜单组件
+        root: 主应用窗口实例
+        menu_font_tuple: 菜单字体配置
+
+    返回:
+        配置好的插入子菜单
+    """
     # 创建插入子菜单
-    insert_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    insert_submenu = tk.Menu(parent_menu, tearoff=0, font=menu_font_tuple)
 
     # 代码相关插入
     script_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
@@ -993,6 +481,535 @@ def create_menu(root):
         label="RGB颜色代码选择器", command=lambda: root.insert_rgb_color_picker()
     )
 
+    return insert_submenu
+
+
+def create_encoding_submenu(parent_menu, root, show_common_only=False, font_tuple=None):
+    """创建编码选择子菜单
+
+    Args:
+        parent_menu: 父菜单对象
+        root: 根窗口对象
+        show_common_only (bool): 是否只显示常用编码，默认False显示完整编码列表
+        font_tuple: 字体元组，包含字体名称、大小和样式
+    """
+    if font_tuple is None:
+        # 如果没有提供字体元组，从配置管理器获取菜单字体设置
+        menu_font = config_manager.get_font_config("menu_bar")
+        menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
+        menu_font_size = menu_font.get("font_size", 12)
+        menu_font_bold = menu_font.get("font_bold", True)
+        font_tuple = (
+            menu_font_family,
+            menu_font_size,
+            "bold" if menu_font_bold else "normal",
+        )
+
+    if show_common_only:
+        # 只显示常用编码
+        common_encodings = ["UTF-8", "UTF-16", "GBK", "GB2312", "ASCII", "ISO-8859-1"]
+
+        for enc in common_encodings:
+            parent_menu.add_command(
+                label=enc,
+                command=lambda e=enc: set_file_encoding(e, root),
+                font=font_tuple,
+            )
+
+        # 添加"更多"选项，点击后显示完整编码列表
+        parent_menu.add_separator()
+
+        # 创建更多编码的子菜单
+        more_encodings_menu = tk.Menu(parent_menu, tearoff=0, font=font_tuple)
+        parent_menu.add_cascade(
+            label="更多编码...", menu=more_encodings_menu, font=font_tuple
+        )
+
+        # 填充更多编码菜单
+        encodings = get_supported_encodings()
+        # 按字母顺序排序
+        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
+
+        # 为了避免菜单过长，将编码分成几组
+        group_size = 20  # 每组20个编码
+        for i in range(0, len(encodings_sorted), group_size):
+            group_name = f"{encodings_sorted[i]} - {encodings_sorted[min(i+group_size-1, len(encodings_sorted)-1)]}"
+            group_menu = tk.Menu(more_encodings_menu, tearoff=0, font=font_tuple)
+            more_encodings_menu.add_cascade(
+                label=group_name, menu=group_menu, font=font_tuple
+            )
+
+            for j in range(i, min(i + group_size, len(encodings_sorted))):
+                enc = encodings_sorted[j]
+                group_menu.add_command(
+                    label=enc,
+                    command=lambda e=enc: set_file_encoding(e, root),
+                    font=font_tuple,
+                )
+    else:
+        # 显示完整编码列表
+        encodings = get_supported_encodings()
+        # 按字母顺序排序
+        encodings_sorted = sorted(encodings, key=lambda x: x.upper())
+
+        for enc in encodings_sorted:
+            parent_menu.add_command(
+                label=enc,
+                command=lambda e=enc: set_file_encoding(e, root),
+                font=font_tuple,
+            )
+
+
+def create_menu(root):
+    """创建菜单栏"""
+    # 从配置管理器获取菜单字体设置
+    menu_font = config_manager.get_font_config("menu_bar")
+    menu_font_family = menu_font.get("font", "Microsoft YaHei UI")
+    menu_font_size = menu_font.get("font_size", 12)
+    menu_font_bold = menu_font.get("font_bold", False)
+
+    # 创建字体元组，用于所有菜单项
+    menu_font_tuple = (
+        menu_font_family,
+        menu_font_size,
+        "bold" if menu_font_bold else "normal",
+    )
+
+    # 创建主菜单
+    main_menu = tk.Menu(root, font=menu_font_tuple)
+
+    # 创建文件菜单
+    file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+
+    # 第一组：基本文件操作
+    file_menu.add_command(
+        label="新建", command=lambda: root.new_file(), accelerator="Ctrl+N"
+    )
+    file_menu.add_command(
+        label="打开", command=lambda: root.open_file(), accelerator="Ctrl+O"
+    )
+    file_menu.add_command(
+        label="保存", command=lambda: root.save_file(), accelerator="Ctrl+S"
+    )
+    file_menu.add_command(
+        label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S"
+    )
+    file_menu.add_command(
+        label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W"
+    )
+
+    # 分隔符
+    file_menu.add_separator()
+
+    # 第二组：文件编码
+    # 创建文件编码子菜单
+    encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
+
+    # 获取当前编码设置
+    current_encoding = config_manager.get("file.default_encoding", "UTF-8")
+
+    # 创建常用编码子菜单
+    create_encoding_submenu(
+        encoding_submenu, root, show_common_only=True, font_tuple=menu_font_tuple
+    )
+
+    file_menu.add_cascade(label="文件编码", menu=encoding_submenu)
+
+    # 创建换行符子菜单
+    newline_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
+
+    # 获取当前换行符设置
+    current_newline = config_manager.get("file.default_line_ending", "CRLF")
+    newline_options = [
+        ("Windows (CRLF)", "CRLF"),
+        ("Linux/Unix (LF)", "LF"),
+        ("Mac (CR)", "CR"),
+    ]
+
+    for label, value in newline_options:
+        newline_submenu.add_command(
+            label=label, command=lambda nl=value: set_file_line_ending(nl, root)
+        )
+
+    file_menu.add_cascade(label="换行符", menu=newline_submenu)
+
+    # 分隔符
+    file_menu.add_separator()
+
+    # 第三组：文件选项
+    file_menu.add_command(
+        label="打开文件所在目录",
+        command=lambda: root.open_containing_folder(),
+        accelerator="Ctrl+E",
+    )
+    file_menu.add_checkbutton(
+        label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
+    )
+
+    # 分隔符
+    file_menu.add_separator()
+
+    # 第四组：退出程序
+    file_menu.add_command(label="退出", command=root._on_closing, accelerator="Ctrl+Q")
+
+    # 将文件菜单添加到主菜单
+    main_menu.add_cascade(label="文件", menu=file_menu)
+
+    # 创建编辑菜单
+    edit_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+    edit_menu.add_command(
+        label="撤销", command=lambda: root.undo(), accelerator="Ctrl+Z"
+    )
+    edit_menu.add_command(
+        label="重做", command=lambda: root.redo(), accelerator="Ctrl+Y"
+    )
+    edit_menu.add_separator()
+    edit_menu.add_command(
+        label="剪切", command=lambda: root.cut(), accelerator="Ctrl+X"
+    )
+    edit_menu.add_command(
+        label="复制", command=lambda: root.copy(), accelerator="Ctrl+C"
+    )
+    edit_menu.add_command(
+        label="粘贴", command=lambda: root.paste(), accelerator="Ctrl+V"
+    )
+    edit_menu.add_separator()
+    edit_menu.add_command(
+        label="查找替换",
+        command=lambda: show_find_replace_dialog(root, root.text_area),
+        accelerator="Ctrl+F",
+    )
+    edit_menu.add_separator()
+
+    # 全选、清除
+    edit_menu.add_command(
+        label="全选", command=lambda: root.select_all(), accelerator="Ctrl+A"
+    )
+    edit_menu.add_command(
+        label="清除", command=lambda: root.clear_all(), accelerator="Ctrl+Shift+D"
+    )
+    edit_menu.add_separator()
+
+    # 新增导航功能
+    edit_menu.add_command(
+        label="转到文件顶部", command=lambda: root.goto_top(), accelerator="Home"
+    )
+    edit_menu.add_command(
+        label="转到文件底部", command=lambda: root.goto_bottom(), accelerator="End"
+    )
+    edit_menu.add_command(
+        label="向上翻页", command=lambda: root.page_up(), accelerator="PageUp"
+    )
+    edit_menu.add_command(
+        label="向下翻页", command=lambda: root.page_down(), accelerator="PageDown"
+    )
+    edit_menu.add_command(
+        label="转到行", command=lambda: root.goto_line(), accelerator="Ctrl+G"
+    )
+    edit_menu.add_separator()
+
+    # 新增剪贴板和文本操作功能组
+    edit_menu.add_command(label="清空剪贴板", command=lambda: root.clear_clipboard())
+
+    # 创建复制到剪贴板子菜单
+    copy_to_clipboard_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    copy_to_clipboard_submenu.add_command(
+        label="文件名", command=lambda: root.copy_filename_to_clipboard()
+    )
+    copy_to_clipboard_submenu.add_command(
+        label="文件路径", command=lambda: root.copy_filepath_to_clipboard()
+    )
+    copy_to_clipboard_submenu.add_command(
+        label="目录", command=lambda: root.copy_directory_to_clipboard()
+    )
+    edit_menu.add_cascade(label="复制到剪贴板", menu=copy_to_clipboard_submenu)
+
+    # 创建选中文本操作子菜单
+    selected_text_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    edit_menu.add_cascade(label="选中文本操作", menu=selected_text_submenu)
+
+    # 在选中文本操作下创建各种子菜单
+    text_processing_submenu = tk.Menu(
+        selected_text_submenu, tearoff=0, font=menu_font_tuple
+    )
+    selected_text_submenu.add_cascade(label="文本处理", menu=text_processing_submenu)
+
+    # 添加空白处理菜单项
+    text_processing_submenu.add_command(
+        label="移除首尾空白", command=lambda: root.trim_whitespace()
+    )
+    text_processing_submenu.add_command(
+        label="移除左侧空白", command=lambda: root.trim_left_whitespace()
+    )
+    text_processing_submenu.add_command(
+        label="移除右侧空白", command=lambda: root.trim_right_whitespace()
+    )
+    text_processing_submenu.add_command(
+        label="移除多余空白", command=lambda: root.remove_extra_whitespace()
+    )
+    text_processing_submenu.add_separator()
+
+    # 创建命名转换子菜单
+    naming_conversion_submenu = tk.Menu(
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
+    )
+    text_processing_submenu.add_cascade(
+        label="命名转换", menu=naming_conversion_submenu
+    )
+
+    # 创建基本转换子菜单
+    basic_conversion_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="基本转换", menu=basic_conversion_submenu
+    )
+
+    # 添加基本转换菜单项
+    basic_conversion_submenu.add_command(
+        label="下划线转驼峰", command=lambda: root.snake_to_camel()
+    )
+    basic_conversion_submenu.add_command(
+        label="驼峰转下划线", command=lambda: root.camel_to_snake()
+    )
+
+    # 创建扩展转换子菜单
+    extended_conversion_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="扩展转换", menu=extended_conversion_submenu
+    )
+
+    # 添加扩展转换菜单项
+    extended_conversion_submenu.add_command(
+        label="下划线转帕斯卡", command=lambda: root.snake_to_pascal()
+    )
+    extended_conversion_submenu.add_command(
+        label="帕斯卡转下划线", command=lambda: root.pascal_to_snake()
+    )
+    extended_conversion_submenu.add_command(
+        label="驼峰转帕斯卡", command=lambda: root.camel_to_pascal()
+    )
+    extended_conversion_submenu.add_command(
+        label="帕斯卡转驼峰", command=lambda: root.pascal_to_camel()
+    )
+    extended_conversion_submenu.add_command(
+        label="短横线转下划线", command=lambda: root.kebab_to_snake()
+    )
+    extended_conversion_submenu.add_command(
+        label="下划线转短横线", command=lambda: root.snake_to_kebab()
+    )
+    extended_conversion_submenu.add_command(
+        label="短横线转驼峰", command=lambda: root.kebab_to_camel()
+    )
+    extended_conversion_submenu.add_command(
+        label="驼峰转短横线", command=lambda: root.camel_to_kebab()
+    )
+
+    # 创建大小写转换子菜单
+    case_conversion_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="大小写转换", menu=case_conversion_submenu
+    )
+
+    # 添加大小写转换菜单项
+    case_conversion_submenu.add_command(
+        label="转为大写", command=lambda: root.to_upper_case()
+    )
+    case_conversion_submenu.add_command(
+        label="转为小写", command=lambda: root.to_lower_case()
+    )
+    case_conversion_submenu.add_command(
+        label="首字母大写", command=lambda: root.to_title_case()
+    )
+    case_conversion_submenu.add_command(
+        label="每个单词首字母大写", command=lambda: root.to_title_case()
+    )
+
+    # 创建分隔符转换子菜单
+    separator_conversion_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="分隔符转换", menu=separator_conversion_submenu
+    )
+
+    # 添加分隔符转换菜单项
+    separator_conversion_submenu.add_command(
+        label="空格转下划线", command=lambda: root.space_to_snake()
+    )
+    separator_conversion_submenu.add_command(
+        label="空格转短横线", command=lambda: root.space_to_kebab()
+    )
+    separator_conversion_submenu.add_command(
+        label="空格转驼峰", command=lambda: root.space_to_camel()
+    )
+    separator_conversion_submenu.add_command(
+        label="下划线转空格", command=lambda: root.snake_to_space()
+    )
+    separator_conversion_submenu.add_command(
+        label="短横线转空格", command=lambda: root.kebab_to_space()
+    )
+    separator_conversion_submenu.add_command(
+        label="驼峰转空格", command=lambda: root.camel_to_space()
+    )
+
+    # 创建编程规范子菜单
+    programming_convention_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="编程规范", menu=programming_convention_submenu
+    )
+
+    # 添加编程规范菜单项
+    programming_convention_submenu.add_command(
+        label="常量命名", command=lambda: root.to_constant_case()
+    )
+    programming_convention_submenu.add_command(
+        label="私有变量命名", command=lambda: root.to_private_variable()
+    )
+    programming_convention_submenu.add_command(
+        label="类命名", command=lambda: root.to_class_name()
+    )
+    programming_convention_submenu.add_command(
+        label="接口命名", command=lambda: root.to_interface_name()
+    )
+    programming_convention_submenu.add_command(
+        label="函数命名", command=lambda: root.to_function_name()
+    )
+
+    # 创建数据库相关子菜单
+    database_conversion_submenu = tk.Menu(
+        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+    )
+    naming_conversion_submenu.add_cascade(
+        label="数据库相关", menu=database_conversion_submenu
+    )
+
+    # 添加数据库相关菜单项
+    database_conversion_submenu.add_command(
+        label="表名转换", command=lambda: root.to_table_name()
+    )
+    database_conversion_submenu.add_command(
+        label="列名转换", command=lambda: root.to_column_name()
+    )
+    database_conversion_submenu.add_command(
+        label="外键命名", command=lambda: root.to_foreign_key()
+    )
+
+    # 创建行处理子菜单
+    line_processing_submenu = tk.Menu(
+        selected_text_submenu, tearoff=0, font=menu_font_tuple
+    )
+    selected_text_submenu.add_cascade(label="行处理", menu=line_processing_submenu)
+
+    # 添加行处理菜单项
+    line_processing_submenu.add_command(
+        label="移除空白行", command=lambda: root.remove_empty_lines()
+    )
+    line_processing_submenu.add_command(
+        label="合并空白行", command=lambda: root.merge_empty_lines()
+    )
+    line_processing_submenu.add_command(
+        label="移除重复行", command=lambda: root.remove_duplicate_lines()
+    )
+    line_processing_submenu.add_command(
+        label="合并重复行", command=lambda: root.merge_duplicate_lines()
+    )
+
+    # 添加分隔符
+    line_processing_submenu.add_separator()
+
+    # 创建排序子菜单
+    sort_submenu = tk.Menu(line_processing_submenu, tearoff=0, font=menu_font_tuple)
+    line_processing_submenu.add_cascade(label="排序", menu=sort_submenu)
+
+    # 添加排序菜单项
+    sort_submenu.add_command(
+        label="升序排序", command=lambda: root.sort_lines_ascending()
+    )
+    sort_submenu.add_command(
+        label="降序排序", command=lambda: root.sort_lines_descending()
+    )
+
+    # 创建反转子菜单
+    reverse_submenu = tk.Menu(line_processing_submenu, tearoff=0, font=menu_font_tuple)
+    line_processing_submenu.add_cascade(label="反转", menu=reverse_submenu)
+
+    # 添加反转菜单项
+    reverse_submenu.add_command(
+        label="字符反转", command=lambda: root.reverse_characters()
+    )
+    reverse_submenu.add_command(label="行反转", command=lambda: root.reverse_lines())
+
+    # 创建格式化子菜单
+    formatting_submenu = tk.Menu(selected_text_submenu, tearoff=0, font=menu_font_tuple)
+    selected_text_submenu.add_cascade(label="格式化", menu=formatting_submenu)
+
+    # 创建JSON子菜单
+    json_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="JSON", menu=json_submenu)
+
+    # 添加JSON菜单项
+    json_submenu.add_command(label="格式化JSON", command=lambda: root.format_json())
+    json_submenu.add_command(label="压缩JSON", command=lambda: root.compress_json())
+
+    # 添加其他格式化菜单项
+    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
+
+    # 创建CSV格式化子菜单
+    csv_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="CSV", menu=csv_submenu)
+    csv_submenu.add_command(
+        label="格式化CSV", command=lambda: root.format_csv(compress=False)
+    )
+    csv_submenu.add_command(
+        label="压缩CSV", command=lambda: root.format_csv(compress=True)
+    )
+
+    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
+    formatting_submenu.add_command(
+        label="格式化Python", command=lambda: root.format_python()
+    )
+    formatting_submenu.add_command(
+        label="格式化YAML", command=lambda: root.format_yaml()
+    )
+
+    # 创建注释处理子菜单
+    comment_processing_submenu = tk.Menu(
+        selected_text_submenu, tearoff=0, font=menu_font_tuple
+    )
+    selected_text_submenu.add_cascade(label="注释处理", menu=comment_processing_submenu)
+    comment_processing_submenu.add_command(
+        label="添加#号注释", command=lambda: root.add_hash_comment()
+    )
+    comment_processing_submenu.add_command(
+        label="添加//注释", command=lambda: root.add_slash_comment()
+    )
+    comment_processing_submenu.add_command(
+        label="移除行注释", command=lambda: root.remove_line_comment()
+    )
+
+    # 创建编码解码子菜单
+    encoding_decoding_submenu = tk.Menu(
+        selected_text_submenu, tearoff=0, font=menu_font_tuple
+    )
+    selected_text_submenu.add_cascade(label="编码解码", menu=encoding_decoding_submenu)
+
+    # 添加编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="Base64编码", command=lambda: root.base64_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="Base64解码", command=lambda: root.base64_decode()
+    )
+
+    # 创建插入子菜单
+    insert_submenu = create_insert_submenu(edit_menu, root, menu_font_tuple)
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
 
     # 将编辑菜单添加到主菜单
@@ -1002,9 +1019,7 @@ def create_menu(root):
     theme_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
     # 字体
-    theme_menu.add_command(
-        label="字体", command=lambda: show_font_dialog(root)
-    )
+    theme_menu.add_command(label="字体", command=lambda: show_font_dialog(root))
     theme_menu.add_separator()
 
     # 外观模式分组（3种模式）- 使用单选按钮
@@ -1107,18 +1122,6 @@ def create_menu(root):
         label="启用自动换行",
         command=lambda: toggle_auto_wrap(root),
         variable=root.auto_wrap_var,
-    )
-
-    # 获取快捷插入设置
-    quick_insert = config_manager.get("text_editor.quick_insert_enabled", True)
-    if root.quick_insert_var is None:
-        root.quick_insert_var = tk.BooleanVar(value=quick_insert)
-    else:
-        root.quick_insert_var.set(quick_insert)
-    settings_menu.add_checkbutton(
-        label="启用快捷插入(@)",
-        command=lambda: toggle_quick_insert(root),
-        variable=root.quick_insert_var,
     )
     settings_menu.add_separator()
 
@@ -1347,7 +1350,7 @@ def set_theme_mode(mode, root=None):
     # 显示通知
     mode_text = {"light": "浅色模式", "dark": "深色模式", "system": "跟随系统"}
     mode_name = mode_text.get(mode, mode)
-    
+
     # 如果提供了主窗口实例，更新行高亮颜色
     if root and hasattr(root, "_setup_line_highlight"):
         root._setup_line_highlight(full_init=False)
@@ -1402,29 +1405,6 @@ def toggle_auto_wrap(root):
         # 显示通知
         status_text = "已启用" if new_state else "已禁用"
         messagebox.showinfo("通知", f"自动换行{status_text}")
-
-
-def toggle_quick_insert(root):
-    """切换快速插入模式"""
-    # 获取当前快速插入状态
-    current_state = config_manager.get("text_editor.quick_insert_enabled", True)
-    # 切换状态
-    new_state = not current_state
-    # 保存配置
-    config_manager.set("text_editor.quick_insert_enabled", new_state)
-    config_manager.save_config()
-
-    # 更新APP类中的变量
-    if root.quick_insert_var is not None:
-        root.quick_insert_var.set(new_state)
-
-    # 获取当前活动的文本编辑器实例
-    # if root.text_area:
-    #    root.text_area.toggle_quick_insert(new_state)
-
-    # 显示通知
-    status_text = "已启用" if new_state else "已禁用"
-    messagebox.showinfo("通知", f"快速插入{status_text}")
 
 
 def toggle_auto_save(root):

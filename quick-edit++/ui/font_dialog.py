@@ -38,7 +38,9 @@ class FontDialog:
         self.text_widget = root.text_area
         self.dialog = ctk.CTkToplevel()
         self.dialog.title(title)
-        self.dialog.geometry(f"850x500+{self.dialog.winfo_screenwidth()//4}+{self.dialog.winfo_screenheight()//4}")  # 设置固定大小
+        self.dialog.geometry(
+            f"850x500+{self.dialog.winfo_screenwidth()//4}+{self.dialog.winfo_screenheight()//4}"
+        )  # 设置固定大小
         self.dialog.resizable(False, False)  # 固定大小，不允许调整
         self.dialog.grab_set()  # 模态窗口
 
@@ -320,7 +322,7 @@ class FontDialog:
             height=32,
         )
         self.cancel_button.grid(row=0, column=1, padx=(5, 10), pady=5)
-        
+
         # 绑定ESC键到取消，Enter键到确定
         self.dialog.bind("<Escape>", lambda e: self._on_cancel())
         self.dialog.bind("<Return>", lambda e: self._on_ok())
@@ -521,10 +523,12 @@ class FontDialog:
             weight=self.temp_font["weight"],
         )
         self.text_widget.configure(font=text_font)
-        
+
         # 显示通知
         font_weight_text = "加粗" if self.temp_font["weight"] == "bold" else "常规"
-        self.root.status_bar.show_notification(f"字体设置成功: {self.temp_font['family']} {self.temp_font['size']}pt {font_weight_text}")
+        self.root.status_bar.show_notification(
+            f"字体设置成功: {self.temp_font['family']} {self.temp_font['size']}pt {font_weight_text}"
+        )
 
         # 延迟关闭对话框，确保回调函数执行完毕
         self.dialog.after(100, self.dialog.destroy)

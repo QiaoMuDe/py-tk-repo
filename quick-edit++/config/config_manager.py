@@ -43,7 +43,6 @@ DEFAULT_CONFIG = {
         "font_size": 15,  # 字体大小
         "font_bold": False,  # 是否使用粗体
         "auto_wrap": True,  # 是否自动换行
-        "quick_insert": True,  # 是否启用快速插入
         "read_only": False,  # 是否只读模式
         "bg_color": "#F5F5F5",  # 背景色
         "max_undo": 50,  # 最大撤销次数

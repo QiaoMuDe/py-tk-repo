@@ -46,7 +46,7 @@ def show_about_dialog(parent):
     x = screen_width // 3
     y = screen_height // 4
     about_window.geometry(f"{width}x{height}+{x}+{y}")
- 
+
     # 创建主框架
     main_frame = ctk.CTkFrame(about_window)
     main_frame.pack(fill="both", expand=True, padx=20, pady=20)

@@ -173,7 +173,9 @@ class Toolbar(ctk.CTkFrame):
             width=80,
             height=30,
             font=self.button_font,
-            command=lambda: show_find_replace_dialog(self.parent, self.parent.text_area),
+            command=lambda: show_find_replace_dialog(
+                self.parent, self.parent.text_area
+            ),
         )
         self.find_replace_button.pack(side="left", padx=2, pady=10)
 

@@ -743,10 +743,10 @@ class FindReplaceEngine:
 
         # 高亮当前匹配项
         self.text_widget.tag_add(self.highlight_tag_current, start_index, end_index)
-        
+
         # 更新当前匹配项属性
         self.current_match = match
-        
+
         return True
 
     def _highlight_all_matches(self, matches: List[Tuple[str, str]]) -> bool:
@@ -779,7 +779,7 @@ class FindReplaceEngine:
         if self.highlighting_enabled:
             self.text_widget.tag_remove(self.highlight_tag_current, "1.0", tk.END)
             self.text_widget.tag_remove(self.highlight_tag_all, "1.0", tk.END)
-        
+
         # 清除当前匹配项
         self.current_match = None
 
@@ -808,12 +808,16 @@ class FindReplaceEngine:
         # 检查是否有当前匹配项
         if not self.current_match:
             return False
-            
+
         try:
             # 转换为Tkinter索引格式
-            start_index = self.index_converter.string_pos_to_tk_index(self.current_match[0])
-            end_index = self.index_converter.string_pos_to_tk_index(self.current_match[1])
-            
+            start_index = self.index_converter.string_pos_to_tk_index(
+                self.current_match[0]
+            )
+            end_index = self.index_converter.string_pos_to_tk_index(
+                self.current_match[1]
+            )
+
             # 替换文本
             self.text_widget.delete(start_index, end_index)
             self.text_widget.insert(start_index, replacement)
@@ -822,16 +826,16 @@ class FindReplaceEngine:
             self.index_converter.clear_cache()
 
             # 清除高亮
-            #self.clear_highlights()
+            # self.clear_highlights()
 
             # 更新光标位置到替换文本的末尾
             # 使用绝对索引格式，避免"invalid literal for int()"错误
             end_pos_index = self.text_widget.index(f"{start_index}+{len(replacement)}c")
             self.text_widget.mark_set(tk.INSERT, end_pos_index)
-            
+
             # 清除当前匹配项
             self.current_match = None
-            
+
             return True
         except Exception as e:
             messagebox.showerror("替换错误", f"替换操作失败: {e}")
@@ -893,7 +897,7 @@ class FindReplaceEngine:
         try:
             # 记录最后一个替换位置，用于设置光标位置
             last_start_index = None
-            
+
             for start_index, end_index in tk_indices:
                 self.text_widget.delete(start_index, end_index)
                 self.text_widget.insert(start_index, replacement)
@@ -904,11 +908,13 @@ class FindReplaceEngine:
 
             # 清除高亮
             self.clear_highlights()
-            
+
             # 如果有替换操作，设置光标到最后一个替换位置的末尾
             if last_start_index is not None:
                 # 使用绝对索引格式，避免"invalid literal for int()"错误
-                end_pos_index = self.text_widget.index(f"{last_start_index}+{len(replacement)}c")
+                end_pos_index = self.text_widget.index(
+                    f"{last_start_index}+{len(replacement)}c"
+                )
                 self.text_widget.mark_set(tk.INSERT, end_pos_index)
 
             return len(all_matches)

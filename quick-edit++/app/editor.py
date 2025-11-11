@@ -13,7 +13,7 @@ import os
 import time
 from datetime import datetime
 from config.config_manager import config_manager
-from ui.menu import create_menu
+from ui.menu import create_menu, create_insert_submenu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from ui.about_dialog import show_about_dialog
@@ -86,11 +86,15 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         包括自动保存触发事件和焦点管理事件
         """
         # 绑定按键事件
-        self.text_area.bind("<Key>", self._on_key_press) # 监听按键事件
+        self.text_area.bind("<Key>", self._on_key_press)  # 监听按键事件
         self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
-        self.text_area.bind("<Button-1>", self._on_mouse_left_click, add="+")  # 额外的鼠标左击事件处理器
-        self.text_area.bind("<<Selection>>", self._on_cursor_move)  # 监听选择内容改变事件
+        self.text_area.bind(
+            "<Button-1>", self._on_mouse_left_click, add="+"
+        )  # 额外的鼠标左击事件处理器
+        self.text_area.bind(
+            "<<Selection>>", self._on_cursor_move
+        )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
 
         # 绑定文本框焦点离开事件，触发自动保存
@@ -283,7 +287,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def _on_cursor_move(self, event=None):
         """光标移动事件处理"""
         self._update_status_bar()
-       
 
     def _highlight_current_line(self):
         """
