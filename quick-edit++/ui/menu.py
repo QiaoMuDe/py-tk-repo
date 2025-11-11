@@ -1003,7 +1003,7 @@ def create_menu(root):
 
     # 字体
     theme_menu.add_command(
-        label="字体", command=lambda: show_font_dialog(root.text_area)
+        label="字体", command=lambda: show_font_dialog(root)
     )
     theme_menu.add_separator()
 

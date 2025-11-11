@@ -44,6 +44,9 @@ class FindReplaceDialog:
         # 设置窗口关闭协议
         self.dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
         
+        # 绑定ESC键关闭对话框
+        self.dialog.bind("<Escape>", lambda e: self._close_dialog())
+        
         # 创建UI组件
         self._create_widgets()
         
