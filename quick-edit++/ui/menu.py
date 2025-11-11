@@ -10,6 +10,7 @@ import customtkinter as ctk
 from ui.font_dialog import show_font_dialog
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
+from ui.find_replace_dialog import show_find_replace_dialog
 from config.config_manager import config_manager
 import codecs
 import os
@@ -256,8 +257,11 @@ def create_menu(root):
         label="粘贴", command=lambda: root.paste(), accelerator="Ctrl+V"
     )
     edit_menu.add_separator()
-    edit_menu.add_command(label="查找", command=lambda: print("查找"))
-    edit_menu.add_command(label="替换", command=lambda: print("替换"))
+    edit_menu.add_command(
+        label="查找替换", 
+        command=lambda: show_find_replace_dialog(root, root.text_area),
+        accelerator="Ctrl+F"
+    )
     edit_menu.add_separator()
 
     # 全选、清除

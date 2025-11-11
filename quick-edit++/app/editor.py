@@ -18,6 +18,7 @@ from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
+from ui.find_replace_dialog import show_find_replace_dialog
 from operations.file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
@@ -85,6 +86,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         包括自动保存触发事件和焦点管理事件
         """
         # 绑定按键事件
+        self.text_area.bind("<Key>", self._on_key_press)
         self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
@@ -138,6 +140,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             "<F2>", lambda e: show_document_stats_dialog(self)
         )  # 显示文档统计对话框
 
+        # 禁用默认的Ctrl+H行为 (退格)
+        self.bind("<Control-h>", lambda e: "break")
+        
+        # 查找和替换 
+        self.bind("<Control-f>", lambda e: show_find_replace_dialog(self, self.text_area))  # 查找和替换
+
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
 
@@ -185,9 +193,14 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 # 如果出现异常，至少确保焦点在文本区域
                 pass
 
+    def _on_key_press(self, event=None):
+        """按键/键盘事件处理"""
+        # 检测Ctrl+H组合键，阻止默认的退格行为
+        if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
+            return "break"
+
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
-
         # 获取当前修改状态
         is_modified = self.is_modified()
 

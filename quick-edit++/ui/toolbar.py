@@ -7,6 +7,7 @@
 
 import customtkinter as ctk
 from config.config_manager import config_manager
+from ui.find_replace_dialog import show_find_replace_dialog
 
 
 class Toolbar(ctk.CTkFrame):
@@ -165,27 +166,16 @@ class Toolbar(ctk.CTkFrame):
         separator3 = ctk.CTkFrame(self, width=1, height=30, fg_color="#999999")
         separator3.pack(side="left", padx=10, pady=10, fill="y")
 
-        # 查找按钮
-        self.find_button = ctk.CTkButton(
+        # 查找替换按钮
+        self.find_replace_button = ctk.CTkButton(
             self,
-            text="查找",
-            width=60,
+            text="查找替换",
+            width=80,
             height=30,
             font=self.button_font,
-            command=lambda: print("查找"),
+            command=lambda: show_find_replace_dialog(self.parent, self.parent.text_area),
         )
-        self.find_button.pack(side="left", padx=2, pady=10)
-
-        # 替换按钮
-        self.replace_button = ctk.CTkButton(
-            self,
-            text="替换",
-            width=60,
-            height=30,
-            font=self.button_font,
-            command=lambda: print("替换"),
-        )
-        self.replace_button.pack(side="left", padx=2, pady=10)
+        self.find_replace_button.pack(side="left", padx=2, pady=10)
 
         # 分隔符
         separator4 = ctk.CTkFrame(self, width=1, height=30, fg_color="#999999")
