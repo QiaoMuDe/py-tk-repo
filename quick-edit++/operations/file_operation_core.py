@@ -295,7 +295,11 @@ class FileOperationCore:
             result = self.read_file_sync(file_path, max_file_size)
             # 调用回调函数处理结果
             if callback:
-                callback(result)
+                try:
+                    callback(result)
+                except Exception as e:
+                    # 捕获并记录回调中的异常，防止线程崩溃
+                    print(f"回调函数执行出错: {str(e)}")
 
         # 创建并启动线程
         thread = threading.Thread(target=_read_task)

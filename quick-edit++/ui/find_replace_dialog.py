@@ -7,7 +7,7 @@
 
 import customtkinter as ctk
 from config.config_manager import ConfigManager
-from app.find_replace_engine import SearchOptions
+from app.find_replace_engine import SearchOptions, FindReplaceEngine
 
 class FindReplaceDialog:
     """
@@ -15,6 +15,31 @@ class FindReplaceDialog:
     
     提供查找和替换功能的用户界面
     """
+    
+    # 类变量，用于跟踪当前活动的对话框实例
+    _instance = None
+    
+    def __new__(cls, parent, text_widget=None):
+        """
+        创建新实例前检查是否已有实例存在
+        
+        Args:
+            parent: 父窗口
+            text_widget: 文本编辑器控件，用于执行查找替换操作
+            
+        Returns:
+            FindReplaceDialog: 对话框实例
+        """
+        # 如果已有实例存在，则关闭旧实例
+        if cls._instance is not None:
+            try:
+                cls._instance.dialog.destroy()
+            except:
+                pass  # 忽略关闭旧实例时可能出现的错误
+        
+        # 创建新实例
+        cls._instance = super(FindReplaceDialog, cls).__new__(cls)
+        return cls._instance
     
     def __init__(self, parent, text_widget=None):
         """
@@ -24,12 +49,19 @@ class FindReplaceDialog:
             parent: 父窗口
             text_widget: 文本编辑器控件，用于执行查找替换操作
         """
+        # 避免重复初始化
+        if hasattr(self, '_initialized'):
+            return
+            
         self.parent = parent  # 父窗口
         self.text_widget = text_widget  # 文本编辑器控件
         self.config_manager = ConfigManager()  # 配置管理器
         
         # 创建查找替换引擎实例
-        self.find_replace_engine = None
+        self.find_replace_engine = FindReplaceEngine(self.parent)
+        
+        # 标记为已初始化
+        self._initialized = True
         
         # 获取组件默认字体配置
         self.font_family = self.config_manager.get("components.font", "Microsoft YaHei UI")
@@ -299,23 +331,116 @@ class FindReplaceDialog:
         
     def _find_all(self):
         """查找所有匹配项"""
-        pass
+        # 获取查找文本
+        find_text = self.get_find_text()
+        
+        # 如果查找文本为空，显示提示信息
+        if not find_text:
+            self._show_message("提示", "请输入要查找的内容")
+            return
+        
+        # 获取搜索选项
+        search_options = self._get_search_options()
+        
+        # 使用查找替换引擎查找所有匹配项
+        matches = self.find_replace_engine.find_all(find_text, search_options)
+        
+        # 显示查找结果
+        if matches:
+            self._show_message("查找结果", f"找到 {len(matches)} 个匹配项")
+        else:
+            self._show_message("查找结果", "未找到匹配项")
     
     def _find_previous(self):
         """查找上一个匹配项"""
-        pass
+        # 获取查找文本
+        find_text = self.get_find_text()
+        
+        # 如果查找文本为空，显示提示信息
+        if not find_text:
+            self._show_message("提示", "请输入要查找的内容")
+            return
+        
+        # 获取搜索选项
+        search_options = self._get_search_options()
+        
+        # 使用查找替换引擎查找上一个匹配项
+        found = self.find_replace_engine.find_previous(find_text, search_options)
+        
+        # 显示查找结果
+        if not found:
+            self._show_message("查找结果", "未找到匹配项")
     
     def _find_next(self):
         """查找下一个匹配项"""
-        pass
+        # 获取查找文本
+        find_text = self.get_find_text()
+        
+        # 如果查找文本为空，显示提示信息
+        if not find_text:
+            self._show_message("提示", "请输入要查找的内容")
+            return
+        
+        # 获取搜索选项
+        search_options = self._get_search_options()
+        
+        # 使用查找替换引擎查找下一个匹配项
+        found = self.find_replace_engine.find_next(find_text, search_options)
+        
+        # 显示查找结果
+        if not found:
+            self._show_message("查找结果", "未找到匹配项")
     
     def _replace(self):
         """替换当前匹配项"""
-        pass
+        # 获取查找文本和替换文本
+        find_text = self.get_find_text()
+        replace_text = self.get_replace_text()
+        
+        # 如果查找文本为空，显示提示信息
+        if not find_text:
+            self._show_message("提示", "请输入要查找的内容")
+            return
+        
+        # 获取搜索选项
+        search_options = self._get_search_options()
+        
+        # 先查找匹配项
+        found = self.find_replace_engine.find_next(find_text, search_options)
+        
+        if found:
+            # 替换当前匹配项
+            success = self.find_replace_engine.replace(replace_text)
+            
+            if success:
+                self._show_message("替换结果", "替换成功")
+            else:
+                self._show_message("替换结果", "替换失败")
+        else:
+            self._show_message("替换结果", "未找到匹配项")
     
     def _replace_all(self):
         """替换所有匹配项"""
-        pass
+        # 获取查找文本和替换文本
+        find_text = self.get_find_text()
+        replace_text = self.get_replace_text()
+        
+        # 如果查找文本为空，显示提示信息
+        if not find_text:
+            self._show_message("提示", "请输入要查找的内容")
+            return
+        
+        # 获取搜索选项
+        search_options = self._get_search_options()
+        
+        # 替换所有匹配项
+        count = self.find_replace_engine.replace_all(find_text, replace_text, search_options)
+        
+        # 显示替换结果
+        if count > 0:
+            self._show_message("替换结果", f"已替换 {count} 处")
+        else:
+            self._show_message("替换结果", "未找到匹配项")
     
     def _close_dialog(self):
         """关闭对话框时清理资源"""
@@ -326,6 +451,9 @@ class FindReplaceDialog:
                 self.find_replace_engine.clear_highlights()
             except Exception as e:
                 print(f"清除高亮时出错: {e}")
+        
+        # 清除类变量引用
+        FindReplaceDialog._instance = None
         
         self.dialog.destroy()
 
