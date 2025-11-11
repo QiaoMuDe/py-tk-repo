@@ -30,13 +30,21 @@ class FindReplaceDialog:
         
         # 获取组件默认字体配置
         self.font_family = self.config_manager.get("components.font", "Microsoft YaHei UI")
-        self.font_size = self.config_manager.get("components.font_size", 13)
-        self.font_bold = self.config_manager.get("components.font_bold", False)
+        self.font_size = 15
+        self.font_bold = True
+        
+        # 存储输入框引用和框架引用
+        self.find_entry = None
+        self.replace_entry = None
+        self.find_textbox = None
+        self.replace_textbox = None
+        self.find_frame = None
+        self.replace_frame = None
         
         # 创建对话框窗口
         self.dialog = ctk.CTkToplevel(parent)
         self.dialog.title("查找和替换")
-        self.dialog.geometry(f"500x400+{(self.dialog.winfo_screenwidth()//3)}+{(self.dialog.winfo_screenheight()//4)}")
+        self.dialog.geometry(f"500x360+{(self.dialog.winfo_screenwidth()//3)}+{(self.dialog.winfo_screenheight()//4)}")
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -62,6 +70,7 @@ class FindReplaceDialog:
         # 查找区域
         find_frame = ctk.CTkFrame(main_frame)
         find_frame.pack(fill="x", pady=(0, 10))
+        self.find_frame = find_frame
         
         find_label = ctk.CTkLabel(
             find_frame,
@@ -72,13 +81,47 @@ class FindReplaceDialog:
         
         self.find_entry = ctk.CTkEntry(
             find_frame,
+            font=(self.font_family, self.font_size),
+            height=35
+        )
+        self.find_textbox = self.find_entry
+        self.find_entry.pack(fill="x", padx=10, pady=(0, 10))
+        
+        # 创建选项容器，用于横向排列（直接放在查找区域内部）
+        options_container = ctk.CTkFrame(find_frame)
+        options_container.pack(fill="x", padx=10, pady=(0, 5))
+        
+        self.case_sensitive_var = ctk.BooleanVar(value=False)
+        case_sensitive_check = ctk.CTkCheckBox(
+            options_container,
+            text="区分大小写",
+            variable=self.case_sensitive_var,
             font=(self.font_family, self.font_size)
         )
-        self.find_entry.pack(fill="x", padx=10, pady=(0, 10))
+        case_sensitive_check.pack(side="left", padx=(0, 20))
+        
+        self.whole_word_var = ctk.BooleanVar(value=False)
+        whole_word_check = ctk.CTkCheckBox(
+            options_container,
+            text="全字匹配",
+            variable=self.whole_word_var,
+            font=(self.font_family, self.font_size)
+        )
+        whole_word_check.pack(side="left", padx=(0, 20))
+        
+        self.regex_var = ctk.BooleanVar(value=False)
+        regex_check = ctk.CTkCheckBox(
+            options_container,
+            text="正则表达式",
+            variable=self.regex_var,
+            font=(self.font_family, self.font_size)
+        )
+        regex_check.pack(side="left", padx=(0, 20))
         
         # 替换区域
         replace_frame = ctk.CTkFrame(main_frame)
         replace_frame.pack(fill="x", pady=(0, 20))
+        self.replace_frame = replace_frame
         
         replace_label = ctk.CTkLabel(
             replace_frame,
@@ -89,9 +132,11 @@ class FindReplaceDialog:
         
         self.replace_entry = ctk.CTkEntry(
             replace_frame,
-            font=(self.font_family, self.font_size)
+            font=(self.font_family, self.font_size),
+            height=35
         )
         self.replace_entry.pack(fill="x", padx=10, pady=(0, 10))
+        self.replace_textbox = self.replace_entry
         
         # 按钮区域
         button_frame = ctk.CTkFrame(main_frame)
@@ -152,28 +197,14 @@ class FindReplaceDialog:
             command=self._close_dialog
         )
         close_btn.pack(side="right", padx=5)
-        
-        # 选项区域
-        options_frame = ctk.CTkFrame(main_frame)
-        options_frame.pack(fill="x", pady=(10, 0))
-        
-        self.case_sensitive_var = ctk.BooleanVar(value=False)
-        case_sensitive_check = ctk.CTkCheckBox(
-            options_frame,
-            text="区分大小写",
-            variable=self.case_sensitive_var,
-            font=(self.font_family, self.font_size)
-        )
-        case_sensitive_check.pack(anchor="w", padx=10, pady=5)
-        
-        self.whole_word_var = ctk.BooleanVar(value=False)
-        whole_word_check = ctk.CTkCheckBox(
-            options_frame,
-            text="全字匹配",
-            variable=self.whole_word_var,
-            font=(self.font_family, self.font_size)
-        )
-        whole_word_check.pack(anchor="w", padx=10, pady=5)
+    
+    def get_find_text(self):
+        """获取查找文本框的内容"""
+        return self.find_textbox.get() if self.find_textbox else ""
+    
+    def get_replace_text(self):
+        """获取替换文本框的内容"""
+        return self.replace_textbox.get() if self.replace_textbox else ""
     
     def _find_previous(self):
         """查找上一个匹配项"""
