@@ -37,7 +37,7 @@ class FontDialog:
         self.text_widget = text_widget
         self.dialog = ctk.CTkToplevel()
         self.dialog.title(title)
-        self.dialog.geometry("850x500+850+160")  # 设置固定大小
+        self.dialog.geometry(f"850x500+{self.dialog.winfo_screenwidth()//4}+{self.dialog.winfo_screenheight()//4}")  # 设置固定大小
         self.dialog.resizable(False, False)  # 固定大小，不允许调整
         self.dialog.grab_set()  # 模态窗口
 

@@ -39,8 +39,14 @@ def show_about_dialog(parent):
     about_window.update_idletasks()
     width = 500
     height = 500
-    about_window.geometry(f"{width}x{height}+{width//2}+{height//2}")
-
+    # 获取屏幕宽度和高度
+    screen_width = about_window.winfo_screenwidth()
+    screen_height = about_window.winfo_screenheight()
+    # 计算居中位置
+    x = screen_width // 3
+    y = screen_height // 4
+    about_window.geometry(f"{width}x{height}+{x}+{y}")
+ 
     # 创建主框架
     main_frame = ctk.CTkFrame(about_window)
     main_frame.pack(fill="both", expand=True, padx=20, pady=20)
