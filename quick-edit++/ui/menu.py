@@ -1085,6 +1085,14 @@ def create_menu(root):
         variable=root.toolbar_var,
     )
 
+    # 全屏模式设置
+    settings_menu.add_checkbutton(
+        label="全屏模式",
+        command=lambda: root.toggle_fullscreen(),
+        variable=root.fullscreen_var,
+        accelerator="F11",
+    )
+
     # 创建窗口标题显示子菜单
     title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 

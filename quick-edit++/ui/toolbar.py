@@ -6,6 +6,7 @@
 """
 
 import customtkinter as ctk
+import tkinter as tk
 from config.config_manager import config_manager
 from ui.find_replace_dialog import show_find_replace_dialog
 
@@ -183,6 +184,19 @@ class Toolbar(ctk.CTkFrame):
         separator4 = ctk.CTkFrame(self, width=1, height=30, fg_color="#999999")
         separator4.pack(side="left", padx=10, pady=10, fill="y")
 
+        # 全屏按钮
+        self.fullscreen_button = ctk.CTkButton(
+            self,
+            text="全屏",
+            width=60,
+            height=30,
+            font=self.button_font,
+            command=self.toggle_fullscreen,
+        )
+        self.fullscreen_button.pack(side="left", padx=2, pady=10)
+        # 记录全屏状态
+        self.is_fullscreen = False
+
         # 退出按钮
         self.exit_button = ctk.CTkButton(
             self,
@@ -193,3 +207,14 @@ class Toolbar(ctk.CTkFrame):
             command=self.parent._on_closing,
         )
         self.exit_button.pack(side="left", padx=2, pady=10)
+
+    def toggle_fullscreen(self):
+        """
+        切换全屏模式
+        调用父窗口的全屏方法并更新按钮文本
+        """
+        # 调用父窗口的全屏方法
+        is_fullscreen = self.parent.toggle_fullscreen()
+
+        # 更新按钮文本
+        self.fullscreen_button.configure(text="退出全屏" if is_fullscreen else "全屏")

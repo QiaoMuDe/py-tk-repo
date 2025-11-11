@@ -132,6 +132,11 @@ class AppInitializer:
             value=str(self.app.auto_save_manager.auto_save_interval)
         )
 
+        # 初始化全屏模式状态
+        self.app.fullscreen_var = tk.BooleanVar(value=False)  # 全屏模式状态变量
+        self.app.is_fullscreen = False  # 全屏模式状态
+        self.app.normal_geometry = None  # 正常窗口几何形状
+
     def init_window_layout(self):
         """初始化窗口布局配置"""
         # 配置主窗口的网格布局

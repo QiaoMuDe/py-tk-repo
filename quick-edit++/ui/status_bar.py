@@ -68,7 +68,7 @@ class StatusBar(ctk.CTkFrame):
         # 创建中间标签（显示自动保存状态信息）
         # 获取自动保存间隔
         auto_save_interval = self.app.auto_save_manager.auto_save_interval
-        
+
         # 根据自动保存状态设置初始显示文本
         auto_save_enabled = self.app.auto_save_manager.auto_save_enabled
         if auto_save_enabled:

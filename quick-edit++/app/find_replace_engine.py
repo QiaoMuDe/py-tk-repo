@@ -48,7 +48,8 @@ class SearchOptions:
             elif whole_word:
                 regex = False
             messagebox.showinfo(
-                "搜索选项提示", "基础搜索模式（普通、全词匹配、正则表达式）互斥，已按优先级设置"
+                "搜索选项提示",
+                "基础搜索模式（普通、全词匹配、正则表达式）互斥，已按优先级设置",
             )
         elif base_modes == 0:
             # 如果没有设置任何基础模式，默认使用普通搜索
@@ -191,13 +192,13 @@ class FindReplaceEngine:
         # 首先处理不区分大小写参数（可与任意基础模式组合）
         if search_options.nocase:
             search_args["nocase"] = True
-        
+
         # 然后处理基础搜索模式（三种模式互斥）
         if search_options.whole_word:
             # 全词匹配搜索
             search_args["regexp"] = True
             # 使用\y前后包围搜索模式实现全词匹配
-            pattern = fr"\y{pattern}\y"
+            pattern = rf"\y{pattern}\y"
         elif search_options.regex:
             # 正则表达式搜索
             search_args["regexp"] = True
@@ -252,10 +253,12 @@ class FindReplaceEngine:
                     if loop_end_pos != "1.0":
                         # 从文档开头搜索到当前光标位置之前
                         loop_end_pos = self.text_widget.index(f"{loop_end_pos}-1c")
-                
+
                 # 执行循环搜索
-                match_pos = self.text_widget.search(pattern, loop_start_pos, loop_end_pos, **search_args)
-                
+                match_pos = self.text_widget.search(
+                    pattern, loop_start_pos, loop_end_pos, **search_args
+                )
+
                 if match_pos:  # 如果找到匹配项
                     count = int(count_var.get()) if count_var.get() else 0
                     end_idx = self.text_widget.index(f"{match_pos}+{count}c")
@@ -298,14 +301,16 @@ class FindReplaceEngine:
 
         return matches
 
-    def find_next(self, pattern: str, search_options: SearchOptions) -> Optional[Tuple[str, str]]:
+    def find_next(
+        self, pattern: str, search_options: SearchOptions
+    ) -> Optional[Tuple[str, str]]:
         """
         查找下一个匹配项
-        
+
         Args:
             pattern: 搜索模式
             search_options: 搜索选项（会覆盖search_up和single_search参数）
-            
+
         Returns:
             Optional[Tuple[str, str]]: 匹配项的Tk索引元组(开始索引, 结束索引)，未找到返回None
         """
@@ -316,16 +321,18 @@ class FindReplaceEngine:
             regex=search_options.regex,
             normal_search=search_options.normal_search,
             search_up=False,  # 强制向下搜索
-            single_search=True  # 强制单次搜索
+            single_search=True,  # 强制单次搜索
         )
-        
+
         # 调用核心find方法
         matches = self.find(pattern, search_options_copy)
-        
+
         # 返回第一个匹配项（如果有）
         if matches:
             # 高亮当前匹配项
-            self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+            self.text_widget.tag_add(
+                self.highlight_tag_current, matches[0][0], matches[0][1]
+            )
             # 设置当前匹配项
             self.current_match = matches[0]
             # 滚动到当前匹配项
@@ -333,18 +340,20 @@ class FindReplaceEngine:
             # 将光标位置移动到匹配项的结束位置，这样下次搜索会从这个位置开始
             self.text_widget.mark_set(tk.INSERT, matches[0][1])
             return matches[0]
-        
+
         return None
-    
-    def replace(self, pattern: str, replacement: str, search_options: SearchOptions) -> bool:
+
+    def replace(
+        self, pattern: str, replacement: str, search_options: SearchOptions
+    ) -> bool:
         """
         替换当前找到的匹配项
-        
+
         Args:
             pattern: 搜索模式
             replacement: 替换文本
             search_options: 搜索选项
-            
+
         Returns:
             bool: 是否成功替换
         """
@@ -353,51 +362,57 @@ class FindReplaceEngine:
             match = self.current_match
         else:
             # 如果没有当前匹配项，执行查找操作
-            match = self.find_next(pattern, search_options) if not search_options.search_up else self.find_previous(pattern, search_options)
-        
+            match = (
+                self.find_next(pattern, search_options)
+                if not search_options.search_up
+                else self.find_previous(pattern, search_options)
+            )
+
         if match:
             # 保存当前滚动位置
             scroll_pos = self.text_widget.yview()
-            
+
             # 执行替换操作
             start_idx, end_idx = match
             self.text_widget.tag_remove(self.highlight_tag_current, start_idx, end_idx)
             self.text_widget.delete(start_idx, end_idx)
             self.text_widget.insert(start_idx, replacement)
-            
+
             # 设置新的光标位置
             new_end_idx = self.text_widget.index(f"{start_idx}+{len(replacement)}c")
             self.text_widget.tag_add(self.highlight_tag_current, start_idx, new_end_idx)
             self.text_widget.mark_set(tk.INSERT, new_end_idx)
-            
+
             # 恢复滚动位置
             self.text_widget.yview_moveto(scroll_pos[0])
-            
+
             # 重新查找下一个匹配项
             if not search_options.search_up:
                 self.find_next(pattern, search_options)
             else:
                 self.find_previous(pattern, search_options)
-            
+
             return True
-        
+
         return False
-    
-    def replace_all(self, pattern: str, replacement: str, search_options: SearchOptions) -> int:
+
+    def replace_all(
+        self, pattern: str, replacement: str, search_options: SearchOptions
+    ) -> int:
         """
         替换文档中所有匹配项
-        
+
         Args:
             pattern: 搜索模式
             replacement: 替换文本
             search_options: 搜索选项
-            
+
         Returns:
             int: 成功替换的匹配项数量
         """
         # 保存当前光标位置
         current_pos = self.text_widget.index(tk.INSERT)
-        
+
         # 创建搜索选项副本，强制向下搜索和搜索全部
         search_options_copy = SearchOptions(
             nocase=search_options.nocase,
@@ -405,25 +420,25 @@ class FindReplaceEngine:
             regex=search_options.regex,
             normal_search=search_options.normal_search,
             search_up=False,  # 替换全部时使用向下搜索
-            single_search=False  # 搜索全部
+            single_search=False,  # 搜索全部
         )
-        
+
         # 保存查找前的高亮状态
         was_highlighting = self.highlighting_enabled
         # 暂时禁用高亮以提高性能
         self.highlighting_enabled = False
-        
+
         # 从头开始搜索
         self.text_widget.mark_set(tk.INSERT, "1.0")
         # 直接调用find_all方法获取所有匹配项
         matches = self.find(pattern, search_options_copy)
-        
+
         # 恢复高亮状态
         self.highlighting_enabled = was_highlighting
-        
+
         # 清除之前的高亮
         self.clear_highlights()
-        
+
         # 执行替换操作 - 从后往前替换以避免索引变化问题
         replacements_count = 0
         # 反转匹配列表，从后往前替换
@@ -436,10 +451,10 @@ class FindReplaceEngine:
             except tk.TclError:
                 # 索引无效，跳过
                 continue
-        
+
         # 恢复光标位置
         self.text_widget.mark_set(tk.INSERT, current_pos)
-        
+
         # 如果有替换成功的项，重新查找并高亮所有匹配项
         if replacements_count > 0:
             # 从头开始搜索
@@ -451,21 +466,23 @@ class FindReplaceEngine:
                 regex=search_options.regex,
                 normal_search=search_options.normal_search,
                 search_up=False,
-                single_search=False
+                single_search=False,
             )
             # 直接调用find_all方法查找并高亮所有匹配项
             self.find_all(pattern, search_options_copy)
-        
+
         return replacements_count
-    
-    def find_all(self, pattern: str, search_options: SearchOptions) -> List[Tuple[str, str]]:
+
+    def find_all(
+        self, pattern: str, search_options: SearchOptions
+    ) -> List[Tuple[str, str]]:
         """
         查找文档中所有匹配项
-        
+
         Args:
             pattern: 搜索模式
             search_options: 搜索选项（会覆盖single_search参数）
-            
+
         Returns:
             List[Tuple[str, str]]: 所有匹配项的Tk索引元组列表[(开始索引, 结束索引)]
         """
@@ -476,33 +493,37 @@ class FindReplaceEngine:
             regex=search_options.regex,
             normal_search=search_options.normal_search,
             search_up=False,  # 强制向下搜索，确保从文档开头开始
-            single_search=False  # 强制搜索全部
+            single_search=False,  # 强制搜索全部
         )
-        
+
         # 调用核心find方法
         matches = self.find(pattern, search_options_copy)
-        
+
         # 高亮所有匹配项
         if matches:
             self._highlight_all_matches(matches)
-            
+
             # 高亮第一个匹配项作为当前匹配项
             if matches:
-                self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+                self.text_widget.tag_add(
+                    self.highlight_tag_current, matches[0][0], matches[0][1]
+                )
                 self.current_match = matches[0]
                 # 滚动到第一个匹配项
                 self.text_widget.see(matches[0][0])
-        
+
         return matches
-    
-    def find_previous(self, pattern: str, search_options: SearchOptions) -> Optional[Tuple[str, str]]:
+
+    def find_previous(
+        self, pattern: str, search_options: SearchOptions
+    ) -> Optional[Tuple[str, str]]:
         """
         查找上一个匹配项
-        
+
         Args:
             pattern: 搜索模式
             search_options: 搜索选项（会覆盖search_up和single_search参数）
-            
+
         Returns:
             Optional[Tuple[str, str]]: 匹配项的Tk索引元组(开始索引, 结束索引)，未找到返回None
         """
@@ -513,16 +534,18 @@ class FindReplaceEngine:
             regex=search_options.regex,
             normal_search=search_options.normal_search,
             search_up=True,  # 强制向上搜索
-            single_search=True  # 强制单次搜索
+            single_search=True,  # 强制单次搜索
         )
-        
+
         # 调用核心find方法
         matches = self.find(pattern, search_options_copy)
-        
+
         # 返回第一个匹配项（如果有）
         if matches:
             # 高亮当前匹配项
-            self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+            self.text_widget.tag_add(
+                self.highlight_tag_current, matches[0][0], matches[0][1]
+            )
             # 设置当前匹配项
             self.current_match = matches[0]
             # 滚动到当前匹配项
@@ -530,5 +553,5 @@ class FindReplaceEngine:
             # 将光标位置移动到匹配项的开始位置，这样下次搜索会从这个位置开始（向上搜索）
             self.text_widget.mark_set(tk.INSERT, matches[0][0])
             return matches[0]
-        
+
         return None

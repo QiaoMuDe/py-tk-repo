@@ -131,6 +131,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
 
+        # 绑定全屏快捷键
+        self.bind("<F11>", lambda e: self.toggle_fullscreen())  # F11切换全屏
+
         # 绑定配置管理快捷键
         self.bind(
             "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
@@ -387,6 +390,37 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 更新窗口标题
         self._update_window_title()
+
+    def toggle_fullscreen(self):
+        """
+        切换全屏模式
+        切换应用程序窗口的全屏/窗口模式状态
+
+        Returns:
+            bool: 切换后的全屏状态
+        """
+        # 切换全屏状态
+        self.is_fullscreen = not self.is_fullscreen
+        self.fullscreen_var.set(self.is_fullscreen)
+
+        # 设置窗口全屏属性
+        if self.is_fullscreen:
+            # 保存当前窗口状态
+            self.normal_geometry = self.geometry()
+            # 设置全屏
+            self.attributes("-fullscreen", True)
+            # 对于某些平台可能需要额外处理
+            self.update_idletasks()
+        else:
+            # 恢复正常窗口状态
+            self.attributes("-fullscreen", False)
+            # 恢复原来的窗口大小和位置
+            if self.normal_geometry:
+                self.geometry(self.normal_geometry)
+            # 确保窗口可见
+            self.update_idletasks()
+
+        return self.is_fullscreen
 
     def _update_window_title(self):
         """根据文件修改状态更新窗口标题"""
