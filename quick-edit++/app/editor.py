@@ -86,12 +86,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         包括自动保存触发事件和焦点管理事件
         """
         # 绑定按键事件
-        self.text_area.bind("<Key>", self._on_key_press)
+        self.text_area.bind("<Key>", self._on_key_press) # 监听按键事件
         self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
-        self.text_area.bind(
-            "<<Selection>>", self._on_selection_change
-        )  # 监听选择内容改变事件
+        self.text_area.bind("<Button-1>", self._on_mouse_left_click, add="+")  # 额外的鼠标左击事件处理器
+        self.text_area.bind("<<Selection>>", self._on_cursor_move)  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
 
         # 绑定文本框焦点离开事件，触发自动保存
@@ -142,12 +141,49 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 禁用默认的Ctrl+H行为 (退格)
         self.bind("<Control-h>", lambda e: "break")
-        
-        # 查找和替换 
-        self.bind("<Control-f>", lambda e: show_find_replace_dialog(self, self.text_area))  # 查找和替换
+
+        # 查找和替换
+        self.bind(
+            "<Control-f>", lambda e: show_find_replace_dialog(self, self.text_area)
+        )  # 查找和替换
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
+
+    def _setup_line_highlight(self, full_init=False):
+        """
+        设置或更新行高亮配置
+
+        Args:
+            full_init (bool): 是否执行完整初始化（包括设置边距和优先级）
+                              True - 应用启动时调用，执行完整配置
+                              False - 仅更新颜色（主题切换时调用）
+        """
+        # 从配置管理器获取当前主题模式
+        theme_mode = config_manager.get("app.theme_mode", "light")
+
+        # 根据主题模式选择高亮颜色
+        # 浅色模式使用黄色，深色模式使用深蓝色
+        highlight_color = "yellow" if theme_mode == "light" else "#2a4b6c"
+
+        if full_init:
+            # 完整初始化：设置所有标签属性
+            self.text_area.tag_config(
+                "current_line",
+                background=highlight_color,
+                lmargin1=0,
+                lmargin2=0,
+                rmargin=0,
+            )
+
+            # 设置标签优先级，确保高亮在底层
+            self.text_area.tag_lower("current_line")
+        else:
+            # 仅更新颜色
+            self.text_area.tag_config("current_line", background=highlight_color)
+
+            # 重新高亮当前行以应用新颜色
+            self._highlight_current_line()
 
     def _on_app_startup(self):
         """
@@ -159,8 +195,14 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.focus_force()
         self.update()
 
+        # 初始化行高亮标签配置（只执行一次）
+        self._setup_line_highlight(full_init=True)
+
         # 然后设置文本区域焦点
         self._focus_text_area()
+
+        # 初始化光标行高亮
+        self._highlight_current_line()
 
     def _on_text_area_focus_out(self, event=None):
         """
@@ -216,6 +258,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 显示自动保存状态
         self._update_status_bar()
+        # 更新光标行高亮
+        self._highlight_current_line()
 
     def set_modified(self, modified=False):
         """
@@ -239,10 +283,49 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def _on_cursor_move(self, event=None):
         """光标移动事件处理"""
         self._update_status_bar()
+       
 
-    def _on_selection_change(self, event=None):
-        """选择内容改变事件处理"""
-        self._update_status_bar()
+    def _highlight_current_line(self):
+        """
+        高亮光标所在的当前行，包括整行宽度（含右侧空白区域）
+        仅执行实际的高亮操作，标签样式配置已在初始化时完成
+        清除之前高亮的行，并高亮当前光标所在的行
+        """
+        # 先清除之前高亮的行
+        if self.current_highlighted_line is not None:
+            self.text_area.tag_remove(
+                "current_line",
+                f"{self.current_highlighted_line}.0",
+                f"{int(self.current_highlighted_line) + 1}.0",
+            )
+            self.current_highlighted_line = None
+
+        # 获取当前光标位置
+        cursor_pos = self.text_area.index(ctk.INSERT)
+        current_line = int(cursor_pos.split(".")[0])
+
+        # 高亮当前行 - 使用从当前行首到下一行行首的范围，确保覆盖整行宽度
+        start_pos = f"{current_line}.0"
+        end_pos = f"{current_line}.end+1c"  # 扩展一个字符确保右侧空白区域也被高亮
+        self.text_area.tag_add("current_line", start_pos, end_pos)
+
+        # 存储当前高亮行号
+        self.current_highlighted_line = current_line
+
+    def _on_mouse_left_click(self, event=None):
+        """
+        鼠标左击事件处理函数
+
+        Args:
+            event: 事件对象，包含鼠标点击的位置信息
+        """
+        # 鼠标点击时立即更新行高亮，确保高亮与当前点击位置同步
+        if event:
+            # 确保文本框处理完点击事件后立即更新行高亮
+            # 使用after_idle确保在事件队列处理完后立即执行
+            self.after_idle(self._highlight_current_line)
+            # 更新状态栏
+            self._update_status_bar()
 
     def _update_status_bar(self):
         """更新状态栏信息"""

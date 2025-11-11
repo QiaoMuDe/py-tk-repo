@@ -1347,6 +1347,10 @@ def set_theme_mode(mode, root=None):
     # 显示通知
     mode_text = {"light": "浅色模式", "dark": "深色模式", "system": "跟随系统"}
     mode_name = mode_text.get(mode, mode)
+    
+    # 如果提供了主窗口实例，更新行高亮颜色
+    if root and hasattr(root, "_setup_line_highlight"):
+        root._setup_line_highlight(full_init=False)
 
     # 显示通知
     messagebox.showinfo("通知", f"主题模式已切换为: {mode_name}")

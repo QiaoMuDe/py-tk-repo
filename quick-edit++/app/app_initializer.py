@@ -184,6 +184,9 @@ class AppInitializer:
         )
         self.app.text_area.pack(fill="both", expand=True, padx=0, pady=0)
 
+        # 光标行高亮相关变量
+        self.app.current_highlighted_line = None
+
     def init_menu_bar(self):
         """初始化菜单栏"""
         # 创建菜单栏
