@@ -91,9 +91,6 @@ class FindReplaceDialog:
         # 设置窗口关闭协议
         self.dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
         
-        # 绑定ESC键关闭对话框
-        self.dialog.bind("<Escape>", lambda e: self._close_dialog())
-        
         # 创建UI组件
         self._create_widgets()
         
@@ -105,6 +102,9 @@ class FindReplaceDialog:
         
         # 设置焦点到查找输入框并选中所有文本
         self.dialog.after(100, self._focus_and_select)
+        
+        # 绑定所有事件和快捷键
+        self._bind_events_and_shortcuts()
         
         # 等待对话框关闭
         self.dialog.wait_window()
@@ -247,6 +247,39 @@ class FindReplaceDialog:
         )
         close_btn.pack(side="right", padx=5)
     
+    def _bind_events_and_shortcuts(self):
+        """
+        绑定所有事件和快捷键
+        
+        集中管理所有的事件绑定和快捷键绑定，便于维护和修改
+        """
+        # 绑定ESC键关闭对话框
+        self.dialog.bind("<Escape>", lambda e: self._close_dialog())
+        
+        # 绑定查找输入框内容变化事件
+        self.find_entry.bind("<KeyRelease>", self._on_find_entry_change)
+    
+    def _on_find_entry_change(self, event=None):
+        """
+        查找输入框内容变化事件处理
+        
+        当输入框内容为空或变化时，清除高亮
+        
+        Args:
+            event: 事件对象（可选）
+        """
+        # 获取当前输入框内容
+        current_text = self.get_find_text()
+        
+        # 如果内容为空，清除高亮
+        if not current_text:
+            self.find_replace_engine.clear_highlights()
+            return
+            
+        # 如果有上次搜索文本记录且内容不同，清除高亮
+        if hasattr(self, '_last_search_text') and current_text != self._last_search_text:
+            self.find_replace_engine.clear_highlights()
+    
     def get_find_text(self):
         """获取查找输入框的内容"""
         return self.find_entry.get() if self.find_entry else ""
@@ -339,6 +372,9 @@ class FindReplaceDialog:
             self._show_message("提示", "请输入要查找的内容")
             return
         
+        # 记录搜索内容，用于后续比较
+        self._last_search_text = find_text
+        
         # 获取搜索选项
         search_options = self._get_search_options()
         
@@ -361,6 +397,9 @@ class FindReplaceDialog:
             self._show_message("提示", "请输入要查找的内容")
             return
         
+        # 记录搜索内容，用于后续比较
+        self._last_search_text = find_text
+        
         # 获取搜索选项
         search_options = self._get_search_options()
         
@@ -380,6 +419,9 @@ class FindReplaceDialog:
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
+        
+        # 记录搜索内容，用于后续比较
+        self._last_search_text = find_text
         
         # 获取搜索选项
         search_options = self._get_search_options()
@@ -401,6 +443,9 @@ class FindReplaceDialog:
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
+        
+        # 记录搜索内容，用于后续比较
+        self._last_search_text = find_text
         
         # 获取搜索选项
         search_options = self._get_search_options()
@@ -429,6 +474,9 @@ class FindReplaceDialog:
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
+        
+        # 记录搜索内容，用于后续比较
+        self._last_search_text = find_text
         
         # 获取搜索选项
         search_options = self._get_search_options()
