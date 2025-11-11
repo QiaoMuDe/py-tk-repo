@@ -69,7 +69,7 @@ class FindReplaceDialog:
             "components.font", "Microsoft YaHei UI"
         )
         self.font_size = 15
-        self.font_bold = True
+        self.font_bold = "bold"
 
         # 存储输入框引用和框架引用
         self.find_entry = None  # 查找输入框
@@ -82,12 +82,14 @@ class FindReplaceDialog:
 
         # 存储搜索选项，避免每次创建新对象
         self.search_options = None
+        # 搜索模式变量（0:普通模式, 1:全词匹配, 2:正则表达式）
+        self.search_mode_var = None
 
         # 创建对话框窗口
         self.dialog = ctk.CTkToplevel(parent)
         self.dialog.title("查找和替换")
         self.dialog.geometry(
-            f"500x360+{(self.dialog.winfo_screenwidth()//3)}+{(self.dialog.winfo_screenheight()//4)}"
+            f"500x480+{(self.dialog.winfo_screenwidth()//3)}+{(self.dialog.winfo_screenheight()//4)}"
         )
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
@@ -131,7 +133,7 @@ class FindReplaceDialog:
             font=(
                 self.font_family,
                 self.font_size,
-                "bold" if self.font_bold else "normal",
+                self.font_bold,
             ),
         )
         find_label.pack(anchor="w", padx=10, pady=(10, 5))
@@ -141,43 +143,74 @@ class FindReplaceDialog:
         )
         self.find_entry.pack(fill="x", padx=10, pady=(0, 10))
 
-        # 创建选项容器，用于横向排列（直接放在查找区域内部）
-        options_container = ctk.CTkFrame(find_frame)
-        options_container.pack(fill="x", padx=10, pady=(0, 5))
+        # 重新设计的搜索选项区域
+        options_section = ctk.CTkFrame(find_frame)
+        options_section.pack(fill="x", padx=10, pady=(0, 5))
 
+        # 搜索模式标签
+        mode_label = ctk.CTkLabel(
+            options_section,
+            text="搜索模式:",
+            font=(self.font_family, self.font_size - 1, self.font_bold),
+        )
+        mode_label.pack(anchor="w", padx=5, pady=(5, 0))
+
+        # 搜索模式单选按钮组 - 使用Frame进行垂直布局
+        radio_frame = ctk.CTkFrame(options_section)
+        radio_frame.pack(fill="x", padx=20, pady=5)
+
+        # 使用IntVar来管理单选按钮组
+        self.search_mode_var = ctk.IntVar(
+            value=0
+        )  # 0:普通模式, 1:全词匹配, 2:正则表达式
+
+        # 普通模式单选按钮
+        normal_radio = ctk.CTkRadioButton(
+            radio_frame,
+            text="普通模式",
+            variable=self.search_mode_var,
+            value=0,
+            font=(self.font_family, self.font_size - 1),
+            command=self._update_search_options,
+        )
+        normal_radio.pack(anchor="w", pady=3)
+
+        # 全词匹配单选按钮
+        whole_word_radio = ctk.CTkRadioButton(
+            radio_frame,
+            text="全词匹配",
+            variable=self.search_mode_var,
+            value=1,
+            font=(self.font_family, self.font_size - 1),
+            command=self._update_search_options,
+        )
+        whole_word_radio.pack(anchor="w", pady=3)
+
+        # 正则表达式单选按钮
+        regex_radio = ctk.CTkRadioButton(
+            radio_frame,
+            text="正则表达式",
+            variable=self.search_mode_var,
+            value=2,
+            font=(self.font_family, self.font_size - 1),
+            command=self._update_search_options,
+        )
+        regex_radio.pack(anchor="w", pady=3)
+
+        # 不区分大小写复选框 - 单独一行，更明显
         self.nocase_var = ctk.BooleanVar(value=False)
         nocase_check = ctk.CTkCheckBox(
-            options_container,
+            options_section,
             text="不区分大小写",
             variable=self.nocase_var,
-            font=(self.font_family, self.font_size),
+            font=(self.font_family, self.font_size - 1),
             command=self._update_search_options,
         )
-        nocase_check.pack(side="left", padx=(0, 20))
-
-        self.whole_word_var = ctk.BooleanVar(value=False)
-        whole_word_check = ctk.CTkCheckBox(
-            options_container,
-            text="全字匹配",
-            variable=self.whole_word_var,
-            font=(self.font_family, self.font_size),
-            command=self._update_search_options,
-        )
-        whole_word_check.pack(side="left", padx=(0, 20))
-
-        self.regex_var = ctk.BooleanVar(value=False)
-        regex_check = ctk.CTkCheckBox(
-            options_container,
-            text="正则表达式",
-            variable=self.regex_var,
-            font=(self.font_family, self.font_size),
-            command=self._update_search_options,
-        )
-        regex_check.pack(side="left", padx=(0, 20))
+        nocase_check.pack(anchor="w", padx=20, pady=(5, 5))
 
         # 替换区域
         replace_frame = ctk.CTkFrame(main_frame)
-        replace_frame.pack(fill="x", pady=(0, 20))
+        replace_frame.pack(fill="x", pady=(0, 10))
         self.replace_frame = replace_frame
 
         replace_label = ctk.CTkLabel(
@@ -186,7 +219,7 @@ class FindReplaceDialog:
             font=(
                 self.font_family,
                 self.font_size,
-                "bold" if self.font_bold else "normal",
+                self.font_bold,
             ),
         )
         replace_label.pack(anchor="w", padx=10, pady=(10, 5))
@@ -194,18 +227,18 @@ class FindReplaceDialog:
         self.replace_entry = ctk.CTkEntry(
             replace_frame, font=(self.font_family, self.font_size), height=35
         )
-        self.replace_entry.pack(fill="x", padx=10, pady=(0, 10))
+        self.replace_entry.pack(fill="x", padx=10, pady=(0, 5))
 
-        # 按钮区域
+        # 按钮区域 - 重新设计为更紧凑的布局
         button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x")
+        button_frame.pack(fill="x", pady=(5, 0))
 
-        # 第一行按钮
-        first_row_frame = ctk.CTkFrame(button_frame)
-        first_row_frame.pack(fill="x", padx=10, pady=(10, 5))
+        # 查找相关按钮
+        find_buttons_frame = ctk.CTkFrame(button_frame)
+        find_buttons_frame.pack(fill="x", padx=10, pady=(10, 5))
 
         find_prev_btn = ctk.CTkButton(
-            first_row_frame,
+            find_buttons_frame,
             text="查找上一个",
             font=(self.font_family, self.font_size),
             command=self._find_previous,
@@ -213,7 +246,7 @@ class FindReplaceDialog:
         find_prev_btn.pack(side="left", padx=(0, 5))
 
         find_next_btn = ctk.CTkButton(
-            first_row_frame,
+            find_buttons_frame,
             text="查找下一个",
             font=(self.font_family, self.font_size),
             command=self._find_next,
@@ -221,19 +254,19 @@ class FindReplaceDialog:
         find_next_btn.pack(side="left", padx=5)
 
         find_all_btn = ctk.CTkButton(
-            first_row_frame,
+            find_buttons_frame,
             text="查找全部",
             font=(self.font_family, self.font_size),
             command=self._find_all,
         )
         find_all_btn.pack(side="left", padx=5)
 
-        # 第二行按钮
-        second_row_frame = ctk.CTkFrame(button_frame)
-        second_row_frame.pack(fill="x", padx=10, pady=(5, 10))
+        # 替换和关闭按钮
+        replace_buttons_frame = ctk.CTkFrame(button_frame)
+        replace_buttons_frame.pack(fill="x", padx=10, pady=(5, 5))
 
         replace_btn = ctk.CTkButton(
-            second_row_frame,
+            replace_buttons_frame,
             text="替换",
             font=(self.font_family, self.font_size),
             command=self._replace,
@@ -241,15 +274,16 @@ class FindReplaceDialog:
         replace_btn.pack(side="left", padx=(0, 5))
 
         replace_all_btn = ctk.CTkButton(
-            second_row_frame,
+            replace_buttons_frame,
             text="替换全部",
             font=(self.font_family, self.font_size),
             command=self._replace_all,
         )
         replace_all_btn.pack(side="left", padx=5)
 
+        # 右侧放置关闭按钮，保持布局平衡
         close_btn = ctk.CTkButton(
-            second_row_frame,
+            replace_buttons_frame,
             text="关闭",
             font=(self.font_family, self.font_size),
             command=self._close_dialog,
@@ -301,22 +335,45 @@ class FindReplaceDialog:
         return self.replace_entry.get() if self.replace_entry else ""
 
     def _update_search_options(self):
+        """更新搜索选项对象
+
+        根据用户在UI界面上选择的搜索模式和不区分大小写选项，
+        动态创建并更新SearchOptions对象，用于后续的查找替换操作。
+
+        搜索模式映射关系：
+        - 0: 普通模式 - 简单文本匹配，不启用特殊选项
+        - 1: 全词匹配 - 仅匹配完整单词，不启用正则表达式
+        - 2: 正则表达式 - 使用正则表达式语法进行复杂匹配
         """
-        更新搜索选项对象
-        """
-        # 创建SearchOptions对象
+        # 获取当前选择的搜索模式
+        search_mode = self.search_mode_var.get()
+
+        # 使用简洁的条件赋值设置选项参数
+        # 0: 普通模式 - whole_word=False, regex=False
+        # 1: 全词匹配 - whole_word=True, regex=False
+        # 2: 正则表达式 - whole_word=False, regex=True
+        normal_search = search_mode == 0
+        whole_word = search_mode == 1
+        regex = search_mode == 2
+
+        # 创建并更新搜索选项对象，集成不区分大小写设置
         self.search_options = SearchOptions(
-            nocase=self.nocase_var.get(),
-            whole_word=self.whole_word_var.get(),
-            regex=self.regex_var.get(),
+            nocase=self.nocase_var.get(),  # 不区分大小写
+            normal_search=normal_search,  # 普通模式
+            whole_word=whole_word,  # 全词匹配
+            regex=regex,  # 正则表达式
         )
 
     def _get_search_options(self) -> SearchOptions:
         """
-        获取当前的搜索选项
+        获取当前搜索选项配置
+
+        根据用户在界面上的选择，返回预先创建的SearchOptions对象，
+        该对象包含搜索模式（普通、全词匹配、正则表达式）和大小写敏感设置。
+        选项会通过_update_search_options方法在用户更改设置时自动更新。
 
         Returns:
-            SearchOptions: 搜索选项对象
+            SearchOptions: 包含当前搜索配置的对象
         """
         return self.search_options
 
@@ -373,19 +430,19 @@ class FindReplaceDialog:
             self.find_entry.select_range(0, "end")
 
     def _find_all(self):
-        """查找所有匹配项"""
-        # 获取查找文本
-        find_text = self.get_find_text()
+        """查找文档中所有匹配项
 
-        # 如果查找文本为空，显示提示信息
+        调用find_replace_engine.find_all方法查找并高亮所有匹配项，
+        然后显示匹配项数量的提示信息。
+        """
+        # 获取查找文本并验证
+        find_text = self.get_find_text()
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
 
-        # 记录搜索内容，用于后续比较
+        # 记录搜索内容并获取搜索选项
         self._last_search_text = find_text
-
-        # 获取搜索选项
         search_options = self._get_search_options()
 
         # 使用查找替换引擎查找所有匹配项
@@ -398,100 +455,102 @@ class FindReplaceDialog:
             self._show_message("查找结果", "未找到匹配项")
 
     def _find_previous(self):
-        """查找上一个匹配项"""
-        # 获取查找文本
-        find_text = self.get_find_text()
+        """查找上一个匹配项
 
-        # 如果查找文本为空，显示提示信息
+        调用find_replace_engine.find_previous方法向上查找匹配项，
+        如果找到则高亮显示并滚动到该位置，否则显示提示信息。
+        """
+        # 获取查找文本并验证
+        find_text = self.get_find_text()
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
 
-        # 记录搜索内容，用于后续比较
+        # 记录搜索内容并获取搜索选项
         self._last_search_text = find_text
-
-        # 获取搜索选项
         search_options = self._get_search_options()
 
         # 使用查找替换引擎查找上一个匹配项
         found = self.find_replace_engine.find_previous(find_text, search_options)
 
-        # 显示查找结果
+        # 如果未找到匹配项，显示提示信息
         if not found:
             self._show_message("查找结果", "未找到匹配项")
 
     def _find_next(self):
-        """查找下一个匹配项"""
-        # 获取查找文本
-        find_text = self.get_find_text()
+        """查找下一个匹配项
 
-        # 如果查找文本为空，显示提示信息
+        调用find_replace_engine.find_next方法向下查找匹配项，
+        如果找到则高亮显示并滚动到该位置，否则显示提示信息。
+        """
+        # 获取查找文本并验证
+        find_text = self.get_find_text()
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
 
-        # 记录搜索内容，用于后续比较
+        # 记录搜索内容并获取搜索选项
         self._last_search_text = find_text
-
-        # 获取搜索选项
         search_options = self._get_search_options()
 
         # 使用查找替换引擎查找下一个匹配项
         found = self.find_replace_engine.find_next(find_text, search_options)
 
-        # 显示查找结果
+        # 如果未找到匹配项，显示提示信息
         if not found:
             self._show_message("查找结果", "未找到匹配项")
 
     def _replace(self):
-        """替换当前匹配项"""
+        """替换当前匹配项
+
+        调用find_replace_engine.replace方法替换当前高亮的匹配项，
+        该方法优先使用已存在的当前匹配项进行替换，
+        替换完成后显示操作结果提示信息。
+        """
         # 获取查找文本和替换文本
         find_text = self.get_find_text()
         replace_text = self.get_replace_text()
 
-        # 如果查找文本为空，显示提示信息
+        # 验证查找文本不为空
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
 
-        # 记录搜索内容，用于后续比较
+        # 记录搜索内容并获取搜索选项
         self._last_search_text = find_text
-
-        # 获取搜索选项
         search_options = self._get_search_options()
 
-        # 先查找匹配项
-        found = self.find_replace_engine.find_next(find_text, search_options)
+        # 调用替换引擎的replace方法执行替换操作
+        success = self.find_replace_engine.replace(
+            find_text, replace_text, search_options
+        )
 
-        if found:
-            # 替换当前匹配项
-            success = self.find_replace_engine.replace(replace_text)
-
-            if success:
-                self._show_message("替换结果", "替换成功")
-            else:
-                self._show_message("替换结果", "替换失败")
+        if success:
+            self._show_message("替换结果", "替换成功")
         else:
             self._show_message("替换结果", "未找到匹配项")
 
     def _replace_all(self):
-        """替换所有匹配项"""
+        """替换文档中所有匹配项
+
+        调用find_replace_engine.replace_all方法替换文档中所有匹配项，
+        该方法会从后往前替换以避免索引变化问题，替换完成后会重新高亮所有匹配项，
+        最后显示替换结果的提示信息。
+        """
         # 获取查找文本和替换文本
         find_text = self.get_find_text()
         replace_text = self.get_replace_text()
 
-        # 如果查找文本为空，显示提示信息
+        # 验证查找文本不为空
         if not find_text:
             self._show_message("提示", "请输入要查找的内容")
             return
 
-        # 记录搜索内容，用于后续比较
+        # 记录搜索内容并获取搜索选项
         self._last_search_text = find_text
-
-        # 获取搜索选项
         search_options = self._get_search_options()
 
-        # 替换所有匹配项
+        # 调用替换引擎的replace_all方法执行替换操作
         count = self.find_replace_engine.replace_all(
             find_text, replace_text, search_options
         )

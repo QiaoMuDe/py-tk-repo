@@ -5,7 +5,6 @@
 查找替换引擎模块 - 使用Python字符串搜索和re正则模块实现
 """
 
-import re
 import tkinter as tk
 from typing import List, Tuple, Optional
 from tkinter import messagebox
@@ -15,7 +14,7 @@ class SearchOptions:
     """
     搜索选项类
 
-    封装搜索时使用的各种选项, 如不区分大小写、全字匹配、正则表达式等
+    封装搜索时使用的各种选项, 如不区分大小写、向上搜索等
     """
 
     def __init__(
@@ -23,188 +22,51 @@ class SearchOptions:
         nocase: bool = False,
         whole_word: bool = False,
         regex: bool = False,
+        normal_search: bool = True,
         search_up: bool = False,
+        single_search: bool = True,
     ):
         """
         初始化搜索选项
 
         Args:
             nocase: 是否不区分大小写, 默认为False
-            whole_word: 是否全字匹配, 默认为False
-            regex: 是否使用正则表达式, 默认为False
+            whole_word: 是否全词匹配, 默认为False
+            regex: 是否正则表达式, 默认为False
+            normal_search: 是否普通搜索, 默认为True
             search_up: 是否向上搜索, 默认为False (默认向下搜索)
+            single_search: 是否单次搜索, 默认为True
         """
+        # 三种基础搜索模式（普通、全词、正则）互斥，但nocase可与任意一种组合
+        base_modes = sum([normal_search, whole_word, regex])
+        if base_modes > 1:
+            # 如果同时设置了多种基础搜索模式，优先顺序：正则 > 全词 > 普通
+            normal_search = False
+            if whole_word and regex:
+                whole_word = False
+                regex = True
+            elif whole_word:
+                regex = False
+            messagebox.showinfo(
+                "搜索选项提示", "基础搜索模式（普通、全词匹配、正则表达式）互斥，已按优先级设置"
+            )
+        elif base_modes == 0:
+            # 如果没有设置任何基础模式，默认使用普通搜索
+            normal_search = True
+
         self.nocase = nocase  # 是否不区分大小写
-        self.whole_word = whole_word  # 是否全字匹配
-        self.regex = regex  # 是否使用正则表达式
+        self.whole_word = whole_word  # 是否全词匹配
+        self.regex = regex  # 是否正则表达式
+        self.normal_search = normal_search  # 是否普通搜索
         self.search_up = search_up  # 是否向上搜索 (默认向下搜索)
-
-    def __str__(self) -> str:
-        """
-        返回搜索选项的字符串表示
-
-        Returns:
-            str: 搜索选项的字符串表示
-        """
-        options = []
-        if self.nocase:
-            options.append("不区分大小写")
-        if self.whole_word:
-            options.append("全字匹配")
-        if self.regex:
-            options.append("正则表达式")
-        if self.search_up:
-            options.append("向上搜索")
-
-        return ", ".join(options) if options else "默认搜索"
-
-
-class IndexConverter:
-    """
-    索引转换器类
-
-    负责在Python字符串位置和Tkinter索引格式之间进行转换
-    """
-
-    def __init__(self, text_widget):
-        """
-        初始化索引转换器
-
-        Args:
-            text_widget: Tkinter文本控件
-        """
-        self.text_widget = text_widget  # 文本控件
-        self._line_offsets_cache = None  # 行偏移缓存
-        self._text_content_hash = None  # 文本内容哈希
-
-    def _update_line_offsets_cache(self):
-        """
-        更新行偏移缓存
-        """
-        # 获取文本内容
-        text = self.text_widget.get("1.0", tk.END)
-
-        # 计算文本哈希
-        current_hash = hash(text)
-
-        # 如果文本内容没有变化，不需要更新缓存
-        if (
-            self._text_content_hash == current_hash
-            and self._line_offsets_cache is not None
-        ):
-            return
-
-        # 计算每行的起始偏移量
-        self._line_offsets_cache = [0]  # 第一行偏移为0
-
-        # 遍历文本，记录每行的起始偏移量
-        offset = 0
-        for char in text:
-            if char == "\n":
-                self._line_offsets_cache.append(
-                    offset + 1
-                )  # 下一行偏移为换行符后一个位置
-            offset += 1
-
-        # 更新文本哈希
-        self._text_content_hash = current_hash
-
-    def string_pos_to_tk_index(self, pos: int) -> str:
-        """
-        将Python字符串位置转换为Tkinter索引格式
-
-        Args:
-            pos: Python字符串位置(0-based)
-
-        Returns:
-            str: Tkinter索引格式(如"1.0")
-        """
-        # 更新行偏移缓存
-        self._update_line_offsets_cache()
-
-        # 边界情况处理
-        if pos <= 0:
-            return "1.0"
-
-        # 获取文本内容
-        text = self.text_widget.get("1.0", tk.END)
-
-        # 如果位置超出文本长度，返回最后一个位置
-        if pos >= len(text):
-            # 计算最后一行的行号和列号
-            lines = text.count("\n") + 1
-            last_line_start = text.rfind("\n")
-            if last_line_start == -1:
-                return f"1.{len(text)}"
-            else:
-                return f"{lines}.{len(text) - last_line_start - 1}"
-
-        # 查找位置所在的行
-        line = 1
-        while (
-            line < len(self._line_offsets_cache)
-            and pos >= self._line_offsets_cache[line]
-        ):
-            line += 1
-        line -= 1  # 回退到正确的行号
-
-        # 计算列号
-        column = pos - self._line_offsets_cache[line]
-
-        # 返回Tkinter索引格式
-        return f"{line + 1}.{column}"
-
-    def clear_cache(self):
-        """
-        清除行偏移缓存
-
-        在文本被修改后应调用此方法，以确保索引转换的准确性
-        """
-        self._line_offsets_cache = None
-        self._text_content_hash = None
-
-    def tk_index_to_string_pos(self, tk_index: str) -> int:
-        """
-        将Tkinter索引格式转换为Python字符串位置
-
-        Args:
-            tk_index: Tkinter索引格式(如"1.0")
-
-        Returns:
-            int: Python字符串位置(0-based)
-        """
-        # 更新行偏移缓存
-        self._update_line_offsets_cache()
-
-        # 解析Tkinter索引
-        parts = tk_index.split(".")
-        line = int(parts[0]) - 1  # Tkinter行号从1开始，Python从0开始
-        column = int(parts[1]) if len(parts) > 1 else 0
-
-        # 边界情况处理
-        if line < 0:
-            return 0
-
-        # 如果行号超出范围，返回文本末尾位置
-        if line >= len(self._line_offsets_cache):
-            return len(self.text_widget.get("1.0", tk.END)) - 1  # 减去最后的换行符
-
-        # 计算字符串位置
-        pos = self._line_offsets_cache[line] + column
-
-        # 确保位置不超出文本长度
-        text_len = len(self.text_widget.get("1.0", tk.END))
-        if pos >= text_len:
-            pos = text_len - 1  # 减去最后的换行符
-
-        return pos
+        self.single_search = single_search  # 是否单次搜索 (默认为True)
 
 
 class FindReplaceEngine:
     """
     查找替换引擎类
 
-    提供文本查找和替换的核心功能，使用Python字符串搜索和re正则模块
+    提供文本查找和替换的核心功能
     """
 
     def __init__(self, app=None):
@@ -214,16 +76,10 @@ class FindReplaceEngine:
         Args:
             app: 应用程序对象
         """
+        # 基本属性
         self.app = app  # 应用程序对象
         self.text_widget = app.text_area  # 文本控件
-        self.index_converter = IndexConverter(self.text_widget)  # 索引转换器
-
-        # 搜索状态
-        self.last_search_pattern = ""  # 上次搜索模式
-        self.last_search_options = None  # 上次搜索选项
-        self.last_match_pos = None  # 上次匹配位置(字符串位置)
-        self.current_match = None  # 当前匹配项(开始位置, 结束位置)
-        self.all_matches = []  # 所有匹配项的字符串位置列表
+        self.current_match: Optional[Tuple[str, str]] = None  # 当前匹配项
 
         # 高亮相关属性
         self.highlight_tag_current = "search_highlight_current"  # 当前匹配项高亮标签
@@ -259,496 +115,6 @@ class FindReplaceEngine:
         # 启用高亮
         self.highlighting_enabled = True
 
-    def _prepare_search_pattern(
-        self, pattern: str, search_options: SearchOptions
-    ) -> str:
-        """
-        准备搜索模式
-
-        Args:
-            pattern: 原始搜索模式
-            search_options: 搜索选项
-
-        Returns:
-            str: 处理后的搜索模式
-        """
-        # 如果是正则表达式，直接返回
-        if search_options.regex:
-            return pattern
-
-        # 如果是全字匹配，添加单词边界
-        if search_options.whole_word:
-            return r"\b" + re.escape(pattern) + r"\b"
-
-        # 否则，转义特殊字符
-        return re.escape(pattern)
-
-    def _compile_regex(self, pattern: str, search_options: SearchOptions) -> re.Pattern:
-        """
-        编译正则表达式
-
-        Args:
-            pattern: 搜索模式
-            search_options: 搜索选项
-
-        Returns:
-            re.Pattern: 编译后的正则表达式
-
-        Raises:
-            ValueError: 当正则表达式有误时抛出异常
-        """
-        # 准备搜索模式
-        search_pattern = self._prepare_search_pattern(pattern, search_options)
-
-        # 设置正则表达式标志
-        flags = 0
-        if search_options.nocase:
-            flags |= re.IGNORECASE
-
-        # 编译正则表达式
-        try:
-            return re.compile(search_pattern, flags)
-        except re.error as e:
-            # 如果正则表达式有误，抛出更详细的异常
-            error_msg = f"正则表达式错误: {e}"
-            if search_options.regex:
-                error_msg += f"\n原始表达式: {pattern}"
-                error_msg += f"\n处理后表达式: {search_pattern}"
-            else:
-                error_msg += f"\n搜索文本: {pattern}"
-            messagebox.showerror("正则表达式错误", error_msg)
-
-    def _find_all_matches(
-        self, pattern: str, search_options: SearchOptions
-    ) -> List[Tuple[int, int]]:
-        """
-        查找所有匹配项
-
-        Args:
-            pattern: 搜索模式
-            search_options: 搜索选项
-
-        Returns:
-            List[Tuple[int, int]]: 所有匹配项的字符串位置列表，每个元素为(开始位置, 结束位置)
-        """
-        # 获取文本内容
-        try:
-            text = self.text_widget.get("1.0", tk.END)
-        except tk.TclError as e:
-            # 如果获取文本失败，返回空列表
-            messagebox.showerror("搜索错误", f"获取文本内容失败: {e}")
-            return []
-
-        # 如果文本为空或只包含空白字符，返回空列表
-        if not text or text.strip() == "":
-            return []
-
-        # 编译正则表达式
-        regex = self._compile_regex(pattern, search_options)
-        if regex is None:
-            # 如果正则表达式编译失败，返回空列表
-            return []
-
-        # 查找所有匹配项
-        matches = []
-        try:
-            for match in regex.finditer(text):
-                matches.append((match.start(), match.end()))
-        except Exception as e:
-            # 如果搜索过程中出现其他错误，显示错误信息并返回空列表
-            messagebox.showerror("搜索错误", f"搜索过程中发生错误: {e}")
-            return []
-
-        return matches
-
-    def _find_next_match(
-        self, pattern: str, search_options: SearchOptions, start_pos: int = None
-    ) -> Optional[Tuple[int, int]]:
-        """
-        查找下一个匹配项
-
-        Args:
-            pattern: 搜索模式
-            search_options: 搜索选项
-            start_pos: 搜索起始位置(字符串位置)，如果为None则从当前光标位置开始
-
-        Returns:
-            Optional[Tuple[int, int]]: 下一个匹配项的字符串位置，如果未找到则返回None
-        """
-        # 获取文本内容
-        try:
-            text = self.text_widget.get("1.0", tk.END)
-        except tk.TclError as e:
-            # 如果获取文本失败，返回None
-            messagebox.showerror("搜索错误", f"获取文本内容失败: {e}")
-            return None
-
-        # 如果文本为空，返回None
-        if not text or text.strip() == "":
-            return None
-
-        # 确定搜索起始位置
-        if start_pos is None:
-            try:
-                # 从当前光标位置开始
-                current_index = self.text_widget.index(tk.INSERT)
-                start_pos = self.index_converter.tk_index_to_string_pos(current_index)
-            except (tk.TclError, ValueError) as e:
-                # 如果获取光标位置失败，从文档开头开始
-                messagebox.showerror(
-                    "搜索错误", f"获取光标位置失败: {e}，将从文档开头开始搜索"
-                )
-                start_pos = 0
-
-        # 使用_find_all_matches获取所有匹配项，避免重复编译正则表达式
-        try:
-            all_matches = self._find_all_matches(pattern, search_options)
-            if not all_matches:
-                return None
-
-            if search_options.search_up:
-                # 向上搜索：找到最后一个结束位置小于等于start_pos的匹配项
-                for match in reversed(all_matches):
-                    if match[1] <= start_pos:
-                        return match
-                # 如果没找到，返回最后一个匹配项（循环到文档末尾）
-                return all_matches[-1] if all_matches else None
-            else:
-                # 向下搜索：找到第一个开始位置大于等于start_pos的匹配项
-                for match in all_matches:
-                    if match[0] >= start_pos:
-                        return match
-                # 如果没找到，返回第一个匹配项（循环到文档开头）
-                return all_matches[0] if all_matches else None
-        except Exception as e:
-            # 如果搜索过程中出现其他错误，显示错误信息并返回None
-            messagebox.showerror("搜索错误", f"搜索过程中发生错误: {e}")
-            return None
-
-    def _find_previous_match(
-        self, pattern: str, search_options: SearchOptions, start_pos: int = None
-    ) -> Optional[Tuple[int, int]]:
-        """
-        查找上一个匹配项
-
-        Args:
-            pattern: 搜索模式
-            search_options: 搜索选项
-            start_pos: 搜索起始位置(字符串位置)，如果为None则从当前光标位置开始
-
-        Returns:
-            Optional[Tuple[int, int]]: 上一个匹配项的字符串位置，如果未找到则返回None
-        """
-        # 获取文本内容
-        try:
-            text = self.text_widget.get("1.0", tk.END)
-        except tk.TclError as e:
-            # 如果获取文本失败，返回None
-            messagebox.showerror("搜索错误", f"获取文本内容失败: {e}")
-            return None
-
-        # 如果文本为空，返回None
-        if not text or text.strip() == "":
-            return None
-
-        # 确定搜索起始位置
-        if start_pos is None:
-            try:
-                # 从当前光标位置开始
-                current_index = self.text_widget.index(tk.INSERT)
-                start_pos = self.index_converter.tk_index_to_string_pos(current_index)
-            except (tk.TclError, ValueError) as e:
-                # 如果获取光标位置失败，从文档末尾开始
-                messagebox.showerror(
-                    "搜索错误", f"获取光标位置失败: {e}，将从文档末尾开始搜索"
-                )
-                start_pos = len(text)
-
-        # 使用_find_all_matches获取所有匹配项，避免重复编译正则表达式
-        try:
-            all_matches = self._find_all_matches(pattern, search_options)
-            if not all_matches:
-                return None
-
-            # 向上搜索：找到最后一个开始位置小于start_pos的匹配项
-            for match in reversed(all_matches):
-                if match[0] < start_pos:
-                    return match
-            # 如果没找到，返回最后一个匹配项（循环到文档末尾）
-            return all_matches[-1] if all_matches else None
-        except Exception as e:
-            # 如果搜索过程中出现其他错误，显示错误信息并返回None
-            messagebox.showerror("搜索错误", f"搜索过程中发生错误: {e}")
-            return None
-
-    def search(self, pattern: str, search_options: SearchOptions) -> bool:
-        """
-        执行搜索
-
-        Args:
-            pattern: 搜索模式
-            search_options: 搜索选项
-
-        Returns:
-            bool: 是否找到匹配项
-        """
-        if not pattern:
-            return False
-
-        # 保存搜索信息
-        self.last_search_pattern = pattern
-        self.last_search_options = search_options
-
-        # 查找所有匹配项
-        self.all_matches = self._find_all_matches(pattern, search_options)
-
-        # 如果没有匹配项，返回False
-        if not self.all_matches:
-            self.last_match_pos = None
-            return False
-
-        # 查找下一个匹配项
-        match = self._find_next_match(pattern, search_options)
-        if match:
-            self.last_match_pos = match[0]
-            self._select_match(match)
-            self._highlight_current_match(match)
-            return True
-        else:
-            self.last_match_pos = None
-            return False
-
-    def find_next(
-        self, pattern: str = None, search_options: SearchOptions = None
-    ) -> bool:
-        """
-        查找下一个匹配项
-
-        Args:
-            pattern: 搜索模式，如果为None则使用上次搜索模式
-            search_options: 搜索选项，如果为None则使用上次搜索选项
-
-        Returns:
-            bool: 是否找到并选中了匹配项
-        """
-        # 如果没有提供搜索模式，使用上次搜索模式
-        if pattern is None:
-            if not self.last_search_pattern:
-                return False
-            pattern = self.last_search_pattern
-
-        # 如果没有提供搜索选项，使用上次搜索选项
-        if search_options is None:
-            if self.last_search_options is None:
-                # 如果没有上次搜索选项，创建默认选项（向下搜索）
-                search_options = SearchOptions(search_up=False)
-            else:
-                search_options = self.last_search_options
-
-        # 确保搜索方向是向下
-        search_options.search_up = False
-
-        # 保存搜索信息
-        self.last_search_pattern = pattern
-        self.last_search_options = search_options
-
-        # 确定搜索起始位置
-        start_pos = None
-        if self.last_match_pos is not None:
-            # 从上次匹配位置的下一个字符开始搜索
-            start_pos = self.last_match_pos + 1
-
-        # 查找下一个匹配项
-        match = self._find_next_match(pattern, search_options, start_pos)
-        if match:
-            self.last_match_pos = match[0]
-            self._select_match(match)
-            self._highlight_current_match(match)
-            return True
-        else:
-            # 如果从当前位置没找到，从文档开头重新搜索
-            match = self._find_next_match(pattern, search_options, 0)
-            if match:
-                self.last_match_pos = match[0]
-                self._select_match(match)
-                self._highlight_current_match(match)
-                return True
-            else:
-                # 如果没有找到任何匹配项，清除高亮
-                self.clear_highlights()
-                return False
-
-    def find_previous(
-        self, pattern: str = None, search_options: SearchOptions = None
-    ) -> bool:
-        """
-        查找上一个匹配项
-
-        Args:
-            pattern: 搜索模式，如果为None则使用上次搜索模式
-            search_options: 搜索选项，如果为None则使用上次搜索选项
-
-        Returns:
-            bool: 是否找到并选中了匹配项
-        """
-        # 如果没有提供搜索模式，使用上次搜索模式
-        if pattern is None:
-            if not self.last_search_pattern:
-                return False
-            pattern = self.last_search_pattern
-
-        # 如果没有提供搜索选项，使用上次搜索选项
-        if search_options is None:
-            if self.last_search_options is None:
-                # 如果没有上次搜索选项，创建默认选项（向上搜索）
-                search_options = SearchOptions(search_up=True)
-            else:
-                search_options = self.last_search_options
-
-        # 确保搜索方向是向上
-        search_options.search_up = True
-
-        # 保存搜索信息
-        self.last_search_pattern = pattern
-        self.last_search_options = search_options
-
-        # 确定搜索起始位置
-        start_pos = None
-        if self.last_match_pos is not None:
-            # 从上次匹配位置开始搜索
-            start_pos = self.last_match_pos
-
-        # 查找上一个匹配项
-        match = self._find_previous_match(pattern, search_options, start_pos)
-        if match:
-            self.last_match_pos = match[0]
-            self._select_match(match)
-            self._highlight_current_match(match)
-            return True
-        else:
-            # 如果从当前位置没找到，从文档末尾重新搜索
-            text = self.text_widget.get("1.0", tk.END)
-            start_pos = len(text)
-            match = self._find_previous_match(pattern, search_options, start_pos)
-            if match:
-                self.last_match_pos = match[0]
-                self._select_match(match)
-                self._highlight_current_match(match)
-                return True
-            else:
-                # 如果没有找到任何匹配项，清除高亮
-                self.clear_highlights()
-                return False
-
-    def find_all(
-        self,
-        pattern: str = None,
-        search_options: SearchOptions = None,
-        highlight: bool = True,
-    ) -> List[Tuple[str, str]]:
-        """
-        查找所有匹配项
-
-        Args:
-            pattern: 搜索模式，如果为None则使用上次搜索模式
-            search_options: 搜索选项，如果为None则使用上次搜索选项
-            highlight: 是否高亮所有匹配项，默认为True
-
-        Returns:
-            List[Tuple[str, str]]: 所有匹配项的位置列表，每个元素为(开始位置, 结束位置)
-        """
-        # 如果没有提供搜索模式，使用上次搜索模式
-        if pattern is None:
-            if not self.last_search_pattern:
-                return []
-            pattern = self.last_search_pattern
-
-        # 如果没有提供搜索选项，使用上次搜索选项
-        if search_options is None:
-            if self.last_search_options is None:
-                # 如果没有上次搜索选项，创建默认选项
-                search_options = SearchOptions()
-            else:
-                search_options = self.last_search_options
-
-        # 保存搜索信息
-        self.last_search_pattern = pattern
-        self.last_search_options = search_options
-
-        # 查找所有匹配项
-        self.all_matches = self._find_all_matches(pattern, search_options)
-
-        # 转换为Tkinter索引格式
-        tk_matches = []
-        for start_pos, end_pos in self.all_matches:
-            start_index = self.index_converter.string_pos_to_tk_index(start_pos)
-            end_index = self.index_converter.string_pos_to_tk_index(end_pos)
-            tk_matches.append((start_index, end_index))
-
-        # 如果需要高亮，高亮所有匹配项
-        if highlight:
-            self._highlight_all_matches(tk_matches)
-
-        return tk_matches
-
-    def _select_match(self, match: Tuple[int, int]) -> bool:
-        """
-        选择匹配的文本
-
-        Args:
-            match: 匹配位置的字符串位置元组(开始位置, 结束位置)
-
-        Returns:
-            bool: 是否成功选择
-        """
-        if not match:
-            return False
-
-        # 转换为Tkinter索引格式
-        start_index = self.index_converter.string_pos_to_tk_index(match[0])
-        end_index = self.index_converter.string_pos_to_tk_index(match[1])
-
-        # 选择文本
-        self.text_widget.tag_remove(tk.SEL, "1.0", tk.END)
-        self.text_widget.tag_add(tk.SEL, start_index, end_index)
-        self.text_widget.mark_set(tk.INSERT, start_index)
-        self.text_widget.see(start_index)
-
-        return True
-
-    def _highlight_current_match(self, match: Tuple[int, int]) -> bool:
-        """
-        高亮当前匹配项
-
-        Args:
-            match: 匹配位置的字符串位置元组(开始位置, 结束位置)
-
-        Returns:
-            bool: 是否成功高亮
-        """
-        # 如果高亮未启用，先初始化
-        if not self.highlighting_enabled:
-            self._init_highlight()
-
-        # 只清除当前匹配项的高亮，保留所有匹配项的高亮
-        self.text_widget.tag_remove(self.highlight_tag_current, "1.0", tk.END)
-
-        if not match:
-            self.current_match = None
-            return False
-
-        # 转换为Tkinter索引格式
-        start_index = self.index_converter.string_pos_to_tk_index(match[0])
-        end_index = self.index_converter.string_pos_to_tk_index(match[1])
-
-        # 高亮当前匹配项
-        self.text_widget.tag_add(self.highlight_tag_current, start_index, end_index)
-
-        # 更新当前匹配项属性
-        self.current_match = match
-
-        return True
-
     def _highlight_all_matches(self, matches: List[Tuple[str, str]]) -> bool:
         """
         高亮所有匹配项
@@ -783,157 +149,386 @@ class FindReplaceEngine:
         # 清除当前匹配项
         self.current_match = None
 
-    def set_highlight_enabled(self, enabled: bool):
+    def find(
+        self, pattern: str, search_options: SearchOptions
+    ) -> List[Tuple[str, str]]:
         """
-        设置是否启用高亮
+        核心查找方法 - 基于Text组件的search()方法实现
 
         Args:
-            enabled: 是否启用高亮
+            pattern: 搜索模式
+            search_options: 搜索选项
+
+        Returns:
+            List[Tuple[str, str]]: 匹配项的Tk索引元组列表[(开始索引, 结束索引)]
         """
-        self.highlighting_enabled = enabled
+        if not pattern:
+            return []
 
-        if not enabled:
-            self.clear_highlights()
+        # 清除之前的高亮
+        self.clear_highlights()
 
-    def replace(self, replacement: str) -> bool:
+        matches = []
+        count_var = tk.StringVar()
+
+        # 获取当前光标位置作为搜索起点，确保绝对健壮性
+        try:
+            # 尝试获取光标位置，但不进行复杂验证
+            # 任何异常都直接使用文档顶部作为搜索起点
+            current_pos = self.text_widget.index(tk.INSERT)
+            # 简单验证：确保获取到的值不为空
+            if not current_pos or not isinstance(current_pos, str):
+                current_pos = "1.0"
+        except:
+            # 捕获所有可能的异常，包括TclError、ValueError等
+            # 无条件使用文档顶部作为搜索起点
+            current_pos = "1.0"
+
+        # 配置搜索参数
+        search_args = {"count": count_var}
+
+        # 根据搜索模式配置参数
+        # 首先处理不区分大小写参数（可与任意基础模式组合）
+        if search_options.nocase:
+            search_args["nocase"] = True
+        
+        # 然后处理基础搜索模式（三种模式互斥）
+        if search_options.whole_word:
+            # 全词匹配搜索
+            search_args["regexp"] = True
+            # 使用\y前后包围搜索模式实现全词匹配
+            pattern = fr"\y{pattern}\y"
+        elif search_options.regex:
+            # 正则表达式搜索
+            search_args["regexp"] = True
+        elif search_options.normal_search:
+            # 普通搜索模式不添加额外参数 (normal_search为True时)
+            # 默认搜索模式也不添加额外参数
+            pass
+
+        # 配置搜索方向和起点
+        if search_options.single_search:
+            # 单次搜索使用当前光标位置作为起点
+            if search_options.search_up:
+                # 向上搜索
+                start_pos = current_pos
+                end_pos = "1.0"
+                search_args["backwards"] = True
+            else:
+                # 向下搜索
+                start_pos = current_pos
+                end_pos = tk.END
+                search_args["forwards"] = True
+        else:
+            # 搜索全部总是从文档开头开始向下搜索
+            start_pos = "1.0"
+            end_pos = tk.END
+            search_args["forwards"] = True
+
+        # 执行搜索
+        if search_options.single_search:
+            # 单次搜索
+            # 第一次搜索：从当前位置到文档末尾/开头
+            match_pos = self.text_widget.search(
+                pattern, start_pos, end_pos, **search_args
+            )
+
+            if match_pos:  # 如果找到匹配项（返回非空字符串索引）
+                # Text.search返回字符串索引格式"行.列"，找到时返回非空字符串
+                count = int(count_var.get()) if count_var.get() else 0
+                end_idx = self.text_widget.index(f"{match_pos}+{count}c")
+                matches.append((match_pos, end_idx))
+            else:
+                # 没有找到匹配项，执行循环搜索
+                if search_options.search_up:
+                    # 向上搜索：从文档末尾搜索到当前光标位置之前
+                    loop_start_pos = tk.END
+                    loop_end_pos = start_pos
+                else:
+                    # 向下搜索：从文档开头搜索到当前光标位置之前
+                    loop_start_pos = "1.0"
+                    loop_end_pos = start_pos
+                    # 向下搜索需要特殊处理，确保不会重复搜索当前位置
+                    if loop_end_pos != "1.0":
+                        # 从文档开头搜索到当前光标位置之前
+                        loop_end_pos = self.text_widget.index(f"{loop_end_pos}-1c")
+                
+                # 执行循环搜索
+                match_pos = self.text_widget.search(pattern, loop_start_pos, loop_end_pos, **search_args)
+                
+                if match_pos:  # 如果找到匹配项
+                    count = int(count_var.get()) if count_var.get() else 0
+                    end_idx = self.text_widget.index(f"{match_pos}+{count}c")
+                    matches.append((match_pos, end_idx))
+        else:
+            # 搜索全部
+            pos = start_pos
+
+            while True:
+                match_pos = self.text_widget.search(
+                    pattern, pos, end_pos, **search_args
+                )
+
+                if not match_pos:  # 没有找到匹配项（返回空字符串）
+                    break
+
+                count = int(count_var.get()) if count_var.get() else 0
+                end_idx = self.text_widget.index(f"{match_pos}+{count}c")
+                matches.append((match_pos, end_idx))
+
+                # 移动到当前匹配项之后/之前继续搜索
+                if search_options.search_up:
+                    pos = self.text_widget.index(f"{match_pos}-1c")
+                else:
+                    pos = end_idx
+
+        # # 高亮匹配项
+        # if matches:
+        #     # 高亮所有匹配项
+        #     self._highlight_all_matches(matches)
+
+        #     # 高亮当前匹配项（第一个匹配项）
+        #     self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+
+        #     # 设置当前匹配项
+        #     self.current_match = matches[0]
+
+        #     # 滚动到当前匹配项
+        #     self.text_widget.see(matches[0][0])
+
+        return matches
+
+    def find_next(self, pattern: str, search_options: SearchOptions) -> Optional[Tuple[str, str]]:
         """
-        替换当前高亮的匹配项
-
+        查找下一个匹配项
+        
         Args:
+            pattern: 搜索模式
+            search_options: 搜索选项（会覆盖search_up和single_search参数）
+            
+        Returns:
+            Optional[Tuple[str, str]]: 匹配项的Tk索引元组(开始索引, 结束索引)，未找到返回None
+        """
+        # 确保是向下搜索且单次搜索
+        search_options_copy = SearchOptions(
+            nocase=search_options.nocase,
+            whole_word=search_options.whole_word,
+            regex=search_options.regex,
+            normal_search=search_options.normal_search,
+            search_up=False,  # 强制向下搜索
+            single_search=True  # 强制单次搜索
+        )
+        
+        # 调用核心find方法
+        matches = self.find(pattern, search_options_copy)
+        
+        # 返回第一个匹配项（如果有）
+        if matches:
+            # 高亮当前匹配项
+            self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+            # 设置当前匹配项
+            self.current_match = matches[0]
+            # 滚动到当前匹配项
+            self.text_widget.see(matches[0][0])
+            # 将光标位置移动到匹配项的结束位置，这样下次搜索会从这个位置开始
+            self.text_widget.mark_set(tk.INSERT, matches[0][1])
+            return matches[0]
+        
+        return None
+    
+    def replace(self, pattern: str, replacement: str, search_options: SearchOptions) -> bool:
+        """
+        替换当前找到的匹配项
+        
+        Args:
+            pattern: 搜索模式
             replacement: 替换文本
-
+            search_options: 搜索选项
+            
         Returns:
             bool: 是否成功替换
         """
-        # 检查是否有当前匹配项
-        if not self.current_match:
-            return False
-
-        try:
-            # 转换为Tkinter索引格式
-            start_index = self.index_converter.string_pos_to_tk_index(
-                self.current_match[0]
-            )
-            end_index = self.index_converter.string_pos_to_tk_index(
-                self.current_match[1]
-            )
-
-            # 替换文本
-            self.text_widget.delete(start_index, end_index)
-            self.text_widget.insert(start_index, replacement)
-
-            # 清除索引转换器缓存，因为文本已被修改
-            self.index_converter.clear_cache()
-
-            # 清除高亮
-            # self.clear_highlights()
-
-            # 更新光标位置到替换文本的末尾
-            # 使用绝对索引格式，避免"invalid literal for int()"错误
-            end_pos_index = self.text_widget.index(f"{start_index}+{len(replacement)}c")
-            self.text_widget.mark_set(tk.INSERT, end_pos_index)
-
-            # 清除当前匹配项
-            self.current_match = None
-
+        # 优先使用已存在的当前匹配项
+        if self.current_match:
+            match = self.current_match
+        else:
+            # 如果没有当前匹配项，执行查找操作
+            match = self.find_next(pattern, search_options) if not search_options.search_up else self.find_previous(pattern, search_options)
+        
+        if match:
+            # 保存当前滚动位置
+            scroll_pos = self.text_widget.yview()
+            
+            # 执行替换操作
+            start_idx, end_idx = match
+            self.text_widget.tag_remove(self.highlight_tag_current, start_idx, end_idx)
+            self.text_widget.delete(start_idx, end_idx)
+            self.text_widget.insert(start_idx, replacement)
+            
+            # 设置新的光标位置
+            new_end_idx = self.text_widget.index(f"{start_idx}+{len(replacement)}c")
+            self.text_widget.tag_add(self.highlight_tag_current, start_idx, new_end_idx)
+            self.text_widget.mark_set(tk.INSERT, new_end_idx)
+            
+            # 恢复滚动位置
+            self.text_widget.yview_moveto(scroll_pos[0])
+            
+            # 重新查找下一个匹配项
+            if not search_options.search_up:
+                self.find_next(pattern, search_options)
+            else:
+                self.find_previous(pattern, search_options)
+            
             return True
-        except Exception as e:
-            messagebox.showerror("替换错误", f"替换操作失败: {e}")
-            return False
-
-    def replace_all(
-        self,
-        pattern: str = None,
-        replacement: str = "",
-        search_options: SearchOptions = None,
-    ) -> int:
+        
+        return False
+    
+    def replace_all(self, pattern: str, replacement: str, search_options: SearchOptions) -> int:
         """
-        替换所有匹配项
-
+        替换文档中所有匹配项
+        
         Args:
-            pattern: 搜索模式，如果为None则使用上次搜索模式
+            pattern: 搜索模式
             replacement: 替换文本
-            search_options: 搜索选项，如果为None则使用上次搜索选项
-
+            search_options: 搜索选项
+            
         Returns:
-            int: 替换的数量
+            int: 成功替换的匹配项数量
         """
-        # 获取所有匹配项（使用字符串位置，避免不必要的索引转换）
-        try:
-            # 如果没有提供搜索模式，使用上次搜索模式
-            if pattern is None:
-                if not self.last_search_pattern:
-                    return 0
-                pattern = self.last_search_pattern
-
-            # 如果没有提供搜索选项，使用上次搜索选项
-            if search_options is None:
-                if self.last_search_options is None:
-                    search_options = SearchOptions()
-                else:
-                    search_options = self.last_search_options
-
-            # 直接使用_find_all_matches获取字符串位置的匹配项，避免索引转换
-            all_matches = self._find_all_matches(pattern, search_options)
-            if not all_matches:
-                return 0
-        except Exception as e:
-            messagebox.showerror("替换错误", f"查找匹配项时出错: {e}")
-            return 0
-
-        # 从后往前替换，避免位置偏移
-        # 批量收集需要替换的Tkinter索引，减少索引转换次数
-        tk_indices = []
-        for start_pos, end_pos in reversed(all_matches):
+        # 保存当前光标位置
+        current_pos = self.text_widget.index(tk.INSERT)
+        
+        # 创建搜索选项副本，强制向下搜索和搜索全部
+        search_options_copy = SearchOptions(
+            nocase=search_options.nocase,
+            whole_word=search_options.whole_word,
+            regex=search_options.regex,
+            normal_search=search_options.normal_search,
+            search_up=False,  # 替换全部时使用向下搜索
+            single_search=False  # 搜索全部
+        )
+        
+        # 保存查找前的高亮状态
+        was_highlighting = self.highlighting_enabled
+        # 暂时禁用高亮以提高性能
+        self.highlighting_enabled = False
+        
+        # 从头开始搜索
+        self.text_widget.mark_set(tk.INSERT, "1.0")
+        # 直接调用find_all方法获取所有匹配项
+        matches = self.find(pattern, search_options_copy)
+        
+        # 恢复高亮状态
+        self.highlighting_enabled = was_highlighting
+        
+        # 清除之前的高亮
+        self.clear_highlights()
+        
+        # 执行替换操作 - 从后往前替换以避免索引变化问题
+        replacements_count = 0
+        # 反转匹配列表，从后往前替换
+        for start_idx, end_idx in reversed(matches):
             try:
-                start_index = self.index_converter.string_pos_to_tk_index(start_pos)
-                end_index = self.index_converter.string_pos_to_tk_index(end_pos)
-                tk_indices.append((start_index, end_index))
-            except ValueError as e:
-                messagebox.showerror("替换错误", f"索引转换失败: {e}")
-                return 0
-
-        # 执行替换操作
-        try:
-            # 记录最后一个替换位置，用于设置光标位置
-            last_start_index = None
-
-            for start_index, end_index in tk_indices:
-                self.text_widget.delete(start_index, end_index)
-                self.text_widget.insert(start_index, replacement)
-                last_start_index = start_index
-
-            # 清除索引转换器的缓存
-            self.index_converter.clear_cache()
-
-            # 清除高亮
-            self.clear_highlights()
-
-            # 如果有替换操作，设置光标到最后一个替换位置的末尾
-            if last_start_index is not None:
-                # 使用绝对索引格式，避免"invalid literal for int()"错误
-                end_pos_index = self.text_widget.index(
-                    f"{last_start_index}+{len(replacement)}c"
-                )
-                self.text_widget.mark_set(tk.INSERT, end_pos_index)
-
-            return len(all_matches)
-        except Exception as e:
-            messagebox.showerror("替换错误", f"替换操作失败: {e}")
-            return 0
-
-    def update_highlight_colors(self, current_color: str = None, all_color: str = None):
-        """
-        更新高亮颜色
-
-        Args:
-            current_color: 当前匹配项的高亮颜色，格式为"#RRGGBB"
-            all_color: 所有匹配项的高亮颜色，格式为"#RRGGBB"
-        """
-        if current_color:
-            self.text_widget.tag_config(
-                self.highlight_tag_current, background=current_color
+                # 替换文本
+                self.text_widget.delete(start_idx, end_idx)
+                self.text_widget.insert(start_idx, replacement)
+                replacements_count += 1
+            except tk.TclError:
+                # 索引无效，跳过
+                continue
+        
+        # 恢复光标位置
+        self.text_widget.mark_set(tk.INSERT, current_pos)
+        
+        # 如果有替换成功的项，重新查找并高亮所有匹配项
+        if replacements_count > 0:
+            # 从头开始搜索
+            self.text_widget.mark_set(tk.INSERT, "1.0")
+            # 创建搜索选项副本
+            search_options_copy = SearchOptions(
+                nocase=search_options.nocase,
+                whole_word=search_options.whole_word,
+                regex=search_options.regex,
+                normal_search=search_options.normal_search,
+                search_up=False,
+                single_search=False
             )
-
-        if all_color:
-            self.text_widget.tag_config(self.highlight_tag_all, background=all_color)
+            # 直接调用find_all方法查找并高亮所有匹配项
+            self.find_all(pattern, search_options_copy)
+        
+        return replacements_count
+    
+    def find_all(self, pattern: str, search_options: SearchOptions) -> List[Tuple[str, str]]:
+        """
+        查找文档中所有匹配项
+        
+        Args:
+            pattern: 搜索模式
+            search_options: 搜索选项（会覆盖single_search参数）
+            
+        Returns:
+            List[Tuple[str, str]]: 所有匹配项的Tk索引元组列表[(开始索引, 结束索引)]
+        """
+        # 确保是搜索全部，并且总是从文档开头向下搜索
+        search_options_copy = SearchOptions(
+            nocase=search_options.nocase,
+            whole_word=search_options.whole_word,
+            regex=search_options.regex,
+            normal_search=search_options.normal_search,
+            search_up=False,  # 强制向下搜索，确保从文档开头开始
+            single_search=False  # 强制搜索全部
+        )
+        
+        # 调用核心find方法
+        matches = self.find(pattern, search_options_copy)
+        
+        # 高亮所有匹配项
+        if matches:
+            self._highlight_all_matches(matches)
+            
+            # 高亮第一个匹配项作为当前匹配项
+            if matches:
+                self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+                self.current_match = matches[0]
+                # 滚动到第一个匹配项
+                self.text_widget.see(matches[0][0])
+        
+        return matches
+    
+    def find_previous(self, pattern: str, search_options: SearchOptions) -> Optional[Tuple[str, str]]:
+        """
+        查找上一个匹配项
+        
+        Args:
+            pattern: 搜索模式
+            search_options: 搜索选项（会覆盖search_up和single_search参数）
+            
+        Returns:
+            Optional[Tuple[str, str]]: 匹配项的Tk索引元组(开始索引, 结束索引)，未找到返回None
+        """
+        # 确保是向上搜索且单次搜索
+        search_options_copy = SearchOptions(
+            nocase=search_options.nocase,
+            whole_word=search_options.whole_word,
+            regex=search_options.regex,
+            normal_search=search_options.normal_search,
+            search_up=True,  # 强制向上搜索
+            single_search=True  # 强制单次搜索
+        )
+        
+        # 调用核心find方法
+        matches = self.find(pattern, search_options_copy)
+        
+        # 返回第一个匹配项（如果有）
+        if matches:
+            # 高亮当前匹配项
+            self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
+            # 设置当前匹配项
+            self.current_match = matches[0]
+            # 滚动到当前匹配项
+            self.text_widget.see(matches[0][0])
+            # 将光标位置移动到匹配项的开始位置，这样下次搜索会从这个位置开始（向上搜索）
+            self.text_widget.mark_set(tk.INSERT, matches[0][0])
+            return matches[0]
+        
+        return None
