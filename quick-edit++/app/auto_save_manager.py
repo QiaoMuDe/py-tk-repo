@@ -157,9 +157,9 @@ class AutoSaveManager:
             # 启用自动保存，启动自动保存任务
             self.start_auto_save()
 
-            # 开启的时候立即备份一次
-            if self.app.current_file_path and not self.app.is_modified():
-                self.app.file_ops._create_backup_copy(self.app.current_file_path)
+            # 开启的时候立即保存一次(如果文件已修改)
+            if self.app.current_file_path and self.app.is_modified():
+                self.app.save_file()
 
         else:
             # 禁用自动保存，取消自动保存任务
