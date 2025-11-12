@@ -1,8 +1,6 @@
 chardet==5.2.0
 darkdetect==0.8.0
-packaging==25.0
 Pillow==12.0.0
-typing_extensions==4.15.0
 windnd==1.0.7
 aiofiles==24.1.0
 aiosqlite==0.20.0
