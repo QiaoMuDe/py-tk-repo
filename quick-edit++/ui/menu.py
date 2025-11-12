@@ -1489,7 +1489,7 @@ def set_window_title_mode(mode, root):
 
 def toggle_line_numbers(root):
     """
-    切换行号显示状态的预定义函数框架
+    切换行号显示状态
 
     Args:
         root: 主窗口实例
@@ -1501,8 +1501,8 @@ def toggle_line_numbers(root):
     config_manager.set("text_editor.show_line_numbers", current_state)
     config_manager.save_config()
 
-    # TODO: 这里将调用主窗口的行号显示切换方法
-    # 当实现行号显示的具体功能时，需要在这里添加调用代码
+    # 控制行号侧边栏的显示和隐藏
+    root.line_number_canvas.toggle_visibility(current_state)
 
     # 显示通知
     messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")
