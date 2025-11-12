@@ -11,6 +11,7 @@ from ui.font_dialog import show_font_dialog
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
+from ui.recent_files_menu import RecentFilesMenu
 from config.config_manager import config_manager
 import codecs
 import os
@@ -597,6 +598,23 @@ def create_menu(root):
     file_menu.add_command(
         label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W"
     )
+
+    # 分隔符
+    file_menu.add_separator()
+
+    # 创建最近打开文件子菜单
+    # 创建打开文件的回调函数
+    def on_open_recent_file(file_path):
+        # 使用现有的文件打开功能
+        root.file_ops._open_file(
+            file_path=file_path, check_save=True, check_backup=True
+        )
+
+    # 初始化最近文件菜单
+    recent_menu = RecentFilesMenu(root, file_menu, on_open_recent_file)
+    recent_menu.create_recent_files_menu()
+    # 保存到root对象中，方便文件打开后刷新
+    root.recent_files_menu = recent_menu
 
     # 分隔符
     file_menu.add_separator()

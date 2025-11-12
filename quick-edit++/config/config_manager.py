@@ -37,6 +37,12 @@ DEFAULT_CONFIG = {
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
     },
+    # 最近打开文件配置
+    "recent_files": {
+        "enabled": True,  # 是否启用最近打开文件功能
+        "max_items": 10,  # 最大存储条数
+        "history": [],  # 文件历史列表
+    },
     # 文本编辑器配置
     "text_editor": {
         "font": "Microsoft YaHei UI",  # 字体
@@ -312,6 +318,73 @@ class ConfigManager:
             dict: 完整配置字典的副本
         """
         return self.config.copy()
+
+    def get_recent_files(self):
+        """
+        获取最近打开的文件列表
+
+        Returns:
+            list: 最近打开的文件路径列表
+        """
+        return self.get("recent_files.history", [])
+
+    def add_recent_file(self, file_path):
+        """
+        添加文件到最近打开列表
+
+        Args:
+            file_path (str): 文件路径
+
+        Returns:
+            bool: 是否添加成功
+        """
+        if not file_path or not os.path.exists(file_path):
+            return False
+
+        recent_files = self.get_recent_files()
+        max_items = self.get("recent_files.max_items", 10)
+
+        # 如果文件已存在于列表中，先移除
+        if file_path in recent_files:
+            recent_files.remove(file_path)
+
+        # 添加到列表开头
+        recent_files.insert(0, file_path)
+
+        # 限制列表长度
+        if len(recent_files) > max_items:
+            recent_files = recent_files[:max_items]
+
+        # 更新配置
+        self.set("recent_files.history", recent_files)
+        return self.save_config()
+
+    def clear_recent_files(self):
+        """
+        清空最近打开的文件列表
+
+        Returns:
+            bool: 是否清空成功
+        """
+        self.set("recent_files.history", [])
+        return self.save_config()
+
+    def remove_recent_file(self, file_path):
+        """
+        从最近打开文件列表中移除指定文件
+
+        Args:
+            file_path: 要移除的文件路径
+
+        Returns:
+            bool: 是否移除成功
+        """
+        recent_files = self.get_recent_files()
+        if file_path in recent_files:
+            recent_files.remove(file_path)
+            self.set("recent_files.history", recent_files)
+            return self.save_config()
+        return False
 
 
 # 创建全局配置管理器实例

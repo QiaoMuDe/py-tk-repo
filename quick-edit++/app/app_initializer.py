@@ -192,6 +192,9 @@ class AppInitializer:
         # 创建菜单栏
         self.app.menu_bar = create_menu(self.app)
         self.app.config(menu=self.app.menu_bar)
+        # 确保recent_files_menu属性存在于app实例中
+        if not hasattr(self.app, "recent_files_menu"):
+            self.app.recent_files_menu = None
 
     def init_read_only_mode(self):
         """设置初始只读模式状态"""

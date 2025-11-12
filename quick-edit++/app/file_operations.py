@@ -526,6 +526,16 @@ class FileOperations:
                     # 更新窗口标题
                     self.root._update_window_title()
 
+                    # 将文件添加到最近打开列表
+                    if self.config_manager.get("recent_files.enabled", True):
+                        self.config_manager.add_recent_file(file_path)
+                        # 刷新最近文件菜单（如果存在）
+                        if (
+                            hasattr(self.root, "recent_files_menu")
+                            and self.root.recent_files_menu
+                        ):
+                            self.root.recent_files_menu.refresh()
+
                     return True
 
                 except Exception as e:
