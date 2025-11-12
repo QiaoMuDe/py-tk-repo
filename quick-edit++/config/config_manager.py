@@ -119,7 +119,11 @@ class ConfigManager:
 
     def __init__(self):
         """初始化配置管理器"""
+        # 加载配置文件
         self.config = self.load_config()
+        
+        # 图标路径
+        self.ICON_PATH = "ico/QuickEdit++.ico"
 
     def load_config(self):
         """
