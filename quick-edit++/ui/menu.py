@@ -1103,6 +1103,13 @@ def create_menu(root):
         variable=root.toolbar_var,
     )
 
+    # 行号显示设置
+    settings_menu.add_checkbutton(
+        label="显示行号",
+        command=lambda: toggle_line_numbers(root),
+        variable=root.line_numbers_var,
+    )
+
     # 全屏模式设置
     settings_menu.add_checkbutton(
         label="全屏模式",
@@ -1321,20 +1328,12 @@ def toggle_toolbar_visibility(root):
     Args:
         root: 主窗口实例，用于访问工具栏组件
     """
-    # 获取当前工具栏显示状态
-    current_state = config_manager.get("app.show_toolbar", True)
+    # 获取当前工具栏显示状态（此时Checkbutton已经自动切换了值）
+    current_state = root.toolbar_var.get()
 
-    # 切换状态
-    new_state = not current_state
-
-    # 先更新配置管理器中的值
-    config_manager.set("app.show_toolbar", new_state)
-    # 然后调用保存方法
+    # 保存配置
+    config_manager.set("app.show_toolbar", current_state)
     config_manager.save_config()
-
-    # 更新APP类中的变量
-    if root.toolbar_var is not None:
-        root.toolbar_var.set(new_state)
 
     # 暂时捕获所有事件，防止用户交互
     root.grab_set()
@@ -1344,7 +1343,7 @@ def toggle_toolbar_visibility(root):
         try:
             # 切换工具栏显示状态
             if hasattr(root, "toolbar"):
-                if new_state:
+                if current_state:
                     # 显示工具栏
                     root.toolbar.grid(row=0, column=0, sticky="ew")
                 else:
@@ -1410,26 +1409,21 @@ def set_color_theme(theme, root=None):
 
 def toggle_auto_wrap(root):
     """切换自动换行模式"""
-    # 获取当前自动换行状态
-    current_state = config_manager.get("text_editor.auto_wrap", True)
-    # 切换状态
-    new_state = not current_state
-    # 保存配置
-    config_manager.set("text_editor.auto_wrap", new_state)
-    config_manager.save_config()
+    # 获取当前自动换行状态（此时Checkbutton已经自动切换了值）
+    current_state = root.auto_wrap_var.get()
 
-    # 更新APP类中的变量
-    if root.auto_wrap_var is not None:
-        root.auto_wrap_var.set(new_state)
+    # 保存配置
+    config_manager.set("text_editor.auto_wrap", current_state)
+    config_manager.save_config()
 
     # 直接设置文本框的自动换行属性
     if hasattr(root, "text_area"):
         # 设置文本框的自动换行属性
-        wrap_mode = "word" if new_state else "none"
+        wrap_mode = "word" if current_state else "none"
         root.text_area.configure(wrap=wrap_mode)
 
         # 显示通知
-        status_text = "已启用" if new_state else "已禁用"
+        status_text = "已启用" if current_state else "已禁用"
         messagebox.showinfo("通知", f"自动换行{status_text}")
 
 
@@ -1452,26 +1446,20 @@ def set_auto_save_interval(interval, root=None):
 
 def toggle_backup(root):
     """切换备份模式"""
-    # 获取当前备份状态
-    current_state = config_manager.get("app.backup_enabled", False)
-    # 切换状态
-    new_state = not current_state
+    # 获取当前备份状态（此时Checkbutton已经自动切换了值）
+    current_state = root.backup_var.get()
 
     # 保存配置
-    config_manager.set("app.backup_enabled", new_state)
+    config_manager.set("app.backup_enabled", current_state)
     config_manager.save_config()
 
-    # 更新APP类中的变量
-    if root.backup_var is not None:
-        root.backup_var.set(new_state)
-
     # 开启的时候立即备份一次
-    if new_state and root.current_file_path and not root.is_modified():
-        root.file_operations._create_backup_copy(root.current_file_path)
+    if current_state and root.current_file_path and not root.is_modified():
+        root.file_ops._create_backup_copy(root.current_file_path)
 
     # 显示通知
     messagebox.showinfo(
-        "通知", f"备份模式已切换为: {'已启用' if new_state else '已禁用'}"
+        "通知", f"备份模式已切换为: {'已启用' if current_state else '已禁用'}"
     )
 
 
@@ -1488,8 +1476,7 @@ def set_window_title_mode(mode, root):
     config_manager.save_config()
 
     # 直接调用主窗口的更新窗口标题方法
-    if hasattr(root, "_update_window_title"):
-        root._update_window_title()
+    root._update_window_title()
 
     # 显示模式名称
     mode_names = {
@@ -1498,3 +1485,24 @@ def set_window_title_mode(mode, root):
         "filename_and_dir": "显示文件名和目录路径",
     }
     mode_name = mode_names.get(mode, mode)
+
+
+def toggle_line_numbers(root):
+    """
+    切换行号显示状态的预定义函数框架
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前行号显示状态（此时Checkbutton已经自动切换了值）
+    current_state = root.line_numbers_var.get()
+
+    # 保存配置
+    config_manager.set("text_editor.show_line_numbers", current_state)
+    config_manager.save_config()
+
+    # TODO: 这里将调用主窗口的行号显示切换方法
+    # 当实现行号显示的具体功能时，需要在这里添加调用代码
+
+    # 显示通知
+    messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")

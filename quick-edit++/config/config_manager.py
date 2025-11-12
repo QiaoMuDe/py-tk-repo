@@ -52,6 +52,7 @@ DEFAULT_CONFIG = {
         "read_only": False,  # 是否只读模式
         "bg_color": "#F5F5F5",  # 背景色
         "max_undo": 50,  # 最大撤销次数
+        "show_line_numbers": True,  # 是否显示行号
     },
     # 工具栏配置
     "toolbar": {

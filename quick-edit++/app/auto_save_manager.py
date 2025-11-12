@@ -128,45 +128,47 @@ class AutoSaveManager:
         切换自动保存模式
 
         功能：
-        - 获取当前自动保存状态
-        - 切换状态并保存配置
-        - 更新APP类中的变量
+        - 获取Checkbutton已更新的状态值
+        - 保存配置
+        - 更新内部状态
         - 更新状态栏显示
-        - 根据新状态启动或停止自动保存
+        - 根据状态启动或停止自动保存
         """
-        # 获取当前自动保存状态
-        current_state = config_manager.get("app.auto_save", False)
-        # 切换状态
-        new_state = not current_state
+        # 获取Checkbutton已更新的当前状态值
+        if self.app.auto_save_var is not None:
+            current_state = self.app.auto_save_var.get()
+        else:
+            # 如果没有var，则保持原有逻辑
+            current_state = config_manager.get("app.auto_save", False)
+            current_state = not current_state
 
         # 保存配置
-        config_manager.set("app.auto_save", new_state)
+        config_manager.set("app.auto_save", current_state)
         config_manager.save_config()
 
         # 更新内部状态
-        self.auto_save_enabled = new_state
-
-        # 更新APP类中的变量
-        if self.app.auto_save_var is not None:
-            self.app.auto_save_var.set(new_state)
-
-        # 更新APP类中的自动保存状态
-        self.app.auto_save_enabled = new_state
+        self.auto_save_enabled = current_state
 
         # 使用状态栏的方法更新显示
-        if hasattr(self.app, "status_bar"):
-            self.app.status_bar.set_auto_save_status()
+        self.app.status_bar.set_auto_save_status()
 
-        # 根据新状态启动或停止自动保存
-        if new_state:
+        # 根据状态启动或停止自动保存
+        if current_state:
             # 启用自动保存，启动自动保存任务
             self.start_auto_save()
+
+            # 开启的时候立即备份一次
+            if self.app.current_file_path and not self.app.is_modified():
+                self.app.file_ops._create_backup_copy(self.app.current_file_path)
+
         else:
             # 禁用自动保存，取消自动保存任务
             self.stop_auto_save()
-
             # 禁用自动保存后，将上次的自动保存时间设置为0
             self.last_auto_save_time = 0
+
+        # 更新窗口标题
+        self.app._update_window_title()
 
     def set_auto_save_interval(self, interval):
         """
@@ -182,16 +184,11 @@ class AutoSaveManager:
         # 更新内部状态
         self.auto_save_interval = interval
 
-        # 更新APP类中的自动保存间隔
-        self.app.auto_save_interval = interval
-
         # 更新auto_save_interval_var变量
-        if self.app.auto_save_interval_var is not None:
-            self.app.auto_save_interval_var.set(str(interval))
+        self.app.auto_save_interval_var.set(str(interval))
 
         # 使用状态栏的方法更新显示
-        if hasattr(self.app, "status_bar"):
-            self.app.status_bar.show_auto_save_status()
+        self.app.status_bar.set_auto_save_status()
 
         # 如果自动保存已启用，重新启动自动保存任务
         if self.auto_save_enabled:
@@ -199,5 +196,4 @@ class AutoSaveManager:
             self.start_auto_save()
 
         # 显示通知
-        if hasattr(self.app, "status_bar"):
-            self.app.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")
+        self.app.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")
