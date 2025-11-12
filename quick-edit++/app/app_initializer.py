@@ -12,7 +12,7 @@ from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
-from operations.file_operations import FileOperations
+from .file_operations import FileOperations
 
 
 class AppInitializer:

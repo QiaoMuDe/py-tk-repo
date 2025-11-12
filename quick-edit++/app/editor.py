@@ -19,7 +19,7 @@ from ui.status_bar import StatusBar
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
-from operations.file_operations import FileOperations
+from .file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
 from app.auto_save_manager import AutoSaveManager
