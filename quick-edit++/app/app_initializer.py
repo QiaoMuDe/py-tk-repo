@@ -185,7 +185,7 @@ class AppInitializer:
             wrap=wrap_mode,  # 换行模式
             undo=True,  # 启用撤销功能
             font=self.app.current_font,  # 字体设置
-            border_spacing=0, # 边框间距，设置为0去除边框
+            border_spacing=3, # 边框间距
             maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
