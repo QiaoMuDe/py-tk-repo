@@ -11,7 +11,7 @@ from tkinter import messagebox
 from pathlib import Path
 
 # 应用程序常量
-APP_VERSION = "v0.0.10"  # 版本号
+APP_VERSION = "v0.0.11"  # 版本号
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"  # 项目地址
 
 # 默认配置文件路径：用户家目录下的.QuickEditPlus.json
