@@ -1103,13 +1103,6 @@ def create_menu(root):
         variable=root.toolbar_var,
     )
 
-    # 行号显示设置
-    settings_menu.add_checkbutton(
-        label="显示行号",
-        command=lambda: toggle_line_numbers(root),
-        variable=root.line_numbers_var,
-    )
-
     # 全屏模式设置
     settings_menu.add_checkbutton(
         label="全屏模式",
@@ -1485,24 +1478,3 @@ def set_window_title_mode(mode, root):
         "filename_and_dir": "显示文件名和目录路径",
     }
     mode_name = mode_names.get(mode, mode)
-
-
-def toggle_line_numbers(root):
-    """
-    切换行号显示状态
-
-    Args:
-        root: 主窗口实例
-    """
-    # 获取当前行号显示状态（此时Checkbutton已经自动切换了值）
-    current_state = root.line_numbers_var.get()
-
-    # 保存配置
-    config_manager.set("text_editor.show_line_numbers", current_state)
-    config_manager.save_config()
-
-    # 控制行号侧边栏的显示和隐藏
-    root.line_number_canvas.toggle_visibility(current_state)
-
-    # 显示通知
-    messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")

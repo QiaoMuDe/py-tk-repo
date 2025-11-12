@@ -12,7 +12,6 @@ from config.config_manager import config_manager
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
-from ui.line_number_canvas import LineNumberCanvas
 from .file_operations import FileOperations
 
 
@@ -188,17 +187,6 @@ class AppInitializer:
             font=self.app.current_font,  # 字体设置
             maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
         )
-        
-        # 创建行号侧边栏
-        self.app.line_number_canvas = LineNumberCanvas(
-            self.app.text_frame, 
-            text_widget=self.app.text_area,
-            width=60  # 增加初始宽度，与LineNumberCanvas默认值保持一致
-        )
-        
-        # 根据配置决定是否显示行号栏
-        if self.app.line_numbers_var.get():
-            self.app.line_number_canvas.pack(side="left", fill="y", expand=False, anchor="w")
         
         # 放置文本编辑区域
         self.app.text_area.pack(side="right", fill="both", expand=True, padx=0, pady=0)
