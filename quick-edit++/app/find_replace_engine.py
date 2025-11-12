@@ -166,8 +166,15 @@ class FindReplaceEngine:
         if not pattern:
             return []
 
-        # 清除之前的高亮
-        self.clear_highlights()
+        # 根据搜索类型决定是否清除所有高亮
+        if search_options.single_search:
+            # 单次查找：只清除当前匹配项的高亮，保留其他匹配项
+            if self.highlighting_enabled:
+                self.text_widget.tag_remove(self.highlight_tag_current, "1.0", tk.END)
+            self.current_match = None
+        else:
+            # 搜索全部：清除所有高亮
+            self.clear_highlights()
 
         matches = []
         count_var = tk.StringVar()
@@ -347,7 +354,7 @@ class FindReplaceEngine:
         self, pattern: str, replacement: str, search_options: SearchOptions
     ) -> bool:
         """
-        替换当前找到的匹配项
+        替换当前找到的匹配项，并高亮显示所有替换后的内容
 
         Args:
             pattern: 搜索模式
@@ -392,6 +399,9 @@ class FindReplaceEngine:
             else:
                 self.find_previous(pattern, search_options)
 
+            # 高亮显示所有替换后的内容
+            self._highlight_replaced_content(replacement, search_options)
+
             return True
 
         return False
@@ -400,7 +410,7 @@ class FindReplaceEngine:
         self, pattern: str, replacement: str, search_options: SearchOptions
     ) -> int:
         """
-        替换文档中所有匹配项
+        替换文档中所有匹配项，并高亮显示所有替换后的内容
 
         Args:
             pattern: 搜索模式
@@ -455,23 +465,59 @@ class FindReplaceEngine:
         # 恢复光标位置
         self.text_widget.mark_set(tk.INSERT, current_pos)
 
-        # 如果有替换成功的项，重新查找并高亮所有匹配项
+        # 如果有替换成功的项，高亮显示所有替换后的内容
         if replacements_count > 0:
-            # 从头开始搜索
-            self.text_widget.mark_set(tk.INSERT, "1.0")
-            # 创建搜索选项副本
-            search_options_copy = SearchOptions(
-                nocase=search_options.nocase,
-                whole_word=search_options.whole_word,
-                regex=search_options.regex,
-                normal_search=search_options.normal_search,
-                search_up=False,
-                single_search=False,
-            )
-            # 直接调用find_all方法查找并高亮所有匹配项
-            self.find_all(pattern, search_options_copy)
+            self._highlight_replaced_content(replacement, search_options)
 
         return replacements_count
+
+    def _highlight_replaced_content(
+        self, replacement: str, search_options: SearchOptions
+    ):
+        """
+        高亮显示所有替换后的内容
+
+        Args:
+            replacement: 替换文本
+            search_options: 搜索选项
+        """
+        if not replacement or not self.highlighting_enabled:
+            return
+
+        # 创建搜索选项副本，用于查找替换后的内容
+        # 注意：对于替换后的内容搜索，我们使用普通搜索模式，并保持不区分大小写等选项
+        highlight_options = SearchOptions(
+            nocase=search_options.nocase,
+            whole_word=False,  # 替换后的内容不一定是完整单词
+            regex=False,  # 替换后的内容使用普通搜索更合适
+            normal_search=True,
+            search_up=False,
+            single_search=False,  # 搜索全部替换后的内容
+        )
+
+        # 清除之前的高亮，但保留逻辑上更合理的顺序
+        # 首先清除当前匹配项高亮
+        self.text_widget.tag_remove(self.highlight_tag_current, "1.0", tk.END)
+        # 然后清除所有匹配项高亮
+        self.text_widget.tag_remove(self.highlight_tag_all, "1.0", tk.END)
+
+        # 查找所有替换后的内容
+        self.text_widget.mark_set(tk.INSERT, "1.0")
+        replaced_matches = self.find(replacement, highlight_options)
+
+        # 高亮所有替换后的内容
+        if replaced_matches:
+            self._highlight_all_matches(replaced_matches)
+
+            # 高亮第一个替换项作为当前匹配项
+            self.text_widget.tag_add(
+                self.highlight_tag_current,
+                replaced_matches[0][0],
+                replaced_matches[0][1],
+            )
+            self.current_match = replaced_matches[0]
+            # 滚动到第一个替换项
+            self.text_widget.see(replaced_matches[0][0])
 
     def find_all(
         self, pattern: str, search_options: SearchOptions
