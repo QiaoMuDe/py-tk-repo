@@ -13,6 +13,7 @@ from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from .file_operations import FileOperations
+from .file_watcher import FileWatcher
 
 
 class AppInitializer:
@@ -80,6 +81,9 @@ class AppInitializer:
         """初始化文件相关属性"""
         # 初始化文件操作处理器
         self.app.file_ops = FileOperations(self.app)
+
+        # 初始化文件监听器
+        self.app.file_watcher = FileWatcher(self.app)
 
         # 初始化文件相关属性
         self.app.current_file_path = None  # 当前文件路径
@@ -185,19 +189,21 @@ class AppInitializer:
             wrap=wrap_mode,  # 换行模式
             undo=True,  # 启用撤销功能
             font=self.app.current_font,  # 字体设置
-            border_spacing=3, # 边框间距
+            border_spacing=3,  # 边框间距
             maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
             activate_scrollbars=True,  # 启用滚动条激活
         )
-        
+
         # 放置文本编辑区域
         self.app.text_area.pack(side="right", fill="both", expand=True, padx=0, pady=0)
-        
+
         # 自定义滚动条宽度
-        if hasattr(self.app.text_area, '_y_scrollbar'):
-            self.app.text_area._y_scrollbar.configure(width=18)  # 设置垂直滚动条宽度为18像素
+        if hasattr(self.app.text_area, "_y_scrollbar"):
+            self.app.text_area._y_scrollbar.configure(
+                width=18
+            )  # 设置垂直滚动条宽度为18像素
 
         # 光标行高亮相关变量
         self.app.current_highlighted_line = None
@@ -240,3 +246,5 @@ class AppInitializer:
         self.init_text_area()
         self.init_menu_bar()
         self.init_read_only_mode()
+
+        # 注意：文件监听将在打开文件时启动，而不是在应用初始化时启动

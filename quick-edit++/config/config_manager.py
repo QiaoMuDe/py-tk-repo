@@ -37,10 +37,17 @@ DEFAULT_CONFIG = {
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
     },
+    # 文件监听器配置
+    "file_watcher": {
+        "check_interval": 3,  # 文件变更检查间隔（秒）
+        "save_buffer": 1.0,  # 保存后的缓冲时间（秒），在此期间内不提示文件变更
+        "readonly_notify_delay": 30,  # 只读模式下通知重置延迟（秒）
+        "edit_notify_delay": 120,  # 编辑模式下通知重置延迟（秒）
+    },
     # 最近打开文件配置
     "recent_files": {
         "enabled": True,  # 是否启用最近打开文件功能
-        "max_items": 10,  # 最大存储条数
+        "max_items": 9,  # 最大存储条数
         "history": [],  # 文件历史列表
     },
     # 文本编辑器配置
@@ -121,7 +128,7 @@ class ConfigManager:
         """初始化配置管理器"""
         # 加载配置文件
         self.config = self.load_config()
-        
+
         # 图标路径
         self.ICON_PATH = "ico/QuickEdit++.ico"
 

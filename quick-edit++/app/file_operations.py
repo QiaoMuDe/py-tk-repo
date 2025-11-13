@@ -163,6 +163,10 @@ class FileOperations:
                 messagebox.showerror("保存错误", f"保存文件时发生未知错误: {str(e)}")
                 return False
 
+            # 文件保存成功后，更新文件监听器缓存，防止程序的保存被误当成修改
+            if final_path and os.path.exists(final_path):
+                self.root.file_watcher.update_cache_after_save(final_path)
+
             # 如果启用了副本备份功能，则创建副本备份
             if self.config_manager.get("app.backup_enabled", False):
                 self._create_backup_copy(final_path)
@@ -356,6 +360,10 @@ class FileOperations:
         if not self.check_save_before_close():
             return  # 用户取消了操作
 
+        # 停止文件监听
+        if self.root.file_watcher:
+            self.root.file_watcher.stop_watching()
+
         # 重置编辑器状态
         self._reset_editor_state()
 
@@ -519,8 +527,8 @@ class FileOperations:
                     self.root.status_bar.update_file_info()
 
                     # 更新状态栏
-                    self.root.status_bar.set_status_info(
-                        f"已打开: {os.path.basename(file_path)}"
+                    self.root.status_bar.show_notification(
+                        f"已打开: {os.path.basename(file_path)}", 500
                     )
 
                     # 更新窗口标题
@@ -530,11 +538,14 @@ class FileOperations:
                     if self.config_manager.get("recent_files.enabled", True):
                         self.config_manager.add_recent_file(file_path)
                         # 刷新最近文件菜单（如果存在）
-                        if (
-                            hasattr(self.root, "recent_files_menu")
-                            and self.root.recent_files_menu
-                        ):
+                        if self.root.recent_files_menu:
                             self.root.recent_files_menu.refresh()
+
+                    # 更新文件监听器缓存
+                    self.root.file_watcher.update_file_info()
+
+                    # 启动文件监听
+                    self.root.file_watcher.start_watching(file_path)
 
                     return True
 

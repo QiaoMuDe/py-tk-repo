@@ -33,7 +33,7 @@ class EditOperations:
                 # 更新字符计数
                 self.update_char_count()
             else:
-                self.status_bar.show_notification("没有可撤销的操作", 2000)
+                self.status_bar.show_notification("没有可撤销的操作", 500)
         except Exception as e:
             # 忽略撤销操作异常
             pass
@@ -48,7 +48,7 @@ class EditOperations:
                 # 更新字符计数
                 self.update_char_count()
             else:
-                self.status_bar.show_notification("没有可重做的操作", 2000)
+                self.status_bar.show_notification("没有可重做的操作", 500)
         except Exception as e:
             # 忽略重做操作异常
             pass
@@ -72,13 +72,13 @@ class EditOperations:
                     self.update_char_count()
                     # 显示通知
                     self.status_bar.show_notification(
-                        f"已剪切 {len(selected_text)} 个字符", 2000
+                        f"已剪切 {len(selected_text)} 个字符", 500
                     )
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 2000)
+                    self.status_bar.show_notification("没有选中的文本", 500)
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 2000)
+                self.status_bar.show_notification("没有选中的文本", 500)
         except Exception as e:
             # 忽略剪切操作异常
             pass
@@ -95,13 +95,13 @@ class EditOperations:
                     self.clipboard_append(selected_text)
                     # 显示通知
                     self.status_bar.show_notification(
-                        f"已复制 {len(selected_text)} 个字符", 2000
+                        f"已复制 {len(selected_text)} 个字符", 500
                     )
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 2000)
+                    self.status_bar.show_notification("没有选中的文本", 500)
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 2000)
+                self.status_bar.show_notification("没有选中的文本", 500)
         except Exception as e:
             # 忽略复制操作异常
             pass
@@ -111,7 +111,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法粘贴", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法粘贴", 500)
                 return
 
             # 获取剪贴板内容
@@ -133,13 +133,13 @@ class EditOperations:
                     self.update_char_count()
                     # 显示通知
                     self.status_bar.show_notification(
-                        f"已粘贴 {len(clipboard_text)} 个字符", 2000
+                        f"已粘贴 {len(clipboard_text)} 个字符", 500
                     )
                 else:
-                    self.status_bar.show_notification("剪贴板为空", 2000)
+                    self.status_bar.show_notification("剪贴板为空", 500)
             except tk.TclError:
                 # 剪贴板为空
-                self.status_bar.show_notification("剪贴板为空", 2000)
+                self.status_bar.show_notification("剪贴板为空", 500)
         except Exception as e:
             # 忽略粘贴操作异常
             pass
@@ -157,7 +157,7 @@ class EditOperations:
             self._update_status_bar()
             # 显示通知
             total_chars = self.get_char_count()
-            self.status_bar.show_notification(f"已选择全部 {total_chars} 个字符", 2000)
+            self.status_bar.show_notification(f"已选择全部 {total_chars} 个字符", 500)
         except Exception as e:
             # 忽略全选操作异常
             pass
@@ -167,7 +167,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法清除", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法清除", 500)
                 return
 
             # 获取当前字符数
@@ -175,7 +175,7 @@ class EditOperations:
 
             # 如果没有内容，直接返回
             if total_chars == 0:
-                self.status_bar.show_notification("文本区域已经为空", 2000)
+                self.status_bar.show_notification("文本区域已经为空", 500)
                 return
 
             # 确认是否清除所有文本
@@ -193,7 +193,7 @@ class EditOperations:
                 # 更新修改状态
                 self.set_modified(True)
                 # 显示通知
-                self.status_bar.show_notification(f"已清除 {total_chars} 个字符", 2000)
+                self.status_bar.show_notification(f"已清除 {total_chars} 个字符", 500)
         except Exception as e:
             # 忽略清除操作异常
             pass
@@ -203,7 +203,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法清除", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法清除", 500)
                 return
 
             # 检查是否有选中的文本
@@ -220,13 +220,13 @@ class EditOperations:
                     self.set_modified(True)
                     # 显示通知
                     self.status_bar.show_notification(
-                        f"已清除 {len(selected_text)} 个字符", 2000
+                        f"已清除 {len(selected_text)} 个字符", 500
                     )
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 2000)
+                    self.status_bar.show_notification("没有选中的文本", 500)
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 2000)
+                self.status_bar.show_notification("没有选中的文本", 500)
         except Exception as e:
             # 忽略清除操作异常
             pass
@@ -236,7 +236,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入文本
@@ -250,7 +250,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 2000)
+            self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -260,7 +260,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入shebang行
@@ -274,7 +274,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入脚本 shebang 行", 2000)
+            self.status_bar.show_notification("已插入脚本 shebang 行", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -284,7 +284,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入编码声明
@@ -298,7 +298,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入编码声明", 2000)
+            self.status_bar.show_notification("已插入编码声明", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -308,7 +308,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入Go语言基本结构
@@ -323,7 +323,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入Go语言基本结构", 2000)
+            self.status_bar.show_notification("已插入Go语言基本结构", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -333,7 +333,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入Python函数模板
@@ -361,7 +361,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入Python函数模板", 2000)
+            self.status_bar.show_notification("已插入Python函数模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -371,7 +371,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入Python类模板
@@ -418,7 +418,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入Python类模板", 2000)
+            self.status_bar.show_notification("已插入Python类模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -428,7 +428,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入HTML基本结构
@@ -469,7 +469,7 @@ class EditOperations:
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入HTML基本结构", 2000)
+            self.status_bar.show_notification("已插入HTML基本结构", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -479,7 +479,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入CSS基本结构
@@ -553,7 +553,7 @@ footer {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入CSS基本结构", 2000)
+            self.status_bar.show_notification("已插入CSS基本结构", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -563,7 +563,7 @@ footer {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入JavaScript函数模板
@@ -613,7 +613,7 @@ const arrowFunction = (param1, param2) => {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入JavaScript函数模板", 2000)
+            self.status_bar.show_notification("已插入JavaScript函数模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -623,7 +623,7 @@ const arrowFunction = (param1, param2) => {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入SQL查询模板
@@ -702,7 +702,7 @@ HAVING
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入SQL查询模板", 2000)
+            self.status_bar.show_notification("已插入SQL查询模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -712,7 +712,7 @@ HAVING
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入GO函数模板
@@ -787,7 +787,7 @@ func closureFunction() func(int) int {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入GO函数模板", 2000)
+            self.status_bar.show_notification("已插入GO函数模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -797,7 +797,7 @@ func closureFunction() func(int) int {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 在光标位置插入GO结构体模板
@@ -919,7 +919,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification("已插入GO结构体模板", 2000)
+            self.status_bar.show_notification("已插入GO结构体模板", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -929,7 +929,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 获取当前文件名
@@ -945,9 +945,9 @@ func (s *StructName) IsValid() bool {
                 self.set_modified(True)
 
                 # 显示通知
-                self.status_bar.show_notification(f"已插入文件名: {filename}", 2000)
+                self.status_bar.show_notification(f"已插入文件名: {filename}", 500)
             else:
-                self.status_bar.show_notification("没有当前文件", 2000)
+                self.status_bar.show_notification("没有当前文件", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -957,7 +957,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 获取当前文件路径
@@ -973,10 +973,10 @@ func (s *StructName) IsValid() bool {
 
                 # 显示通知
                 self.status_bar.show_notification(
-                    f"已插入文件路径: {self.current_file_path}", 2000
+                    f"已插入文件路径: {self.current_file_path}", 500
                 )
             else:
-                self.status_bar.show_notification("没有当前文件", 2000)
+                self.status_bar.show_notification("没有当前文件", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -986,7 +986,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 获取当前文件所在目录
@@ -1002,9 +1002,9 @@ func (s *StructName) IsValid() bool {
                 self.set_modified(True)
 
                 # 显示通知
-                self.status_bar.show_notification(f"已插入目录路径: {directory}", 2000)
+                self.status_bar.show_notification(f"已插入目录路径: {directory}", 500)
             else:
-                self.status_bar.show_notification("没有当前文件", 2000)
+                self.status_bar.show_notification("没有当前文件", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1014,7 +1014,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 根据格式类型获取日期
@@ -1045,7 +1045,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入日期: {date_str}", 2000)
+            self.status_bar.show_notification(f"已插入日期: {date_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1055,7 +1055,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 根据格式类型获取时间
@@ -1082,7 +1082,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入时间: {time_str}", 2000)
+            self.status_bar.show_notification(f"已插入时间: {time_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1092,7 +1092,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 根据格式类型获取日期时间
@@ -1119,7 +1119,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 2000)
+            self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1129,7 +1129,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 获取当前时间戳
@@ -1146,7 +1146,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入时间戳: {timestamp}", 2000)
+            self.status_bar.show_notification(f"已插入时间戳: {timestamp}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1156,7 +1156,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4
@@ -1173,7 +1173,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1183,7 +1183,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4并移除连字符
@@ -1200,7 +1200,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1210,7 +1210,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4并转换为大写
@@ -1227,7 +1227,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1237,7 +1237,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4，移除连字符并转换为大写
@@ -1255,7 +1255,7 @@ func (s *StructName) IsValid() bool {
 
             # 显示通知
             self.status_bar.show_notification(
-                f"已插入大写无连字符UUID: {uuid_str}", 2000
+                f"已插入大写无连字符UUID: {uuid_str}", 500
             )
         except Exception as e:
             # 忽略插入操作异常
@@ -1266,7 +1266,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4并添加花括号
@@ -1283,7 +1283,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1293,7 +1293,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4，转换为大写并添加花括号
@@ -1311,7 +1311,7 @@ func (s *StructName) IsValid() bool {
 
             # 显示通知
             self.status_bar.show_notification(
-                f"已插入带花括号的大写UUID: {uuid_str}", 2000
+                f"已插入带花括号的大写UUID: {uuid_str}", 500
             )
         except Exception as e:
             # 忽略插入操作异常
@@ -1322,7 +1322,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v4并转换为Base64编码
@@ -1343,7 +1343,7 @@ func (s *StructName) IsValid() bool {
 
             # 显示通知
             self.status_bar.show_notification(
-                f"已插入Base64编码的UUID: {uuid_str}", 2000
+                f"已插入Base64编码的UUID: {uuid_str}", 500
             )
         except Exception as e:
             # 忽略插入操作异常
@@ -1354,7 +1354,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成URN格式的UUID v4
@@ -1371,7 +1371,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1381,7 +1381,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 生成UUID v1
@@ -1398,7 +1398,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 2000)
+            self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1413,7 +1413,7 @@ func (s *StructName) IsValid() bool {
             # 更新状态栏
             self._update_status_bar()
             # 显示通知
-            self.status_bar.show_notification("已转到文件顶部", 2000)
+            self.status_bar.show_notification("已转到文件顶部", 500)
         except Exception as e:
             # 忽略转到顶部操作异常
             pass
@@ -1428,7 +1428,7 @@ func (s *StructName) IsValid() bool {
             # 更新状态栏
             self._update_status_bar()
             # 显示通知
-            self.status_bar.show_notification("已转到文件底部", 2000)
+            self.status_bar.show_notification("已转到文件底部", 500)
         except Exception as e:
             # 忽略转到底部操作异常
             pass
@@ -1463,7 +1463,7 @@ func (s *StructName) IsValid() bool {
             # 清空剪贴板
             self.clipboard_clear()
             # 显示通知
-            self.status_bar.show_notification("剪贴板已清空", 2000)
+            self.status_bar.show_notification("剪贴板已清空", 500)
         except Exception as e:
             # 忽略清空剪贴板操作异常
             pass
@@ -1479,9 +1479,9 @@ func (s *StructName) IsValid() bool {
                 # 添加文件名到剪贴板
                 self.clipboard_append(filename)
                 # 显示通知
-                self.status_bar.show_notification(f"已复制文件名: {filename}", 2000)
+                self.status_bar.show_notification(f"已复制文件名: {filename}", 500)
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 2000)
+                self.status_bar.show_notification("当前没有打开的文件", 500)
         except Exception as e:
             # 忽略复制文件名操作异常
             pass
@@ -1496,10 +1496,10 @@ func (s *StructName) IsValid() bool {
                 self.clipboard_append(self.current_file_path)
                 # 显示通知
                 self.status_bar.show_notification(
-                    f"已复制文件路径: {self.current_file_path}", 2000
+                    f"已复制文件路径: {self.current_file_path}", 500
                 )
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 2000)
+                self.status_bar.show_notification("当前没有打开的文件", 500)
         except Exception as e:
             # 忽略复制文件路径操作异常
             pass
@@ -1516,10 +1516,10 @@ func (s *StructName) IsValid() bool {
                 self.clipboard_append(directory_path)
                 # 显示通知
                 self.status_bar.show_notification(
-                    f"已复制目录路径: {directory_path}", 2000
+                    f"已复制目录路径: {directory_path}", 500
                 )
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 2000)
+                self.status_bar.show_notification("当前没有打开的文件", 500)
         except Exception as e:
             # 忽略复制目录路径操作异常
             pass
@@ -1545,13 +1545,13 @@ func (s *StructName) IsValid() bool {
                     # 显示通知
                     self.status_bar.show_notification(
                         f"已复制选中文本信息: {char_count} 个字符, {line_count} 行",
-                        2000,
+                        500,
                     )
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 2000)
+                    self.status_bar.show_notification("没有选中的文本", 500)
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 2000)
+                self.status_bar.show_notification("没有选中的文本", 500)
         except Exception as e:
             # 忽略复制选中文本信息操作异常
             pass
@@ -1675,7 +1675,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 插入特殊字符
@@ -1689,7 +1689,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入{char_type}: {char_value}", 2000)
+            self.status_bar.show_notification(f"已插入{char_type}: {char_value}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass
@@ -1757,7 +1757,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 插入数学符号
@@ -1772,7 +1772,7 @@ func (s *StructName) IsValid() bool {
 
             # 显示通知
             self.status_bar.show_notification(
-                f"已插入{symbol_type}: {symbol_value}", 2000
+                f"已插入{symbol_type}: {symbol_value}", 500
             )
         except Exception as e:
             # 忽略插入操作异常
@@ -2033,7 +2033,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 2000)
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
                 return
 
             # 插入颜色代码
@@ -2047,7 +2047,7 @@ func (s *StructName) IsValid() bool {
             self.set_modified(True)
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入{code_type}: {code_value}", 2000)
+            self.status_bar.show_notification(f"已插入{code_type}: {code_value}", 500)
         except Exception as e:
             # 忽略插入操作异常
             pass

@@ -74,6 +74,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.auto_save_manager.auto_save_enabled and self.current_file_path:
             self.auto_save_manager._auto_save()
 
+        # 停止文件监听
+        self.file_watcher.stop_watching()
+
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
             self.destroy()
@@ -328,11 +331,10 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         # 确保文本框处理完点击事件后立即更新行高亮
         # 使用after_idle确保在事件队列处理完后立即执行
-        #self.after_idle(self._highlight_current_line)
+        # self.after_idle(self._highlight_current_line)
         # 更新状态栏
-        #self._update_status_bar()
+        # self._update_status_bar()
         self.after_idle(self._on_cursor_move)
-            
 
     def _update_status_bar(self):
         """更新状态栏信息"""
