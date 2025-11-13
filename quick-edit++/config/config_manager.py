@@ -88,8 +88,8 @@ DEFAULT_CONFIG = {
     # 语法高亮配置
     "syntax_highlighter": {
         "enabled": True,
-        "render_visible_only": False,  # false: 渲染全部，true: 只渲染可见行
-        "max_lines_per_highlight": 1000,  # 性能限制
+        "render_visible_only": True,  # false: 渲染全部(受max_lines_per_highlight限制), true: 只渲染可见行
+        "max_lines_per_highlight": 1000,  # 渲染全部时的最大行数限制
     },
 }
 

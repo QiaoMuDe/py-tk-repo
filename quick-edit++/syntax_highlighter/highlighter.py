@@ -320,9 +320,9 @@ class SyntaxHighlighter:
         """
         self.highlight_enabled = enabled
         if not enabled:
-            self._clear_highlight()
+            self._clear_highlight()  # 如果禁用，则清除高亮
         else:
-            self.highlight()
+            self.highlight()  # 如果启用，则重新高亮
 
     def is_enabled(self) -> bool:
         """

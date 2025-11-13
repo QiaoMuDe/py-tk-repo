@@ -147,6 +147,19 @@ class AppInitializer:
             value=config_manager.get("text_editor.show_line_numbers", True)
         )
 
+        # 初始化语法高亮相关状态变量
+        # 获取语法高亮配置
+        syntax_config = config_manager.get_component_config("syntax_highlighter")
+        # 创建语法高亮启用状态变量
+        self.app.syntax_highlight_var = tk.BooleanVar(
+            value=syntax_config.get("enabled", True)
+        )
+        # 创建语法高亮模式状态变量
+        # True表示渲染可见行，False表示渲染全部
+        self.app.syntax_highlight_mode_var = tk.BooleanVar(
+            value=syntax_config.get("render_visible_only", True)
+        )
+
     def init_window_layout(self):
         """初始化窗口布局配置"""
         # 配置主窗口的网格布局
@@ -287,7 +300,7 @@ class AppInitializer:
 
         except Exception as e:
             # 忽略可能的错误，确保程序不会崩溃
-            print(f"检查滚动条可见性时出错: {e}")
+            # print(f"检查滚动条可见性时出错: {e}")
             pass
 
         # 继续下一次检查

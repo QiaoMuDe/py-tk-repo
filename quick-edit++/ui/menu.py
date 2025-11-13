@@ -1149,6 +1149,32 @@ def create_menu(root):
         command=lambda: toggle_auto_wrap(root),
         variable=root.auto_wrap_var,
     )
+
+    # 语法高亮设置
+    settings_menu.add_checkbutton(
+        label="启用语法高亮",
+        command=lambda: toggle_syntax_highlight(root),
+        variable=root.syntax_highlight_var,
+    )
+
+    # 创建语法高亮模式子菜单
+    highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 添加语法高亮模式选项
+    highlight_mode_submenu.add_radiobutton(
+        label="渲染可见行",
+        variable=root.syntax_highlight_mode_var,
+        value=True,
+        command=lambda: set_syntax_highlight_mode(True, root),
+    )
+    highlight_mode_submenu.add_radiobutton(
+        label="渲染全部",
+        variable=root.syntax_highlight_mode_var,
+        value=False,
+        command=lambda: set_syntax_highlight_mode(False, root),
+    )
+    settings_menu.add_cascade(label="高亮模式", menu=highlight_mode_submenu)
+
     settings_menu.add_separator()
 
     # 第三组：保存设置
@@ -1480,3 +1506,42 @@ def set_window_title_mode(mode, root):
         "filename_and_dir": "显示文件名和目录路径",
     }
     mode_name = mode_names.get(mode, mode)
+
+
+def toggle_syntax_highlight(root):
+    """切换语法高亮的启用/禁用状态
+
+    Args:
+        root: 主窗口实例，用于访问语法高亮管理器
+    """
+    # 获取当前语法高亮状态
+    current_state = root.syntax_highlight_var.get()
+
+    # 保存配置到配置管理器
+    config_manager.set("syntax_highlighter.enabled", current_state)
+    config_manager.save_config()
+
+    # 应用设置到语法高亮管理器
+    root.syntax_highlighter.set_enabled(current_state)
+
+    # 显示通知
+    messagebox.showinfo("通知", f"语法高亮已{'启用' if current_state else '禁用'}")
+
+
+def set_syntax_highlight_mode(mode: bool, root):
+    """设置语法高亮的渲染模式
+
+    Args:
+        mode (bool): 渲染模式，可选值: True, False
+        root: 主窗口实例，用于访问语法高亮管理器
+    """
+    # 保存配置到配置管理器
+    config_manager.set("syntax_highlighter.render_visible_only", mode)
+    config_manager.save_config()
+
+    # 应用设置到语法高亮管理器
+    root.syntax_highlighter.set_render_mode(mode)
+
+    # 显示通知
+    mode_text = "渲染可见行" if mode else "渲染全部"
+    messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}")
