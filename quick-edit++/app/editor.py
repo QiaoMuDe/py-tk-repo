@@ -282,11 +282,15 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self._update_status_bar()
         # 更新光标行高亮
         self._highlight_current_line()
-        
+
         # 应用语法高亮（如果有当前文件路径）
         if self.current_file_path:
             # 使用延迟更新，避免频繁更新影响性能
-            self.after_idle(lambda: self.syntax_highlighter.apply_highlighting(self.current_file_path))
+            self.after_idle(
+                lambda: self.syntax_highlighter.apply_highlighting(
+                    self.current_file_path
+                )
+            )
 
     def set_modified(self, modified=False):
         """

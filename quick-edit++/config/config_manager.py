@@ -93,6 +93,7 @@ DEFAULT_CONFIG = {
     },
 }
 
+
 def merge_configs(default, custom):
     """
     合并默认配置和自定义配置

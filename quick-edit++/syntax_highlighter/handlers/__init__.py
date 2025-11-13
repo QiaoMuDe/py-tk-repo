@@ -12,6 +12,6 @@ from .python_handler import PythonHandler
 
 # 导出所有可用的语言处理器
 __all__ = [
-    'LanguageHandler',
-    'PythonHandler',
+    "LanguageHandler",
+    "PythonHandler",
 ]

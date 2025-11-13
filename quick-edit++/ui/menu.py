@@ -1415,6 +1415,8 @@ def toggle_auto_wrap(root):
         wrap_mode = "word" if current_state else "none"
         root.text_area.configure(wrap=wrap_mode)
 
+        # 滚动条的显示/隐藏将由app_initializer中的自动检查机制处理
+
         # 显示通知
         status_text = "已启用" if current_state else "已禁用"
         messagebox.showinfo("通知", f"自动换行{status_text}")

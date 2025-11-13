@@ -13,11 +13,7 @@ from .handlers import LanguageHandler
 from .handlers.python_handler import PythonHandler
 
 # 定义包的公共API
-__all__ = [
-    'SyntaxHighlighter',
-    'LanguageHandler',
-    'PythonHandler'
-]
+__all__ = ["SyntaxHighlighter", "LanguageHandler", "PythonHandler"]
 
 # 版本信息
-__version__ = '1.0.0'
+__version__ = "1.0.0"
