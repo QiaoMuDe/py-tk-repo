@@ -18,6 +18,9 @@ from config.config_manager import config_manager
 
 # 导入语言处理器
 from .handlers import LanguageHandler
+from .handlers.python_handler import PythonHandler
+from .handlers.json_handler import JSONHandler
+from .handlers.ini_toml_handler import IniTomlHandler
 
 
 class SyntaxHighlighter:
@@ -27,7 +30,7 @@ class SyntaxHighlighter:
     负责管理语言处理器，控制高亮过程，并提供与Text组件的接口
     """
 
-    def __init__(self, text_widget: tk.Text):
+    def __init__(self, app):
         """
         初始化语法高亮器
 
@@ -38,7 +41,8 @@ class SyntaxHighlighter:
         syntax_config = config_manager.get_component_config("syntax_highlighter")
 
         # 设置初始化参数
-        self.text_widget = text_widget
+        self.app = app
+        self.text_widget = app.text_area
         self.render_visible_only = syntax_config.get("render_visible_only", False)
         self.highlight_enabled = syntax_config.get("enabled", True)
         self.max_lines_per_highlight = syntax_config.get(
@@ -59,13 +63,20 @@ class SyntaxHighlighter:
 
     def _register_default_handlers(self):
         """注册默认的语言处理器"""
-        # 导入Python处理器
-        from .handlers.python_handler import PythonHandler
-
         # 注册Python处理器
         python_handler = PythonHandler()
         for ext in python_handler.get_file_extensions():
             self.register_language(ext, python_handler)
+
+        # 注册JSON处理器
+        json_handler = JSONHandler()
+        for ext in json_handler.get_file_extensions():
+            self.register_language(ext, json_handler)
+
+        # 注册INI/TOML处理器
+        ini_toml_handler = IniTomlHandler()
+        for ext in ini_toml_handler.get_file_extensions():
+            self.register_language(ext, ini_toml_handler)
 
     def register_language_handler(self, handler_class):
         """
@@ -192,7 +203,7 @@ class SyntaxHighlighter:
     def _highlight_visible_lines(self):
         """高亮当前可见的行"""
         # 清除现有高亮
-        self._clear_highlight()
+        self.clear_highlight()
 
         # 获取可见行范围
         first_visible = self.text_widget.index("@0,0")
@@ -221,7 +232,7 @@ class SyntaxHighlighter:
     def _highlight_full_document(self):
         """高亮整个文档（受max_lines_per_highlight限制）"""
         # 清除现有高亮
-        self._clear_highlight()
+        self.clear_highlight()
 
         # 获取文档总行数，使用end确保获取实际行数
         total_lines = int(self.text_widget.index("end").split(".")[0])
@@ -279,10 +290,18 @@ class SyntaxHighlighter:
         """
         return f"{base_index}+{offset}c"
 
-    def _clear_highlight(self):
+    def clear_highlight(self):
         """清除所有语法高亮"""
-        for tag_name in self._highlight_tags:
-            self.text_widget.tag_remove(tag_name, "1.0", "end")
+        # 获取Text组件中的所有标签
+        all_tags = self.text_widget.tag_names()
+        
+        # 移除所有以"syntax_"开头的标签的应用
+        for tag_name in all_tags:
+            if tag_name.startswith("syntax_"):
+                self.text_widget.tag_remove(tag_name, "1.0", "end")
+        
+        # 清空标签集合
+        self._highlight_tags.clear()
 
     def _handle_event(self, event=None):
         """
@@ -291,8 +310,22 @@ class SyntaxHighlighter:
         Args:
             event: 事件对象
         """
-        # 检查是否启用高亮和当前语言
-        if not self.highlight_enabled or not self.current_language:
+        # 检查是否启用高亮
+        if not self.highlight_enabled:
+            return
+            
+        # 检查文本内容是否为空，如果为空则清除高亮并重置语言设置
+        try:
+            if self.app.get_char_count() == 0:
+                self.clear_highlight()
+                self.current_language = None
+                self.current_file_extension = None
+                return
+        except tk.TclError:
+            return
+            
+        # 检查当前语言
+        if not self.current_language:
             return
 
         # 对于所有事件，统一调用highlight方法，它内部会根据模式选择合适的高亮方式
@@ -320,7 +353,7 @@ class SyntaxHighlighter:
         """
         self.highlight_enabled = enabled
         if not enabled:
-            self._clear_highlight()  # 如果禁用，则清除高亮
+            self.clear_highlight()  # 如果禁用，则清除高亮
         else:
             self.highlight()  # 如果启用，则重新高亮
 

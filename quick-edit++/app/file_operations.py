@@ -324,6 +324,9 @@ class FileOperations:
         # 更新窗口标题
         self.root._update_window_title()
 
+        # 清除语法高亮
+        self.root.syntax_highlighter.clear_highlight()
+
     def _handle_backup_on_close(self, file_saved):
         """
         在关闭窗口或关闭文件时处理备份文件的辅助方法

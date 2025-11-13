@@ -338,7 +338,7 @@ class AppInitializer:
     def init_syntax_highlighting(self):
         """初始化语法高亮功能"""
         # 创建语法高亮实例并关联到文本区域
-        self.app.syntax_highlighter = SyntaxHighlighter(self.app.text_area)
+        self.app.syntax_highlighter = SyntaxHighlighter(self.app)
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""

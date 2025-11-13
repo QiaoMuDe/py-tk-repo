@@ -9,9 +9,13 @@
 
 from .base import LanguageHandler
 from .python_handler import PythonHandler
+from .json_handler import JSONHandler
+from .ini_toml_handler import IniTomlHandler
 
 # 导出所有可用的语言处理器
 __all__ = [
     "LanguageHandler",
     "PythonHandler",
+    "JSONHandler",
+    "IniTomlHandler",
 ]

@@ -11,9 +11,10 @@
 from .highlighter import SyntaxHighlighter
 from .handlers import LanguageHandler
 from .handlers.python_handler import PythonHandler
+from .handlers.json_handler import JSONHandler
 
 # 定义包的公共API
-__all__ = ["SyntaxHighlighter", "LanguageHandler", "PythonHandler"]
+__all__ = ["SyntaxHighlighter", "LanguageHandler", "PythonHandler", "JSONHandler"]
 
 # 版本信息
 __version__ = "1.0.0"
