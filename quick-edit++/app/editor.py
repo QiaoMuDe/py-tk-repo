@@ -104,8 +104,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
 
         # 绑定文件操作快捷键
-        self.bind("<Control-n>", lambda e: self.new_file())  # 新建文件
-        self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件
+        self.bind("<Control-n>", lambda e: self.new_file())  # 文件操作快捷键
+        # self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件 - 已在_on_key_press中处理
         self.bind("<Control-s>", lambda e: self.save_file())  # 保存文件
         self.bind("<Control-Shift-S>", lambda e: self.save_file_as())  # 另存为
         self.bind("<Control-w>", lambda e: self.close_file())  # 关闭文件
@@ -208,6 +208,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 初始化行高亮标签配置（只执行一次）
         self._setup_line_highlight(full_init=True)
 
+        # 初始化修改状态为未修改
+        self.set_modified(False)
+
+        # 初始化字符数
+        self.update_char_count()
+
         # 然后设置文本区域焦点
         self._focus_text_area()
 
@@ -249,6 +255,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """按键/键盘事件处理"""
         # 检测Ctrl+H组合键，阻止默认的退格行为
         if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
+            return "break"
+
+        # 检测Ctrl+O组合键，拦截底层行为，只执行我们的自定义实现
+        if (event.state & 0x4) and (event.keysym == "o"):
+            self.open_file()
             return "break"
 
     def _on_text_change(self, event=None):
@@ -479,7 +490,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def open_file_with_path(self, file_path):
         """通过指定路径打开文件"""
-        self.file_ops._open_file(check_backup=True, file_path=file_path)
+        self.file_ops._open_file(
+            check_save=True, check_backup=True, file_path=file_path
+        )
 
     def save_file(self):
         """保存当前文件"""
