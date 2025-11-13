@@ -87,6 +87,50 @@ class SyntaxHighlighter:
         if self.render_visible_only:
             self.text_widget.bind("<Configure>", self._handle_event, add="+")
             self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")
+            # 添加滚动条命令绑定，确保拖动滚动条时也能更新高亮
+            
+            # 处理垂直滚动
+            if hasattr(self.text_widget, 'yview'):
+                original_yview = self.text_widget.yview
+                def wrapped_yview(*args):
+                    result = original_yview(*args)
+                    # 当滚动条移动时，延迟触发高亮更新，避免频繁更新
+                    self.text_widget.after_idle(self._handle_event)
+                    return result
+                # 尝试替换yview方法来捕获滚动事件
+                if not hasattr(self.text_widget, '_original_yview'):
+                    self.text_widget._original_yview = original_yview
+                    self.text_widget.yview = wrapped_yview
+            
+            # 处理水平滚动
+            if hasattr(self.text_widget, 'xview'):
+                original_xview = self.text_widget.xview
+                def wrapped_xview(*args):
+                    result = original_xview(*args)
+                    # 当滚动条移动时，延迟触发高亮更新，避免频繁更新
+                    self.text_widget.after_idle(self._handle_event)
+                    return result
+                # 尝试替换xview方法来捕获滚动事件
+                if not hasattr(self.text_widget, '_original_xview'):
+                    self.text_widget._original_xview = original_xview
+                    self.text_widget.xview = wrapped_xview
+            
+            # 特殊处理CTkTextbox组件 - 检查是否有内部的_textbox属性
+            if hasattr(self.text_widget, '_textbox'):
+                inner_textbox = self.text_widget._textbox
+                # 为内部的tkinter.Text组件也绑定滚动事件
+                inner_textbox.bind("<Configure>", self._handle_event, add="+")
+                inner_textbox.bind("<MouseWheel>", self._handle_event, add="+")
+                
+                # 处理内部文本框的垂直滚动
+                if hasattr(inner_textbox, 'yview') and not hasattr(inner_textbox, '_original_yview'):
+                    original_inner_yview = inner_textbox.yview
+                    def wrapped_inner_yview(*args):
+                        result = original_inner_yview(*args)
+                        self.text_widget.after_idle(self._handle_event)
+                        return result
+                    inner_textbox._original_yview = original_inner_yview
+                    inner_textbox.yview = wrapped_inner_yview
 
         # 键盘事件 - 检测按键输入，使用add='+'参数避免覆盖editor中的事件绑定
         self.text_widget.bind("<Key>", self._handle_event, add="+")
