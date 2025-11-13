@@ -56,7 +56,7 @@ class IniTomlHandler(LanguageHandler):
             # 键名 - 匹配等号前的键
             "keys": r'\b[a-zA-Z0-9_.]+(?=\s*=)',
             # 标点符号 - []、{}、.、,、=
-            "punctuation": r'([[\].{},=])',
+            "punctuation": r'([\[\]\.\{\},=])',
         }
 
         # 标签样式 - 使用适合INI/TOML的配色方案

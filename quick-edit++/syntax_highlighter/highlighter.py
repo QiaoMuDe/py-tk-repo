@@ -21,6 +21,14 @@ from .handlers import LanguageHandler
 from .handlers.python_handler import PythonHandler
 from .handlers.json_handler import JSONHandler
 from .handlers.ini_toml_handler import IniTomlHandler
+from .handlers.yaml_handler import YAMLHandler
+from .handlers.bash_handler import BashHandler
+from .handlers.html_handler import HTMLHandler
+from .handlers.xml_handler import XMLHandler
+from .handlers.css_handler import CSSHandler
+from .handlers.javascript_handler import JavaScriptHandler
+from .handlers.typescript_handler import TypeScriptHandler
+from .handlers.go_handler import GoHandler
 
 
 class SyntaxHighlighter:
@@ -77,6 +85,46 @@ class SyntaxHighlighter:
         ini_toml_handler = IniTomlHandler()
         for ext in ini_toml_handler.get_file_extensions():
             self.register_language(ext, ini_toml_handler)
+
+        # 注册YAML处理器
+        yaml_handler = YAMLHandler()
+        for ext in yaml_handler.get_file_extensions():
+            self.register_language(ext, yaml_handler)
+
+        # 注册Bash处理器
+        bash_handler = BashHandler()
+        for ext in bash_handler.get_file_extensions():
+            self.register_language(ext, bash_handler)
+
+        # 注册HTML处理器
+        html_handler = HTMLHandler()
+        for ext in html_handler.get_file_extensions():
+            self.register_language(ext, html_handler)
+
+        # 注册XML处理器
+        xml_handler = XMLHandler()
+        for ext in xml_handler.get_file_extensions():
+            self.register_language(ext, xml_handler)
+
+        # 注册CSS处理器
+        css_handler = CSSHandler()
+        for ext in css_handler.get_file_extensions():
+            self.register_language(ext, css_handler)
+
+        # 注册JavaScript处理器
+        javascript_handler = JavaScriptHandler()
+        for ext in javascript_handler.get_file_extensions():
+            self.register_language(ext, javascript_handler)
+
+        # 注册TypeScript处理器
+        typescript_handler = TypeScriptHandler()
+        for ext in typescript_handler.get_file_extensions():
+            self.register_language(ext, typescript_handler)
+
+        # 注册Go处理器
+        go_handler = GoHandler()
+        for ext in go_handler.get_file_extensions():
+            self.register_language(ext, go_handler)
 
     def register_language_handler(self, handler_class):
         """
