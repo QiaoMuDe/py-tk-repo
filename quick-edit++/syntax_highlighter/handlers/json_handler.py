@@ -25,16 +25,14 @@ class JSONHandler(LanguageHandler):
     def _setup_language(self):
         """设置JSON语言的语法规则"""
         # JSON关键字
-        self._keywords = [
-            "true",
-            "false",
-            "null"
-        ]
+        self._keywords = ["true", "false", "null"]
 
         # 正则表达式模式
         self._regex_patterns = {
             # 关键字 - 使用单词边界确保匹配完整单词
-            "keywords": r"\b(" + "|".join(re.escape(k) for k in self._keywords) + r")\b",
+            "keywords": r"\b("
+            + "|".join(re.escape(k) for k in self._keywords)
+            + r")\b",
             # 字符串 - 包括单引号、双引号字符串
             "strings": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
             # 数字 - 包括整数、浮点数、科学计数法

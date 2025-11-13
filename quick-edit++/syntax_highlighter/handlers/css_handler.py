@@ -227,9 +227,13 @@ class CSSHandler(LanguageHandler):
             # 选择器 - 包括元素选择器、类选择器、ID选择器等
             "selectors": r"([a-zA-Z][a-zA-Z0-9]*|\.[a-zA-Z_][a-zA-Z0-9_-]*|#[a-zA-Z_][a-zA-Z0-9_-]*|\*|\[.*?\]|:[a-zA-Z-]+|::[a-zA-Z-]+)(?=\s*[{,])",
             # 关键字 - CSS属性
-            "keywords": r"\b(" + "|".join(re.escape(k) for k in self._keywords) + r")\b",
+            "keywords": r"\b("
+            + "|".join(re.escape(k) for k in self._keywords)
+            + r")\b",
             # 伪类和伪元素
-            "pseudo_classes": r":(" + "|".join(re.escape(p) for p in pseudo_classes) + r")",
+            "pseudo_classes": r":("
+            + "|".join(re.escape(p) for p in pseudo_classes)
+            + r")",
             # 属性值 - 包括颜色、尺寸等
             "values": r":\s*([^;{}]+)(?=;)",
             # 颜色 - 十六进制、RGB、RGBA、HSL、HSLA颜色

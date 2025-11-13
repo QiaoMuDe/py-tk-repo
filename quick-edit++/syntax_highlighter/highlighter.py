@@ -44,6 +44,7 @@ from .handlers.java_handler import JavaHandler
 from .handlers.rust_handler import RustHandler
 from .handlers.php_handler import PHPHandler
 from .handlers.cpp_handler import CppHandler
+from .handlers.auto_handler import AutoHandler
 
 
 class SyntaxHighlighter:
@@ -120,7 +121,7 @@ class SyntaxHighlighter:
         powershell_handler = PowerShellHandler()
         for ext in powershell_handler.file_extensions:
             self.register_language(ext, powershell_handler)
-        
+
         # 注册SQL处理器
         sql_handler = SQLHandler()
         for ext in sql_handler.file_extensions:
@@ -155,47 +156,47 @@ class SyntaxHighlighter:
         go_handler = GoHandler()
         for ext in go_handler.get_file_extensions():
             self.register_language(ext, go_handler)
-        
+
         # 注册Markdown处理器
         markdown_handler = MarkdownHandler()
         for ext in markdown_handler.file_extensions:
             self.register_language(ext, markdown_handler)
-        
+
         # 注册Dockerfile处理器（特殊文件名）
         dockerfile_handler = DockerfileHandler()
         for ext in dockerfile_handler.get_file_extensions():
             self.register_special_file(ext, dockerfile_handler)
-        
+
         # 注册Makefile处理器
         makefile_handler = MakefileHandler()
         for ext in makefile_handler.get_file_extensions():
             self.register_special_file(ext, makefile_handler)
-        
+
         # 注册Env处理器
         env_handler = EnvHandler()
         for ext in env_handler.get_file_extensions():
             self.register_language(ext, env_handler)
-        
+
         # 注册GitIgnore处理器
         gitignore_handler = GitIgnoreHandler()
         for ext in gitignore_handler.get_file_extensions():
             self.register_special_file(ext, gitignore_handler)
-        
+
         # 注册Log处理器
         log_handler = LogHandler()
         for ext in log_handler.get_file_extensions():
             self.register_language(ext, log_handler)
-        
+
         # 注册Lua处理器
         lua_handler = LuaHandler()
         for ext in lua_handler.get_file_extensions():
             self.register_language(ext, lua_handler)
-        
+
         # 注册Java处理器
         java_handler = JavaHandler()
         for ext in java_handler.get_file_extensions():
             self.register_language(ext, java_handler)
-        
+
         # 注册Rust处理器
         rust_handler = RustHandler()
         for ext in rust_handler.get_file_extensions():
@@ -205,11 +206,15 @@ class SyntaxHighlighter:
         php_handler = PHPHandler()
         for ext in php_handler.get_file_extensions():
             self.register_language(ext, php_handler)
-    
+
         # 注册C++处理器
         cpp_handler = CppHandler()
         for ext in cpp_handler.get_file_extensions():
             self.register_language(ext, cpp_handler)
+
+        # 注册自动处理器 - 作为默认处理器
+        auto_handler = AutoHandler()
+        self.auto_handler = auto_handler  # 保存引用以便后续使用
 
     def register_language_handler(self, handler_class):
         """
@@ -270,7 +275,7 @@ class SyntaxHighlighter:
             file_path: 文件路径，如果为None则尝试使用当前文件路径
 
         Returns:
-            Optional[str]: 检测到的文件扩展名，如果无法识别则返回None
+            Optional[str]: 检测到的文件扩展名，如果无法识别则返回"auto"
         """
         if not file_path:
             return None
@@ -279,17 +284,18 @@ class SyntaxHighlighter:
         filename = Path(file_path).name
         _, ext = os.path.splitext(file_path)
         extension = ext.lower()
-        
+
         # 1. 首先检查特殊文件名（无扩展名的文件）
         # 例如：Dockerfile, Makefile, requirements.txt等
         if filename in self.language_handlers:
             return filename
-            
+
         # 2. 然后检查常规扩展名
         if extension in self.language_handlers:
             return extension
-            
-        return None
+
+        # 3. 如果没有匹配到，返回"auto"使用自动处理器
+        return "auto"
 
     def set_language(self, file_path: Optional[str] = None):
         """
@@ -302,33 +308,26 @@ class SyntaxHighlighter:
         if extension:
             self.current_language = extension
             self.current_file_extension = extension
-            # 初始化标签样式
-            self._setup_tags()
+
+            # 获取处理器并初始化标签样式
+            handler = self._get_current_handler()
+            if handler:
+                self._setup_tags_for_handler(handler)
         else:
             self.current_language = None
             self.current_file_extension = None
 
-    def _setup_tags(self):
-        """设置Text组件的标签样式"""
-        if not self.current_language:
-            return
+    def _get_current_handler(self):
+        """
+        获取当前语言处理器
 
-        handler = self.language_handlers[self.current_language]
-        tag_styles = handler.get_tag_styles()
-
-        # 为每种样式创建标签
-        for tag_name, style_config in tag_styles.items():
-            # 创建完整的标签名，避免与其他标签冲突
-            full_tag_name = f"syntax_{tag_name}"
-
-            # 确保不设置任何可能导致缩放问题的属性
-            safe_config = {}
-            for key, value in style_config.items():
-                if key != "font":  # 跳过font属性，避免缩放问题
-                    safe_config[key] = value
-
-            self.text_widget.tag_config(full_tag_name, **safe_config)
-            self._highlight_tags.add(full_tag_name)
+        Returns:
+            LanguageHandler: 当前语言处理器实例
+        """
+        if self.current_language == "auto":
+            return self.auto_handler
+        else:
+            return self.language_handlers.get(self.current_language)
 
     def highlight(self, file_path: Optional[str] = None):
         """
@@ -348,14 +347,54 @@ class SyntaxHighlighter:
         if not self.current_language:
             return
 
+        # 获取当前处理器
+        handler = self._get_current_handler()
+        if not handler:
+            return
+
         # 根据模式选择高亮方法
         if self.render_visible_only:
-            self._highlight_visible_lines()
+            self._highlight_visible_lines_with_handler(handler)
         else:
-            self._highlight_full_document()
+            self._highlight_full_document_with_handler(handler)
 
-    def _highlight_visible_lines(self):
-        """高亮当前可见的行"""
+    def _setup_tags_for_handler(self, handler):
+        """
+        设置Text组件的标签样式
+
+        Args:
+            handler: 语言处理器实例
+        """
+        if not handler:
+            return
+
+        tag_styles = handler.get_tag_styles()
+
+        # 为每种样式创建标签
+        for tag_name, style_config in tag_styles.items():
+            # 创建完整的标签名，避免与其他标签冲突
+            full_tag_name = f"syntax_{tag_name}"
+
+            # 确保不设置任何可能导致缩放问题的属性
+            safe_config = {}
+            for key, value in style_config.items():
+                if key != "font":  # 跳过font属性，避免缩放问题
+                    safe_config[key] = value
+
+            self.text_widget.tag_config(full_tag_name, **safe_config)
+            self._highlight_tags.add(full_tag_name)
+
+    def _setup_tags(self):
+        """设置Text组件的标签样式（使用当前语言处理器）"""
+        if not self.current_language:
+            return
+
+        handler = self._get_current_handler()
+        if handler:
+            self._setup_tags_for_handler(handler)
+
+    def _highlight_visible_lines_with_handler(self, handler):
+        """使用指定处理器高亮当前可见的行"""
         # 清除现有高亮
         self.clear_highlight()
 
@@ -381,10 +420,16 @@ class SyntaxHighlighter:
             last_line = first_line + max_lines
 
         # 高亮指定范围
-        self._highlight_range(f"{first_line}.0", f"{last_line}.0")
+        self._highlight_range_with_handler(f"{first_line}.0", f"{last_line}.0", handler)
 
     def _highlight_full_document(self):
         """高亮整个文档（受max_lines_per_highlight限制）"""
+        handler = self._get_current_handler()
+        if handler:
+            self._highlight_full_document_with_handler(handler)
+
+    def _highlight_full_document_with_handler(self, handler):
+        """使用指定处理器高亮整个文档（受max_lines_per_highlight限制）"""
         # 清除现有高亮
         self.clear_highlight()
 
@@ -395,7 +440,7 @@ class SyntaxHighlighter:
         max_lines = min(total_lines, self.max_lines_per_highlight)
 
         # 高亮指定范围，使用+1确保最后一行也被包含
-        self._highlight_range("1.0", f"{max_lines}.end")
+        self._highlight_range_with_handler("1.0", f"{max_lines}.end", handler)
 
     def _highlight_range(self, start_index: str, end_index: str):
         """
@@ -408,7 +453,22 @@ class SyntaxHighlighter:
         if not self.current_language:
             return
 
-        handler = self.language_handlers[self.current_language]
+        handler = self._get_current_handler()
+        if handler:
+            self._highlight_range_with_handler(start_index, end_index, handler)
+
+    def _highlight_range_with_handler(self, start_index: str, end_index: str, handler):
+        """
+        使用指定处理器高亮指定范围的文本
+
+        Args:
+            start_index: 起始索引
+            end_index: 结束索引
+            handler: 语言处理器实例
+        """
+        if not handler:
+            return
+
         patterns = handler.get_regex_patterns()
 
         # 获取文本内容
@@ -448,12 +508,12 @@ class SyntaxHighlighter:
         """清除所有语法高亮"""
         # 获取Text组件中的所有标签
         all_tags = self.text_widget.tag_names()
-        
+
         # 移除所有以"syntax_"开头的标签的应用
         for tag_name in all_tags:
             if tag_name.startswith("syntax_"):
                 self.text_widget.tag_remove(tag_name, "1.0", "end")
-        
+
         # 清空标签集合
         self._highlight_tags.clear()
 
@@ -467,7 +527,7 @@ class SyntaxHighlighter:
         # 检查是否启用高亮
         if not self.highlight_enabled:
             return
-            
+
         # 检查文本内容是否为空，如果为空则清除高亮并重置语言设置
         try:
             if self.app.get_char_count() == 0:
@@ -477,7 +537,7 @@ class SyntaxHighlighter:
                 return
         except tk.TclError:
             return
-            
+
         # 检查当前语言
         if not self.current_language:
             return

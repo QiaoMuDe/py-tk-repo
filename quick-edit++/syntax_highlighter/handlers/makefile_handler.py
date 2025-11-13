@@ -15,65 +15,93 @@ from .base import LanguageHandler
 
 class MakefileHandler(LanguageHandler):
     """Makefile语言处理器"""
-    
+
     # Makefile通常没有扩展名，文件名就是Makefile或makefile
     file_extensions = ["Makefile", "makefile", "GNUmakefile"]
-    
+
     def _setup_language(self):
         """
         设置Makefile语言的语法高亮规则
         """
         # Makefile内置函数和关键字
         self._keywords = [
-            "include", "define", "endef", "ifdef", "ifndef", "ifeq", "ifneq", 
-            "else", "endif", "export", "unexport", "override", "private",
-            "vpath", "subst", "patsubst", "strip", "findstring", "filter", 
-            "filter-out", "sort", "word", "wordlist", "words", "firstword", 
-            "lastword", "dir", "notdir", "suffix", "basename", "addsuffix", 
-            "addprefix", "join", "wildcard", "realpath", "abspath", "error", 
-            "warning", "info", "origin", "flavor", "foreach", "call", "eval", 
-            "file", "value", "shell"
+            "include",
+            "define",
+            "endef",
+            "ifdef",
+            "ifndef",
+            "ifeq",
+            "ifneq",
+            "else",
+            "endif",
+            "export",
+            "unexport",
+            "override",
+            "private",
+            "vpath",
+            "subst",
+            "patsubst",
+            "strip",
+            "findstring",
+            "filter",
+            "filter-out",
+            "sort",
+            "word",
+            "wordlist",
+            "words",
+            "firstword",
+            "lastword",
+            "dir",
+            "notdir",
+            "suffix",
+            "basename",
+            "addsuffix",
+            "addprefix",
+            "join",
+            "wildcard",
+            "realpath",
+            "abspath",
+            "error",
+            "warning",
+            "info",
+            "origin",
+            "flavor",
+            "foreach",
+            "call",
+            "eval",
+            "file",
+            "value",
+            "shell",
         ]
-        
+
         # 正则表达式模式
         self._regex_patterns = {
             # 注释 (以#开头的行)
             "comment": r"(?m)^\s*#.*$",
-            
             # 目标定义 (以冒号结尾的行)
             "target": r"(?m)^[a-zA-Z0-9_.%-]+(?=\s*:)",
-            
             # 伪目标声明 (.PHONY)
             "phony": r"(?m)^\s*\.PHONY\s*:",
-            
             # 变量赋值 (=, :=, ::=, ?=, +=)
             "assignment": r"(?m)^[a-zA-Z0-9_]+\s*([:]{0,2}=|\?=|\+=)",
-            
             # 变量引用 ($VAR, $(VAR), ${VAR})
             "variable": r"\$\{[a-zA-Z0-9_]+\}|\$\([a-zA-Z0-9_]+\)|\$[a-zA-Z_][a-zA-Z0-9_]*(?![a-zA-Z0-9_])",
-            
             # 自动变量 ($@, $^, $<, $?, $*, $%等)
             "autovar": r"\$[@^<?*%]",
-            
             # 函数调用 $(function args)
             "function": r"\$\([a-zA-Z0-9_]+\s+",
-            
             # 命令行 (以Tab开头的行)
             "command": r"(?m)^\t.*$",
-            
             # 字符串 (双引号或单引号包围)
             "string": r"([\"'])(?:(?=(\\?))\2.)*?\1",
-            
             # 数字
             "number": r"\b\d+\.?\d*\b",
-            
             # 特殊目标 (.SUFFIXES, .DEFAULT, .PRECIOUS等)
             "special_target": r"(?m)^\s*\.[a-zA-Z]+\s*:",
-            
             # 模式规则 (%)
             "pattern": r"(?m)^[a-zA-Z0-9_.%*-]+\s*:",
         }
-        
+
         # 标签样式 - 使用简洁的配色方案
         self._tag_styles = {
             "comment": {"foreground": "#6A9955"},  # 绿色用于注释

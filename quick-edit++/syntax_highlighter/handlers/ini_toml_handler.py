@@ -20,7 +20,7 @@ class IniTomlHandler(LanguageHandler):
     """
 
     # 支持的文件扩展名
-    file_extensions = ['.ini', '.toml']
+    file_extensions = [".ini", ".toml"]
 
     def _setup_language(self):
         """
@@ -42,21 +42,21 @@ class IniTomlHandler(LanguageHandler):
         # 正则表达式模式
         self._regex_patterns = {
             # 注释 - INI使用;，TOML使用#
-            "comments": r';.*$|#.*$',
+            "comments": r";.*$|#.*$",
             # 字符串 - 支持单引号和双引号
             "strings": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
             # 章节 - INI: [Section], TOML: [Section], [Section.Sub], [[Array]]
-            "sections": r'\[(?:[^]]+)\]',
+            "sections": r"\[(?:[^]]+)\]",
             # 日期时间 - TOML支持的日期时间格式
-            "dates": r'\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?\b',
+            "dates": r"\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?\b",
             # 布尔值 - true/false (TOML)
-            "booleans": r'\b(?:true|false)\b',
+            "booleans": r"\b(?:true|false)\b",
             # 数字 - 整数、浮点数、科学计数法
-            "numbers": r'\b-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?\b',
+            "numbers": r"\b-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?\b",
             # 键名 - 匹配等号前的键
-            "keys": r'\b[a-zA-Z0-9_.]+(?=\s*=)',
+            "keys": r"\b[a-zA-Z0-9_.]+(?=\s*=)",
             # 标点符号 - []、{}、.、,、=
-            "punctuation": r'([\[\]\.\{\},=])',
+            "punctuation": r"([\[\]\.\{\},=])",
         }
 
         # 标签样式 - 使用适合INI/TOML的配色方案

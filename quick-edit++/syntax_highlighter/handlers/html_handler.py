@@ -133,7 +133,9 @@ class HTMLHandler(LanguageHandler):
             # 标签 - 匹配开始和结束标签
             "tags": r"</?[a-zA-Z][a-zA-Z0-9]*(?:\s+[a-zA-Z_:][a-zA-Z0-9_:.-]*(?:\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)*\s*/?>",
             # 关键字 - 在标签中的HTML关键字
-            "keywords": r"</?\s*(" + "|".join(re.escape(k) for k in self._keywords) + r")\b",
+            "keywords": r"</?\s*("
+            + "|".join(re.escape(k) for k in self._keywords)
+            + r")\b",
             # 属性 - 标签中的属性
             "attributes": r"\s+(id|class|style|name|value|type|src|href|alt|title|width|height|action|method|target|rel|charset|content|http-equiv|role|aria-[a-zA-Z-]+|data-[a-zA-Z-]+|[a-zA-Z_:][a-zA-Z0-9_:.-]*)\s*=",
             # 属性值 - 属性的值

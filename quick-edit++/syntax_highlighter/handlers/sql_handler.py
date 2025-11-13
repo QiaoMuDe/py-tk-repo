@@ -538,7 +538,9 @@ class SQLHandler(LanguageHandler):
             + "|".join(re.escape(k) for k in self._keywords)
             + r")\b",
             # 数据类型
-            "data_types": r"\b(" + "|".join(re.escape(dt) for dt in data_types) + r")\b",
+            "data_types": r"\b("
+            + "|".join(re.escape(dt) for dt in data_types)
+            + r")\b",
             # 注释 - 单行注释和多行注释
             "comments": r"(--.*$|/\*[\s\S]*?\*/)",
             # 字符串 - 包括单引号、双引号字符串

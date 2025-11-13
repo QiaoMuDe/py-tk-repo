@@ -15,49 +15,39 @@ from .base import LanguageHandler
 
 class EnvHandler(LanguageHandler):
     """.env和Properties文件语言处理器"""
-    
+
     # .env和.properties文件扩展名
     file_extensions = [".env", ".properties"]
-    
+
     def _setup_language(self):
         """
         设置.env文件的语法高亮规则
         """
         # .env文件的关键字和特殊标记
-        self._keywords = [
-            "export", "set", "unset"
-        ]
-        
+        self._keywords = ["export", "set", "unset"]
+
         # 正则表达式模式
         self._regex_patterns = {
             # 注释 (以#开头的行)
             "comment": r"(?m)^\s*#.*$",
-            
             # 变量赋值 (KEY=VALUE格式，支持包含小数点的key)
             "assignment": r"(?m)^[a-zA-Z_.][a-zA-Z0-9_.]*\s*=",
-            
             # 变量名 (赋值号前面的部分，支持包含小数点的key)
             "variable": r"(?m)^[a-zA-Z_.][a-zA-Z0-9_.]*(?=\s*=)",
-            
             # 变量引用 (${VAR}或$VAR，支持包含小数点的变量名)
             "reference": r"\$\{[a-zA-Z0-9_.]+\}|\$[a-zA-Z_.][a-zA-Z0-9_.]*(?![a-zA-Z0-9_.])",
-            
             # 字符串值 (双引号或单引号包围的值)
             "string": r"=\s*([\"'])(?:(?=(\\?))\2.)*?\1",
-            
             # 布尔值 (true/false)
             "boolean": r"=\s*(true|false)\s*$",
-            
             # 数字值
             "number": r"=\s*\b\d+\.?\d*\b",
-            
             # 导出语句 (支持包含小数点的变量名)
             "export": r"(?m)^\s*export\s+[a-zA-Z_.][a-zA-Z0-9_.]*",
-            
             # 特殊标记 (如#|用于多行字符串)
             "multiline": r"=\s*#\|",
         }
-        
+
         # 标签样式 - 使用简洁的配色方案
         self._tag_styles = {
             "comment": {"foreground": "#6A9955"},  # 绿色用于注释

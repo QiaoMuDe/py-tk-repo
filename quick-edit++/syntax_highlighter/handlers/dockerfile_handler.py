@@ -15,60 +15,64 @@ from .base import LanguageHandler
 
 class DockerfileHandler(LanguageHandler):
     """Dockerfile语言处理器"""
-    
+
     # Dockerfile通常没有扩展名，文件名就是Dockerfile
     file_extensions = ["Dockerfile", "dockerfile"]
-    
+
     def _setup_language(self):
         """
         设置Dockerfile语言的语法高亮规则
         """
         # Dockerfile指令关键字
         self._keywords = [
-            "FROM", "MAINTAINER", "RUN", "CMD", "LABEL", "EXPOSE", "ENV", 
-            "ADD", "COPY", "ENTRYPOINT", "VOLUME", "USER", "WORKDIR", 
-            "ARG", "ONBUILD", "STOPSIGNAL", "HEALTHCHECK", "SHELL"
+            "FROM",
+            "MAINTAINER",
+            "RUN",
+            "CMD",
+            "LABEL",
+            "EXPOSE",
+            "ENV",
+            "ADD",
+            "COPY",
+            "ENTRYPOINT",
+            "VOLUME",
+            "USER",
+            "WORKDIR",
+            "ARG",
+            "ONBUILD",
+            "STOPSIGNAL",
+            "HEALTHCHECK",
+            "SHELL",
         ]
-        
+
         # 正则表达式模式
         self._regex_patterns = {
             # 注释 (以#开头的行)
             "comment": r"(?m)^\s*#.*$",
-            
             # Dockerfile指令 (大写字母开头，后跟空格)
             "instruction": r"(?m)^\s*(FROM|MAINTAINER|RUN|CMD|LABEL|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL)\b",
-            
             # 字符串 (双引号或单引号包围)
             "string": r"([\"'])(?:(?=(\\?))\2.)*?\1",
-            
             # 数字
             "number": r"\b\d+\.?\d*\b",
-            
             # 变量引用 ($VAR或${VAR}) - 更精确的匹配
             "variable": r"\$\{[a-zA-Z0-9_]+\}|\$[a-zA-Z_][a-zA-Z0-9_]*(?![a-zA-Z0-9_])",
-            
             # 端口号 (在EXPOSE指令后)
             "port": r"(?m)^\s*EXPOSE\s+\b(\d+)\b",
-            
             # 镜像名称 (在FROM指令后)
             "image": r"(?m)^\s*FROM\s+([a-zA-Z0-9/_.-]+)",
-            
             # 健康检查选项
             "health_option": r"(--interval=|--timeout=|--start-period=|--retries=)",
-            
             # Shell选项
             "shell_option": r"(--shell=)",
-            
             # 标签键值对
             "label": r"(?m)^\s*LABEL\s+([^=]+)=(.*)",
-            
             # 环境变量键值对
             "env": r"(?m)^\s*ENV\s+([^=]+)=(.*)",
-            
             # ARG键值对
             "arg": r"(?m)^\s*ARG\s+([^=]+)=(.*)",
         }
-        
+
         # 标签样式 - 使用简洁的配色方案
         self._tag_styles = {
             "comment": {"foreground": "#6A9955"},  # 绿色用于注释

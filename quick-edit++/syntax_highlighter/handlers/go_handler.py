@@ -120,88 +120,104 @@ class GoHandler(LanguageHandler):
 
         # 正则表达式模式
         self._regex_patterns = {
+            # 注释 - 单行和多行注释，优化匹配
+            "comments": r"//.*?(?=\n)|/\*[^*]*\*+(?:[^/*][^*]*\*+)*/",
+            # 字符串 - Go特有的字符串字面量，包括原始字符串
+            "strings": r"(?:\"(?:[^\"\\]|\\.)*\"|'(?:[^'\\]|\\.)*'|`[^`]*`)",
+            # 数字 - 优化Go数字字面量匹配，包括虚数
+            "numbers": r"\b(?:0[bB][01_]+|0[oO][0-7_]+|0[xX][0-9a-fA-F_]+|\d+(?:_\d+)*(?:\.\d*(?:_\d+)*)?(?:[eE][+-]?\d+(?:_\d+)*)?[i]?)\b",
             # 关键字 - 使用单词边界确保匹配完整单词
-            "keywords": r"\b("
-            + "|".join(re.escape(k) for k in self._keywords)
-            + r")\b",
-            # 内置类型和函数
-            "builtins": r"\b(" + "|".join(re.escape(b) for b in builtins) + r")\b",
-            # 注释 - 单行和多行注释
-            "comments": r"//.*$|/\*[\s\S]*?\*/",
-            # 字符串 - 包括单引号、双引号、反引号
-            "strings": r'("""[\s\S]*?"""|\'\'\'[\s\S]*?\'\'\'|"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'|`(?:[^`\\]|\\.)*`)',
-            # 数字 - 包括整数、浮点数、科学计数法、十六进制、八进制、二进制
-            "numbers": r"\b(?:0[bB][01]+|0[oO][0-7]+|0[xX][0-9a-fA-F]+|\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)\b",
-            # 函数定义 - func关键字后的函数名
-            "functions": r"\bfunc\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
-            # 变量 - 变量名
-            "variables": r"\b[a-zA-Z_][a-zA-Z0-9_]*\b",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|&|\||\^|<<|>>|&\^|=|==|!=|<|>|<=|>=|&&|\|\||!|\+\+|\-\-|<-|\(|\)|\{|\}|\[|\]|\.|,|;|:)",
-            # 结构体字段 - 结构体中的字段名
-            "struct_fields": r"[a-zA-Z_][a-zA-Z0-9_]*\s*:",
-            # 接口方法 - 接口中的方法名
-            "interface_methods": r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(",
-            # 标签 - 结构体字段后的标签
-            "tags": r"`[^`]*`",
-            # 包导入 - import语句中的包名
-            "imports": r"import\s+\"[^\"]*\"|import\s*\([^)]*\)",
-            # 格式化动词 - fmt.Printf等函数中的格式化动词
-            "format_verbs": r"%[+#-0]*[0-9]*\.?[0-9]*[vTtbcdoqxXUeEfFgGsSp%]",
+            "keywords": r"\b(?:break|case|chan|const|continue|default|defer|else|fallthrough|for|func|go|goto|if|import|interface|map|package|range|return|select|struct|switch|type|var)\b",
+            # 内置类型和函数 - 优化匹配
+            "builtins": r"\b(?:bool|byte|complex64|complex128|error|float32|float64|int|int8|int16|int32|int64|rune|string|uint|uint8|uint16|uint32|uint64|uintptr|true|false|iota|nil|append|cap|close|complex|copy|delete|imag|len|make|new|panic|print|println|real|recover)\b",
+            # 常用包 - 优化包名匹配
+            "packages": r"\b(?:fmt|os|io|strings|strconv|math|time|http|json|xml|regexp|bytes|bufio|filepath|log|sort|sync|context|reflect|unsafe)\b",
+            # 函数定义 - 优化函数定义匹配，包括接收器
+            "functions": r"\bfunc\s+(?:\([^)]*\)\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
+            # 方法调用 - 优化方法调用匹配
+            "method_calls": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
+            # 结构体字段 - 优化结构体字段匹配
+            "struct_fields": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*:",
+            # 接口方法 - 优化接口方法匹配
+            "interface_methods": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
+            # 标签 - 优化结构体标签匹配
+            "tags": r"`([^`]*)`",
+            # 包导入 - 修复可变长度后向查找问题
+            "imports": r"\bimport\s+(?:\"[^\"]*\"|\([^)]*\))",
+            # 格式化动词 - 优化格式化动词匹配
+            "format_verbs": r"%[#0+-]*[0-9]*\.?[0-9]*[tT]?[vbcdoqxXUeEfFgGspw%]",
+            # 操作符 - 优化操作符匹配
+            "operators": r"(\+\+|--|==|!=|<=|>=|&&|\|\||<<|>>|&\^|<-|[+\-*/%&|^=<>!.,;:\[\]{}()])",
+            # 类型断言 - 优化类型断言匹配
+            "type_assertions": r"\.\s*\([a-zA-Z_][a-zA-Z0-9_]*\)",
+            # 通道操作 - 优化通道操作匹配
+            "channel_ops": r"<-",
         }
 
-        # 标签样式 - 使用适合Go的配色方案
+        # 标签样式 - 使用更适合浅色模式的深色系配色
         self._tag_styles = {
-            # 关键字 - 深蓝色
-            "keywords": {
-                "foreground": "#000080",
-            },
-            # 内置类型和函数 - 蓝色
-            "builtins": {
-                "foreground": "#0000FF",
-            },
             # 注释 - 绿色
             "comments": {
-                "foreground": "#00AA00",
+                "foreground": "#00c400",  # 绿色
             },
-            # 字符串 - 棕色
+            # 字符串 - 深红色
             "strings": {
-                "foreground": "#8B4513",
+                "foreground": "#A31515",  # 深红色
             },
-            # 数字 - 深红色
+            # 数字 - 深绿色
             "numbers": {
-                "foreground": "#8B0000",
+                "foreground": "#098658",  # 深绿色
             },
-            # 函数 - 紫色
+            # 关键字 - 深蓝色
+            "keywords": {
+                "foreground": "#0000FF",  # 深蓝色
+            },
+            # 内置类型和函数 - 深青色
+            "builtins": {
+                "foreground": "#008080",  # 深青色
+            },
+            # 常用包 - 紫色
+            "packages": {
+                "foreground": "#800080",  # 紫色
+            },
+            # 函数定义 - 深紫色
             "functions": {
-                "foreground": "#800080",
+                "foreground": "#800080",  # 深紫色
             },
-            # 变量 - 黑色
-            "variables": {
-                "foreground": "#000000",
+            # 方法调用 - 深橙色
+            "method_calls": {
+                "foreground": "#FF6B35",  # 深橙色
             },
-            # 操作符 - 黑色
-            "operators": {
-                "foreground": "#000000",
-            },
-            # 结构体字段 - 深绿色
+            # 结构体字段 - 深青色
             "struct_fields": {
-                "foreground": "#008000",
+                "foreground": "#008080",  # 深青色
             },
-            # 接口方法 - 深青色
+            # 接口方法 - 深蓝绿色
             "interface_methods": {
-                "foreground": "#008B8B",
+                "foreground": "#008B8B",  # 深蓝绿色
             },
-            # 标签 - 深橙色
+            # 标签 - 深红色
             "tags": {
-                "foreground": "#FF8C00",
+                "foreground": "#A31515",  # 深红色
             },
-            # 包导入 - 深紫色
+            # 包导入 - 深蓝色
             "imports": {
-                "foreground": "#4B0082",
+                "foreground": "#0000CD",  # 深蓝色
             },
             # 格式化动词 - 深红色
             "format_verbs": {
-                "foreground": "#8B0000",
+                "foreground": "#A31515",  # 深红色
+            },
+            # 操作符 - 黑色
+            "operators": {
+                "foreground": "#000000",  # 黑色
+            },
+            # 类型断言 - 深蓝色
+            "type_assertions": {
+                "foreground": "#0000FF",  # 深蓝色
+            },
+            # 通道操作 - 深蓝色
+            "channel_ops": {
+                "foreground": "#0000FF",  # 深蓝色
             },
         }

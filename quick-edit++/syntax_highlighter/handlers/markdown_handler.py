@@ -32,70 +32,48 @@ class MarkdownHandler(LanguageHandler):
         self._regex_patterns = {
             # 标题 - # ## ### 等
             "headers": r"^(#{1,6})\s+(.+)$",
-            
             # 代码块 - ```包裹的代码
             "code_blocks": r"^```[\w]*\n[\s\S]*?^```",
-            
             # 行内代码 - `包裹的代码
             "inline_code": r"`([^`]+)`",
-            
             # 粗体 - **text** 或 __text__
             "bold": r"(\*\*|__)(.*?)\1",
-            
             # 斜体 - *text* 或 _text_
             "italic": r"(\*|_)(?!\1)(.*?)\1",
-            
             # 删除线 - ~~text~~
             "strikethrough": r"(~~)(.*?)\1",
-            
             # 链接 - [text](url)
             "links": r"\[([^\]]+)\]\(([^)]+)\)",
-            
             # 图片 - ![alt](url)
             "images": r"!\[([^\]]*)\]\(([^)]+)\)",
-            
             # 引用 - > 开头的行
             "quotes": r"^>\s+(.*)$",
-            
             # 无序列表 - - 或 * 或 + 开头的行
             "unordered_lists": r"^(\s*)[-*+]\s+(.*)$",
-            
             # 有序列表 - 数字. 开头的行
             "ordered_lists": r"^(\s*)\d+\.\s+(.*)$",
-            
             # 水平线 - --- 或 *** 或 ___
             "horizontal_rules": r"^(\s*)([-*_]{3,})(\s*)$",
-            
             # HTML标签 - <tag>...</tag>
             "html_tags": r"<(/?)(\w+)([^>]*)>",
-            
             # 表格 - | 列1 | 列2 | ...
             "tables": r"^\|(.+)\|$",
-            
             # 分隔符 - 表格中的分隔行 |---|---|
             "table_separators": r"^\|(\s*:?-+:?\s*\|)+\s*$",
-            
             # 任务列表 - - [ ] 或 - [x]
             "task_lists": r"^(\s*)[-*+]\s+\[([ x])\]\s+(.*)$",
-            
             # 脚注 - [^1]:
             "footnotes": r"\^\[([^\]]+)\]:",
-            
             # 定义列表 - Term\n: Definition
             "definition_lists": r"^(.+)\n:\s+(.*)$",
-            
             # 元数据 - 前置YAML
             "frontmatter": r"^---\n[\s\S]*?\n---",
-            
             # 注释 - HTML注释 <!-- comment -->
             "comments": r"<!--[\s\S]*?-->",
-            
             # 强调 - ==text==
             "highlight": r"(==)(.*?)\1",
-            
             # 上标 - text^2
             "superscript": r"\^([^^\s]+)\^",
-            
             # 下标 - text~2~
             "subscript": r"~([^~\s]+)~",
         }

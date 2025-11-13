@@ -20,7 +20,20 @@ class XMLHandler(LanguageHandler):
     """
 
     # XML文件扩展名
-    file_extensions = [".xml", ".xsl", ".xslt", ".xsd", ".svg", ".rss", ".atom", ".plist", ".mxml", ".xaml", ".wsdl", ".xul"]
+    file_extensions = [
+        ".xml",
+        ".xsl",
+        ".xslt",
+        ".xsd",
+        ".svg",
+        ".rss",
+        ".atom",
+        ".plist",
+        ".mxml",
+        ".xaml",
+        ".wsdl",
+        ".xul",
+    ]
 
     def _setup_language(self):
         """设置XML语言的语法规则"""
