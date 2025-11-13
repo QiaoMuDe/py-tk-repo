@@ -203,6 +203,10 @@ class FileOperations:
             # 更新窗口标题
             self.root._update_window_title()
 
+            # 应用语法高亮
+            if self.root.syntax_highlighter and final_path:
+                self.root.syntax_highlighter.apply_highlighting(final_path)
+
             return True
 
         except Exception as e:
@@ -546,6 +550,9 @@ class FileOperations:
 
                     # 启动文件监听
                     self.root.file_watcher.start_watching(file_path)
+
+                    # 应用语法高亮
+                    self.root.syntax_highlighter.apply_highlighting(file_path)
 
                     return True
 

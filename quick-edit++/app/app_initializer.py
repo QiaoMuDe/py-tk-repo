@@ -14,6 +14,7 @@ from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
 from .file_operations import FileOperations
 from .file_watcher import FileWatcher
+from syntax_highlighter import SyntaxHighlighter
 
 
 class AppInitializer:
@@ -227,6 +228,11 @@ class AppInitializer:
                 fg_color="#FF6B6B", hover_color="#FF5252"
             )
 
+    def init_syntax_highlighting(self):
+        """初始化语法高亮功能"""
+        # 创建语法高亮实例并关联到文本区域
+        self.app.syntax_highlighter = SyntaxHighlighter(self.app.text_area)
+
     def initialize_app(self):
         """执行完整的应用初始化流程"""
         # 按顺序执行初始化步骤
@@ -245,6 +251,7 @@ class AppInitializer:
         self.init_status_bar()
         self.init_text_area()
         self.init_menu_bar()
+        self.init_syntax_highlighting()
         self.init_read_only_mode()
 
         # 注意：文件监听将在打开文件时启动，而不是在应用初始化时启动

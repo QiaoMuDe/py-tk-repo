@@ -85,6 +85,12 @@ DEFAULT_CONFIG = {
         "font_size": 13,
         "font_bold": False,
     },
+    # 语法高亮配置
+    "syntax_highlighter": {
+        "enabled": True,
+        "mode": "visible",  # "visible" 或 "full"
+        "max_lines_per_highlight": 1000,  # 性能限制
+    },
 }
 
 
