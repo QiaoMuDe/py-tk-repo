@@ -12,6 +12,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import Dict, Optional, Any
 from pathlib import Path
+import os
 
 # 导入配置管理器
 from config.config_manager import config_manager
@@ -23,12 +24,26 @@ from .handlers.json_handler import JSONHandler
 from .handlers.ini_toml_handler import IniTomlHandler
 from .handlers.yaml_handler import YAMLHandler
 from .handlers.bash_handler import BashHandler
+from .handlers.bat_handler import BatHandler
+from .handlers.powershell_handler import PowerShellHandler
+from .handlers.sql_handler import SQLHandler
 from .handlers.html_handler import HTMLHandler
 from .handlers.xml_handler import XMLHandler
 from .handlers.css_handler import CSSHandler
 from .handlers.javascript_handler import JavaScriptHandler
 from .handlers.typescript_handler import TypeScriptHandler
 from .handlers.go_handler import GoHandler
+from .handlers.markdown_handler import MarkdownHandler
+from .handlers.dockerfile_handler import DockerfileHandler
+from .handlers.makefile_handler import MakefileHandler
+from .handlers.env_handler import EnvHandler
+from .handlers.gitignore_handler import GitIgnoreHandler
+from .handlers.log_handler import LogHandler
+from .handlers.lua_handler import LuaHandler
+from .handlers.java_handler import JavaHandler
+from .handlers.rust_handler import RustHandler
+from .handlers.php_handler import PHPHandler
+from .handlers.cpp_handler import CppHandler
 
 
 class SyntaxHighlighter:
@@ -96,6 +111,21 @@ class SyntaxHighlighter:
         for ext in bash_handler.get_file_extensions():
             self.register_language(ext, bash_handler)
 
+        # 注册Bat处理器
+        bat_handler = BatHandler()
+        for ext in bat_handler.get_file_extensions():
+            self.register_language(ext, bat_handler)
+
+        # 注册PowerShell处理器
+        powershell_handler = PowerShellHandler()
+        for ext in powershell_handler.file_extensions:
+            self.register_language(ext, powershell_handler)
+        
+        # 注册SQL处理器
+        sql_handler = SQLHandler()
+        for ext in sql_handler.file_extensions:
+            self.register_language(ext, sql_handler)
+
         # 注册HTML处理器
         html_handler = HTMLHandler()
         for ext in html_handler.get_file_extensions():
@@ -125,6 +155,61 @@ class SyntaxHighlighter:
         go_handler = GoHandler()
         for ext in go_handler.get_file_extensions():
             self.register_language(ext, go_handler)
+        
+        # 注册Markdown处理器
+        markdown_handler = MarkdownHandler()
+        for ext in markdown_handler.file_extensions:
+            self.register_language(ext, markdown_handler)
+        
+        # 注册Dockerfile处理器（特殊文件名）
+        dockerfile_handler = DockerfileHandler()
+        for ext in dockerfile_handler.get_file_extensions():
+            self.register_special_file(ext, dockerfile_handler)
+        
+        # 注册Makefile处理器
+        makefile_handler = MakefileHandler()
+        for ext in makefile_handler.get_file_extensions():
+            self.register_special_file(ext, makefile_handler)
+        
+        # 注册Env处理器
+        env_handler = EnvHandler()
+        for ext in env_handler.get_file_extensions():
+            self.register_language(ext, env_handler)
+        
+        # 注册GitIgnore处理器
+        gitignore_handler = GitIgnoreHandler()
+        for ext in gitignore_handler.get_file_extensions():
+            self.register_special_file(ext, gitignore_handler)
+        
+        # 注册Log处理器
+        log_handler = LogHandler()
+        for ext in log_handler.get_file_extensions():
+            self.register_language(ext, log_handler)
+        
+        # 注册Lua处理器
+        lua_handler = LuaHandler()
+        for ext in lua_handler.get_file_extensions():
+            self.register_language(ext, lua_handler)
+        
+        # 注册Java处理器
+        java_handler = JavaHandler()
+        for ext in java_handler.get_file_extensions():
+            self.register_language(ext, java_handler)
+        
+        # 注册Rust处理器
+        rust_handler = RustHandler()
+        for ext in rust_handler.get_file_extensions():
+            self.register_language(ext, rust_handler)
+
+        # 注册PHP处理器
+        php_handler = PHPHandler()
+        for ext in php_handler.get_file_extensions():
+            self.register_language(ext, php_handler)
+    
+        # 注册C++处理器
+        cpp_handler = CppHandler()
+        for ext in cpp_handler.get_file_extensions():
+            self.register_language(ext, cpp_handler)
 
     def register_language_handler(self, handler_class):
         """
@@ -159,13 +244,23 @@ class SyntaxHighlighter:
 
     def register_language(self, extension: str, handler):
         """
-        注册语言处理器
+        注册语言处理器（用于有扩展名的文件）
 
         Args:
             extension: 文件扩展名，如".py"
             handler: 语言处理器实例
         """
         self.language_handlers[extension.lower()] = handler
+
+    def register_special_file(self, filename: str, handler):
+        """
+        注册特殊文件名处理器（用于无扩展名的文件）
+
+        Args:
+            filename: 文件名，如"Dockerfile", "Makefile"等
+            handler: 语言处理器实例
+        """
+        self.language_handlers[filename] = handler
 
     def detect_language(self, file_path: Optional[str] = None) -> Optional[str]:
         """
@@ -180,9 +275,20 @@ class SyntaxHighlighter:
         if not file_path:
             return None
 
-        extension = Path(file_path).suffix.lower()
+        # 获取文件名和扩展名
+        filename = Path(file_path).name
+        _, ext = os.path.splitext(file_path)
+        extension = ext.lower()
+        
+        # 1. 首先检查特殊文件名（无扩展名的文件）
+        # 例如：Dockerfile, Makefile, requirements.txt等
+        if filename in self.language_handlers:
+            return filename
+            
+        # 2. 然后检查常规扩展名
         if extension in self.language_handlers:
             return extension
+            
         return None
 
     def set_language(self, file_path: Optional[str] = None):

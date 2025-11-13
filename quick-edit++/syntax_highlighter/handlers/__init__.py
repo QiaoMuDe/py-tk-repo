@@ -13,12 +13,26 @@ from .json_handler import JSONHandler
 from .ini_toml_handler import IniTomlHandler
 from .yaml_handler import YAMLHandler
 from .bash_handler import BashHandler
+from .bat_handler import BatHandler
+from .powershell_handler import PowerShellHandler
+from .sql_handler import SQLHandler
 from .html_handler import HTMLHandler
 from .xml_handler import XMLHandler
 from .css_handler import CSSHandler
 from .javascript_handler import JavaScriptHandler
 from .typescript_handler import TypeScriptHandler
 from .go_handler import GoHandler
+from .markdown_handler import MarkdownHandler
+from .dockerfile_handler import DockerfileHandler
+from .makefile_handler import MakefileHandler
+from .env_handler import EnvHandler
+from .gitignore_handler import GitIgnoreHandler
+from .log_handler import LogHandler
+from .lua_handler import LuaHandler
+from .java_handler import JavaHandler
+from .rust_handler import RustHandler
+from .php_handler import PHPHandler
+from .cpp_handler import CppHandler
 
 # 导出所有可用的语言处理器
 __all__ = [
@@ -28,10 +42,24 @@ __all__ = [
     "IniTomlHandler",
     "YAMLHandler",
     "BashHandler",
+    "BatHandler",
+    "PowerShellHandler",
+    "SQLHandler",
     "HTMLHandler",
     "XMLHandler",
     "CSSHandler",
     "JavaScriptHandler",
     "TypeScriptHandler",
     "GoHandler",
+    "MarkdownHandler",
+    "DockerfileHandler",
+    "MakefileHandler",
+    "EnvHandler",
+    "GitIgnoreHandler",
+    "LogHandler",
+    "LuaHandler",
+    "JavaHandler",
+    "RustHandler",
+    "PHPHandler",
+    "CppHandler",
 ]
