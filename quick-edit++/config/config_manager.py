@@ -88,11 +88,10 @@ DEFAULT_CONFIG = {
     # 语法高亮配置
     "syntax_highlighter": {
         "enabled": True,
-        "mode": "visible",  # "visible" 或 "full"
+        "render_visible_only": False,  # false: 渲染全部，true: 只渲染可见行
         "max_lines_per_highlight": 1000,  # 性能限制
     },
 }
-
 
 def merge_configs(default, custom):
     """

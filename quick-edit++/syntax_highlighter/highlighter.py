@@ -27,20 +27,19 @@ class SyntaxHighlighter:
     负责管理语言处理器，控制高亮过程，并提供与Text组件的接口
     """
 
-    def __init__(self, text_widget: tk.Text, mode: str = "visible"):
+    def __init__(self, text_widget: tk.Text):
         """
         初始化语法高亮器
 
         Args:
             text_widget: tkinter Text组件实例
-            mode: 高亮模式 - "visible"(可见行) 或 "full"(全文档)，如果为None则从配置获取
         """
         # 从配置管理器获取配置
         syntax_config = config_manager.get_component_config("syntax_highlighter")
 
         # 设置初始化参数
         self.text_widget = text_widget
-        self.mode = mode if mode is not None else syntax_config.get("mode", "visible")
+        self.render_visible_only = syntax_config.get("render_visible_only", False)
         self.highlight_enabled = syntax_config.get("enabled", True)
         self.max_lines_per_highlight = syntax_config.get(
             "max_lines_per_highlight", 1000
@@ -84,8 +83,8 @@ class SyntaxHighlighter:
         # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
         self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
 
-        # 滚动事件 - 仅在可见行模式下需要，使用add='+'参数避免覆盖editor中的事件绑定
-        if self.mode == "visible":
+        # 滚动事件 - 仅在只渲染可见行模式下需要，使用add='+'参数避免覆盖editor中的事件绑定
+        if self.render_visible_only:
             self.text_widget.bind("<Configure>", self._handle_event, add="+")
             self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")
 
@@ -184,7 +183,7 @@ class SyntaxHighlighter:
             return
 
         # 根据模式选择高亮方法
-        if self.mode == "visible":
+        if self.render_visible_only:
             self._highlight_visible_lines()
         else:
             self._highlight_full_document()
@@ -205,7 +204,8 @@ class SyntaxHighlighter:
         # 确保范围有效
         if first_line < 1:
             first_line = 1
-        total_lines = int(self.text_widget.index("end-1c").split(".")[0])
+        # 获取文档总行数，使用end确保获取实际行数
+        total_lines = int(self.text_widget.index("end").split(".")[0])
         if last_line > total_lines:
             last_line = total_lines
 
@@ -218,18 +218,18 @@ class SyntaxHighlighter:
         self._highlight_range(f"{first_line}.0", f"{last_line}.0")
 
     def _highlight_full_document(self):
-        """高亮整个文档"""
+        """高亮整个文档（受max_lines_per_highlight限制）"""
         # 清除现有高亮
         self._clear_highlight()
 
-        # 获取文档总行数
-        total_lines = int(self.text_widget.index("end-1c").split(".")[0])
+        # 获取文档总行数，使用end确保获取实际行数
+        total_lines = int(self.text_widget.index("end").split(".")[0])
 
         # 限制高亮的行数，不超过配置的最大值
         max_lines = min(total_lines, self.max_lines_per_highlight)
 
-        # 高亮指定范围
-        self._highlight_range("1.0", f"{max_lines}.0")
+        # 高亮指定范围，使用+1确保最后一行也被包含
+        self._highlight_range("1.0", f"{max_lines}.end")
 
     def _highlight_range(self, start_index: str, end_index: str):
         """
@@ -293,23 +293,22 @@ class SyntaxHighlighter:
         # 检查是否启用高亮和当前语言
         if not self.highlight_enabled or not self.current_language:
             return
-        
+
         # 对于所有事件，统一调用highlight方法，它内部会根据模式选择合适的高亮方式
         self.text_widget.after_idle(self.highlight)
 
-    def set_mode(self, mode: str):
+    def set_render_mode(self, render_visible_only: bool):
         """
-        设置高亮模式
+        设置高亮渲染模式
 
         Args:
-            mode: 高亮模式 - "visible"(可见行) 或 "full"(全文档)
+            render_visible_only: 是否只渲染可见行，False表示渲染全部，True表示只渲染可见行
         """
-        if mode in ["visible", "full"]:
-            self.mode = mode
-            # 重新绑定事件
-            self._bind_events()
-            # 重新高亮
-            self.highlight()
+        self.render_visible_only = render_visible_only
+        # 重新绑定事件
+        self._bind_events()
+        # 重新高亮
+        self.highlight()
 
     def set_enabled(self, enabled: bool):
         """
