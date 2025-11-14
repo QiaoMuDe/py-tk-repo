@@ -159,6 +159,12 @@ class AppInitializer:
         self.app.syntax_highlight_mode_var = tk.BooleanVar(
             value=syntax_config.get("render_visible_only", True)
         )
+        
+        # 初始化行号显示状态变量
+        self.app.line_numbers_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.show_line_numbers", True)
+        )
+
 
     def init_window_layout(self):
         """初始化窗口布局配置"""
