@@ -160,12 +160,14 @@ class AppInitializer:
         self.app.syntax_highlight_mode_var = tk.BooleanVar(
             value=syntax_config.get("render_visible_only", True)
         )
-        
+
         # 初始化行号显示状态变量
         self.app.line_numbers_var = tk.BooleanVar(
             value=config_manager.get("text_editor.show_line_numbers", True)
         )
 
+        # 重新打开文件菜单实例
+        self.app.reopen_file_menu = None
 
     def init_window_layout(self):
         """初始化窗口布局配置"""
@@ -220,10 +222,10 @@ class AppInitializer:
             spacing2=3,  # 行之间的额外间距
             activate_scrollbars=True,  # 启用内置滚动条
         )
-        
+
         # 设置初始滚动条检查更新显示时间为50毫秒
         self.app.text_area._scrollbar_update_time = 50
-        
+
         # 设置内部垂直滚动条的宽度为20像素
         self.app.text_area._y_scrollbar.configure(width=20)
         # 设置内部水平滚动条的高度为15像素
@@ -259,14 +261,14 @@ class AppInitializer:
 
         # 光标行高亮相关变量
         self.app.current_highlighted_line = None
-        
+
         # 创建行号侧边栏
         self.app.line_number_canvas = LineNumberCanvas(
-            self.app.text_frame, 
+            self.app.text_frame,
             text_widget=self.app.text_area,
-            width=60  # 增加初始宽度，与LineNumberCanvas默认值保持一致
+            width=60,  # 增加初始宽度，与LineNumberCanvas默认值保持一致
         )
-        
+
         # 放置行号侧边栏和文本编辑区域 - 使用grid布局
         self.app.line_number_canvas.grid(row=0, column=0, sticky="nsw")
         self.app.text_area.grid(row=0, column=1, sticky="nsew")
@@ -274,21 +276,18 @@ class AppInitializer:
         # 确保文本框完全填充，没有额外的边距
         self.app.text_area.configure(border_width=0)
         self.app.text_frame.configure(border_width=0)
-        
+
         # 根据配置决定是否显示行号栏
         if self.app.line_numbers_var.get():
             self.app.line_number_canvas.grid(row=0, column=0, sticky="nsw")
         else:
             self.app.line_number_canvas.grid_forget()
- 
+
     def init_menu_bar(self):
         """初始化菜单栏"""
         # 创建菜单栏
         self.app.menu_bar = create_menu(self.app)
         self.app.config(menu=self.app.menu_bar)
-        # 确保recent_files_menu属性存在于app实例中
-        if not hasattr(self.app, "recent_files_menu"):
-            self.app.recent_files_menu = None
 
     def init_read_only_mode(self):
         """设置初始只读模式状态"""
@@ -326,4 +325,6 @@ class AppInitializer:
         self.init_syntax_highlighting()
         self.init_read_only_mode()
 
-        # 注意：文件监听将在打开文件时启动，而不是在应用初始化时启动
+        # 更新重新打开菜单状态（初始状态下没有打开文件，应该禁用）
+        if self.app.reopen_file_menu is not None:
+            self.app.reopen_file_menu.update_menu_state()

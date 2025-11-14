@@ -36,7 +36,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
         # 设置背景颜色
         self.bg_color = "#e0e0e0"
-        
+
         # 设置数字的容纳额外空间
         self.number_padding = 45
 
@@ -60,36 +60,60 @@ class LineNumberCanvas(ctk.CTkCanvas):
         """设置关联的文本编辑组件并绑定必要的事件"""
         # 绑定行号栏的鼠标点击事件
         self.bind("<Button-1>", self._on_line_number_click, add="+")
-        
+
         self.text_widget = text_widget
         if self.text_widget:
             # 绑定所有需要的事件，使用add="+"确保不覆盖其他绑定
-            self.text_widget.bind("<KeyPress>", self._on_text_change, add="+") # 绑定所有按键事件
-            self.text_widget.bind("<KeyRelease>", self._on_text_change, add="+") # 绑定所有按键抬起事件
-            self.text_widget.bind("<Button-1>", self._on_text_change, add="+")  # 绑定鼠标点击事件
-            self.text_widget.bind("<MouseWheel>", self._on_scroll, add="+")  # 绑定鼠标滚轮事件
-            
+            self.text_widget.bind(
+                "<KeyPress>", self._on_text_change, add="+"
+            )  # 绑定所有按键事件
+            self.text_widget.bind(
+                "<KeyRelease>", self._on_text_change, add="+"
+            )  # 绑定所有按键抬起事件
+            self.text_widget.bind(
+                "<Button-1>", self._on_text_change, add="+"
+            )  # 绑定鼠标点击事件
+            self.text_widget.bind(
+                "<MouseWheel>", self._on_scroll, add="+"
+            )  # 绑定鼠标滚轮事件
+
             # 添加更多文本修改相关的事件绑定
             # 注意：CTkTextbox不支持<Modified>事件，所以我们使用其他事件来捕获文本变化
-            self.text_widget.bind("<Insert>", self._on_text_change, add="+")    # 插入键事件
-            self.text_widget.bind("<Delete>", self._on_text_change, add="+")    # 删除键事件
-            self.text_widget.bind("<BackSpace>", self._on_text_change, add="+") # 退格键事件
-            self.text_widget.bind("<Return>", self._on_text_change, add="+")    # 回车键事件
-            self.text_widget.bind("<Tab>", self._on_text_change, add="+")       # Tab键事件
-            
+            self.text_widget.bind(
+                "<Insert>", self._on_text_change, add="+"
+            )  # 插入键事件
+            self.text_widget.bind(
+                "<Delete>", self._on_text_change, add="+"
+            )  # 删除键事件
+            self.text_widget.bind(
+                "<BackSpace>", self._on_text_change, add="+"
+            )  # 退格键事件
+            self.text_widget.bind(
+                "<Return>", self._on_text_change, add="+"
+            )  # 回车键事件
+            self.text_widget.bind("<Tab>", self._on_text_change, add="+")  # Tab键事件
+
             # 绑定粘贴和剪切事件
-            self.text_widget.bind("<<Paste>>", self._on_text_change, add="+")   # 粘贴事件
-            self.text_widget.bind("<<Cut>>", self._on_text_change, add="+")     # 剪切事件
-            
+            self.text_widget.bind(
+                "<<Paste>>", self._on_text_change, add="+"
+            )  # 粘贴事件
+            self.text_widget.bind("<<Cut>>", self._on_text_change, add="+")  # 剪切事件
+
             # 绑定滚动条相关事件
-            self.text_widget.bind("<Button-4>", self._on_scroll, add="+")       # Linux上滚
-            self.text_widget.bind("<Button-5>", self._on_scroll, add="+")       # Linux下滚
-            self.text_widget.bind("<B1-Motion>", self._on_scroll, add="+")     # 鼠标拖动滚动
-            self.text_widget.bind("<ButtonRelease-1>", self._on_scroll, add="+") # 鼠标释放后更新
-            
+            self.text_widget.bind("<Button-4>", self._on_scroll, add="+")  # Linux上滚
+            self.text_widget.bind("<Button-5>", self._on_scroll, add="+")  # Linux下滚
+            self.text_widget.bind(
+                "<B1-Motion>", self._on_scroll, add="+"
+            )  # 鼠标拖动滚动
+            self.text_widget.bind(
+                "<ButtonRelease-1>", self._on_scroll, add="+"
+            )  # 鼠标释放后更新
+
             # 对于CTkTextbox，我们需要监听其内部的textbox组件的Modified事件
             try:
-                self.text_widget._textbox.bind("<<Modified>>", self._on_text_change, add="+")
+                self.text_widget._textbox.bind(
+                    "<<Modified>>", self._on_text_change, add="+"
+                )
             except:
                 # 如果绑定失败，忽略错误，继续使用其他事件监听
                 pass
@@ -99,7 +123,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
         # 获取点击位置对应的行号
         clicked_item = self.find_closest(event.x, event.y)[0]
         tags = self.gettags(clicked_item)
-        
+
         # 查找行号标签
         line_number = None
         for tag in tags:
@@ -109,7 +133,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                     break
                 except (ValueError, IndexError):
                     continue
-        
+
         # 如果找到了行号，选中对应的整行内容
         if line_number and self.text_widget:
             try:
@@ -146,7 +170,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
             # 获取可见区域的第一行和最后一行
             first_visible = int(self.text_widget.index("@0,0").split(".")[0])
-            
+
             # 计算可见区域的最后一行，考虑文本框高度
             try:
                 # 获取文本框的高度
@@ -169,7 +193,9 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 # 根据行号位数计算宽度：增加每数字宽度和额外空间确保行号能完整显示
                 digits = len(str(max_line_number))
                 # 进一步增加每数字宽度系数，为更多位数的行号提供足够空间
-                line_number_width = max(60, digits * 25 + self.number_padding)  # 大幅增加系数和边距
+                line_number_width = max(
+                    60, digits * 25 + self.number_padding
+                )  # 大幅增加系数和边距
                 # 调用update_width方法设置宽度
                 self.update_width(line_number_width)
                 # 更新行总数缓存
@@ -195,7 +221,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 # 开始绘制
                 y_pos = dlineinfo[1]  # y坐标
                 line_height = dlineinfo[3]  # 行高
-                
+
                 # 创建行号背景矩形（默认透明，鼠标悬浮时会使用悬浮颜色）
                 self.create_rectangle(
                     0,
@@ -209,7 +235,9 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
                 # 计算行号中心位置（垂直居中）
                 # 使用文本的基线位置来对齐行号，确保与文本行完全对齐
-                text_baseline = y_pos + line_height // 2 + 10  # 微调位置，使行号与文本对齐
+                text_baseline = (
+                    y_pos + line_height // 2 + 10
+                )  # 微调位置，使行号与文本对齐
 
                 # 在行号区域绘制行号
                 self.create_text(
@@ -221,7 +249,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                     anchor="e",  # 右对齐
                     tags=("line_number", f"line_{i}"),
                 )
-                
+
                 # 为行号添加可点击的透明矩形区域，扩大点击范围
                 self.create_rectangle(
                     0,

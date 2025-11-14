@@ -327,6 +327,62 @@ class FontDialog:
         self.dialog.bind("<Escape>", lambda e: self._on_cancel())
         self.dialog.bind("<Return>", lambda e: self._on_ok())
 
+        # 绑定上下箭头键导航字体列表
+        self.dialog.bind("<Up>", self._on_font_list_up)
+        self.dialog.bind("<Down>", self._on_font_list_down)
+
+        # 确保字体列表框可以接收焦点
+        self.font_listbox.bind("<Button-1>", self._on_font_list_click)
+
+    def _on_font_list_up(self, event=None):
+        """处理字体列表向上导航"""
+        try:
+            current_selection = self.font_listbox.curselection()
+            if current_selection:
+                current_index = current_selection[0]
+                if current_index > 0:
+                    # 选择上一项
+                    self.font_listbox.selection_clear(current_index)
+                    self.font_listbox.selection_set(current_index - 1)
+                    self.font_listbox.see(current_index - 1)
+                    self._update_preview()
+            else:
+                # 如果没有选中项，选择第一项
+                if self.filtered_fonts:
+                    self.font_listbox.selection_set(0)
+                    self.font_listbox.see(0)
+                    self._update_preview()
+        except:
+            pass
+        return "break"  # 阻止默认行为
+
+    def _on_font_list_down(self, event=None):
+        """处理字体列表向下导航"""
+        try:
+            current_selection = self.font_listbox.curselection()
+            if current_selection:
+                current_index = current_selection[0]
+                if current_index < len(self.filtered_fonts) - 1:
+                    # 选择下一项
+                    self.font_listbox.selection_clear(current_index)
+                    self.font_listbox.selection_set(current_index + 1)
+                    self.font_listbox.see(current_index + 1)
+                    self._update_preview()
+            else:
+                # 如果没有选中项，选择第一项
+                if self.filtered_fonts:
+                    self.font_listbox.selection_set(0)
+                    self.font_listbox.see(0)
+                    self._update_preview()
+        except:
+            pass
+        return "break"  # 阻止默认行为
+
+    def _on_font_list_click(self, event=None):
+        """处理字体列表点击事件，确保焦点正确设置"""
+        # 让列表框获取焦点，这样上下箭头键可以正常工作
+        self.font_listbox.focus_set()
+
     def _load_system_fonts(self):
         """
         加载系统中所有可用的字体

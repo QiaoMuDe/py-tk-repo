@@ -327,6 +327,10 @@ class FileOperations:
         # 清除语法高亮
         self.root.syntax_highlighter.clear_highlight()
 
+        # 更新重新打开菜单状态
+        if self.root.reopen_file_menu is not None:
+            self.root.reopen_file_menu.update_menu_state()
+
     def _handle_backup_on_close(self, file_saved):
         """
         在关闭窗口或关闭文件时处理备份文件的辅助方法
@@ -409,7 +413,12 @@ class FileOperations:
             return False
 
     def _open_file(
-        self, select_path=False, check_save=False, check_backup=False, file_path=None
+        self,
+        select_path=False,
+        check_save=False,
+        check_backup=False,
+        file_path=None,
+        encoding=None,
     ):
         """
         打开文件核心逻辑
@@ -419,6 +428,7 @@ class FileOperations:
             check_save (bool): 是否需要检查文件是否为保存状态
             check_backup (bool): 是否需要检查备份
             file_path (str): 文件路径
+            encoding (str, optional): 指定文件编码，如果为None则自动检测
 
         Returns:
             bool: 如果文件成功打开返回True，否则返回False
@@ -428,7 +438,8 @@ class FileOperations:
         """
         # 参数验证：当不需要选择路径时，必须提供有效的文件路径
         if not select_path and not file_path:
-            raise ValueError("当select_path=False时，必须提供有效的file_path参数")
+            print("参数错误：当select_path=False时，必须提供有效的文件路径")
+            return False  # 参数错误
 
         # 检查是否需要检查文件是否为保存状态
         if check_save:
@@ -461,9 +472,9 @@ class FileOperations:
                 return True  # 已处理备份恢复，无需继续打开文件
 
         # 调用核心文件打开逻辑
-        return self._open_file_core(file_path)
+        return self._open_file_core(file_path, encoding)
 
-    def _open_file_core(self, file_path):
+    def _open_file_core(self, file_path, encoding=None):
         """
         核心文件打开逻辑，负责读取文件内容并更新编辑器状态
 
@@ -476,6 +487,7 @@ class FileOperations:
 
         Args:
             file_path (str): 要打开的文件的绝对路径
+            encoding (str, optional): 指定文件编码，如果为None则自动检测
 
         Returns:
             bool: 如果文件成功打开返回True，否则返回False
@@ -502,7 +514,7 @@ class FileOperations:
             self.root.status_bar.show_notification("正在读取文件...")
 
             # 使用核心类同步读取文件
-            result = self.file_core.read_file_sync(file_path, max_file_size)
+            result = self.file_core.read_file_sync(file_path, max_file_size, encoding)
 
             # 直接处理读取结果
             if result["success"]:
@@ -556,6 +568,10 @@ class FileOperations:
 
                     # 应用语法高亮
                     self.root.syntax_highlighter.apply_highlighting(file_path)
+
+                    # 更新重新打开菜单状态
+                    if self.root.reopen_file_menu is not None:
+                        self.root.reopen_file_menu.update_menu_state()
 
                     return True
 

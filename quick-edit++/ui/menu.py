@@ -12,60 +12,12 @@ from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
 from ui.recent_files_menu import RecentFilesMenu
+from ui.reopen_file_menu import ReopenFileMenu
 from config.config_manager import config_manager
+from ui.utils import get_supported_encodings
 import codecs
 import os
 from tkinter import messagebox
-
-
-def get_supported_encodings():
-    """获取支持的编码列表
-
-    Returns:
-        list: 支持的编码列表，常用编码在前
-    """
-    # 常用编码选项
-    common_encodings = [
-        "UTF-8",
-        "UTF-16",
-        "UTF-32",
-        "ASCII",
-        "GB2312",
-        "GBK",
-        "GB18030",
-        "BIG5",
-        "ISO-8859-1",
-        "ISO-8859-2",
-        "ISO-8859-15",
-        "Windows-1252",
-        "Windows-1251",
-        "Windows-1256",
-        "Shift_JIS",
-        "EUC-JP",
-        "KOI8-R",
-        "KOI8-U",
-    ]
-
-    try:
-        # 从encodings模块获取所有支持的编码
-        import encodings
-
-        all_encodings = [
-            f[:-3]  # 移除.py扩展名
-            for f in os.listdir(os.path.dirname(encodings.__file__))
-            if f.endswith(".py") and not f.startswith("_")
-        ]
-
-        # 合并常用编码和所有支持的编码，保持常用编码在前
-        supported_encodings = common_encodings[:]
-        for enc in all_encodings:
-            if enc.upper() not in [e.upper() for e in supported_encodings]:
-                supported_encodings.append(enc)
-
-        return supported_encodings
-    except:
-        # 如果获取所有编码失败，返回常用编码列表
-        return common_encodings
 
 
 def create_insert_submenu(parent_menu, root, menu_font_tuple):
@@ -616,6 +568,20 @@ def create_menu(root):
     # 保存到root对象中，方便文件打开后刷新
     root.recent_files_menu = recent_menu
 
+    # 创建重新打开文件子菜单
+    # 创建重新打开文件的回调函数
+    def on_reopen_file(file_path, encoding):
+        # 使用现有的文件重新打开功能
+        root.file_ops._open_file(
+            file_path=file_path, encoding=encoding, check_save=False, check_backup=False
+        )
+
+    # 初始化重新打开文件菜单
+    reopen_menu = ReopenFileMenu(root, file_menu, on_reopen_file)
+    reopen_menu.create_reopen_file_menu()
+    # 保存到root对象中，方便文件状态更新
+    root.reopen_file_menu = reopen_menu
+
     # 分隔符
     file_menu.add_separator()
 
@@ -1037,7 +1003,9 @@ def create_menu(root):
     theme_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
     # 字体
-    theme_menu.add_command(label="字体", command=lambda: show_font_dialog(root))
+    theme_menu.add_command(
+        label="字体", command=lambda: show_font_dialog(root), accelerator="Ctrl+T"
+    )
     theme_menu.add_separator()
 
     # 外观模式分组（3种模式）- 使用单选按钮

@@ -27,6 +27,7 @@ from app.edit_operations import EditOperations
 from app.selection_operations import SelectionOperations
 from syntax_highlighter import SyntaxHighlighter
 from ui.menu import toggle_syntax_highlight
+from ui.font_dialog import show_font_dialog
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -150,9 +151,14 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind(
             "<F2>", lambda e: show_document_stats_dialog(self)
         )  # 显示文档统计对话框
-        
+
+        # 字体设置快捷键
+        self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
+
         # 语法高亮快捷键
-        self.bind("<Control-l>", lambda e: toggle_syntax_highlight(self))  # 切换语法高亮
+        self.bind(
+            "<Control-l>", lambda e: toggle_syntax_highlight(self)
+        )  # 切换语法高亮
 
         # 禁用默认的Ctrl+H行为 (退格)
         self.bind("<Control-h>", lambda e: "break")
@@ -167,7 +173,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def _setup_line_highlight(self, full_init=False):
         """
-        设置或更新行高亮配置
+        设置或更新行高亮配置(高亮光标所在行)
 
         Args:
             full_init (bool): 是否执行完整初始化（包括设置边距和优先级）
@@ -179,7 +185,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 根据主题模式选择高亮颜色
         # 浅色模式使用黄色，深色模式使用深蓝色
-        highlight_color = "yellow" if theme_mode == "light" else "#2a4b6c"
+        highlight_color = "#fcff59" if theme_mode == "light" else "#2a4b6c"
 
         if full_init:
             # 完整初始化：设置所有标签属性

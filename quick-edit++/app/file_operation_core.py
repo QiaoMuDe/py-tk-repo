@@ -110,13 +110,14 @@ class FileOperationCore:
         except Exception:
             return "UTF-8", "LF"  # 出错时返回默认值
 
-    def read_file_sync(self, file_path, max_file_size=10 * 1024 * 1024):
+    def read_file_sync(self, file_path, max_file_size=10 * 1024 * 1024, encoding=None):
         """
         同步读取文件内容
 
         Args:
             file_path: 要读取的文件路径
             max_file_size: 最大允许的文件大小（字节），默认10MB
+            encoding (str, optional): 指定文件编码，如果为None则自动检测
 
         Returns:
             dict: 包含读取结果的字典
@@ -160,9 +161,16 @@ class FileOperationCore:
                 return result
 
             # 检测编码和换行符类型
-            encoding, line_ending = self.detect_file_encoding_and_line_ending(
-                sample_data=sample_data
-            )
+            if encoding is None:
+                # 如果没有指定编码，自动检测
+                encoding, line_ending = self.detect_file_encoding_and_line_ending(
+                    sample_data=sample_data
+                )
+            else:
+                # 如果指定了编码，只检测换行符类型
+                _, line_ending = self.detect_file_encoding_and_line_ending(
+                    sample_data=sample_data
+                )
 
             # 全量读取文件内容
             with codecs.open(
