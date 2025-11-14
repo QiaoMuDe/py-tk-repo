@@ -194,8 +194,8 @@ class AppInitializer:
             self.app.status_bar.grid(row=2, column=0, sticky="ew")
 
     def init_text_area(self):
-        """初始化文本编辑区域"""
-        # 创建文本编辑区域框架 - 去掉圆角和内边距，避免阴影效果
+        """初始化文本编辑区域 - 使用内部滚动条"""
+        # 创建文本编辑区域框架
         self.app.text_frame = ctk.CTkFrame(self.app)
         self.app.text_frame.grid(row=1, column=0, sticky="nsew")
         # 设置网格权重，确保子组件能够正确填充
@@ -206,7 +206,7 @@ class AppInitializer:
         auto_wrap = config_manager.get("text_editor.auto_wrap", True)
         wrap_mode = "word" if auto_wrap else "none"
 
-        # 创建文本编辑区域 - 去掉圆角，确保完全填充
+        # 创建文本编辑区域 - 启用内部滚动条
         self.app.text_area = ctk.CTkTextbox(
             self.app.text_frame,  # 父容器
             wrap=wrap_mode,  # 换行模式
@@ -216,52 +216,47 @@ class AppInitializer:
             maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
-            activate_scrollbars=False,  # 禁用内置滚动条
+            activate_scrollbars=True,  # 启用内置滚动条
         )
+        
+        # 设置初始滚动条检查更新显示时间为50毫秒
+        self.app.text_area._scrollbar_update_time = 50
+        
+        # 设置内部垂直滚动条的宽度为20像素
+        self.app.text_area._y_scrollbar.configure(width=20)
+        # 设置内部水平滚动条的高度为15像素
+        self.app.text_area._x_scrollbar.configure(height=15)
 
-        # 创建垂直滚动条的封装函数，在调用时触发语法高亮更新
-        def vscroll_command(*args):
-            # 调用原始的yview方法
-            self.app.text_area._textbox.yview(*args)
-            # 触发语法高亮更新
-            self.app.syntax_highlighter._handle_event()
+        # 保存底层textbox的原始xview和yview方法
+        original_textbox = self.app.text_area._textbox
+        original_xview = original_textbox.xview
+        original_yview = original_textbox.yview
 
-        # 创建水平滚动条的封装函数，在调用时触发语法高亮更新
-        def hscroll_command(*args):
+        # 创建包装函数，在调用原始方法的同时触发语法高亮和行号更新
+        def wrapped_xview(*args):
             # 调用原始的xview方法
-            self.app.text_area._textbox.xview(*args)
+            result = original_xview(*args)
             # 触发语法高亮更新
             self.app.syntax_highlighter._handle_event()
+            # 触发行号更新
+            #self.app.line_number_canvas.draw_line_numbers()
+            return result
 
-        # 创建垂直滚动条
-        self.app.vscrollbar = ctk.CTkScrollbar(
-            self.app.text_frame,
-            orientation="vertical",
-            command=vscroll_command,
-            width=23,
-        )
+        def wrapped_yview(*args):
+            # 调用原始的yview方法
+            result = original_yview(*args)
+            # 触发语法高亮更新
+            self.app.syntax_highlighter._handle_event()
+            # 触发行号更新
+            #self.app.line_number_canvas.draw_line_numbers()
+            return result
 
-        # 绑定文本框与垂直滚动条
-        self.app.text_area._textbox.configure(yscrollcommand=self.app.vscrollbar.set)
-
-        # 始终创建水平滚动条，但根据需要显示/隐藏
-        self.app.hscrollbar = ctk.CTkScrollbar(
-            self.app.text_frame,
-            orientation="horizontal",
-            command=hscroll_command,
-            height=18,
-        )
-        # 绑定文本框与水平滚动条
-        self.app.text_area._textbox.configure(xscrollcommand=self.app.hscrollbar.set)
+        # 替换底层textbox的xview和yview方法为包装后的方法
+        original_textbox.xview = wrapped_xview
+        original_textbox.yview = wrapped_yview
 
         # 放置文本框
         self.app.text_area.grid(row=0, column=0, sticky="nsew")
-
-        # 添加滚动条显示/隐藏的更新间隔（借鉴CTkTextbox）
-        self.scrollbar_update_time = 200  # 毫秒
-
-        # 启动滚动条自动检查
-        self._start_scrollbar_check()
 
         # 确保文本框完全填充，没有额外的边距
         self.app.text_area.configure(border_width=0)
@@ -269,58 +264,8 @@ class AppInitializer:
 
         # 光标行高亮相关变量
         self.app.current_highlighted_line = None
-
-    def _check_scrollbars_visibility(self):
-        """
-        检查滚动条是否需要显示 - 借鉴CTkTextbox的设计思想
-        当内容超出可见区域时显示滚动条，否则隐藏
-        """
-        try:
-            # 检查垂直滚动条
-            yview = self.app.text_area._textbox.yview()
-            if yview[0] != 0.0 or yview[1] != 1.0:
-                # 内容超出垂直可见区域，显示垂直滚动条
-                if not self.app.vscrollbar.winfo_ismapped():
-                    self.app.vscrollbar.grid(row=0, column=1, sticky="ns")
-            else:
-                # 内容完全在垂直可见区域内，隐藏垂直滚动条
-                if self.app.vscrollbar.winfo_ismapped():
-                    self.app.vscrollbar.grid_remove()
-
-            # 检查水平滚动条（仅当自动换行禁用时）
-            auto_wrap = config_manager.get("text_editor.auto_wrap", True)
-            if not auto_wrap:
-                xview = self.app.text_area._textbox.xview()
-                if xview[0] != 0.0 or xview[1] != 1.0:
-                    # 内容超出水平可见区域，显示水平滚动条
-                    if not self.app.hscrollbar.winfo_ismapped():
-                        self.app.hscrollbar.grid(row=1, column=0, sticky="ew")
-                else:
-                    # 内容完全在水平可见区域内，隐藏水平滚动条
-                    if self.app.hscrollbar.winfo_ismapped():
-                        self.app.hscrollbar.grid_remove()
-            else:
-                # 自动换行启用时，始终隐藏水平滚动条
-                if self.app.hscrollbar.winfo_ismapped():
-                    self.app.hscrollbar.grid_remove()
-
-        except Exception as e:
-            # 忽略可能的错误，确保程序不会崩溃
-            # print(f"检查滚动条可见性时出错: {e}")
-            pass
-
-        # 继续下一次检查
-        if self.app.text_area._textbox.winfo_exists():
-            self.app.after(
-                self.scrollbar_update_time, self._check_scrollbars_visibility
-            )
-
-    def _start_scrollbar_check(self):
-        """
-        启动滚动条自动检查定时器
-        延迟50ms后开始首次检查，避免初始化时的问题
-        """
-        self.app.after(50, self._check_scrollbars_visibility)
+        
+        
 
     def init_menu_bar(self):
         """初始化菜单栏"""
