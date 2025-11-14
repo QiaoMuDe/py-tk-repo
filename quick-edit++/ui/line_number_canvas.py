@@ -36,6 +36,9 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
         # 设置背景颜色
         self.bg_color = "#e0e0e0"
+        
+        # 设置数字的容纳额外空间
+        self.number_padding = 45
 
         # 配置Canvas样式
         self.configure(
@@ -55,6 +58,9 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
     def set_text_widget(self, text_widget):
         """设置关联的文本编辑组件并绑定必要的事件"""
+        # 绑定行号栏的鼠标点击事件
+        self.bind("<Button-1>", self._on_line_number_click, add="+")
+        
         self.text_widget = text_widget
         if self.text_widget:
             # 绑定所有需要的事件，使用add="+"确保不覆盖其他绑定
@@ -86,6 +92,35 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 self.text_widget._textbox.bind("<<Modified>>", self._on_text_change, add="+")
             except:
                 # 如果绑定失败，忽略错误，继续使用其他事件监听
+                pass
+
+    def _on_line_number_click(self, event):
+        """处理行号点击事件，选中对应的整行内容"""
+        # 获取点击位置对应的行号
+        clicked_item = self.find_closest(event.x, event.y)[0]
+        tags = self.gettags(clicked_item)
+        
+        # 查找行号标签
+        line_number = None
+        for tag in tags:
+            if tag.startswith("line_"):
+                try:
+                    line_number = int(tag.split("_")[1])
+                    break
+                except (ValueError, IndexError):
+                    continue
+        
+        # 如果找到了行号，选中对应的整行内容
+        if line_number and self.text_widget:
+            try:
+                # 选中整行内容
+                line_start = f"{line_number}.0"
+                line_end = f"{line_number}.end"
+                self.text_widget.tag_add("sel", line_start, line_end)
+                self.text_widget.mark_set("insert", line_end)  # 设置光标位置到行尾
+                self.text_widget.focus_set()  # 确保文本框获得焦点
+            except Exception as e:
+                print(f"Error selecting line: {e}")
                 pass
 
     def _on_text_change(self, event=None):
@@ -128,7 +163,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 # 根据行号位数计算宽度：增加每数字宽度和额外空间确保行号能完整显示
                 digits = len(str(max_line_number))
                 # 进一步增加每数字宽度系数，为更多位数的行号提供足够空间
-                line_number_width = max(60, digits * 25 + 20)  # 大幅增加系数和边距
+                line_number_width = max(60, digits * 25 + self.number_padding)  # 大幅增加系数和边距
                 # 调用update_width方法设置宽度
                 self.update_width(line_number_width)
                 # 更新行总数缓存
@@ -177,6 +212,17 @@ class LineNumberCanvas(ctk.CTkCanvas):
                     fill=self.text_color,
                     anchor="e",  # 右对齐
                     tags=("line_number", f"line_{i}"),
+                )
+                
+                # 为行号添加可点击的透明矩形区域，扩大点击范围
+                self.create_rectangle(
+                    0,
+                    y_pos,
+                    line_number_width,
+                    y_pos + line_height,
+                    fill="",
+                    outline="",
+                    tags=("clickable", f"line_{i}"),
                 )
         except Exception as e:
             # 忽略错误, 保持程序稳定
