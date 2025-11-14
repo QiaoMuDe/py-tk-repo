@@ -15,6 +15,7 @@ from ui.status_bar import StatusBar
 from .file_operations import FileOperations
 from .file_watcher import FileWatcher
 from syntax_highlighter import SyntaxHighlighter
+from ui.line_number_canvas import LineNumberCanvas
 
 
 class AppInitializer:
@@ -199,7 +200,8 @@ class AppInitializer:
         self.app.text_frame = ctk.CTkFrame(self.app)
         self.app.text_frame.grid(row=1, column=0, sticky="nsew")
         # 设置网格权重，确保子组件能够正确填充
-        self.app.text_frame.grid_columnconfigure(0, weight=1)
+        self.app.text_frame.grid_columnconfigure(1, weight=1)  # 文本区域列可扩展
+        self.app.text_frame.grid_columnconfigure(0, weight=0)  # 行号列固定
         self.app.text_frame.grid_rowconfigure(0, weight=1)
 
         # 获取自动换行设置
@@ -239,7 +241,7 @@ class AppInitializer:
             # 触发语法高亮更新
             self.app.syntax_highlighter._handle_event()
             # 触发行号更新
-            #self.app.line_number_canvas.draw_line_numbers()
+            self.app.line_number_canvas.draw_line_numbers()
             return result
 
         def wrapped_yview(*args):
@@ -248,25 +250,37 @@ class AppInitializer:
             # 触发语法高亮更新
             self.app.syntax_highlighter._handle_event()
             # 触发行号更新
-            #self.app.line_number_canvas.draw_line_numbers()
+            self.app.line_number_canvas.draw_line_numbers()
             return result
 
         # 替换底层textbox的xview和yview方法为包装后的方法
         original_textbox.xview = wrapped_xview
         original_textbox.yview = wrapped_yview
 
-        # 放置文本框
-        self.app.text_area.grid(row=0, column=0, sticky="nsew")
+        # 光标行高亮相关变量
+        self.app.current_highlighted_line = None
+        
+        # 创建行号侧边栏
+        self.app.line_number_canvas = LineNumberCanvas(
+            self.app.text_frame, 
+            text_widget=self.app.text_area,
+            width=60  # 增加初始宽度，与LineNumberCanvas默认值保持一致
+        )
+        
+        # 放置行号侧边栏和文本编辑区域 - 使用grid布局
+        self.app.line_number_canvas.grid(row=0, column=0, sticky="nsw")
+        self.app.text_area.grid(row=0, column=1, sticky="nsew")
 
         # 确保文本框完全填充，没有额外的边距
         self.app.text_area.configure(border_width=0)
         self.app.text_frame.configure(border_width=0)
-
-        # 光标行高亮相关变量
-        self.app.current_highlighted_line = None
         
-        
-
+        # 根据配置决定是否显示行号栏
+        if self.app.line_numbers_var.get():
+            self.app.line_number_canvas.grid(row=0, column=0, sticky="nsw")
+        else:
+            self.app.line_number_canvas.grid_forget()
+ 
     def init_menu_bar(self):
         """初始化菜单栏"""
         # 创建菜单栏

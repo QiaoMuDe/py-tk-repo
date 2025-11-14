@@ -58,10 +58,35 @@ class LineNumberCanvas(ctk.CTkCanvas):
         self.text_widget = text_widget
         if self.text_widget:
             # 绑定所有需要的事件，使用add="+"确保不覆盖其他绑定
-            self.text_widget.bind("<KeyPress>", self._on_text_change, add="+")
-            self.text_widget.bind("<KeyRelease>", self._on_text_change, add="+")
-            self.text_widget.bind("<Button-1>", self._on_text_change, add="+")
-            self.text_widget.bind("<MouseWheel>", self._on_scroll, add="+")
+            self.text_widget.bind("<KeyPress>", self._on_text_change, add="+") # 绑定所有按键事件
+            self.text_widget.bind("<KeyRelease>", self._on_text_change, add="+") # 绑定所有按键抬起事件
+            self.text_widget.bind("<Button-1>", self._on_text_change, add="+")  # 绑定鼠标点击事件
+            self.text_widget.bind("<MouseWheel>", self._on_scroll, add="+")  # 绑定鼠标滚轮事件
+            
+            # 添加更多文本修改相关的事件绑定
+            # 注意：CTkTextbox不支持<Modified>事件，所以我们使用其他事件来捕获文本变化
+            self.text_widget.bind("<Insert>", self._on_text_change, add="+")    # 插入键事件
+            self.text_widget.bind("<Delete>", self._on_text_change, add="+")    # 删除键事件
+            self.text_widget.bind("<BackSpace>", self._on_text_change, add="+") # 退格键事件
+            self.text_widget.bind("<Return>", self._on_text_change, add="+")    # 回车键事件
+            self.text_widget.bind("<Tab>", self._on_text_change, add="+")       # Tab键事件
+            
+            # 绑定粘贴和剪切事件
+            self.text_widget.bind("<<Paste>>", self._on_text_change, add="+")   # 粘贴事件
+            self.text_widget.bind("<<Cut>>", self._on_text_change, add="+")     # 剪切事件
+            
+            # 绑定滚动条相关事件
+            self.text_widget.bind("<Button-4>", self._on_scroll, add="+")       # Linux上滚
+            self.text_widget.bind("<Button-5>", self._on_scroll, add="+")       # Linux下滚
+            self.text_widget.bind("<B1-Motion>", self._on_scroll, add="+")     # 鼠标拖动滚动
+            self.text_widget.bind("<ButtonRelease-1>", self._on_scroll, add="+") # 鼠标释放后更新
+            
+            # 对于CTkTextbox，我们需要监听其内部的textbox组件的Modified事件
+            try:
+                self.text_widget._textbox.bind("<<Modified>>", self._on_text_change, add="+")
+            except:
+                # 如果绑定失败，忽略错误，继续使用其他事件监听
+                pass
 
     def _on_text_change(self, event=None):
         """文本内容变化时更新行号"""
@@ -161,14 +186,12 @@ class LineNumberCanvas(ctk.CTkCanvas):
     def toggle_visibility(self, show=True):
         """切换行号栏的可见性"""
         if show:
-            # 使用与初始化时一致的pack参数，确保宽度可以动态调整
-            self.pack(
-                side="left", fill="y", expand=False, anchor="w", before=self.text_widget
-            )
+            # 使用grid布局显示行号栏
+            self.grid(row=0, column=0, sticky="nsw")
             # 显示时重新计算宽度以确保正确性
             self.draw_line_numbers()
         else:
-            self.pack_forget()
+            self.grid_forget()
 
     def update_width(self, new_width):
         """更新侧边栏宽度
