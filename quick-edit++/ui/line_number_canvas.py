@@ -138,7 +138,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 line_number_width = self._cached_line_number_width
 
             # 设置字体 (如果字体发生变化则更新)
-            current_font = (self.font_family, self.font_size - 2)
+            current_font = (self.font_family, self.font_size - 3)
             if self._cached_font != current_font:
                 self._cached_font = current_font
 
@@ -166,7 +166,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 )
 
                 # 计算行号中心位置（垂直居中）
-                y_center = y_pos + line_height // 2 + 12
+                y_center = y_pos + line_height // 2 + 11
 
                 # 在行号区域绘制行号，增加12像素的垂直偏移确保第一行完整显示
                 self.create_text(
@@ -174,7 +174,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                     y_center,  # x, y坐标，增加12像素垂直偏移
                     text=str(i),
                     font=current_font,
-                    fill="gray",
+                    fill=self.text_color,
                     anchor="e",  # 右对齐
                     tags=("line_number", f"line_{i}"),
                 )
