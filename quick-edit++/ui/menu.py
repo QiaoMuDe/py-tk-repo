@@ -1561,7 +1561,7 @@ def set_syntax_highlight_mode(mode: bool, root):
 
     # 应用设置到语法高亮管理器
     root.syntax_highlighter.set_render_mode(mode)
-    
+
     # 应用到当前打开的文件
     if root.current_file_path:
         root.syntax_highlighter.apply_highlighting(root.current_file_path)
