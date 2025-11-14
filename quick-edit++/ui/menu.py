@@ -13,6 +13,7 @@ from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
 from ui.recent_files_menu import RecentFilesMenu
 from ui.reopen_file_menu import ReopenFileMenu
+from ui.color_picker import show_color_picker
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
 import codecs
@@ -1006,6 +1007,11 @@ def create_menu(root):
     theme_menu.add_command(
         label="字体", command=lambda: show_font_dialog(root), accelerator="Ctrl+T"
     )
+    
+    # 背景色
+    theme_menu.add_command(
+        label="背景色", command=lambda: set_text_background_color(root), accelerator="Ctrl+Shift+B"
+    )
     theme_menu.add_separator()
 
     # 外观模式分组（3种模式）- 使用单选按钮
@@ -1566,3 +1572,28 @@ def toggle_line_numbers(root):
 
     # 显示通知
     messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")
+
+
+def set_text_background_color(root):
+    """
+    设置文本编辑器背景色
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前背景色
+    current_color = config_manager.get("text_editor.bg_color", "#F5F5F5")
+    
+    # 显示颜色选择器对话框
+    selected_color = show_color_picker(root, current_color)
+    
+    if selected_color:
+        # 保存配置
+        config_manager.set("text_editor.bg_color", selected_color)
+        config_manager.save_config()
+        
+        # 应用到文本编辑器
+        root.text_area.configure(fg_color=selected_color)
+        
+        # 显示通知
+        root.status_bar.show_notification(f"文本编辑器背景色已设置为: {selected_color}", 500)

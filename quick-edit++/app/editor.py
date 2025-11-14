@@ -28,6 +28,7 @@ from app.selection_operations import SelectionOperations
 from syntax_highlighter import SyntaxHighlighter
 from ui.menu import toggle_syntax_highlight
 from ui.font_dialog import show_font_dialog
+from ui.menu import set_text_background_color
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -154,6 +155,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 字体设置快捷键
         self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
+
+        # 背景色设置快捷键
+        self.bind("<Control-Shift-B>", lambda e: set_text_background_color(self))  # 设置文本背景色
 
         # 语法高亮快捷键
         self.bind(

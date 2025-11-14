@@ -14,6 +14,7 @@ import os
 import datetime
 import uuid
 import base64
+from ui.color_picker import show_color_picker
 
 
 class EditOperations:
@@ -2054,175 +2055,12 @@ func (s *StructName) IsValid() bool {
 
     def insert_hex_color_picker(self):
         """插入HEX颜色代码选择器"""
-        # 获取组件字体配置
-        font_config = config_manager.get_font_config("components")
-        font_family = font_config.get("font", "Microsoft YaHei UI")
-        font_size = 15
-        font_weight = "bold"
-
-        # 创建自定义对话框窗口
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("HEX颜色代码选择器")
-        dialog.geometry("400x500")
-        dialog.resizable(False, False)
-
-        # 设置窗口模态
-        dialog.transient(self)
-        dialog.grab_set()
-
-        # 创建主框架
-        main_frame = ctk.CTkFrame(dialog)
-        main_frame.pack(padx=20, pady=20, fill="both", expand=True)
-
-        # 标题标签
-        title_label = ctk.CTkLabel(
-            main_frame, text="选择颜色", font=(font_family, font_size, font_weight)
-        )
-        title_label.pack(pady=(0, 10))
-
-        # 颜色预览框架
-        preview_frame = ctk.CTkFrame(main_frame)
-        preview_frame.pack(fill="x", pady=(0, 10))
-
-        # 颜色预览标签
-        preview_label = ctk.CTkLabel(
-            preview_frame,
-            text="颜色预览",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        preview_label.pack(side="left", padx=(10, 20))
-
-        # 颜色预览框
-        color_preview = ctk.CTkLabel(preview_frame, text="", width=100, height=30)
-        color_preview.pack(side="left", padx=(0, 10))
-        color_preview.configure(fg_color="#000000")
-
-        # HEX代码显示标签
-        hex_label = ctk.CTkLabel(
-            preview_frame, text="#000000", font=(font_family, font_size - 2)
-        )
-        hex_label.pack(side="left")
-
-        # 颜色选择器框架
-        color_frame = ctk.CTkFrame(main_frame)
-        color_frame.pack(fill="both", expand=True, pady=(0, 10))
-
-        # 预设颜色按钮
-        colors = [
-            "#000000",
-            "#FFFFFF",
-            "#FF0000",
-            "#00FF00",
-            "#0000FF",
-            "#FFFF00",
-            "#FF00FF",
-            "#00FFFF",
-            "#800000",
-            "#008000",
-            "#000080",
-            "#808000",
-            "#800080",
-            "#008080",
-            "#C0C0C0",
-            "#808080",
-            "#FFA500",
-            "#A52A2A",
-            "#8B4513",
-            "#FFD700",
-            "#32CD32",
-            "#87CEEB",
-            "#4169E1",
-            "#9400D3",
-        ]
-
-        # 创建颜色按钮网格
-        for i, color in enumerate(colors):
-            row = i // 6
-            col = i % 6
-
-            def on_color_click(c=color):
-                color_preview.configure(fg_color=c)
-                hex_label.configure(text=c)
-
-            color_button = ctk.CTkButton(
-                color_frame,
-                text="",
-                width=40,
-                height=30,
-                fg_color=color,
-                hover_color=color,
-                command=on_color_click,
-            )
-            color_button.grid(row=row, column=col, padx=5, pady=5)
-
-        # 自定义颜色输入框架
-        input_frame = ctk.CTkFrame(main_frame)
-        input_frame.pack(fill="x", pady=(0, 10))
-
-        # 自定义颜色标签
-        custom_label = ctk.CTkLabel(
-            input_frame,
-            text="自定义HEX颜色代码:",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        custom_label.pack(side="left", padx=(10, 10))
-
-        # 自定义颜色输入框
-        custom_entry = ctk.CTkEntry(
-            input_frame, font=(font_family, font_size - 2), width=100
-        )
-        custom_entry.pack(side="left", padx=(0, 10))
-        custom_entry.insert(0, "#000000")
-
-        def on_custom_change():
-            hex_code = custom_entry.get()
-            if hex_code.startswith("#") and len(hex_code) == 7:
-                try:
-                    # 验证HEX代码
-                    int(hex_code[1:], 16)
-                    color_preview.configure(fg_color=hex_code)
-                    hex_label.configure(text=hex_code)
-                except ValueError:
-                    pass
-
-        custom_entry.bind("<KeyRelease>", lambda e: on_custom_change())
-
-        # 按钮框架
-        button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x")
-
-        def on_ok():
-            """确认按钮处理函数"""
-            hex_code = hex_label.cget("text")
-            self.insert_color_code("HEX颜色代码", hex_code)
-            dialog.destroy()
-
-        def on_cancel():
-            """取消按钮处理函数"""
-            dialog.destroy()
-
-        # 创建按钮
-        ok_button = ctk.CTkButton(
-            button_frame,
-            text="确定",
-            font=(font_family, font_size, font_weight),
-            command=on_ok,
-        )
-        ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
-
-        cancel_button = ctk.CTkButton(
-            button_frame,
-            text="取消",
-            font=(font_family, font_size, font_weight),
-            command=on_cancel,
-        )
-        cancel_button.pack(side="right", fill="x", expand=True)
-
-        # 居中显示对话框
-        dialog.update_idletasks()
-        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
-        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
-        dialog.geometry(f"+{x}+{y}")
+        # 显示颜色选择器对话框
+        color_code = show_color_picker(self)
+        
+        # 如果用户选择了颜色，则插入颜色代码
+        if color_code:
+            self.insert_color_code("HEX颜色代码", color_code)
 
     def insert_rgb_color_picker(self):
         """插入RGB颜色代码选择器"""
