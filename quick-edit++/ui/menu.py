@@ -14,6 +14,7 @@ from ui.find_replace_dialog import show_find_replace_dialog
 from ui.recent_files_menu import RecentFilesMenu
 from ui.reopen_file_menu import ReopenFileMenu
 from ui.color_picker import show_color_picker
+from ui.file_properties_dialog import show_file_properties_dialog
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
 import codecs
@@ -534,6 +535,7 @@ def create_menu(root):
 
     # 创建文件菜单
     file_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+    root.file_menu = file_menu  # 保存文件菜单对象
 
     # 第一组：基本文件操作
     file_menu.add_command(
@@ -627,6 +629,16 @@ def create_menu(root):
         command=lambda: root.open_containing_folder(),
         accelerator="Ctrl+E",
     )
+
+    # 文件属性选项
+    file_menu.add_command(
+        label="文件属性",
+        command=lambda: show_file_properties_dialog(root, root.current_file_path),
+        accelerator="Ctrl+I",
+    )
+    # 获取文件属性菜单项索引，用于后续更新状态
+    root.file_properties_menu_index = file_menu.index(tk.END)
+
     file_menu.add_checkbutton(
         label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
     )
@@ -1007,10 +1019,12 @@ def create_menu(root):
     theme_menu.add_command(
         label="字体", command=lambda: show_font_dialog(root), accelerator="Ctrl+T"
     )
-    
+
     # 背景色
     theme_menu.add_command(
-        label="背景色", command=lambda: set_text_background_color(root), accelerator="Ctrl+Shift+B"
+        label="背景色",
+        command=lambda: set_text_background_color(root),
+        accelerator="Ctrl+Shift+B",
     )
     theme_menu.add_separator()
 
@@ -1583,17 +1597,19 @@ def set_text_background_color(root):
     """
     # 获取当前背景色
     current_color = config_manager.get("text_editor.bg_color", "#F5F5F5")
-    
+
     # 显示颜色选择器对话框
     selected_color = show_color_picker(root, current_color)
-    
+
     if selected_color:
         # 保存配置
         config_manager.set("text_editor.bg_color", selected_color)
         config_manager.save_config()
-        
+
         # 应用到文本编辑器
         root.text_area.configure(fg_color=selected_color)
-        
+
         # 显示通知
-        root.status_bar.show_notification(f"文本编辑器背景色已设置为: {selected_color}", 500)
+        root.status_bar.show_notification(
+            f"文本编辑器背景色已设置为: {selected_color}", 500
+        )

@@ -16,6 +16,7 @@ from .file_operations import FileOperations
 from .file_watcher import FileWatcher
 from syntax_highlighter import SyntaxHighlighter
 from ui.line_number_canvas import LineNumberCanvas
+from ui.file_properties_dialog import update_file_properties_menu_state
 
 
 class AppInitializer:
@@ -104,6 +105,12 @@ class AppInitializer:
         self.app.is_read_only = config_manager.get(
             "text_editor.read_only", False
         )  # 是否为只读模式
+
+        # 初始化文件属性菜单项索引，用于更新菜单项状态
+        self.app.file_properties_menu_index = None
+
+        # 初始化文件菜单对象引用
+        self.app.file_menu = None
 
     def init_menu_variables(self):
         """初始化菜单状态变量"""
@@ -221,7 +228,9 @@ class AppInitializer:
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
             activate_scrollbars=True,  # 启用内置滚动条
-            fg_color=config_manager.get("text_editor.bg_color", "#F5F5F5"),  # 背景色设置
+            fg_color=config_manager.get(
+                "text_editor.bg_color", "#F5F5F5"
+            ),  # 背景色设置
         )
 
         # 设置初始滚动条检查更新显示时间为50毫秒
@@ -329,3 +338,7 @@ class AppInitializer:
         # 更新重新打开菜单状态（初始状态下没有打开文件，应该禁用）
         if self.app.reopen_file_menu is not None:
             self.app.reopen_file_menu.update_menu_state()
+
+        if self.app.file_menu is not None:
+            # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
+            update_file_properties_menu_state(self.app)

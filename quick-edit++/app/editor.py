@@ -29,6 +29,7 @@ from syntax_highlighter import SyntaxHighlighter
 from ui.menu import toggle_syntax_highlight
 from ui.font_dialog import show_font_dialog
 from ui.menu import set_text_background_color
+from ui.file_properties_dialog import show_file_properties_dialog
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -157,7 +158,15 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
 
         # 背景色设置快捷键
-        self.bind("<Control-Shift-B>", lambda e: set_text_background_color(self))  # 设置文本背景色
+        self.bind(
+            "<Control-Shift-B>", lambda e: set_text_background_color(self)
+        )  # 设置文本背景色
+
+        # 文件属性快捷键
+        self.bind(
+            "<Control-i>",
+            lambda e: show_file_properties_dialog(self, self.current_file_path),
+        )  # 显示文件属性
 
         # 语法高亮快捷键
         self.bind(
@@ -275,6 +284,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 检测Ctrl+O组合键，拦截底层行为，只执行我们的自定义实现
         if (event.state & 0x4) and (event.keysym == "o"):
             self.open_file()
+            return "break"
+
+        # 检测Ctrl+I组合键，拦截底层行为，只执行我们的自定义实现
+        if (event.state & 0x4) and (event.keysym == "i"):
+            show_file_properties_dialog(self, self.current_file_path)
             return "break"
 
     def _on_text_change(self, event=None):

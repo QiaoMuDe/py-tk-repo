@@ -12,6 +12,7 @@ from tkinter import filedialog, messagebox
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
+from ui.file_properties_dialog import update_file_properties_menu_state
 import shutil
 
 
@@ -331,6 +332,10 @@ class FileOperations:
         if self.root.reopen_file_menu is not None:
             self.root.reopen_file_menu.update_menu_state()
 
+        # 更新文件属性菜单状态
+        if self.root.file_menu is not None:
+            update_file_properties_menu_state(self.root)
+
     def _handle_backup_on_close(self, file_saved):
         """
         在关闭窗口或关闭文件时处理备份文件的辅助方法
@@ -572,6 +577,10 @@ class FileOperations:
                     # 更新重新打开菜单状态
                     if self.root.reopen_file_menu is not None:
                         self.root.reopen_file_menu.update_menu_state()
+
+                    # 更新文件属性菜单状态
+                    if self.root.file_menu is not None:
+                        update_file_properties_menu_state(self.root)
 
                     return True
 

@@ -32,10 +32,14 @@ class LineNumberCanvas(ctk.CTkCanvas):
         self.line_number_font = font.Font(family=self.font_family, size=self.font_size)
 
         # 设置文本颜色
-        self.text_color = config_manager.get("text_editor.line_number_font_color", "#2b91af")
+        self.text_color = config_manager.get(
+            "text_editor.line_number_font_color", "#2b91af"
+        )
 
         # 设置背景颜色
-        self.bg_color = config_manager.get("text_editor.line_number_bg_color", "#f0f0f0")
+        self.bg_color = config_manager.get(
+            "text_editor.line_number_bg_color", "#f0f0f0"
+        )
 
         # 设置数字的容纳额外空间
         self.number_padding = 45

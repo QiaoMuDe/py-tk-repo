@@ -2057,7 +2057,7 @@ func (s *StructName) IsValid() bool {
         """插入HEX颜色代码选择器"""
         # 显示颜色选择器对话框
         color_code = show_color_picker(self)
-        
+
         # 如果用户选择了颜色，则插入颜色代码
         if color_code:
             self.insert_color_code("HEX颜色代码", color_code)
