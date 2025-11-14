@@ -146,15 +146,21 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
             # 获取可见区域的第一行和最后一行
             first_visible = int(self.text_widget.index("@0,0").split(".")[0])
-            last_visible = int(
-                self.text_widget.index(f"@0,{self.text_widget.winfo_height()}").split(
-                    "."
-                )[0]
-            )
+            
+            # 计算可见区域的最后一行，考虑文本框高度
+            try:
+                # 获取文本框的高度
+                text_height = self.text_widget.winfo_height()
+                # 获取最后一行的索引
+                last_visible_index = self.text_widget.index(f"@0,{text_height}")
+                last_visible = int(last_visible_index.split(".")[0])
+            except:
+                # 如果计算失败，使用默认值
+                last_visible = first_visible + 50  # 默认显示50行
 
             # 确保范围有效
             first_visible = max(1, first_visible)
-            last_visible = min(total_lines, last_visible + 1)
+            last_visible = min(total_lines, last_visible)
 
             # 计算行号区域宽度 (根据行号位数动态调整宽度)
             # 只有当行数发生变化时才重新计算宽度
@@ -189,6 +195,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 # 开始绘制
                 y_pos = dlineinfo[1]  # y坐标
                 line_height = dlineinfo[3]  # 行高
+                
                 # 创建行号背景矩形（默认透明，鼠标悬浮时会使用悬浮颜色）
                 self.create_rectangle(
                     0,
@@ -201,12 +208,13 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 )
 
                 # 计算行号中心位置（垂直居中）
-                y_center = y_pos + line_height // 2 + 11
+                # 使用文本的基线位置来对齐行号，确保与文本行完全对齐
+                text_baseline = y_pos + line_height // 2 + 10  # 微调位置，使行号与文本对齐
 
-                # 在行号区域绘制行号，增加12像素的垂直偏移确保第一行完整显示
+                # 在行号区域绘制行号
                 self.create_text(
                     line_number_width - 5,
-                    y_center,  # x, y坐标，增加12像素垂直偏移
+                    text_baseline,  # x, y坐标，使用基线位置
                     text=str(i),
                     font=current_font,
                     fill=self.text_color,
