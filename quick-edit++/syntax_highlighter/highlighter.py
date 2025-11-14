@@ -241,17 +241,21 @@ class SyntaxHighlighter:
 
         # 滚动事件 - 仅在只渲染可见行模式下需要
         if self.render_visible_only:
-            self.text_widget.bind("<Configure>", self._handle_event, add="+")
-            self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")
+            self.text_widget.bind("<Configure>", self._handle_event, add="+") # 窗口大小变化时触发
+            self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")  # 鼠标滚轮滚动时触发
             # 添加滚动条命令绑定，确保拖动滚动条时也能更新高亮
 
         # 键盘事件 - 只绑定释放事件，减少触发频率
         self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
 
+        # 建议添加的事件绑定
+        self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
+        self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
+
         # 鼠标事件 - 检测鼠标点击和选择
-        self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
+        #self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
         # 添加选择变化事件，只在选择完成后触发
-        self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
+        #self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
 
     def register_language(self, extension: str, handler):
         """
