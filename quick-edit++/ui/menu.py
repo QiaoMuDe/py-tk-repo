@@ -1102,6 +1102,13 @@ def create_menu(root):
         command=lambda: toggle_toolbar_visibility(root),
         variable=root.toolbar_var,
     )
+    
+    # 行号显示设置
+    settings_menu.add_checkbutton(
+        label="显示行号",
+        command=lambda: toggle_line_numbers(root),
+        variable=root.line_numbers_var,
+    )
 
     # 全屏模式设置
     settings_menu.add_checkbutton(
@@ -1548,3 +1555,23 @@ def set_syntax_highlight_mode(mode: bool, root):
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
     messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}")
+
+def toggle_line_numbers(root):
+    """
+    切换行号显示状态
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前行号显示状态（此时Checkbutton已经自动切换了值）
+    current_state = root.line_numbers_var.get()
+
+    # 保存配置
+    config_manager.set("text_editor.show_line_numbers", current_state)
+    config_manager.save_config()
+
+    # 控制行号侧边栏的显示和隐藏
+    root.line_number_canvas.toggle_visibility(current_state)
+
+    # 显示通知
+    messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")
