@@ -44,6 +44,7 @@ from .handlers.java_handler import JavaHandler
 from .handlers.rust_handler import RustHandler
 from .handlers.php_handler import PHPHandler
 from .handlers.cpp_handler import CppHandler
+from .handlers.csv_handler import CSVHandler
 from .handlers.auto_handler import AutoHandler
 
 
@@ -212,6 +213,11 @@ class SyntaxHighlighter:
         for ext in cpp_handler.get_file_extensions():
             self.register_language(ext, cpp_handler)
 
+        # 注册CSV处理器
+        csv_handler = CSVHandler()
+        for ext in csv_handler.get_file_extensions():
+            self.register_language(ext, csv_handler)
+
         # 注册自动处理器 - 作为默认处理器
         auto_handler = AutoHandler()
         self.auto_handler = auto_handler  # 保存引用以便后续使用
@@ -230,22 +236,22 @@ class SyntaxHighlighter:
     def _bind_events(self):
         """绑定Text组件事件"""
         # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
-        self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
+        # 注释掉，因为频繁触发会导致性能问题
+        # self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
 
-        # 滚动事件 - 仅在只渲染可见行模式下需要，使用add='+'参数避免覆盖editor中的事件绑定
+        # 滚动事件 - 仅在只渲染可见行模式下需要
         if self.render_visible_only:
             self.text_widget.bind("<Configure>", self._handle_event, add="+")
             self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")
             # 添加滚动条命令绑定，确保拖动滚动条时也能更新高亮
 
-        # 键盘事件 - 检测按键输入，使用add='+'参数避免覆盖editor中的事件绑定
-        self.text_widget.bind("<Key>", self._handle_event, add="+")
+        # 键盘事件 - 只绑定释放事件，减少触发频率
+        self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
 
-        # 鼠标事件 - 检测鼠标点击和选择，使用add='+'参数避免覆盖editor中的事件绑定
+        # 鼠标事件 - 检测鼠标点击和选择
         self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
-        self.text_widget.bind(
-            "<ButtonRelease-1>", self._handle_event, add="+"
-        )  # 左键释放
+        # 添加选择变化事件，只在选择完成后触发
+        self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
 
     def register_language(self, extension: str, handler):
         """
@@ -334,13 +340,14 @@ class SyntaxHighlighter:
         执行语法高亮
 
         Args:
-            file_path: 文件路径，如果为None则使用当前设置的语言
+            file_path: 文件路径，如果为None则使用当前设置的文件路径
         """
         if not self.highlight_enabled:
             return
 
-        # 设置语言
+        # 更新当前文件路径
         if file_path:
+            # 设置语言
             self.set_language(file_path)
 
         # 如果没有语言处理器，则不进行高亮
@@ -558,7 +565,7 @@ class SyntaxHighlighter:
         # 重新高亮
         self.highlight()
 
-    def set_enabled(self, enabled: bool):
+    def set_enabled(self, enabled: bool, file_path: Optional[str] = None):
         """
         设置是否启用语法高亮
 
@@ -569,7 +576,12 @@ class SyntaxHighlighter:
         if not enabled:
             self.clear_highlight()  # 如果禁用，则清除高亮
         else:
-            self.highlight()  # 如果启用，则重新高亮
+            # 如果启用，则重新高亮，使用当前文件路径
+            if file_path:
+                self.highlight(file_path)
+            elif self.current_language:
+                # 如果有当前语言但没有文件路径，也尝试高亮
+                self.highlight()
 
     def is_enabled(self) -> bool:
         """

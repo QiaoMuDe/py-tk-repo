@@ -33,6 +33,7 @@ from .java_handler import JavaHandler
 from .rust_handler import RustHandler
 from .php_handler import PHPHandler
 from .cpp_handler import CppHandler
+from .csv_handler import CSVHandler
 
 # 导出所有可用的语言处理器
 __all__ = [
@@ -62,4 +63,5 @@ __all__ = [
     "RustHandler",
     "PHPHandler",
     "CppHandler",
+    "CSVHandler",
 ]

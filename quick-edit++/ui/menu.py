@@ -1520,7 +1520,7 @@ def toggle_syntax_highlight(root):
     config_manager.save_config()
 
     # 应用设置到语法高亮管理器
-    root.syntax_highlighter.set_enabled(new_state)
+    root.syntax_highlighter.set_enabled(new_state, root.current_file_path)
 
     # 显示通知
     root.status_bar.show_notification(
@@ -1542,7 +1542,7 @@ def toggle_syntax_highlight_menu(root):
     config_manager.save_config()
 
     # 应用设置到语法高亮管理器
-    root.syntax_highlighter.set_enabled(new_state)
+    root.syntax_highlighter.set_enabled(new_state, root.current_file_path)
 
     # 显示通知
     messagebox.showinfo("通知", f"语法高亮已{'启用' if new_state else '禁用'}")
@@ -1561,6 +1561,10 @@ def set_syntax_highlight_mode(mode: bool, root):
 
     # 应用设置到语法高亮管理器
     root.syntax_highlighter.set_render_mode(mode)
+    
+    # 应用到当前打开的文件
+    if root.current_file_path:
+        root.syntax_highlighter.apply_highlighting(root.current_file_path)
 
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
