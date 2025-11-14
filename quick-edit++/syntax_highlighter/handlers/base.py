@@ -9,6 +9,7 @@
 
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any
+import re
 
 
 class LanguageHandler(ABC):
@@ -25,8 +26,11 @@ class LanguageHandler(ABC):
         """初始化语言处理器"""
         self._keywords = []
         self._regex_patterns = {}
+        self._compiled_patterns = {}  # 存储预编译的正则表达式
         self._tag_styles = {}
         self._setup_language()
+        # 预编译所有正则表达式
+        self._compile_patterns()
 
     @abstractmethod
     def _setup_language(self):
@@ -39,6 +43,16 @@ class LanguageHandler(ABC):
         - 标签样式
         """
         pass
+
+    def _compile_patterns(self):
+        """预编译所有正则表达式模式"""
+        for name, pattern in self._regex_patterns.items():
+            try:
+                self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
+            except re.error as e:
+                print(f"警告: 正则表达式 '{name}' 编译失败: {e}")
+                # 如果编译失败，使用原始模式
+                self._compiled_patterns[name] = pattern
 
     def get_keywords(self) -> List[str]:
         """
@@ -57,6 +71,15 @@ class LanguageHandler(ABC):
             Dict[str, str]: 标签名到正则表达式的映射
         """
         return self._regex_patterns
+
+    def get_compiled_patterns(self) -> Dict[str, Any]:
+        """
+        获取预编译的正则表达式字典
+
+        Returns:
+            Dict[str, Any]: 标签名到预编译正则表达式的映射
+        """
+        return self._compiled_patterns
 
     def get_tag_styles(self) -> Dict[str, Dict[str, Any]]:
         """

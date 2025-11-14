@@ -90,136 +90,163 @@ class SyntaxHighlighter:
         """注册默认的语言处理器"""
         # 注册Python处理器
         python_handler = PythonHandler()
+        python_handler._compile_patterns()  # 预编译正则表达式
         for ext in python_handler.get_file_extensions():
             self.register_language(ext, python_handler)
 
         # 注册JSON处理器
         json_handler = JSONHandler()
+        json_handler._compile_patterns()  # 预编译正则表达式
         for ext in json_handler.get_file_extensions():
             self.register_language(ext, json_handler)
 
         # 注册INI/TOML处理器
         ini_toml_handler = IniTomlHandler()
+        ini_toml_handler._compile_patterns()  # 预编译正则表达式
         for ext in ini_toml_handler.get_file_extensions():
             self.register_language(ext, ini_toml_handler)
 
         # 注册YAML处理器
         yaml_handler = YAMLHandler()
+        yaml_handler._compile_patterns()  # 预编译正则表达式
         for ext in yaml_handler.get_file_extensions():
             self.register_language(ext, yaml_handler)
 
         # 注册Bash处理器
         bash_handler = BashHandler()
+        bash_handler._compile_patterns()  # 预编译正则表达式
         for ext in bash_handler.get_file_extensions():
             self.register_language(ext, bash_handler)
 
         # 注册Bat处理器
         bat_handler = BatHandler()
+        bat_handler._compile_patterns()  # 预编译正则表达式
         for ext in bat_handler.get_file_extensions():
             self.register_language(ext, bat_handler)
 
         # 注册PowerShell处理器
         powershell_handler = PowerShellHandler()
+        powershell_handler._compile_patterns()  # 预编译正则表达式
         for ext in powershell_handler.file_extensions:
             self.register_language(ext, powershell_handler)
 
         # 注册SQL处理器
         sql_handler = SQLHandler()
+        sql_handler._compile_patterns()  # 预编译正则表达式
         for ext in sql_handler.file_extensions:
             self.register_language(ext, sql_handler)
 
         # 注册HTML处理器
         html_handler = HTMLHandler()
+        html_handler._compile_patterns()  # 预编译正则表达式
         for ext in html_handler.get_file_extensions():
             self.register_language(ext, html_handler)
 
         # 注册XML处理器
         xml_handler = XMLHandler()
+        xml_handler._compile_patterns()  # 预编译正则表达式
         for ext in xml_handler.get_file_extensions():
             self.register_language(ext, xml_handler)
 
         # 注册CSS处理器
         css_handler = CSSHandler()
+        css_handler._compile_patterns()  # 预编译正则表达式
         for ext in css_handler.get_file_extensions():
             self.register_language(ext, css_handler)
 
         # 注册JavaScript处理器
         javascript_handler = JavaScriptHandler()
+        javascript_handler._compile_patterns()  # 预编译正则表达式
         for ext in javascript_handler.get_file_extensions():
             self.register_language(ext, javascript_handler)
 
         # 注册TypeScript处理器
         typescript_handler = TypeScriptHandler()
+        typescript_handler._compile_patterns()  # 预编译正则表达式
         for ext in typescript_handler.get_file_extensions():
             self.register_language(ext, typescript_handler)
 
         # 注册Go处理器
         go_handler = GoHandler()
+        go_handler._compile_patterns()  # 预编译正则表达式
         for ext in go_handler.get_file_extensions():
             self.register_language(ext, go_handler)
 
         # 注册Markdown处理器
         markdown_handler = MarkdownHandler()
+        markdown_handler._compile_patterns()  # 预编译正则表达式
         for ext in markdown_handler.file_extensions:
             self.register_language(ext, markdown_handler)
 
         # 注册Dockerfile处理器（特殊文件名）
         dockerfile_handler = DockerfileHandler()
+        dockerfile_handler._compile_patterns()  # 预编译正则表达式
         for ext in dockerfile_handler.get_file_extensions():
             self.register_special_file(ext, dockerfile_handler)
 
         # 注册Makefile处理器
         makefile_handler = MakefileHandler()
+        makefile_handler._compile_patterns()  # 预编译正则表达式
         for ext in makefile_handler.get_file_extensions():
             self.register_special_file(ext, makefile_handler)
 
         # 注册Env处理器
         env_handler = EnvHandler()
+        env_handler._compile_patterns()  # 预编译正则表达式
         for ext in env_handler.get_file_extensions():
             self.register_language(ext, env_handler)
 
         # 注册GitIgnore处理器
         gitignore_handler = GitIgnoreHandler()
+        gitignore_handler._compile_patterns()  # 预编译正则表达式
         for ext in gitignore_handler.get_file_extensions():
             self.register_special_file(ext, gitignore_handler)
 
         # 注册Log处理器
         log_handler = LogHandler()
+        log_handler._compile_patterns()  # 预编译正则表达式
         for ext in log_handler.get_file_extensions():
             self.register_language(ext, log_handler)
 
         # 注册Lua处理器
         lua_handler = LuaHandler()
+        lua_handler._compile_patterns()  # 预编译正则表达式
         for ext in lua_handler.get_file_extensions():
             self.register_language(ext, lua_handler)
 
         # 注册Java处理器
         java_handler = JavaHandler()
+        java_handler._compile_patterns()  # 预编译正则表达式
         for ext in java_handler.get_file_extensions():
             self.register_language(ext, java_handler)
 
         # 注册Rust处理器
         rust_handler = RustHandler()
+        rust_handler._compile_patterns()  # 预编译正则表达式
         for ext in rust_handler.get_file_extensions():
             self.register_language(ext, rust_handler)
 
         # 注册PHP处理器
         php_handler = PHPHandler()
+        php_handler._compile_patterns()  # 预编译正则表达式
         for ext in php_handler.get_file_extensions():
             self.register_language(ext, php_handler)
 
         # 注册C++处理器
         cpp_handler = CppHandler()
+        cpp_handler._compile_patterns()  # 预编译正则表达式
         for ext in cpp_handler.get_file_extensions():
             self.register_language(ext, cpp_handler)
 
         # 注册CSV处理器
         csv_handler = CSVHandler()
+        csv_handler._compile_patterns()  # 预编译正则表达式
         for ext in csv_handler.get_file_extensions():
             self.register_language(ext, csv_handler)
 
         # 注册自动处理器 - 作为默认处理器
         auto_handler = AutoHandler()
+        auto_handler._compile_patterns()  # 预编译正则表达式
         self.auto_handler = auto_handler  # 保存引用以便后续使用
 
     def register_language_handler(self, handler_class):
@@ -241,8 +268,12 @@ class SyntaxHighlighter:
 
         # 滚动事件 - 仅在只渲染可见行模式下需要
         if self.render_visible_only:
-            self.text_widget.bind("<Configure>", self._handle_event, add="+") # 窗口大小变化时触发
-            self.text_widget.bind("<MouseWheel>", self._handle_event, add="+")  # 鼠标滚轮滚动时触发
+            self.text_widget.bind(
+                "<Configure>", self._handle_event, add="+"
+            )  # 窗口大小变化时触发
+            self.text_widget.bind(
+                "<MouseWheel>", self._handle_event, add="+"
+            )  # 鼠标滚轮滚动时触发
             # 添加滚动条命令绑定，确保拖动滚动条时也能更新高亮
 
         # 键盘事件 - 只绑定释放事件，减少触发频率
@@ -253,9 +284,9 @@ class SyntaxHighlighter:
         self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
 
         # 鼠标事件 - 检测鼠标点击和选择
-        #self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
+        # self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
         # 添加选择变化事件，只在选择完成后触发
-        #self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
+        # self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
 
     def register_language(self, extension: str, handler):
         """
@@ -265,6 +296,10 @@ class SyntaxHighlighter:
             extension: 文件扩展名，如".py"
             handler: 语言处理器实例
         """
+        # 确保处理器已初始化（预编译正则表达式）
+        if hasattr(handler, "_compile_patterns"):
+            handler._compile_patterns()
+
         self.language_handlers[extension.lower()] = handler
 
     def register_special_file(self, filename: str, handler):
@@ -275,6 +310,10 @@ class SyntaxHighlighter:
             filename: 文件名，如"Dockerfile", "Makefile"等
             handler: 语言处理器实例
         """
+        # 确保处理器已初始化（预编译正则表达式）
+        if hasattr(handler, "_compile_patterns"):
+            handler._compile_patterns()
+
         self.language_handlers[filename] = handler
 
     def detect_language(self, file_path: Optional[str] = None) -> Optional[str]:
@@ -406,9 +445,6 @@ class SyntaxHighlighter:
 
     def _highlight_visible_lines_with_handler(self, handler):
         """使用指定处理器高亮当前可见的行"""
-        # 清除现有高亮
-        self.clear_highlight()
-
         # 获取可见行范围
         first_visible = self.text_widget.index("@0,0")
         last_visible = self.text_widget.index("@0,10000")
@@ -430,8 +466,15 @@ class SyntaxHighlighter:
         if (last_line - first_line) > max_lines:
             last_line = first_line + max_lines
 
+        # 计算清除和添加高亮的范围
+        start_index = f"{first_line}.0"
+        end_index = f"{last_line}.0"
+
+        # 只清除可见行范围的高亮
+        self.clear_highlight(start_index, end_index)
+
         # 高亮指定范围
-        self._highlight_range_with_handler(f"{first_line}.0", f"{last_line}.0", handler)
+        self._highlight_range_with_handler(start_index, end_index, handler)
 
     def _highlight_full_document(self):
         """高亮整个文档（受max_lines_per_highlight限制）"""
@@ -441,8 +484,8 @@ class SyntaxHighlighter:
 
     def _highlight_full_document_with_handler(self, handler):
         """使用指定处理器高亮整个文档（受max_lines_per_highlight限制）"""
-        # 清除现有高亮
-        self.clear_highlight()
+        # 清除整个文档的高亮
+        self.clear_highlight("1.0", "end")
 
         # 获取文档总行数，使用end确保获取实际行数
         total_lines = int(self.text_widget.index("end").split(".")[0])
@@ -480,7 +523,8 @@ class SyntaxHighlighter:
         if not handler:
             return
 
-        patterns = handler.get_regex_patterns()
+        # 获取预编译的正则表达式模式
+        compiled_patterns = handler.get_compiled_patterns()
 
         # 获取文本内容
         try:
@@ -490,17 +534,35 @@ class SyntaxHighlighter:
             return
 
         # 对每种模式进行匹配和高亮
-        for tag_name, pattern in patterns.items():
+        for tag_name, compiled_pattern in compiled_patterns.items():
             full_tag_name = f"syntax_{tag_name}"
 
-            # 使用正则表达式查找所有匹配项
-            for match in re.finditer(pattern, text_content, re.MULTILINE):
-                # 计算匹配项在Text组件中的位置
-                start_pos = self._get_text_position(start_index, match.start())
-                end_pos = self._get_text_position(start_index, match.end())
+            # 使用预编译的正则表达式查找所有匹配项
+            try:
+                # 如果是预编译的正则表达式对象
+                if hasattr(compiled_pattern, "finditer"):
+                    for match in compiled_pattern.finditer(text_content):
+                        # 计算匹配项在Text组件中的位置
+                        start_pos = self._get_text_position(start_index, match.start())
+                        end_pos = self._get_text_position(start_index, match.end())
 
-                # 应用标签
-                self.text_widget.tag_add(full_tag_name, start_pos, end_pos)
+                        # 应用标签
+                        self.text_widget.tag_add(full_tag_name, start_pos, end_pos)
+                else:
+                    # 如果是原始字符串模式（编译失败的情况）
+                    for match in re.finditer(
+                        compiled_pattern, text_content, re.MULTILINE
+                    ):
+                        # 计算匹配项在Text组件中的位置
+                        start_pos = self._get_text_position(start_index, match.start())
+                        end_pos = self._get_text_position(start_index, match.end())
+
+                        # 应用标签
+                        self.text_widget.tag_add(full_tag_name, start_pos, end_pos)
+            except Exception as e:
+                # 如果匹配过程中出错，跳过该模式
+                print(f"警告: 正则匹配 '{tag_name}' 时出错: {e}")
+                continue
 
     def _get_text_position(self, base_index: str, offset: int) -> str:
         """
@@ -515,18 +577,50 @@ class SyntaxHighlighter:
         """
         return f"{base_index}+{offset}c"
 
-    def clear_highlight(self):
-        """清除所有语法高亮"""
+    def clear_highlight(self, start_index=None, end_index=None):
+        """
+        清除语法高亮，根据当前模式决定清除范围
+
+        Args:
+            start_index: 起始索引，如果为None则根据模式自动确定
+            end_index: 结束索引，如果为None则根据模式自动确定
+        """
         # 获取Text组件中的所有标签
         all_tags = self.text_widget.tag_names()
 
-        # 移除所有以"syntax_"开头的标签的应用
+        # 根据模式确定清除范围
+        if start_index is None or end_index is None:
+            if self.render_visible_only:
+                # 可见行模式：只清除可见区域的高亮
+                first_visible = self.text_widget.index("@0,0")
+                last_visible = self.text_widget.index("@0,10000")
+
+                # 扩展范围以确保覆盖所有可见内容
+                first_line = int(first_visible.split(".")[0])
+                last_line = int(last_visible.split(".")[0]) + 1
+
+                # 确保范围有效
+                if first_line < 1:
+                    first_line = 1
+                total_lines = int(self.text_widget.index("end").split(".")[0])
+                if last_line > total_lines:
+                    last_line = total_lines
+
+                start_index = f"{first_line}.0"
+                end_index = f"{last_line}.0"
+            else:
+                # 全文档模式：清除整个文档的高亮
+                start_index = "1.0"
+                end_index = "end"
+
+        # 移除所有以"syntax_"开头的标签在指定范围内的应用
         for tag_name in all_tags:
             if tag_name.startswith("syntax_"):
-                self.text_widget.tag_remove(tag_name, "1.0", "end")
+                self.text_widget.tag_remove(tag_name, start_index, end_index)
 
-        # 清空标签集合
-        self._highlight_tags.clear()
+        # 如果是全文档清除，则清空标签集合
+        if start_index == "1.0" and end_index == "end":
+            self._highlight_tags.clear()
 
     def _handle_event(self, event=None):
         """
@@ -542,7 +636,7 @@ class SyntaxHighlighter:
         # 检查文本内容是否为空，如果为空则清除高亮并重置语言设置
         try:
             if self.app.get_char_count() == 0:
-                self.clear_highlight()
+                self.clear_highlight("1.0", "end")
                 self.current_language = None
                 self.current_file_extension = None
                 return
@@ -575,10 +669,12 @@ class SyntaxHighlighter:
 
         Args:
             enabled: 是否启用
+            file_path: 文件路径，如果为None则使用当前设置的语言
         """
         self.highlight_enabled = enabled
         if not enabled:
-            self.clear_highlight()  # 如果禁用，则清除高亮
+            # 如果禁用，则清除整个文档的高亮
+            self.clear_highlight("1.0", "end")
         else:
             # 如果启用，则重新高亮，使用当前文件路径
             if file_path:

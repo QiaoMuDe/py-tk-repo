@@ -23,13 +23,8 @@ class LineNumberCanvas(ctk.CTkCanvas):
 
         # 获取文本框字体配置
         text_editor_config = config_manager.get("text_editor", {})
-        self.font_family = text_editor_config.get("font", "Microsoft YaHei UI")
-        self.font_size = max(
-            8, text_editor_config.get("font_size", 15) - 2
-        )  # 字号减2，确保最小值为8
-
-        # 设置字体
-        self.line_number_font = font.Font(family=self.font_family, size=self.font_size)
+        font_family = text_editor_config.get("font", "Microsoft YaHei UI")
+        font_size = text_editor_config.get("font_size", 15)
 
         # 设置文本颜色
         self.text_color = config_manager.get(
@@ -41,9 +36,6 @@ class LineNumberCanvas(ctk.CTkCanvas):
             "text_editor.line_number_bg_color", "#f0f0f0"
         )
 
-        # 设置数字的容纳额外空间
-        self.number_padding = 45
-
         # 配置Canvas样式
         self.configure(
             bg=self.bg_color, highlightthickness=1, highlightbackground="#cccccc"
@@ -52,13 +44,46 @@ class LineNumberCanvas(ctk.CTkCanvas):
         # 初始化缓存属性
         self._cached_total_lines = None
         self._cached_line_number_width = width  # 初始化为传入的宽度
-        self._cached_font = None
+
+        # 使用统一的方法设置字体
+        self.set_font(font_family, font_size)
 
         # 调用set_text_widget来设置文本组件并绑定事件
         self.set_text_widget(text_widget)
 
         # 初始绘制示例行号
         self.parent.after(200, self.draw_line_numbers)
+
+    def set_font(self, font_family, font_size):
+        """
+        统一设置行号栏的字体和字体大小
+
+        Args:
+            font_family (str): 字体名称
+            font_size (int): 字体大小
+        """
+        # 设置字体属性，内部自动将字体大小减3
+        self.font_family = font_family
+        self.font_size = max(8, font_size - 3)  # 确保最小值为8
+
+        # 创建新的字体对象
+        self.line_number_font = font.Font(family=self.font_family, size=self.font_size)
+
+        # 清除缓存，强制重新计算行号宽度
+        self._cached_total_lines = None
+
+        # 重新绘制行号
+        self.draw_line_numbers()
+
+    def update_font(self, font_family, font_size):
+        """
+        更新行号栏字体（供外部调用）
+
+        Args:
+            font_family (str): 字体名称
+            font_size (int): 字体大小
+        """
+        self.set_font(font_family, font_size)
 
     def set_text_widget(self, text_widget):
         """设置关联的文本编辑组件并绑定必要的事件"""
@@ -194,12 +219,13 @@ class LineNumberCanvas(ctk.CTkCanvas):
             # 只有当行数发生变化时才重新计算宽度
             if self._cached_total_lines != total_lines:
                 max_line_number = total_lines
-                # 根据行号位数计算宽度：增加每数字宽度和额外空间确保行号能完整显示
+                # 根据行号位数计算宽度：数字宽度 + 固定边距
                 digits = len(str(max_line_number))
-                # 进一步增加每数字宽度系数，为更多位数的行号提供足够空间
-                line_number_width = max(
-                    60, digits * 25 + self.number_padding
-                )  # 大幅增加系数和边距
+                # 数字宽度：每个数字约占字体大小的60%宽度
+                # 行号栏总宽度 = 数字宽度 + 左边距 + 右边距
+                digit_width = int(self.font_size * 0.6)
+                line_number_width = digits * digit_width * 2.5 + 30  # 左右边距
+
                 # 调用update_width方法设置宽度
                 self.update_width(line_number_width)
                 # 更新行总数缓存
@@ -207,11 +233,6 @@ class LineNumberCanvas(ctk.CTkCanvas):
             else:
                 # 获取缓存的宽度
                 line_number_width = self._cached_line_number_width
-
-            # 设置字体 (如果字体发生变化则更新)
-            current_font = (self.font_family, self.font_size - 3)
-            if self._cached_font != current_font:
-                self._cached_font = current_font
 
             # 绘制可见区域的行号
             for i in range(first_visible, last_visible + 1):
@@ -248,7 +269,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                     line_number_width - 5,
                     text_baseline,  # x, y坐标，使用基线位置
                     text=str(i),
-                    font=current_font,
+                    font=self.line_number_font,
                     fill=self.text_color,
                     anchor="e",  # 右对齐
                     tags=("line_number", f"line_{i}"),
