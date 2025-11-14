@@ -26,6 +26,7 @@ from app.auto_save_manager import AutoSaveManager
 from app.edit_operations import EditOperations
 from app.selection_operations import SelectionOperations
 from syntax_highlighter import SyntaxHighlighter
+from ui.menu import toggle_syntax_highlight
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -144,11 +145,14 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         )  # 查看配置
         self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
 
-        # 绑定帮助快捷键
+        # 帮助快捷键
         self.bind("<F1>", lambda e: show_about_dialog(self))  # 显示关于对话框
         self.bind(
             "<F2>", lambda e: show_document_stats_dialog(self)
         )  # 显示文档统计对话框
+        
+        # 语法高亮快捷键
+        self.bind("<Control-l>", lambda e: toggle_syntax_highlight(self))  # 切换语法高亮
 
         # 禁用默认的Ctrl+H行为 (退格)
         self.bind("<Control-h>", lambda e: "break")

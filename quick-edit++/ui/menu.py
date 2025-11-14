@@ -1155,6 +1155,7 @@ def create_menu(root):
         label="启用语法高亮",
         command=lambda: toggle_syntax_highlight(root),
         variable=root.syntax_highlight_var,
+        accelerator="Ctrl+L",
     )
 
     # 创建语法高亮模式子菜单
@@ -1514,18 +1515,20 @@ def toggle_syntax_highlight(root):
     Args:
         root: 主窗口实例，用于访问语法高亮管理器
     """
-    # 获取当前语法高亮状态
+    # 获取当前语法高亮状态并切换
     current_state = root.syntax_highlight_var.get()
+    new_state = not current_state
+    root.syntax_highlight_var.set(new_state)
 
     # 保存配置到配置管理器
-    config_manager.set("syntax_highlighter.enabled", current_state)
+    config_manager.set("syntax_highlighter.enabled", new_state)
     config_manager.save_config()
 
     # 应用设置到语法高亮管理器
-    root.syntax_highlighter.set_enabled(current_state)
+    root.syntax_highlighter.set_enabled(new_state)
 
     # 显示通知
-    messagebox.showinfo("通知", f"语法高亮已{'启用' if current_state else '禁用'}")
+    messagebox.showinfo("通知", f"语法高亮已{'启用' if new_state else '禁用'}")
 
 
 def set_syntax_highlight_mode(mode: bool, root):
