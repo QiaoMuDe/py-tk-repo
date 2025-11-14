@@ -1102,7 +1102,7 @@ def create_menu(root):
         command=lambda: toggle_toolbar_visibility(root),
         variable=root.toolbar_var,
     )
-    
+
     # 行号显示设置
     settings_menu.add_checkbutton(
         label="显示行号",
@@ -1160,7 +1160,7 @@ def create_menu(root):
     # 语法高亮设置
     settings_menu.add_checkbutton(
         label="启用语法高亮",
-        command=lambda: toggle_syntax_highlight(root),
+        command=lambda: toggle_syntax_highlight_menu(root),
         variable=root.syntax_highlight_var,
         accelerator="Ctrl+L",
     )
@@ -1517,7 +1517,7 @@ def set_window_title_mode(mode, root):
 
 
 def toggle_syntax_highlight(root):
-    """切换语法高亮的启用/禁用状态
+    """切换语法高亮的启用/禁用状态(用于快捷键)
 
     Args:
         root: 主窗口实例，用于访问语法高亮管理器
@@ -1526,6 +1526,28 @@ def toggle_syntax_highlight(root):
     current_state = root.syntax_highlight_var.get()
     new_state = not current_state
     root.syntax_highlight_var.set(new_state)
+
+    # 保存配置到配置管理器
+    config_manager.set("syntax_highlighter.enabled", new_state)
+    config_manager.save_config()
+
+    # 应用设置到语法高亮管理器
+    root.syntax_highlighter.set_enabled(new_state)
+
+    # 显示通知
+    root.status_bar.show_notification(
+        f"语法高亮已{'启用' if new_state else '禁用'}", 500
+    )
+
+
+def toggle_syntax_highlight_menu(root):
+    """切换语法高亮的启用/禁用状态(用于菜单栏)
+
+    Args:
+        root: 主窗口实例，用于访问语法高亮管理器
+    """
+    # 获取当前语法高亮状态（此时Checkbutton已经自动切换了值）
+    new_state = root.syntax_highlight_var.get()
 
     # 保存配置到配置管理器
     config_manager.set("syntax_highlighter.enabled", new_state)
@@ -1555,6 +1577,7 @@ def set_syntax_highlight_mode(mode: bool, root):
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
     messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}")
+
 
 def toggle_line_numbers(root):
     """
