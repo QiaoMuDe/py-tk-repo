@@ -221,6 +221,7 @@ class AppInitializer:
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
             activate_scrollbars=True,  # 启用内置滚动条
+            fg_color=config_manager.get("text_editor.bg_color", "#F5F5F5"),  # 背景色设置
         )
 
         # 设置初始滚动条检查更新显示时间为50毫秒
