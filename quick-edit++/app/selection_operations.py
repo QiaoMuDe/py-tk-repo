@@ -2001,12 +2001,12 @@ class SelectionOperations:
                 parsed = sqlparse.parse(selected_text)[0]
                 # 将关键字转换为大写
                 formatted_sql = sqlparse.format(
-                    str(parsed), 
-                    keyword_case='upper',
+                    str(parsed),
+                    keyword_case="upper",
                     identifier_case=None,
                     strip_comments=False,
                     reindent=False,
-                    indent_width=2
+                    indent_width=2,
                 )
             except Exception as e:
                 messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
@@ -2035,12 +2035,12 @@ class SelectionOperations:
                 parsed = sqlparse.parse(selected_text)[0]
                 # 将关键字转换为小写
                 formatted_sql = sqlparse.format(
-                    str(parsed), 
-                    keyword_case='lower',
+                    str(parsed),
+                    keyword_case="lower",
                     identifier_case=None,
                     strip_comments=False,
                     reindent=False,
-                    indent_width=2
+                    indent_width=2,
                 )
             except Exception as e:
                 messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
@@ -2069,12 +2069,12 @@ class SelectionOperations:
                 parsed = sqlparse.parse(selected_text)[0]
                 # 格式化SQL，关键字大写，添加缩进
                 formatted_sql = sqlparse.format(
-                    str(parsed), 
-                    keyword_case='upper',
+                    str(parsed),
+                    keyword_case="upper",
                     identifier_case=None,
                     strip_comments=False,
                     reindent=True,
-                    indent_width=2
+                    indent_width=2,
                 )
             except Exception as e:
                 messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
@@ -2103,12 +2103,12 @@ class SelectionOperations:
                 parsed = sqlparse.parse(selected_text)[0]
                 # 压缩SQL，移除多余空格和换行
                 formatted_sql = sqlparse.format(
-                    str(parsed), 
+                    str(parsed),
                     keyword_case=None,
                     identifier_case=None,
                     strip_comments=True,
                     reindent=False,
-                    strip_whitespace=True
+                    strip_whitespace=True,
                 )
             except Exception as e:
                 messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")

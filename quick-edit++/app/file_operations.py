@@ -326,7 +326,7 @@ class FileOperations:
         self.root._update_window_title()
 
         # 清除语法高亮
-        self.root.syntax_highlighter.clear_highlight()
+        self.root.syntax_highlighter.reset_highlighting()
 
         # 更新重新打开菜单状态
         if self.root.reopen_file_menu is not None:

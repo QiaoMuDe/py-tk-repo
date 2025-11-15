@@ -979,7 +979,7 @@ def create_menu(root):
     # 创建SQL格式化子菜单
     sql_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
     formatting_submenu.add_cascade(label="SQL", menu=sql_submenu)
-    
+
     # 添加SQL菜单项
     sql_submenu.add_command(label="关键字大写", command=lambda: root.format_sql_upper())
     sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())

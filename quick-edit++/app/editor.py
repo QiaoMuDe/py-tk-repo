@@ -30,6 +30,7 @@ from ui.menu import toggle_syntax_highlight
 from ui.font_dialog import show_font_dialog
 from ui.menu import set_text_background_color
 from ui.file_properties_dialog import show_file_properties_dialog
+import windnd as wd
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -59,8 +60,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         使用windnd库实现文件拖拽功能
         """
         try:
-            import windnd as wd
-
             # 注册拖拽目标，使用文件操作类的处理方法
             wd.hook_dropfiles(self, func=self.file_ops.handle_dropped_files)
 

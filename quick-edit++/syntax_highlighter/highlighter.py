@@ -263,8 +263,7 @@ class SyntaxHighlighter:
     def _bind_events(self):
         """绑定Text组件事件"""
         # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
-        # 注释掉，因为频繁触发会导致性能问题
-        # self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
+        self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
 
         # 滚动事件 - 仅在只渲染可见行模式下需要
         if self.render_visible_only:
@@ -383,15 +382,21 @@ class SyntaxHighlighter:
         执行语法高亮
 
         Args:
-            file_path: 文件路径，如果为None则使用当前设置的文件路径
+            file_path: 文件路径，如果为None则使用当前文件路径
         """
+        # 如果未启用高亮，则直接返回
         if not self.highlight_enabled:
             return
 
-        # 更新当前文件路径
-        if file_path:
-            # 设置语言
-            self.set_language(file_path)
+        # 确定要使用的文件路径
+        target_file_path = file_path or self.app.current_file_path
+
+        # 如果没有文件路径，则不进行高亮
+        if not target_file_path:
+            return
+
+        # 设置语言处理器
+        self.set_language(target_file_path)
 
         # 如果没有语言处理器，则不进行高亮
         if not self.current_language:
@@ -630,17 +635,7 @@ class SyntaxHighlighter:
             event: 事件对象
         """
         # 检查是否启用高亮
-        if not self.highlight_enabled:
-            return
-
-        # 检查文本内容是否为空，如果为空则清除高亮并重置语言设置
-        try:
-            if self.app.get_char_count() == 0:
-                self.clear_highlight("1.0", "end")
-                self.current_language = None
-                self.current_file_extension = None
-                return
-        except tk.TclError:
+        if not self.highlight_enabled and self.app.current_file_path is None:
             return
 
         # 检查当前语言
@@ -673,8 +668,8 @@ class SyntaxHighlighter:
         """
         self.highlight_enabled = enabled
         if not enabled:
-            # 如果禁用，则清除整个文档的高亮
-            self.clear_highlight("1.0", "end")
+            # 如果禁用，则重置高亮
+            self.reset_highlighting()
         else:
             # 如果启用，则重新高亮，使用当前文件路径
             if file_path:
@@ -709,3 +704,14 @@ class SyntaxHighlighter:
             file_path: 文件路径，如果为None则使用当前设置的语言
         """
         self.highlight(file_path)
+
+    def reset_highlighting(self):
+        """
+        重置语法高亮 - 用于文件操作时关闭文件时调用
+        """
+        try:
+            self.clear_highlight("1.0", "end")
+            self.current_language = None
+            self.current_file_extension = None
+        except Exception as e:
+            pass

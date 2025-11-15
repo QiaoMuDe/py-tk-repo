@@ -33,6 +33,8 @@ class EditOperations:
                 self._update_status_bar()
                 # 更新字符计数
                 self.update_char_count()
+                # 应用语法高亮
+                self.syntax_highlighter.apply_highlighting(self.current_file_path)
             else:
                 self.status_bar.show_notification("没有可撤销的操作", 500)
         except Exception as e:
@@ -48,6 +50,8 @@ class EditOperations:
                 self._update_status_bar()
                 # 更新字符计数
                 self.update_char_count()
+                # 应用语法高亮
+                self.syntax_highlighter.apply_highlighting(self.current_file_path)
             else:
                 self.status_bar.show_notification("没有可重做的操作", 500)
         except Exception as e:
