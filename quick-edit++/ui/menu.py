@@ -1384,21 +1384,11 @@ def create_selected_text_submenu(
     )
     text_processing_submenu.add_separator()
 
-    # 创建命名转换子菜单
-    naming_conversion_submenu = tk.Menu(
-        text_processing_submenu, tearoff=0, font=menu_font_tuple
-    )
-    text_processing_submenu.add_cascade(
-        label="命名转换", menu=naming_conversion_submenu
-    )
-
     # 创建基本转换子菜单
     basic_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
-        label="基本转换", menu=basic_conversion_submenu
-    )
+    text_processing_submenu.add_cascade(label="基本转换", menu=basic_conversion_submenu)
 
     # 添加基本转换菜单项
     basic_conversion_submenu.add_command(
@@ -1410,9 +1400,9 @@ def create_selected_text_submenu(
 
     # 创建扩展转换子菜单
     extended_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
+    text_processing_submenu.add_cascade(
         label="扩展转换", menu=extended_conversion_submenu
     )
 
@@ -1444,9 +1434,9 @@ def create_selected_text_submenu(
 
     # 创建大小写转换子菜单
     case_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
+    text_processing_submenu.add_cascade(
         label="大小写转换", menu=case_conversion_submenu
     )
 
@@ -1466,9 +1456,9 @@ def create_selected_text_submenu(
 
     # 创建分隔符转换子菜单
     separator_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
+    text_processing_submenu.add_cascade(
         label="分隔符转换", menu=separator_conversion_submenu
     )
 
@@ -1494,9 +1484,9 @@ def create_selected_text_submenu(
 
     # 创建编程规范子菜单
     programming_convention_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
+    text_processing_submenu.add_cascade(
         label="编程规范", menu=programming_convention_submenu
     )
 
@@ -1519,9 +1509,9 @@ def create_selected_text_submenu(
 
     # 创建数据库相关子菜单
     database_conversion_submenu = tk.Menu(
-        naming_conversion_submenu, tearoff=0, font=menu_font_tuple
+        text_processing_submenu, tearoff=0, font=menu_font_tuple
     )
-    naming_conversion_submenu.add_cascade(
+    text_processing_submenu.add_cascade(
         label="数据库相关", menu=database_conversion_submenu
     )
 
