@@ -14,6 +14,7 @@ import json
 import xml.dom.minidom as minidom
 import black
 from ruamel.yaml import YAML
+import sqlparse
 
 
 class SelectionOperations:
@@ -1983,3 +1984,139 @@ class SelectionOperations:
 
         except Exception as e:
             messagebox.showerror("错误", f"格式化YAML时出错: {str(e)}")
+
+    def format_sql_upper(self):
+        """
+        将SQL关键字转换为大写
+        """
+        if not self._check_editable_selection("SQL关键字大写"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 使用sqlparse解析SQL
+            try:
+                parsed = sqlparse.parse(selected_text)[0]
+                # 将关键字转换为大写
+                formatted_sql = sqlparse.format(
+                    str(parsed), 
+                    keyword_case='upper',
+                    identifier_case=None,
+                    strip_comments=False,
+                    reindent=False,
+                    indent_width=2
+                )
+            except Exception as e:
+                messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_sql)
+
+        except Exception as e:
+            messagebox.showerror("错误", f"SQL关键字大写时出错: {str(e)}")
+
+    def format_sql_lower(self):
+        """
+        将SQL关键字转换为小写
+        """
+        if not self._check_editable_selection("SQL关键字小写"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 使用sqlparse解析SQL
+            try:
+                parsed = sqlparse.parse(selected_text)[0]
+                # 将关键字转换为小写
+                formatted_sql = sqlparse.format(
+                    str(parsed), 
+                    keyword_case='lower',
+                    identifier_case=None,
+                    strip_comments=False,
+                    reindent=False,
+                    indent_width=2
+                )
+            except Exception as e:
+                messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_sql)
+
+        except Exception as e:
+            messagebox.showerror("错误", f"SQL关键字小写时出错: {str(e)}")
+
+    def format_sql(self):
+        """
+        格式化SQL语句，使其更易读
+        """
+        if not self._check_editable_selection("格式化SQL"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 使用sqlparse解析SQL
+            try:
+                parsed = sqlparse.parse(selected_text)[0]
+                # 格式化SQL，关键字大写，添加缩进
+                formatted_sql = sqlparse.format(
+                    str(parsed), 
+                    keyword_case='upper',
+                    identifier_case=None,
+                    strip_comments=False,
+                    reindent=True,
+                    indent_width=2
+                )
+            except Exception as e:
+                messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_sql)
+
+        except Exception as e:
+            messagebox.showerror("错误", f"格式化SQL时出错: {str(e)}")
+
+    def compress_sql(self):
+        """
+        压缩SQL语句，移除不必要的空白字符
+        """
+        if not self._check_editable_selection("压缩SQL"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 使用sqlparse解析SQL
+            try:
+                parsed = sqlparse.parse(selected_text)[0]
+                # 压缩SQL，移除多余空格和换行
+                formatted_sql = sqlparse.format(
+                    str(parsed), 
+                    keyword_case=None,
+                    identifier_case=None,
+                    strip_comments=True,
+                    reindent=False,
+                    strip_whitespace=True
+                )
+            except Exception as e:
+                messagebox.showerror("SQL解析错误", f"无效的SQL格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_sql)
+
+        except Exception as e:
+            messagebox.showerror("错误", f"压缩SQL时出错: {str(e)}")

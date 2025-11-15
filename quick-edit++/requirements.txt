@@ -166,4 +166,5 @@ WMI==1.5.1
 yarg==0.1.9
 yt-dlp==2025.1.26
 zipp==3.20.2
+sqlparse==0.5.3
 zstandard==0.25.0

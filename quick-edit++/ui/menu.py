@@ -976,6 +976,16 @@ def create_menu(root):
         label="格式化YAML", command=lambda: root.format_yaml()
     )
 
+    # 创建SQL格式化子菜单
+    sql_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="SQL", menu=sql_submenu)
+    
+    # 添加SQL菜单项
+    sql_submenu.add_command(label="关键字大写", command=lambda: root.format_sql_upper())
+    sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())
+    sql_submenu.add_command(label="格式化SQL", command=lambda: root.format_sql())
+    sql_submenu.add_command(label="压缩SQL", command=lambda: root.compress_sql())
+
     # 创建注释处理子菜单
     comment_processing_submenu = tk.Menu(
         selected_text_submenu, tearoff=0, font=menu_font_tuple
