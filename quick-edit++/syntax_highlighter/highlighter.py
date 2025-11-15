@@ -45,6 +45,7 @@ from .handlers.rust_handler import RustHandler
 from .handlers.php_handler import PHPHandler
 from .handlers.cpp_handler import CppHandler
 from .handlers.csv_handler import CSVHandler
+from .handlers.vim_handler import VimHandler
 from .handlers.auto_handler import AutoHandler
 
 
@@ -244,6 +245,16 @@ class SyntaxHighlighter:
         for ext in csv_handler.get_file_extensions():
             self.register_language(ext, csv_handler)
 
+        # 注册Vim处理器
+        vim_handler = VimHandler()
+        vim_handler._compile_patterns()  # 预编译正则表达式
+        for ext in vim_handler.get_file_extensions():
+            # 对于无扩展名的特殊文件名（如vimrc, gvimrc），使用register_special_file
+            if ext.startswith("."):
+                self.register_language(ext, vim_handler)
+            else:
+                self.register_special_file(ext, vim_handler)
+
         # 注册自动处理器 - 作为默认处理器
         auto_handler = AutoHandler()
         auto_handler._compile_patterns()  # 预编译正则表达式
@@ -262,30 +273,30 @@ class SyntaxHighlighter:
 
     def _bind_events(self):
         """绑定Text组件事件"""
-        # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
-        self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
-
-        # 滚动事件 - 仅在只渲染可见行模式下需要
+        # 根据渲染模式绑定不同的事件
         if self.render_visible_only:
+            # 可见行模式 - 需要响应滚动和编辑事件
+            # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
+            self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
+
+            # 滚动事件 - 仅在只渲染可见行模式下需要
             self.text_widget.bind(
                 "<Configure>", self._handle_event, add="+"
             )  # 窗口大小变化时触发
             self.text_widget.bind(
                 "<MouseWheel>", self._handle_event, add="+"
             )  # 鼠标滚轮滚动时触发
-            # 添加滚动条命令绑定，确保拖动滚动条时也能更新高亮
 
-        # 键盘事件 - 只绑定释放事件，减少触发频率
-        self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
+            # 键盘事件 - 只绑定释放事件，减少触发频率
+            self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
 
-        # 建议添加的事件绑定
-        self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
-        self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
-
-        # 鼠标事件 - 检测鼠标点击和选择
-        # self.text_widget.bind("<Button-1>", self._handle_event, add="+")  # 左键点击
-        # 添加选择变化事件，只在选择完成后触发
-        # self.text_widget.bind("<<Selection>>", self._handle_event, add="+")
+            # 建议添加的事件绑定
+            self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
+            self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
+        else:
+            # 全部渲染模式 - 不需要绑定实时更新事件
+            # 只保留文件操作时的高亮，不绑定任何实时事件
+            pass
 
     def register_language(self, extension: str, handler):
         """
