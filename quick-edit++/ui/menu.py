@@ -15,7 +15,6 @@ from ui.recent_files_menu import RecentFilesMenu
 from ui.reopen_file_menu import ReopenFileMenu
 from ui.color_picker import show_color_picker
 from ui.file_properties_dialog import show_file_properties_dialog
-from ui.code_snippet_manager import show_code_snippet_manager
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
 import codecs
@@ -979,13 +978,6 @@ def create_menu(root):
     # 创建工具菜单
     tool_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     main_menu.add_cascade(label="工具", menu=tool_menu)
-    
-    # 添加代码片段管理器
-    tool_menu.add_command(
-        label="代码片段管理器",
-        command=lambda: show_code_snippet_manager(root)
-    )
-    tool_menu.add_separator()
 
     # 创建选中内容处理菜单到工具菜单
     create_selected_text_submenu(tool_menu, root, menu_font_tuple, False)
