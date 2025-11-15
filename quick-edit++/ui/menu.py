@@ -639,6 +639,13 @@ def create_menu(root):
     # 获取文件属性菜单项索引，用于后续更新状态
     root.file_properties_menu_index = file_menu.index(tk.END)
 
+    # 创建文档统计信息
+    file_menu.add_command(
+        label="文档统计信息",
+        command=lambda: show_document_stats_dialog(root),
+        accelerator="F2",
+    )
+
     file_menu.add_checkbutton(
         label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
     )
@@ -977,11 +984,6 @@ def create_menu(root):
 
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    help_menu.add_command(
-        label="文档统计信息",
-        command=lambda: show_document_stats_dialog(root),
-        accelerator="F2",
-    )
     help_menu.add_command(
         label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
     )
