@@ -26,7 +26,7 @@ class TabSettingsDialog:
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
-        
+
         # 设置对话框样式
         style = ttk.Style()
         style.configure("TLabel", font=("Microsoft YaHei UI", 12, "bold"))
@@ -52,9 +52,7 @@ class TabSettingsDialog:
 
         # 标题标签
         title_label = ttk.Label(
-            main_frame,
-            text="制表符设置",
-            font=("Microsoft YaHei UI", 15, "bold")
+            main_frame, text="制表符设置", font=("Microsoft YaHei UI", 15, "bold")
         )
         title_label.pack(pady=(0, 20))
 
@@ -66,7 +64,9 @@ class TabSettingsDialog:
         width_frame = ttk.Frame(tab_width_frame)
         width_frame.pack(fill=tk.X)
 
-        ttk.Label(width_frame, text="制表符宽度 (2-8个字符):", style="TLabel").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(width_frame, text="制表符宽度 (2-8个字符):", style="TLabel").pack(
+            side=tk.LEFT, padx=(0, 10)
+        )
 
         # 宽度变量
         self.tab_width_var = tk.StringVar(value=str(self.current_tab_width))
@@ -77,7 +77,7 @@ class TabSettingsDialog:
             textvariable=self.tab_width_var,
             width=5,
             justify=tk.CENTER,
-            style="TEntry"
+            style="TEntry",
         )
         self.tab_width_entry.pack(side=tk.LEFT)
 
@@ -85,7 +85,9 @@ class TabSettingsDialog:
         common_widths_frame = ttk.Frame(tab_width_frame)
         common_widths_frame.pack(fill=tk.X, pady=(10, 0))
 
-        ttk.Label(common_widths_frame, text="常用宽度:", style="TLabel").pack(side=tk.LEFT, padx=(0, 10))
+        ttk.Label(common_widths_frame, text="常用宽度:", style="TLabel").pack(
+            side=tk.LEFT, padx=(0, 10)
+        )
 
         # 常用宽度按钮
         for width in [2, 4, 8]:
@@ -94,7 +96,7 @@ class TabSettingsDialog:
                 text=str(width),
                 width=3,
                 command=lambda w=width: self.tab_width_var.set(str(w)),
-                style="TButton"
+                style="TButton",
             )
             btn.pack(side=tk.LEFT, padx=2)
 
@@ -109,7 +111,7 @@ class TabSettingsDialog:
             text="使用空格替代制表符",
             variable=self.use_spaces_var,
             command=self.on_use_spaces_toggled,
-            style="TCheckbutton"
+            style="TCheckbutton",
         )
         spaces_checkbox.pack(anchor=tk.W, pady=5)
 
@@ -123,7 +125,7 @@ class TabSettingsDialog:
             height=5,
             font=("Microsoft YaHei UI", 12),
             wrap=tk.NONE,
-            state=tk.DISABLED
+            state=tk.DISABLED,
         )
         self.preview_text.pack(fill=tk.BOTH, expand=True)
 
@@ -139,7 +141,7 @@ class TabSettingsDialog:
             button_frame,
             text="提示: 更改将应用于新输入的文本",
             foreground="gray",
-            font=("Microsoft YaHei UI", 10)
+            font=("Microsoft YaHei UI", 10),
         )
         info_label.pack(side=tk.LEFT)
 
@@ -153,7 +155,7 @@ class TabSettingsDialog:
             text="确定",
             width=10,
             command=self.on_ok,
-            style="TButton"
+            style="TButton",
         )
         ok_button.pack(side=tk.RIGHT, padx=(5, 0))
 
@@ -163,13 +165,15 @@ class TabSettingsDialog:
             text="取消",
             width=10,
             command=self.on_cancel,
-            style="TButton"
+            style="TButton",
         )
         cancel_button.pack(side=tk.RIGHT)
 
         # 绑定事件
         self.tab_width_var.trace_add("write", lambda *args: self.update_preview())
-        self.tab_width_entry.bind("<KeyRelease>", lambda event: self.validate_tab_width())
+        self.tab_width_entry.bind(
+            "<KeyRelease>", lambda event: self.validate_tab_width()
+        )
 
     def validate_tab_width(self):
         """验证制表符宽度输入"""
@@ -210,7 +214,7 @@ class TabSettingsDialog:
         self.preview_text.insert(tk.END, "无缩进文本\n")
         self.preview_text.insert(tk.END, "\t一级缩进文本\n")
         self.preview_text.insert(tk.END, "\t\t二级缩进文本\n")
-        
+
         # 显示当前设置
         tab_type = "空格" if use_spaces else "制表符"
         self.preview_text.insert(tk.END, f"\n当前设置: {tab_width}个{tab_type}")
@@ -232,25 +236,29 @@ class TabSettingsDialog:
                 error_window.geometry("300x150")
                 error_window.transient(self.dialog)
                 error_window.grab_set()
-                
+
                 ttk.Label(
                     error_window,
                     text="制表符宽度必须在2到8之间",
                     padding=20,
-                    style="TLabel"
+                    style="TLabel",
                 ).pack()
-                
+
                 ttk.Button(
                     error_window,
                     text="确定",
                     command=error_window.destroy,
-                    style="TButton"
+                    style="TButton",
                 ).pack(pady=10)
-                
+
                 # 居中错误窗口
                 error_window.update_idletasks()
-                x = (self.dialog.winfo_x() + self.dialog.winfo_width() // 2) - (error_window.winfo_width() // 2)
-                y = (self.dialog.winfo_y() + self.dialog.winfo_height() // 2) - (error_window.winfo_height() // 2)
+                x = (self.dialog.winfo_x() + self.dialog.winfo_width() // 2) - (
+                    error_window.winfo_width() // 2
+                )
+                y = (self.dialog.winfo_y() + self.dialog.winfo_height() // 2) - (
+                    error_window.winfo_height() // 2
+                )
                 error_window.geometry(f"+{x}+{y}")
         except ValueError:
             # 显示错误消息
@@ -259,25 +267,23 @@ class TabSettingsDialog:
             error_window.geometry("300x150")
             error_window.transient(self.dialog)
             error_window.grab_set()
-            
+
             ttk.Label(
-                error_window,
-                text="请输入有效的数字",
-                padding=20,
-                style="TLabel"
+                error_window, text="请输入有效的数字", padding=20, style="TLabel"
             ).pack()
-            
+
             ttk.Button(
-                error_window,
-                text="确定",
-                command=error_window.destroy,
-                style="TButton"
+                error_window, text="确定", command=error_window.destroy, style="TButton"
             ).pack(pady=10)
-            
+
             # 居中错误窗口
             error_window.update_idletasks()
-            x = (self.dialog.winfo_x() + self.dialog.winfo_width() // 2) - (error_window.winfo_width() // 2)
-            y = (self.dialog.winfo_y() + self.dialog.winfo_height() // 2) - (error_window.winfo_height() // 2)
+            x = (self.dialog.winfo_x() + self.dialog.winfo_width() // 2) - (
+                error_window.winfo_width() // 2
+            )
+            y = (self.dialog.winfo_y() + self.dialog.winfo_height() // 2) - (
+                error_window.winfo_height() // 2
+            )
             error_window.geometry(f"+{x}+{y}")
 
     def on_cancel(self):

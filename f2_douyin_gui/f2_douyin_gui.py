@@ -689,7 +689,7 @@ class F2DouyinGUI:
                     self.save_config(
                         cookie_value=cookie, working_dir_value=self.working_dir
                     )
-                    
+
                     # 恢复按钮状态
                     self.root.after(0, lambda: self.execute_btn.config(state=tk.NORMAL))
                     self.root.after(0, lambda: self.stop_btn.config(state=tk.DISABLED))

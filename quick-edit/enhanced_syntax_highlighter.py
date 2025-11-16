@@ -58,10 +58,16 @@ class EnhancedSyntaxHighlighter:
         self.style = get_style_by_name(style_name)
 
         # 性能优化设置
-        self.enable_optimizations = kwargs.get("enable_optimizations", True)  # 是否启用性能优化
+        self.enable_optimizations = kwargs.get(
+            "enable_optimizations", True
+        )  # 是否启用性能优化
         self.delay_update = kwargs.get("delay_update", 100)  # 延迟更新时间（毫秒）
-        self.incremental_update = kwargs.get("incremental_update", True)  # 是否启用增量更新
-        self.max_lines_for_full_update = kwargs.get("max_lines_for_full_update", 5000) # 最大行数触发全量更新
+        self.incremental_update = kwargs.get(
+            "incremental_update", True
+        )  # 是否启用增量更新
+        self.max_lines_for_full_update = kwargs.get(
+            "max_lines_for_full_update", 5000
+        )  # 最大行数触发全量更新
 
         # 状态变量
         self._updating = False
@@ -540,18 +546,18 @@ class EnhancedSyntaxHighlighter:
         """
         # 设置停止事件
         self._stop_event.set()
-        
+
         # 取消更新计时器
         if self._update_timer:
             try:
                 self.text_widget.after_cancel(self._update_timer)
             except:
                 pass
-                
+
         # 等待工作线程结束
         if self._worker_thread and self._worker_thread.is_alive():
             self._worker_thread.join(timeout=0.5)  # 等待工作线程结束
-            
+
         # 清理所有高亮标签（保留'sel'选中样式）
         try:
             for tag in self.text_widget.tag_names():
@@ -568,96 +574,98 @@ _language_cache = None
 # 编程语言与文件扩展名的映射字典
 # key: 语言名称, value: 扩展名列表
 LANGUAGE_EXTENSIONS = {
-    'Python': ['.py', '.pyw', '.pyx', '.pxd', '.pxi'],
-    'Java': ['.java', '.class'],
-    'JavaScript': ['.js', '.jsx', '.mjs', '.cjs'],
-    'TypeScript': ['.ts', '.tsx'],
-    'HTML': ['.html', '.htm', '.xhtml'],
-    'CSS': ['.css'],
-    'SCSS': ['.scss'],
-    'Sass': ['.sass'],
-    'Less': ['.less'],
-    'PHP': ['.php', '.php3', '.php4', '.php5', '.phtml'],
-    'C': ['.c', '.h'],
-    'C++': ['.cpp', '.cxx', '.cc', '.hpp', '.hxx', '.hh'],
-    'C#': ['.cs'],
-    'Go': ['.go'],
-    'Rust': ['.rs'],
-    'Swift': ['.swift'],
-    'Kotlin': ['.kt', '.kts'],
-    'Ruby': ['.rb', '.ruby'],
-    'Perl': ['.pl', '.pm', '.perl'],
-    'Lua': ['.lua'],
-    'Shell': ['.sh', '.bash', '.zsh'],
-    'PowerShell': ['.ps1', '.psm1', '.psd1'],
-    'SQL': ['.sql'],
-    'YAML': ['.yaml', '.yml'],
-    'JSON': ['.json'],
-    'XML': ['.xml'],
-    'Markdown': ['.md', '.markdown'],
-    'R': ['.r'],
-    'Scala': ['.scala', '.sc'],
-    'Dart': ['.dart'],
-    'Objective-C': ['.m', '.mm'],
-    'MATLAB': ['.m'],
-    'Groovy': ['.groovy'],
-    'CoffeeScript': ['.coffee'],
-    'Erlang': ['.erl', '.hrl'],
-    'Elixir': ['.ex', '.exs'],
-    'Haskell': ['.hs', '.lhs'],
-    'OCaml': ['.ml', '.mli'],
-    'F#': ['.fs', '.fsi', '.fsx'],
-    'Visual Basic': ['.vb'],
-    'Pascal': ['.pas', '.pp'],
-    'Fortran': ['.f', '.for', '.f90', '.f95'],
-    'Julia': ['.jl'],
-    'Clojure': ['.clj', '.cljs', '.cljc'],
-    'Scheme': ['.scm', '.ss'],
-    'Lisp': ['.lisp', '.lsp'],
-    'Prolog': ['.pl', '.pro'],
-    'Tcl': ['.tcl'],
-    'Assembly': ['.asm', '.s'],
-    'D': ['.d'],
-    'Nim': ['.nim'],
-    'Zig': ['.zig'],
-    'V': ['.v'],
-    'Crystal': ['.cr'],
-    'Reason': ['.re', '.rei'],
-    'GraphQL': ['.graphql', '.gql'],
-    'Dockerfile': ['Dockerfile'],
-    'Makefile': ['Makefile'],
-    'CMake': ['.cmake', 'CMakeLists.txt'],
-    'Ini': ['.ini'],
-    'TOML': ['.toml'],
-    'Diff': ['.diff', '.patch'],
-    'ApacheConf': ['.htaccess'],
+    "Python": [".py", ".pyw", ".pyx", ".pxd", ".pxi"],
+    "Java": [".java", ".class"],
+    "JavaScript": [".js", ".jsx", ".mjs", ".cjs"],
+    "TypeScript": [".ts", ".tsx"],
+    "HTML": [".html", ".htm", ".xhtml"],
+    "CSS": [".css"],
+    "SCSS": [".scss"],
+    "Sass": [".sass"],
+    "Less": [".less"],
+    "PHP": [".php", ".php3", ".php4", ".php5", ".phtml"],
+    "C": [".c", ".h"],
+    "C++": [".cpp", ".cxx", ".cc", ".hpp", ".hxx", ".hh"],
+    "C#": [".cs"],
+    "Go": [".go"],
+    "Rust": [".rs"],
+    "Swift": [".swift"],
+    "Kotlin": [".kt", ".kts"],
+    "Ruby": [".rb", ".ruby"],
+    "Perl": [".pl", ".pm", ".perl"],
+    "Lua": [".lua"],
+    "Shell": [".sh", ".bash", ".zsh"],
+    "PowerShell": [".ps1", ".psm1", ".psd1"],
+    "SQL": [".sql"],
+    "YAML": [".yaml", ".yml"],
+    "JSON": [".json"],
+    "XML": [".xml"],
+    "Markdown": [".md", ".markdown"],
+    "R": [".r"],
+    "Scala": [".scala", ".sc"],
+    "Dart": [".dart"],
+    "Objective-C": [".m", ".mm"],
+    "MATLAB": [".m"],
+    "Groovy": [".groovy"],
+    "CoffeeScript": [".coffee"],
+    "Erlang": [".erl", ".hrl"],
+    "Elixir": [".ex", ".exs"],
+    "Haskell": [".hs", ".lhs"],
+    "OCaml": [".ml", ".mli"],
+    "F#": [".fs", ".fsi", ".fsx"],
+    "Visual Basic": [".vb"],
+    "Pascal": [".pas", ".pp"],
+    "Fortran": [".f", ".for", ".f90", ".f95"],
+    "Julia": [".jl"],
+    "Clojure": [".clj", ".cljs", ".cljc"],
+    "Scheme": [".scm", ".ss"],
+    "Lisp": [".lisp", ".lsp"],
+    "Prolog": [".pl", ".pro"],
+    "Tcl": [".tcl"],
+    "Assembly": [".asm", ".s"],
+    "D": [".d"],
+    "Nim": [".nim"],
+    "Zig": [".zig"],
+    "V": [".v"],
+    "Crystal": [".cr"],
+    "Reason": [".re", ".rei"],
+    "GraphQL": [".graphql", ".gql"],
+    "Dockerfile": ["Dockerfile"],
+    "Makefile": ["Makefile"],
+    "CMake": [".cmake", "CMakeLists.txt"],
+    "Ini": [".ini"],
+    "TOML": [".toml"],
+    "Diff": [".diff", ".patch"],
+    "ApacheConf": [".htaccess"],
 }
+
 
 def get_lexer_name_by_filename(file_name):
     """
     根据文件名获取对应的语法分析器名称
-    
+
     参数:
         file_name: 文件名，例如 'example.py', 'index.html' 等
-    
+
     返回:
         str: 语法分析器名称，如果找不到匹配项则返回 'auto'
     """
     # 从文件名中提取扩展名
-    if '.' in file_name:
-        file_extension = '.' + file_name.split('.')[-1]
+    if "." in file_name:
+        file_extension = "." + file_name.split(".")[-1]
     else:
         # 如果没有扩展名，返回默认值
-        return 'auto'
-    
+        return "auto"
+
     # 遍历映射字典查找匹配的扩展名
     for language, extensions in LANGUAGE_EXTENSIONS.items():
         if file_extension in extensions:
             # 返回语言名称的小写形式作为lexer名称
             return language.lower()
-    
+
     # 如果没有找到匹配项，返回默认值'auto'
-    return 'auto'
+    return "auto"
+
 
 def get_all_languages():
     """
@@ -668,11 +676,11 @@ def get_all_languages():
         list: 包含(语言名称, 别名)元组的列表
     """
     global _language_cache
-    
+
     # 如果缓存已存在，直接返回
     if _language_cache is not None:
         return _language_cache
-    
+
     # 延迟加载语言列表
     languages = []
     seen_aliases = set()
@@ -685,33 +693,37 @@ def get_all_languages():
             seen_aliases.add(alias)
     # 按名称排序
     languages.sort(key=lambda x: x[0])
-    
+
     # 缓存结果
     _language_cache = languages
     return languages
+
 
 # 获取语言别名映射字典
 def get_language_aliases():
     """
     获取语言别名映射字典
-    
+
     返回:
         dict: 语言名称到别名的映射字典
     """
     languages = get_all_languages()
     return dict(languages)
 
+
 # 核心语法高亮函数
-def apply_syntax_highlighting(text_widget, lexer_name, style_name="default", delay_update=200):
+def apply_syntax_highlighting(
+    text_widget, lexer_name, style_name="default", delay_update=200
+):
     """
     为文本组件应用语法高亮
-    
+
     参数:
         text_widget: 文本组件对象
         lexer_name: 词法分析器名称
         style_name: 样式名称
         delay_update: 更新延迟时间（毫秒）
-    
+
     返回:
         EnhancedSyntaxHighlighter: 语法高亮器实例
     """
@@ -720,14 +732,15 @@ def apply_syntax_highlighting(text_widget, lexer_name, style_name="default", del
         text_widget,
         lexer_name=lexer_name,
         style_name=style_name,
-        delay_update=delay_update
+        delay_update=delay_update,
     )
+
 
 # 移除语法高亮函数
 def remove_syntax_highlighting(highlighter):
     """
     移除语法高亮
-    
+
     参数:
         highlighter: EnhancedSyntaxHighlighter实例
     """

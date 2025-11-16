@@ -2144,7 +2144,7 @@ class AdvancedTextEditor:
             self.progress_var.set(f"更新出错: {str(e)}")
 
     def bind_shortcuts(self):
-        """绑定快捷键""" 
+        """绑定快捷键"""
         # 绑定Ctrl+H到空操作，覆盖默认的退格行为
         self.root.bind("<Control-h>", lambda e: "break")
         self.root.bind("<Control-n>", lambda e: self.new_file())
@@ -3156,7 +3156,7 @@ class AdvancedTextEditor:
         if hasattr(self, "backup_enabled_var"):
             self.backup_enabled_var.set(self.backup_enabled)
 
-        # 监听窗口焦点变化，失去焦点时自动保存 
+        # 监听窗口焦点变化，失去焦点时自动保存
         self.root.bind("<FocusOut>", self.on_focus_out)
 
         # 如果配置中启用了自动保存，则启动计时器

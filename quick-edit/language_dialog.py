@@ -32,7 +32,7 @@ class LanguageDialog:
         self.dialog.resizable(True, True)
         self.dialog.transient(parent)
         self.dialog.grab_set()  # 模态对话框
-        
+
         # 设置窗口图标
         set_window_icon(self.dialog)
 
@@ -234,8 +234,8 @@ class LanguageDialog:
         Args:
             event: 事件对象
         """
-        selection = self.language_listbox.curselection() # 获取当前选中的索引
-        
+        selection = self.language_listbox.curselection()  # 获取当前选中的索引
+
         # 如果用户选择了语言
         if selection:
             self.selected_language = self.language_listbox.get(selection[0])

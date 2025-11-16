@@ -6,8 +6,16 @@ from quick_edit_utils import set_window_icon, center_window
 
 
 class FindDialog:
-    def __init__(self, parent, text_widget, file_path=None, selected_text="", read_only=False, update_callback=None):
-        self.parent = parent # 父窗口
+    def __init__(
+        self,
+        parent,
+        text_widget,
+        file_path=None,
+        selected_text="",
+        read_only=False,
+        update_callback=None,
+    ):
+        self.parent = parent  # 父窗口
         self.text_widget = text_widget
         self.file_path = file_path
         self.selected_text = selected_text  # 接收选中文本
@@ -306,9 +314,11 @@ class FindDialog:
         """替换当前匹配项"""
         # 检查是否处于只读模式
         if self.read_only:
-            messagebox.showwarning("替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作")
+            messagebox.showwarning(
+                "替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作"
+            )
             return
-        
+
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
         replace_term = (
@@ -340,10 +350,10 @@ class FindDialog:
         # 执行替换
         self.text_widget.delete(start_idx, end_idx)
         self.text_widget.insert(start_idx, replace_term)
-        
+
         # 设置文本组件的修改状态标志，确保窗口标题能正确更新
         self.text_widget.edit_modified(True)
-        
+
         # 使用回调函数通知主窗口更新状态
         if self.update_callback:
             self.update_callback()
@@ -371,9 +381,11 @@ class FindDialog:
         """替换所有匹配项"""
         # 检查是否处于只读模式
         if self.read_only:
-            messagebox.showwarning("替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作")
+            messagebox.showwarning(
+                "替换", "当前处于只读模式，请先关闭只读模式后再执行替换操作"
+            )
             return
-        
+
         # 从多行文本框获取内容
         search_term = self.search_entry.get("1.0", tk.END).strip()
         replace_term = (
@@ -403,7 +415,7 @@ class FindDialog:
 
         # 设置文本组件的修改状态标志，确保窗口标题能正确更新
         self.text_widget.edit_modified(True)
-        
+
         # 使用回调函数通知主窗口更新状态
         if self.update_callback:
             self.update_callback()
@@ -425,7 +437,7 @@ class FindDialog:
             self.replace_once_button.config(state=tk.NORMAL)
         if self.replace_all_button:
             self.replace_all_button.config(state=tk.NORMAL)
-    
+
     def _clear_search_state(self):
         """清除查找状态和高亮"""
         self.is_searching = False
@@ -433,7 +445,7 @@ class FindDialog:
         self.current_match_index = -1
         self.text_widget.tag_remove("found", "1.0", tk.END)
         self.text_widget.tag_remove("current_match", "1.0", tk.END)
-    
+
     def perform_search(self, search_term):
         """执行实际的查找操作"""
         # 设置查找状态
@@ -475,17 +487,17 @@ class FindDialog:
                     compiled_pattern = re.compile(pattern, flags)
 
                     for match in compiled_pattern.finditer(content):
-                         # 检查是否需要取消查找
-                         if self.cancel_search:
-                             # 更新UI状态
-                             self._reset_ui_state()
-                             # 清除高亮和匹配结果
-                             self.text_widget.tag_remove("found", "1.0", tk.END)
-                             self.text_widget.tag_remove("current_match", "1.0", tk.END)
-                             return []
-                         start_idx = self.text_widget.index(f"1.0+{match.start()}c")
-                         end_idx = self.text_widget.index(f"1.0+{match.end()}c")
-                         matches.append((start_idx, end_idx))
+                        # 检查是否需要取消查找
+                        if self.cancel_search:
+                            # 更新UI状态
+                            self._reset_ui_state()
+                            # 清除高亮和匹配结果
+                            self.text_widget.tag_remove("found", "1.0", tk.END)
+                            self.text_widget.tag_remove("current_match", "1.0", tk.END)
+                            return []
+                        start_idx = self.text_widget.index(f"1.0+{match.start()}c")
+                        end_idx = self.text_widget.index(f"1.0+{match.end()}c")
+                        matches.append((start_idx, end_idx))
                 except re.error as e:
                     messagebox.showerror(
                         "正则表达式错误", f"正则表达式语法错误: {str(e)}"
@@ -520,7 +532,9 @@ class FindDialog:
                             pattern = re.escape(search_term)
                             # 使用更精确的单词边界检测
                             word_boundary_pattern = r"(?<!\w)" + pattern + r"(?!\w)"
-                            match = re.search(word_boundary_pattern, content_from_start, flags)
+                            match = re.search(
+                                word_boundary_pattern, content_from_start, flags
+                            )
                         else:
                             match = re.search(pattern, content_from_start, flags)
                         if not match:
@@ -543,13 +557,16 @@ class FindDialog:
                         if multiline_match:
                             content_from_start = self.text_widget.get(start_pos, tk.END)
                             flags = 0 if match_case else re.IGNORECASE
-                            match = re.search(re.escape(search_term), content_from_start, flags)
+                            match = re.search(
+                                re.escape(search_term), content_from_start, flags
+                            )
                             if not match:
                                 break
                             # 计算实际位置
                             content_up_to_start = self.text_widget.get("1.0", start_pos)
                             full_content_up_to_match = (
-                                content_up_to_start + content_from_start[:match.start()]
+                                content_up_to_start
+                                + content_from_start[: match.start()]
                             )
                             lines = full_content_up_to_match.split("\n")
                             current_line = len(lines)

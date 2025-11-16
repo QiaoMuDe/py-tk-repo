@@ -18,7 +18,8 @@ try:
 except (ModuleNotFoundError, ImportError):
     print(
         "Your Python installation does not include the Tk library. \n"
-        "Please refer to https://github.com/chyok/ollama-gui?tab=readme-ov-file#-qa")
+        "Please refer to https://github.com/chyok/ollama-gui?tab=readme-ov-file#-qa"
+    )
     sys.exit(0)
 
 __version__ = "1.2.1"
@@ -100,13 +101,15 @@ class OllamaInterface:
         webbrowser.open("https://github.com/chyok/ollama-gui")
 
     def show_help(self):
-        info = ("Project: Ollama GUI\n"
-                f"Version: {__version__}\n"
-                "Author: chyok\n"
-                "Github: https://github.com/chyok/ollama-gui\n\n"
-                "<Enter>: send\n"
-                "<Shift+Enter>: new line\n"
-                "<Double click dialog>: edit dialog\n")
+        info = (
+            "Project: Ollama GUI\n"
+            f"Version: {__version__}\n"
+            "Author: chyok\n"
+            "Github: https://github.com/chyok/ollama-gui\n\n"
+            "<Enter>: send\n"
+            "<Shift+Enter>: new line\n"
+            "<Double click dialog>: edit dialog\n"
+        )
         messagebox.showinfo("About", info, parent=self.root)
 
     def check_system(self):
@@ -114,10 +117,7 @@ class OllamaInterface:
         if message is not None:
             messagebox.showwarning("Warning", message, parent=self.root)
 
-    def append_text_to_chat(self,
-                            text: str,
-                            *args,
-                            use_label: bool = False):
+    def append_text_to_chat(self, text: str, *args, use_label: bool = False):
         self.chat_box.config(state=tk.NORMAL)
         if use_label:
             cur_label_widget = self.label_widgets[-1]
@@ -127,9 +127,9 @@ class OllamaInterface:
         self.chat_box.see(tk.END)
         self.chat_box.config(state=tk.DISABLED)
 
-    def append_log_to_inner_textbox(self,
-                                    message: Optional[str] = None,
-                                    clear: bool = False):
+    def append_log_to_inner_textbox(
+        self, message: Optional[str] = None, clear: bool = False
+    ):
         if self.log_textbox.winfo_exists():
             self.log_textbox.config(state=tk.NORMAL)
             if clear:
@@ -242,7 +242,7 @@ class OllamaInterface:
 
     def fetch_models(self) -> List[str]:
         with urllib.request.urlopen(
-                urllib.parse.urljoin(self.api_url, "/api/tags")
+            urllib.parse.urljoin(self.api_url, "/api/tags")
         ) as response:
             data = json.load(response)
             models = [model["name"] for model in data["models"]]
@@ -371,7 +371,9 @@ class LayoutManager:
         )
         settings_button.grid(row=0, column=1, padx=(5, 0))
 
-        refresh_button = ttk.Button(header_frame, text="Refresh", command=self.interface.refresh_models)
+        refresh_button = ttk.Button(
+            header_frame, text="Refresh", command=self.interface.refresh_models
+        )
         refresh_button.grid(row=0, column=2, padx=(5, 0))
 
         ttk.Label(header_frame, text="Host:").grid(row=0, column=4, padx=(10, 0))
@@ -462,7 +464,9 @@ class LayoutManager:
 
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label="File", menu=file_menu)
-        file_menu.add_command(label="Model Management", command=self.show_model_management_window)
+        file_menu.add_command(
+            label="Model Management", command=self.show_model_management_window
+        )
         file_menu.add_command(label="Exit", command=self.interface.root.quit)
 
         edit_menu = tk.Menu(menubar, tearoff=0)
@@ -556,7 +560,8 @@ class LayoutManager:
         self.interface.delete_button = delete_button
         self.interface.models_list = models_list
         Thread(
-            target=self.interface.update_model_list, daemon=True,
+            target=self.interface.update_model_list,
+            daemon=True,
         ).start()
 
     def show_editor_window(self, _, inner_label):
@@ -586,7 +591,9 @@ class LayoutManager:
         def _save():
             idx = self.interface.label_widgets.index(inner_label)
             if len(self.interface.chat_history) > idx:
-                self.interface.chat_history[idx]["content"] = chat_editor.get("1.0", "end-1c")
+                self.interface.chat_history[idx]["content"] = chat_editor.get(
+                    "1.0", "end-1c"
+                )
                 inner_label.config(text=chat_editor.get("1.0", "end-1c"))
 
             editor_window.destroy()
@@ -625,17 +632,21 @@ class LayoutManager:
 
         inner_label.bind(
             "<MouseWheel>",
-            lambda e:
-            self.interface.chat_box.yview_scroll(int(-1 * (e.delta / 120)), "units")
+            lambda e: self.interface.chat_box.yview_scroll(
+                int(-1 * (e.delta / 120)), "units"
+            ),
         )
-        inner_label.bind("<Double-1>", lambda e: self.show_editor_window(e, inner_label))
+        inner_label.bind(
+            "<Double-1>", lambda e: self.show_editor_window(e, inner_label)
+        )
 
         _right_menu = tk.Menu(inner_label, tearoff=0)
         _right_menu.add_command(
             label="Edit", command=lambda: self.show_editor_window(None, inner_label)
         )
         _right_menu.add_command(
-            label="Copy This", command=lambda: self.interface.copy_text(inner_label.cget("text"))
+            label="Copy This",
+            command=lambda: self.interface.copy_text(inner_label.cget("text")),
         )
         _right_menu.add_separator()
         _right_menu.add_command(label="Clear Chat", command=self.interface.clear_chat)

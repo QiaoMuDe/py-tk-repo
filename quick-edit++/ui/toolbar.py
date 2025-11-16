@@ -44,7 +44,9 @@ class Toolbar(ctk.CTkFrame):
             size (tuple): 图标尺寸，默认为(20, 20)
 
         返回:
-            ctk.CTkImage: 加载成功的图标对象，如果加载失败则返回None
+            tuple: (图标对象, 按钮名称)
+                - 如果图标加载成功，返回(图标对象, None)
+                - 如果图标加载失败，返回(None, 按钮名称)
         """
         # 构建图标文件路径
         icon_path = os.path.join(
@@ -60,7 +62,7 @@ class Toolbar(ctk.CTkFrame):
             icon_image = Image.open(icon_path)
             return (
                 ctk.CTkImage(light_image=icon_image, dark_image=icon_image, size=size),
-                None,
+                None,  # 图标加载成功，名称设为None
             )
         except Exception as e:
             return None, name
@@ -113,7 +115,7 @@ class Toolbar(ctk.CTkFrame):
         self.new_button = ctk.CTkButton(
             self,
             text=new_name,
-            width=60,
+            width=30 if new_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             command=self.parent.new_file,
@@ -125,7 +127,7 @@ class Toolbar(ctk.CTkFrame):
         self.open_button = ctk.CTkButton(
             self,
             text=open_name,
-            width=60,
+            width=30 if open_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             command=self.parent.open_file,
@@ -137,7 +139,7 @@ class Toolbar(ctk.CTkFrame):
         self.save_button = ctk.CTkButton(
             self,
             text=save_name,
-            width=60,
+            width=30 if save_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=save_icon,
@@ -149,7 +151,7 @@ class Toolbar(ctk.CTkFrame):
         self.save_as_button = ctk.CTkButton(
             self,
             text=save_as_name,
-            width=60,
+            width=30 if save_as_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=save_as_icon,
@@ -161,7 +163,7 @@ class Toolbar(ctk.CTkFrame):
         self.close_button = ctk.CTkButton(
             self,
             text=close_name,
-            width=60,
+            width=30 if close_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=close_icon,
@@ -173,7 +175,7 @@ class Toolbar(ctk.CTkFrame):
         self.readonly_button = ctk.CTkButton(
             self,
             text=readonly_name,
-            width=60,
+            width=30 if readonly_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=readonly_icon,
@@ -189,7 +191,7 @@ class Toolbar(ctk.CTkFrame):
         self.undo_button = ctk.CTkButton(
             self,
             text=undo_name,
-            width=60,
+            width=30 if undo_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=undo_icon,
@@ -201,7 +203,7 @@ class Toolbar(ctk.CTkFrame):
         self.redo_button = ctk.CTkButton(
             self,
             text=redo_name,
-            width=60,
+            width=30 if redo_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=redo_icon,
@@ -217,7 +219,7 @@ class Toolbar(ctk.CTkFrame):
         self.cut_button = ctk.CTkButton(
             self,
             text=cut_name,
-            width=60,
+            width=30 if cut_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=cut_icon,
@@ -229,7 +231,7 @@ class Toolbar(ctk.CTkFrame):
         self.copy_button = ctk.CTkButton(
             self,
             text=copy_name,
-            width=60,
+            width=30 if copy_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=copy_icon,
@@ -241,7 +243,7 @@ class Toolbar(ctk.CTkFrame):
         self.paste_button = ctk.CTkButton(
             self,
             text=paste_name,
-            width=60,
+            width=30 if paste_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=paste_icon,
@@ -257,7 +259,7 @@ class Toolbar(ctk.CTkFrame):
         self.find_replace_button = ctk.CTkButton(
             self,
             text=find_replace_name,
-            width=80,
+            width=30 if find_replace_name is None else 80,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=find_replace_icon,
@@ -275,11 +277,11 @@ class Toolbar(ctk.CTkFrame):
         self.fullscreen_button = ctk.CTkButton(
             self,
             text=fullscreen_name,
-            width=60,
+            width=30 if fullscreen_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=fullscreen_icon,
-            command=self.toggle_fullscreen,
+            command=lambda: self.toggle_fullscreen(fullscreen_name),
         )
         self.fullscreen_button.pack(side="left", padx=2, pady=10)
         # 记录全屏状态
@@ -289,7 +291,7 @@ class Toolbar(ctk.CTkFrame):
         self.exit_button = ctk.CTkButton(
             self,
             text=exit_name,
-            width=60,
+            width=30 if exit_name is None else 60,  # 如果有图标则减小宽度
             height=30,
             font=self.button_font,
             image=exit_icon,
@@ -297,13 +299,20 @@ class Toolbar(ctk.CTkFrame):
         )
         self.exit_button.pack(side="left", padx=2, pady=10)
 
-    def toggle_fullscreen(self):
+    def toggle_fullscreen(self, fullscreen_name):
         """
         切换全屏模式
         调用父窗口的全屏方法并更新按钮文本
+
+        Args:
+            fullscreen_name (str): 全屏按钮的文本
         """
         # 调用父窗口的全屏方法
         is_fullscreen = self.parent.toggle_fullscreen()
 
-        # 更新按钮文本
-        self.fullscreen_button.configure(text="退出全屏" if is_fullscreen else "全屏")
+        # 如果没有全屏按钮文本，不更新按钮文本
+        if fullscreen_name:
+            # 更新按钮文本
+            self.fullscreen_button.configure(
+                text="退出全屏" if is_fullscreen else "全屏"
+            )

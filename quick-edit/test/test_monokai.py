@@ -4,24 +4,27 @@
 import os  # import关键字应该显示为紫色 (#AE81FF)
 import sys
 
+
 def hello_world():  # def关键字应该显示为紫色 (#AE81FF)
     """这是一个示例函数"""
     # 字符串应该显示为米黄色 (#E6DB74)
     message = "Hello, Monokai Dimmed!"
     print(message)  # print是内置函数，应该显示为粉红色 (#F92672)
-    
+
     # 数字
     number = 42
-    
+
     # 条件语句
     if number > 0:  # if关键字应该显示为紫色 (#AE81FF)
         return True
     else:  # else关键字应该显示为紫色 (#AE81FF)
         return False
 
+
 class MyClass:  # class关键字应该显示为紫色 (#AE81FF)
     def __init__(self):  # __init__是内置方法，应该显示为粉红色 (#F92672)
         self.value = 0
+
 
 # TODO: 这是一个待办事项，应该显示为橙黄色 (#FD971F)
 # 这里有一些需要完成的任务

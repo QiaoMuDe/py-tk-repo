@@ -36,7 +36,11 @@ elif "Microsoft YaHei" in available_fonts:
     label4.pack(pady=10)
 
 # 显示字体数量
-count_label = tk.Label(root, text=f"系统中共有 {len(available_fonts)} 种字体", font=("Microsoft YaHei UI", 10))
+count_label = tk.Label(
+    root,
+    text=f"系统中共有 {len(available_fonts)} 种字体",
+    font=("Microsoft YaHei UI", 10),
+)
 count_label.pack(pady=20)
 
 root.mainloop()
