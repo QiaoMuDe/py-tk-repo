@@ -49,9 +49,7 @@ class Toolbar(ctk.CTkFrame):
                 - 如果图标加载失败，返回(None, 按钮名称)
         """
         # 构建图标文件路径
-        icon_path = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "icons", f"{icon_name}.png"
-        )
+        icon_path = os.path.join("icons", f"{icon_name}.png")
 
         # 检查文件是否存在
         if not os.path.exists(icon_path):
