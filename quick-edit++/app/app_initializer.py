@@ -250,8 +250,9 @@ class AppInitializer:
         def wrapped_xview(*args):
             # 调用原始的xview方法
             result = original_xview(*args)
-            # 触发语法高亮更新
-            self.app.syntax_highlighter._handle_event()
+            # 只有在渲染可见行模式下才触发语法高亮更新
+            if self.app.syntax_highlighter.render_visible_only:
+                self.app.syntax_highlighter._handle_event()
             # 触发行号更新
             self.app.line_number_canvas.draw_line_numbers()
             return result
@@ -259,8 +260,9 @@ class AppInitializer:
         def wrapped_yview(*args):
             # 调用原始的yview方法
             result = original_yview(*args)
-            # 触发语法高亮更新
-            self.app.syntax_highlighter._handle_event()
+            # 只有在渲染可见行模式下才触发语法高亮更新
+            if self.app.syntax_highlighter.render_visible_only:
+                self.app.syntax_highlighter._handle_event()
             # 触发行号更新
             self.app.line_number_canvas.draw_line_numbers()
             return result
