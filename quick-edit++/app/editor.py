@@ -31,6 +31,7 @@ from ui.font_dialog import show_font_dialog
 from ui.menu import set_text_background_color
 from ui.file_properties_dialog import show_file_properties_dialog
 import windnd as wd
+from ui.file_properties_dialog import update_file_properties_menu_state
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -679,6 +680,18 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 )
             else:
                 messagebox.showerror("重置失败", "设置重置失败，请检查配置文件权限。")
+
+    def update_file_menu_state(self):
+        """
+        更新文件菜单的打开文件相关的逻辑
+        """
+        # 更新重新打开菜单状态（初始状态下没有打开文件，应该禁用）
+        if self.reopen_file_menu is not None:
+            self.reopen_file_menu.update_menu_state()
+
+        if self.file_menu is not None:
+            # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
+            update_file_properties_menu_state(self)
 
     def run(self):
         """运行应用"""

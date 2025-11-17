@@ -417,11 +417,3 @@ def update_file_properties_menu_state(app):
             print(
                 f"Error updating file properties menu state at index {app.file_properties_menu_index}: {e}"
             )
-            # 如果出现任何错误，回退到遍历方式
-            for i in range(app.file_menu.index(tk.END) + 1):
-                try:
-                    if app.file_menu.entrycget(i, "label") == "文件属性":
-                        app.file_menu.entryconfig(i, state=state)
-                        break
-                except Exception:
-                    continue

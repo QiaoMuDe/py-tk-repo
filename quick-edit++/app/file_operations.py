@@ -208,6 +208,9 @@ class FileOperations:
             if self.root.syntax_highlighter and final_path:
                 self.root.syntax_highlighter.apply_highlighting(final_path)
 
+            # 更新文件菜单状态
+            self.root.update_file_menu_state()
+
             return True
 
         except Exception as e:
@@ -328,13 +331,8 @@ class FileOperations:
         # 清除语法高亮
         self.root.syntax_highlighter.reset_highlighting()
 
-        # 更新重新打开菜单状态
-        if self.root.reopen_file_menu is not None:
-            self.root.reopen_file_menu.update_menu_state()
-
-        # 更新文件属性菜单状态
-        if self.root.file_menu is not None:
-            update_file_properties_menu_state(self.root)
+        # 更新文件菜单状态
+        self.root.update_file_menu_state()
 
     def _handle_backup_on_close(self, file_saved):
         """
@@ -574,13 +572,8 @@ class FileOperations:
                     # 应用语法高亮
                     self.root.syntax_highlighter.apply_highlighting(file_path)
 
-                    # 更新重新打开菜单状态
-                    if self.root.reopen_file_menu is not None:
-                        self.root.reopen_file_menu.update_menu_state()
-
-                    # 更新文件属性菜单状态
-                    if self.root.file_menu is not None:
-                        update_file_properties_menu_state(self.root)
+                    # 更新文件菜单状态
+                    self.root.update_file_menu_state()
 
                     return True
 

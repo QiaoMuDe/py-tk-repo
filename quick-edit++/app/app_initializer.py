@@ -337,10 +337,5 @@ class AppInitializer:
         self.init_syntax_highlighting()
         self.init_read_only_mode()
 
-        # 更新重新打开菜单状态（初始状态下没有打开文件，应该禁用）
-        if self.app.reopen_file_menu is not None:
-            self.app.reopen_file_menu.update_menu_state()
-
-        if self.app.file_menu is not None:
-            # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
-            update_file_properties_menu_state(self.app)
+        # 初始化文件菜单部分项的状态
+        self.app.update_file_menu_state()
