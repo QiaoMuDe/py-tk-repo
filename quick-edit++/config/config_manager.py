@@ -62,6 +62,7 @@ DEFAULT_CONFIG = {
         "line_number_font_color": "#2b91af",  # 行号字体颜色
         "max_undo": 50,  # 最大撤销次数
         "show_line_numbers": True,  # 是否显示行号
+        "auto_increment_number": True,  # 是否启用自动递增编号功能
     },
     # 工具栏配置
     "toolbar": {

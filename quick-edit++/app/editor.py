@@ -105,6 +105,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
 
+        # 直接绑定回车键事件，确保自动递增编号功能优先级最高
+        self.text_area.bind("<Return>", self._on_enter_key)  # 专门处理回车键
+
         # 绑定文本框焦点离开事件，触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
 
@@ -275,8 +278,112 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 # 如果出现异常，至少确保焦点在文本区域
                 pass
 
+    def _on_enter_key(self, event=None):
+        """专门处理回车键事件，实现自动递增编号功能"""
+        # 检查是否启用了自动递增编号功能
+        if not self.auto_increment_number_var.get():
+            # 如果功能未启用，执行默认回车行为
+            return None
+
+        # 获取当前光标位置
+        cursor_pos = self.text_area.index(ctk.INSERT)
+        current_line = cursor_pos.split(".", 1)[0]  # 限制分割次数
+
+        # 获取当前行的文本内容（不strip，减少操作）
+        line_start = f"{current_line}.0"
+        line_end = f"{current_line}.end"
+        line_text = self.text_area.get(line_start, line_end)
+
+        # 检查当前行是否以数字编号开头（如 "1.", "2.", "1,", "2，" 等）
+        # 使用partition()方法高效分割字符串，支持多种分隔符
+        if line_text and line_text[0].isdigit():
+            # 使用元组存储分隔符，避免重复代码
+            separators = (".", "、", ",", "，")
+            number_str = None
+            separator = None
+            rest = None
+
+            # 遍历分隔符，找到第一个匹配的
+            for sep in separators:
+                num, found_sep, r = line_text.partition(sep)
+                if found_sep:  # 找到分隔符
+                    number_str = num
+                    separator = found_sep
+                    rest = r
+                    break  # 找到后立即退出循环
+
+            # 检查是否有分隔符且数字部分有效
+            if separator and number_str.isdigit():
+                # 检查数字后是否有空格（可选）
+                has_space = rest.startswith(" ")
+
+                # 递增编号
+                next_number = int(number_str) + 1  # 直接计算，无需中间变量
+
+                # 插入新行并自动添加递增编号
+                if has_space:
+                    self.text_area.insert(ctk.INSERT, f"\n{next_number}{separator} ")
+                else:
+                    self.text_area.insert(ctk.INSERT, f"\n{next_number}{separator}")
+
+                return "break"  # 阻止默认回车行为
+
+        # 检查常见列表格式（如 "- ",）
+        if line_text and len(line_text) > 1:
+            # 使用元组存储常见列表标记
+            list_markers = ("-",)
+
+            # 遍历列表标记
+            for marker in list_markers:
+                # 检查行首是否是列表标记
+                if line_text.startswith(marker):
+                    # 获取标记后的内容
+                    rest_content = line_text[len(marker) :]
+
+                    # 检查标记后是否有空格（可选）
+                    has_space = rest_content.startswith(" ")
+
+                    # 插入新行并自动添加列表标记，保持原格式
+                    if has_space:
+                        self.text_area.insert(ctk.INSERT, f"\n{marker} ")
+                    else:
+                        self.text_area.insert(ctk.INSERT, f"\n{marker}")
+
+                    return "break"  # 阻止默认回车行为
+
+        # 检查单行注释格式（如 "# ", "// ", "-- "）
+        if line_text and len(line_text) > 1:
+            # 使用元组存储常见注释标记
+            comment_markers = ("#", "//", "--")
+
+            # 遍历注释标记
+            for marker in comment_markers:
+                # 对于井号，需要确保它不是标题（即后面没有跟着#）
+                if marker == "#" and (len(line_text) > 1 and line_text[1] == "#"):
+                    continue
+
+                # 检查行首是否是注释标记
+                if line_text.startswith(marker):
+                    # 获取标记后的内容
+                    rest_content = line_text[len(marker) :]
+
+                    # 检查标记后是否有空格（可选）
+                    has_space = rest_content.startswith(" ")
+
+                    # 插入新行并自动添加注释标记，保持原格式
+                    if has_space:
+                        self.text_area.insert(ctk.INSERT, f"\n{marker} ")
+                    else:
+                        self.text_area.insert(ctk.INSERT, f"\n{marker}")
+
+                    return "break"  # 阻止默认回车行为
+
+        # 如果不是特殊格式行，执行默认回车行为
+        return None
+
     def _on_key_press(self, event=None):
         """按键/键盘事件处理"""
+
         # 检测Ctrl+H组合键，阻止默认的退格行为
         if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
             return "break"

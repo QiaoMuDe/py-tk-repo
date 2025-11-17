@@ -805,6 +805,13 @@ def create_menu(root):
     # 将主题菜单添加到主菜单
     main_menu.add_cascade(label="主题", menu=theme_menu)
 
+    # 创建工具菜单
+    tool_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+    main_menu.add_cascade(label="工具", menu=tool_menu)
+
+    # 创建选中内容处理菜单到工具菜单
+    create_selected_text_submenu(tool_menu, root, menu_font_tuple, False)
+
     # 创建设置菜单
     settings_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
@@ -883,6 +890,13 @@ def create_menu(root):
         command=lambda: toggle_syntax_highlight_menu(root),
         variable=root.syntax_highlight_var,
         accelerator="Ctrl+L",
+    )
+
+    # 自动递增编号设置
+    settings_menu.add_checkbutton(
+        label="启用自动递增编号",
+        command=lambda: toggle_auto_increment_number(root),
+        variable=root.auto_increment_number_var,
     )
 
     # 创建语法高亮模式子菜单
@@ -974,13 +988,6 @@ def create_menu(root):
 
     # 将设置菜单添加到主菜单
     main_menu.add_cascade(label="设置", menu=settings_menu)
-
-    # 创建工具菜单
-    tool_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    main_menu.add_cascade(label="工具", menu=tool_menu)
-
-    # 创建选中内容处理菜单到工具菜单
-    create_selected_text_submenu(tool_menu, root, menu_font_tuple, False)
 
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
@@ -1324,6 +1331,24 @@ def toggle_line_numbers(root):
 
     # 显示通知
     messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")
+
+
+def toggle_auto_increment_number(root):
+    """
+    切换自动递增编号功能状态
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前自动递增编号状态（此时Checkbutton已经自动切换了值）
+    current_state = root.auto_increment_number_var.get()
+
+    # 保存配置
+    config_manager.set("text_editor.auto_increment_number", current_state)
+    config_manager.save_config()
+
+    # 显示通知
+    messagebox.showinfo("通知", f"自动递增编号已{current_state and '启用' or '禁用'}")
 
 
 def set_text_background_color(root):

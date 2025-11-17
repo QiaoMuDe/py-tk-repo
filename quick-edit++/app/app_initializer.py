@@ -173,6 +173,11 @@ class AppInitializer:
             value=config_manager.get("text_editor.show_line_numbers", True)
         )
 
+        # 初始化自动递增编号功能状态变量
+        self.app.auto_increment_number_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.auto_increment_number", True)
+        )
+
         # 重新打开文件菜单实例
         self.app.reopen_file_menu = None
 
