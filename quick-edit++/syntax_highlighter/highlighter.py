@@ -91,164 +91,136 @@ class SyntaxHighlighter:
         """注册默认的语言处理器"""
         # 注册Python处理器
         python_handler = PythonHandler()
-        # 不再在注册时立即编译
-        # python_handler._compile_patterns()  # 预编译正则表达式
         for ext in python_handler.get_file_extensions():
             self.register_language(ext, python_handler)
 
         # 注册JSON处理器
         json_handler = JSONHandler()
-        # json_handler._compile_patterns()  # 预编译正则表达式
         for ext in json_handler.get_file_extensions():
             self.register_language(ext, json_handler)
 
         # 注册INI/TOML处理器
         ini_toml_handler = IniTomlHandler()
-        # ini_toml_handler._compile_patterns()  # 预编译正则表达式
         for ext in ini_toml_handler.get_file_extensions():
             self.register_language(ext, ini_toml_handler)
 
         # 注册YAML处理器
         yaml_handler = YAMLHandler()
-        # yaml_handler._compile_patterns()  # 预编译正则表达式
         for ext in yaml_handler.get_file_extensions():
             self.register_language(ext, yaml_handler)
 
         # 注册Bash处理器
         bash_handler = BashHandler()
-        # bash_handler._compile_patterns()  # 预编译正则表达式
         for ext in bash_handler.get_file_extensions():
             self.register_language(ext, bash_handler)
 
         # 注册Bat处理器
         bat_handler = BatHandler()
-        # bat_handler._compile_patterns()  # 预编译正则表达式
         for ext in bat_handler.get_file_extensions():
             self.register_language(ext, bat_handler)
 
         # 注册PowerShell处理器
         powershell_handler = PowerShellHandler()
-        # powershell_handler._compile_patterns()  # 预编译正则表达式
         for ext in powershell_handler.file_extensions:
             self.register_language(ext, powershell_handler)
 
         # 注册SQL处理器
         sql_handler = SQLHandler()
-        # sql_handler._compile_patterns()  # 预编译正则表达式
         for ext in sql_handler.file_extensions:
             self.register_language(ext, sql_handler)
 
         # 注册HTML处理器
         html_handler = HTMLHandler()
-        # html_handler._compile_patterns()  # 预编译正则表达式
         for ext in html_handler.get_file_extensions():
             self.register_language(ext, html_handler)
 
         # 注册XML处理器
         xml_handler = XMLHandler()
-        # xml_handler._compile_patterns()  # 预编译正则表达式
         for ext in xml_handler.get_file_extensions():
             self.register_language(ext, xml_handler)
 
         # 注册CSS处理器
         css_handler = CSSHandler()
-        # css_handler._compile_patterns()  # 预编译正则表达式
         for ext in css_handler.get_file_extensions():
             self.register_language(ext, css_handler)
 
         # 注册JavaScript处理器
         javascript_handler = JavaScriptHandler()
-        # javascript_handler._compile_patterns()  # 预编译正则表达式
         for ext in javascript_handler.get_file_extensions():
             self.register_language(ext, javascript_handler)
 
         # 注册TypeScript处理器
         typescript_handler = TypeScriptHandler()
-        # typescript_handler._compile_patterns()  # 预编译正则表达式
         for ext in typescript_handler.get_file_extensions():
             self.register_language(ext, typescript_handler)
 
         # 注册Go处理器
         go_handler = GoHandler()
-        # go_handler._compile_patterns()  # 预编译正则表达式
         for ext in go_handler.get_file_extensions():
             self.register_language(ext, go_handler)
 
         # 注册Markdown处理器
         markdown_handler = MarkdownHandler()
-        # markdown_handler._compile_patterns()  # 预编译正则表达式
         for ext in markdown_handler.file_extensions:
             self.register_language(ext, markdown_handler)
 
         # 注册Dockerfile处理器（特殊文件名）
         dockerfile_handler = DockerfileHandler()
-        # dockerfile_handler._compile_patterns()  # 预编译正则表达式
         for ext in dockerfile_handler.get_file_extensions():
             self.register_special_file(ext, dockerfile_handler)
 
         # 注册Makefile处理器
         makefile_handler = MakefileHandler()
-        # makefile_handler._compile_patterns()  # 预编译正则表达式
         for ext in makefile_handler.get_file_extensions():
             self.register_special_file(ext, makefile_handler)
 
         # 注册Env处理器
         env_handler = EnvHandler()
-        # env_handler._compile_patterns()  # 预编译正则表达式
         for ext in env_handler.get_file_extensions():
             self.register_language(ext, env_handler)
 
         # 注册GitIgnore处理器
         gitignore_handler = GitIgnoreHandler()
-        # gitignore_handler._compile_patterns()  # 预编译正则表达式
         for ext in gitignore_handler.get_file_extensions():
             self.register_special_file(ext, gitignore_handler)
 
         # 注册Log处理器
         log_handler = LogHandler()
-        # log_handler._compile_patterns()  # 预编译正则表达式
         for ext in log_handler.get_file_extensions():
             self.register_language(ext, log_handler)
 
         # 注册Lua处理器
         lua_handler = LuaHandler()
-        # lua_handler._compile_patterns()  # 预编译正则表达式
         for ext in lua_handler.get_file_extensions():
             self.register_language(ext, lua_handler)
 
         # 注册Java处理器
         java_handler = JavaHandler()
-        # java_handler._compile_patterns()  # 预编译正则表达式
         for ext in java_handler.get_file_extensions():
             self.register_language(ext, java_handler)
 
         # 注册Rust处理器
         rust_handler = RustHandler()
-        # rust_handler._compile_patterns()  # 预编译正则表达式
         for ext in rust_handler.get_file_extensions():
             self.register_language(ext, rust_handler)
 
         # 注册PHP处理器
         php_handler = PHPHandler()
-        # php_handler._compile_patterns()  # 预编译正则表达式
         for ext in php_handler.get_file_extensions():
             self.register_language(ext, php_handler)
 
         # 注册C++处理器
         cpp_handler = CppHandler()
-        # cpp_handler._compile_patterns()  # 预编译正则表达式
         for ext in cpp_handler.get_file_extensions():
             self.register_language(ext, cpp_handler)
 
         # 注册CSV处理器
         csv_handler = CSVHandler()
-        # csv_handler._compile_patterns()  # 预编译正则表达式
         for ext in csv_handler.get_file_extensions():
             self.register_language(ext, csv_handler)
 
         # 注册Vim处理器
         vim_handler = VimHandler()
-        # vim_handler._compile_patterns()  # 预编译正则表达式
         for ext in vim_handler.get_file_extensions():
             # 对于无扩展名的特殊文件名（如vimrc, gvimrc），使用register_special_file
             if ext.startswith("."):
@@ -258,7 +230,6 @@ class SyntaxHighlighter:
 
         # 注册自动处理器 - 作为默认处理器
         auto_handler = AutoHandler()
-        # auto_handler._compile_patterns()  # 预编译正则表达式
         self.auto_handler = auto_handler  # 保存引用以便后续使用
 
     def register_language_handler(self, handler_class):
