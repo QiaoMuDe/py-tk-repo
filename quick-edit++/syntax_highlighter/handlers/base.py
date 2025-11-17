@@ -28,9 +28,10 @@ class LanguageHandler(ABC):
         self._regex_patterns = {}
         self._compiled_patterns = {}  # 存储预编译的正则表达式
         self._tag_styles = {}
+        self.is_compiled = False  # 添加编译状态标志
         self._setup_language()
-        # 预编译所有正则表达式
-        self._compile_patterns()
+        # 不再在初始化时自动编译正则表达式
+        # self._compile_patterns()
 
     @abstractmethod
     def _setup_language(self):
@@ -46,6 +47,10 @@ class LanguageHandler(ABC):
 
     def _compile_patterns(self):
         """预编译所有正则表达式模式"""
+        # 如果已经编译过，直接返回
+        if self.is_compiled:
+            return
+            
         for name, pattern in self._regex_patterns.items():
             try:
                 self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
@@ -53,6 +58,15 @@ class LanguageHandler(ABC):
                 print(f"警告: 正则表达式 '{name}' 编译失败: {e}")
                 # 如果编译失败，使用原始模式
                 self._compiled_patterns[name] = pattern
+        
+        # 标记为已编译
+        self.is_compiled = True
+
+    def ensure_compiled(self):
+        """确保已编译正则表达式（公共接口）"""
+        if not self.is_compiled:
+            self._compile_patterns()
+        return self.is_compiled
 
     def get_keywords(self) -> List[str]:
         """
@@ -79,6 +93,8 @@ class LanguageHandler(ABC):
         Returns:
             Dict[str, Any]: 标签名到预编译正则表达式的映射
         """
+        # 确保已编译
+        self.ensure_compiled()
         return self._compiled_patterns
 
     def get_tag_styles(self) -> Dict[str, Dict[str, Any]]:
