@@ -4,7 +4,8 @@
 """
 Markdown语言处理器
 
-提供Markdown文档的语法识别和高亮规则
+提供Markdown文档的语法识别和高亮规则，支持现代Markdown扩展语法
+包括GitHub Flavored Markdown (GFM)、数学公式、Mermaid图表等
 """
 
 import re
@@ -17,7 +18,8 @@ class MarkdownHandler(LanguageHandler):
     """
     Markdown语言处理器
 
-    提供Markdown文档的语法识别和高亮规则
+    提供Markdown文档的语法识别和高亮规则，支持现代Markdown扩展语法
+    包括GitHub Flavored Markdown (GFM)、数学公式、Mermaid图表等
     """
 
     # Markdown文件扩展名
@@ -28,151 +30,235 @@ class MarkdownHandler(LanguageHandler):
         # Markdown特殊元素
         self._keywords = []  # Markdown没有传统意义上的关键字
 
-        # 正则表达式模式
+        # 正则表达式模式 - 优化后的版本，提高准确性和性能
         self._regex_patterns = {
-            # 标题 - # ## ### 等
-            "headers": r"^(#{1,6})\s+(.+)$",
-            # 代码块 - ```包裹的代码
-            "code_blocks": r"^```[\w]*\n[\s\S]*?^```",
-            # 行内代码 - `包裹的代码
-            "inline_code": r"`([^`]+)`",
-            # 粗体 - **text** 或 __text__
-            "bold": r"(\*\*|__)(.*?)\1",
-            # 斜体 - *text* 或 _text_
-            "italic": r"(\*|_)(?!\1)(.*?)\1",
-            # 删除线 - ~~text~~
-            "strikethrough": r"(~~)(.*?)\1",
-            # 链接 - [text](url)
-            "links": r"\[([^\]]+)\]\(([^)]+)\)",
-            # 图片 - ![alt](url)
-            "images": r"!\[([^\]]*)\]\(([^)]+)\)",
-            # 引用 - > 开头的行
-            "quotes": r"^>\s+(.*)$",
-            # 无序列表 - - 或 * 或 + 开头的行
-            "unordered_lists": r"^(\s*)[-*+]\s+(.*)$",
-            # 有序列表 - 数字. 开头的行
-            "ordered_lists": r"^(\s*)\d+\.\s+(.*)$",
-            # 水平线 - --- 或 *** 或 ___
-            "horizontal_rules": r"^(\s*)([-*_]{3,})(\s*)$",
-            # HTML标签 - <tag>...</tag>
-            "html_tags": r"<(/?)(\w+)([^>]*)>",
-            # 表格 - | 列1 | 列2 | ...
-            "tables": r"^\|(.+)\|$",
-            # 分隔符 - 表格中的分隔行 |---|---|
-            "table_separators": r"^\|(\s*:?-+:?\s*\|)+\s*$",
-            # 任务列表 - - [ ] 或 - [x]
-            "task_lists": r"^(\s*)[-*+]\s+\[([ x])\]\s+(.*)$",
-            # 脚注 - [^1]:
-            "footnotes": r"\^\[([^\]]+)\]:",
-            # 定义列表 - Term\n: Definition
-            "definition_lists": r"^(.+)\n:\s+(.*)$",
-            # 元数据 - 前置YAML
+            # 前置元数据 - YAML前置内容，优先级最高
             "frontmatter": r"^---\n[\s\S]*?\n---",
-            # 注释 - HTML注释 <!-- comment -->
+            # 代码块
+            "code_blocks": r"^```(\w*)\n([\s\S]*?)^```",
+            # 数学公式块 - LaTeX数学公式
+            "math_blocks": r"^\$\$([\s\S]*?)^\$\$",
+            # Mermaid图表 - 流程图和图表，优化版本
+            "mermaid": r"^```mermaid\n([\s\S]*?)^```",
+            # 标题 - 改进版本，更精确匹配
+            "headers": r"^(#{1,6})(\s+)(.+)$",
+            # 水平线 - 改进版本，更精确匹配
+            "horizontal_rules": r"^(\s*)([-*_]{3,})(\s*)$",
+            # 引用块 - 支持多级引用
+            "quotes": r"^(>{1,3})(\s+)(.*)$",
+            # 表格分隔符 - 改进版本，更精确匹配对齐方式
+            "table_separators": r"^\|(\s*:?-+:?\s*\|)+\s*$",
+            # 表格 - 改进版本，更精确匹配表格内容
+            "tables": r"^\|(.+)\|$",
+            # 任务列表 - 改进版本，更精确匹配状态
+            "task_lists": r"^(\s*)([-*+])(\s+)(\[([ x])\])(\s+)(.*)$",
+            # 无序列表 - 改进版本，支持嵌套
+            "unordered_lists": r"^(\s*)([-*+])(\s+)(.*)$",
+            # 有序列表 - 改进版本，支持嵌套和更精确匹配
+            "ordered_lists": r"^(\s*)(\d+)(\.)(\s+)(.*)$",
+            # 定义列表 - 改进版本
+            "definition_lists": r"^(.+)\n:\s+(.*)$",
+            # 脚注定义 - 改进版本
+            "footnotes": r"^\^\[([^\]]+)\]:\s*(.*)$",
+            # 脚注引用 - 新增
+            "footnote_refs": r"\^\[([^\]]+)\]",
+            # HTML注释 - 改进版本
             "comments": r"<!--[\s\S]*?-->",
-            # 强调 - ==text==
-            "highlight": r"(==)(.*?)\1",
-            # 上标 - text^2
+            # 行内代码 - 改进版本，支持包含下划线的内容
+            "inline_code": r"(?<!`)`([^`\n]*?)`(?!`)",
+            # 行内数学公式 - 新增
+            "inline_math": r"\$([^$\n]+)\$",
+            # 图片 - 改进版本，支持标题属性
+            "images": r"!\[([^\]]*)\]\(([^)]+)(?:\s+\"([^\"]+)\")?\)",
+            # 链接 - 改进版本，支持标题属性和引用式链接
+            "links": r"\[([^\]]+)\]\(([^)]+)(?:\s+\"([^\"]+)\")?\)",
+            # 引用式链接 - 新增
+            "reference_links": r"\[([^\]]+)\]\[([^\]]*)\]",
+            # 引用式链接定义 - 新增
+            "link_definitions": r"^\s*\[([^\]]+)\]:\s*(.*)$",
+            # 粗体 - 优化版本，确保完整匹配包括结束标记
+            "bold": r"\*\*(?!\s)(.+?)(?<!\s)\*\*",
+            # 斜体 - 改进版本，避免与粗体冲突
+            "italic": r"(\*)(?!\s)(.+?)(?<!\s)\1|(_)(?!\s)(.+?)(?<!\s)\3",
+            # 删除线 - 改进版本
+            "strikethrough": r"(~~)(?!\s)(.+?)(?<!\s)\1",
+            # 强调 - 改进版本
+            "highlight": r"(==)(?!\s)(.+?)(?<!\s)\1",
+            # 上标 - 改进版本
             "superscript": r"\^([^^\s]+)\^",
-            # 下标 - text~2~
+            # 下标 - 改进版本
             "subscript": r"~([^~\s]+)~",
+            # HTML标签 - 改进版本，更精确匹配
+            "html_tags": r"<(/?)([a-zA-Z][a-zA-Z0-9]*)(?:\s+[^>]*)?>",
+            # 自动链接 - 新增
+            "autolinks": r"<(https?://[^>]+)>",
         }
 
-        # 标签样式 - 使用适合Markdown的配色方案
+        # 模式处理顺序 - 定义高亮优先级，确保正确的嵌套处理
+        self._pattern_order = [
+            # 优先处理块级元素
+            "frontmatter",  # 前置元数据
+            "code_blocks",  # 代码块
+            "math_blocks",  # 数学公式块
+            "mermaid",  # Mermaid图表
+            "comments",  # HTML注释
+            # 然后处理行级元素
+            "headers",  # 标题
+            "horizontal_rules",  # 水平线
+            "quotes",  # 引用块
+            "table_separators",  # 表格分隔符
+            "tables",  # 表格
+            "task_lists",  # 任务列表
+            "unordered_lists",  # 无序列表
+            "ordered_lists",  # 有序列表
+            "definition_lists",  # 定义列表
+            "footnotes",  # 脚注定义
+            "link_definitions",  # 引用式链接定义
+            # 最后处理内联元素
+            "footnote_refs",  # 脚注引用
+            "inline_code",  # 行内代码
+            "inline_math",  # 行内数学公式
+            "images",  # 图片
+            "links",  # 链接
+            "reference_links",  # 引用式链接
+            "autolinks",  # 自动链接
+            "bold",  # 粗体
+            "italic",  # 斜体
+            "strikethrough",  # 删除线
+            "highlight",  # 强调
+            "superscript",  # 上标
+            "subscript",  # 下标
+            "html_tags",  # HTML标签
+        ]
+
+        # 标签样式 - 增强版配色方案，提高对比度和视觉体验
         self._tag_styles = {
-            # 标题 - 深蓝色，不同级别使用不同深浅
-            "headers": {
-                "foreground": "#000080",
-            },
-            # 代码块 - 浅灰色背景，深色文字
-            "code_blocks": {
-                "foreground": "#333333",
-                "background": "#f5f5f5",
-            },
-            # 行内代码 - 深红色
-            "inline_code": {
-                "foreground": "#8B0000",
-                "background": "#f0f0f0",
-            },
-            # 粗体 - 黑色加粗
-            "bold": {
-                "foreground": "#000000",
-            },
-            # 斜体 - 深灰色
-            "italic": {
-                "foreground": "#555555",
-            },
-            # 删除线 - 灰色
-            "strikethrough": {
-                "foreground": "#999999",
-            },
-            # 链接 - 蓝色
-            "links": {
-                "foreground": "#0000FF",
-            },
-            # 图片 - 绿色
-            "images": {
-                "foreground": "#008000",
-            },
-            # 引用 - 深紫色
-            "quotes": {
-                "foreground": "#4B0082",
-            },
-            # 无序列表 - 深青色
-            "unordered_lists": {
-                "foreground": "#008B8B",
-            },
-            # 有序列表 - 深青色
-            "ordered_lists": {
-                "foreground": "#008B8B",
-            },
-            # 水平线 - 灰色
-            "horizontal_rules": {
-                "foreground": "#CCCCCC",
-            },
-            # HTML标签 - 棕色
-            "html_tags": {
-                "foreground": "#8B4513",
-            },
-            # 表格 - 深蓝色
-            "tables": {
-                "foreground": "#000080",
-            },
-            # 表格分隔符 - 灰色
-            "table_separators": {
-                "foreground": "#999999",
-            },
-            # 任务列表 - 深青色
-            "task_lists": {
-                "foreground": "#008B8B",
-            },
-            # 脚注 - 深紫色
-            "footnotes": {
-                "foreground": "#4B0082",
-            },
-            # 定义列表 - 深蓝色
-            "definition_lists": {
-                "foreground": "#000080",
-            },
-            # 元数据 - 深灰色
+            # 前置元数据 - 深灰色背景，浅色文字
             "frontmatter": {
-                "foreground": "#555555",
+                "foreground": "#6A6A6A",
+                "background": "#F8F8F8",
             },
-            # 注释 - 绿色
+            # 代码块 - 使用浅色背景，确保文字清晰可见
+            "code_blocks": {
+                "background": "#F6F8FA",
+            },
+            # 数学公式块 - 深蓝色背景，浅色文字
+            "math_blocks": {
+                "foreground": "#F8F8F2",
+                "background": "#1E3A8A",
+            },
+            # Mermaid图表 - 紫色背景，浅色文字
+            "mermaid": {
+                "foreground": "#F8F8F2",
+                "background": "#4B1B8A",
+            },
+            # 标题 - 蓝色前景色和浅蓝色背景，整行高亮
+            "headers": {
+                "foreground": "#0366D6",
+                "background": "#F0F7FF",
+            },
+            # 水平线 - 浅灰色，更加柔和
+            "horizontal_rules": {
+                "foreground": "#D1D5DA",
+            },
+            # 引用块 - 紫色前景色和浅紫色背景，整行高亮
+            "quotes": {
+                "foreground": "#6F42C1",
+                "background": "#F5F0FF",
+            },
+            # 表格分隔符 - 中灰色，更加明显
+            "table_separators": {
+                "foreground": "#586069",
+            },
+            # 表格 - 深蓝色，增强可读性
+            "tables": {
+                "foreground": "#24292E",
+            },
+            # 任务列表 - 深青色，更加明显
+            "task_lists": {
+                "foreground": "#0077CC",
+            },
+            # 无序列表 - 深绿色，更加明显
+            "unordered_lists": {
+                "foreground": "#22863A",
+            },
+            # 有序列表 - 深绿色，更加明显
+            "ordered_lists": {
+                "foreground": "#22863A",
+            },
+            # 定义列表 - 深绿色，更加明显
+            "definition_lists": {
+                "foreground": "#22863A",
+            },
+            # 脚注定义 - 深紫色，更加明显
+            "footnotes": {
+                "foreground": "#6F42C1",
+            },
+            # 脚注引用 - 深紫色，更加明显
+            "footnote_refs": {
+                "foreground": "#6F42C1",
+            },
+            # HTML注释 - 绿色，更加明显
             "comments": {
-                "foreground": "#00AA00",
+                "foreground": "#22863A",
             },
-            # 强调 - 黄色背景
+            # 行内代码 - 深红色背景，浅色文字，增强对比度
+            "inline_code": {
+                "foreground": "#E83E8C",
+                "background": "#FFF5F5",
+            },
+            # 行内数学公式 - 深蓝色背景，浅色文字，增强对比度
+            "inline_math": {
+                "foreground": "#1E3A8A",
+                "background": "#EFF6FF",
+            },
+            # 图片 - 深绿色，更加明显
+            "images": {
+                "foreground": "#22863A",
+            },
+            # 链接 - 深紫色，更加明显
+            "links": {
+                "foreground": "#6F42C1",
+            },
+            # 引用式链接 - 深紫色，更加明显
+            "reference_links": {
+                "foreground": "#6F42C1",
+            },
+            # 引用式链接定义 - 灰色，更加明显
+            "link_definitions": {
+                "foreground": "#586069",
+            },
+            # 粗体 - 仅使用背景色表示，避免与其他文本颜色冲突
+            "bold": {
+                "background": "#FFF0F0",  # 浅红色背景，标识粗体文本
+            },
+            # 斜体 - 深灰色，增强可读性
+            "italic": {
+                "foreground": "#586069",
+            },
+            # 删除线 - 灰色，更加明显
+            "strikethrough": {
+                "foreground": "#959DA5",
+            },
+            # 强调 - 黄色背景，深色文字，增强对比度
             "highlight": {
-                "foreground": "#000000",
-                "background": "#FFFF00",
+                "foreground": "#24292E",
+                "background": "#FFF3CD",
             },
-            # 上标 - 深蓝色
+            # 上标 - 深橙色，更加明显
             "superscript": {
-                "foreground": "#000080",
+                "foreground": "#E36209",
             },
-            # 下标 - 深蓝色
+            # 下标 - 深橙色，更加明显
             "subscript": {
-                "foreground": "#000080",
+                "foreground": "#E36209",
+            },
+            # HTML标签 - 棕色，更加明显
+            "html_tags": {
+                "foreground": "#A04B1C",
+            },
+            # 自动链接 - 深紫色，更加明显
+            "autolinks": {
+                "foreground": "#6F42C1",
             },
         }

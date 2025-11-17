@@ -57,34 +57,27 @@ class DockerfileHandler(LanguageHandler):
             "number": r"\b\d+\.?\d*\b",
             # 变量引用 ($VAR或${VAR}) - 更精确的匹配
             "variable": r"\$\{[a-zA-Z0-9_]+\}|\$[a-zA-Z_][a-zA-Z0-9_]*(?![a-zA-Z0-9_])",
-            # 端口号 (在EXPOSE指令后)
-            "port": r"(?m)^\s*EXPOSE\s+\b(\d+)\b",
             # 镜像名称 (在FROM指令后)
             "image": r"(?m)^\s*FROM\s+([a-zA-Z0-9/_.-]+)",
+            # 配置类指令的键值对 (LABEL, ENV, ARG, EXPOSE)
+            "key_value_pairs": r"(?m)^\s*(LABEL|ENV|ARG|EXPOSE)\s+([^=\s]+)(\s*=\s*([^\s#]+)|\s+(\d+))",
             # 健康检查选项
             "health_option": r"(--interval=|--timeout=|--start-period=|--retries=)",
             # Shell选项
             "shell_option": r"(--shell=)",
-            # 标签键值对
-            "label": r"(?m)^\s*LABEL\s+([^=]+)=(.*)",
-            # 环境变量键值对
-            "env": r"(?m)^\s*ENV\s+([^=]+)=(.*)",
-            # ARG键值对
-            "arg": r"(?m)^\s*ARG\s+([^=]+)=(.*)",
         }
 
-        # 标签样式 - 使用简洁的配色方案
+        # 标签样式 - 使用更鲜明的配色方案，适合浅色模式
         self._tag_styles = {
-            "comment": {"foreground": "#6A9955"},  # 绿色用于注释
-            "instruction": {"foreground": "#569CD6"},  # 蓝色用于所有指令关键字
-            "string": {"foreground": "#CE9178"},  # 橙色用于字符串
-            "number": {"foreground": "#B5CEA8"},  # 浅绿色用于数字
-            "variable": {"foreground": "#9CDCFE"},  # 浅蓝色用于变量
-            "port": {"foreground": "#B5CEA8"},  # 浅绿色用于端口号
-            "image": {"foreground": "#CE9178"},  # 橙色用于镜像名称
-            "health_option": {"foreground": "#D4D4D4"},  # 浅灰色用于选项
-            "shell_option": {"foreground": "#D4D4D4"},  # 浅灰色用于选项
-            "label": {"foreground": "#569CD6"},  # 蓝色用于标签
-            "env": {"foreground": "#4EC9B0"},  # 青色用于环境变量
-            "arg": {"foreground": "#569CD6"},  # 蓝色用于参数
+            "comment": {"foreground": "#008000"},  # 深绿色用于注释
+            "instruction": {"foreground": "#0000FF"},  # 深蓝色用于所有指令关键字
+            "string": {"foreground": "#FF8C00"},  # 深橙色用于字符串
+            "number": {"foreground": "#008000"},  # 深绿色用于数字
+            "variable": {"foreground": "#FF00FF"},  # 紫色用于变量
+            "image": {"foreground": "#FF8C00"},  # 深橙色用于镜像名称
+            "key_value_pairs": {
+                "foreground": "#008080"
+            },  # 深青色用于配置类指令的键值对和端口
+            "health_option": {"foreground": "#800000"},  # 深红色用于选项
+            "shell_option": {"foreground": "#800000"},  # 深红色用于选项
         }

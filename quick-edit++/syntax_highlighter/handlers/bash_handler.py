@@ -4,6 +4,7 @@
 Bash语言处理器
 
 提供Bash脚本的语法识别和高亮规则
+支持Bash 4.0+特性和常见Shell语法
 """
 
 import re
@@ -17,6 +18,7 @@ class BashHandler(LanguageHandler):
     Bash语言处理器
 
     提供Bash脚本的语法识别和高亮规则
+    支持Bash 4.0+特性和常见Shell语法
     """
 
     # Bash文件扩展名
@@ -24,7 +26,7 @@ class BashHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置Bash语言的语法规则"""
-        # Bash关键字
+        # Bash关键字 - 扩展以支持更多控制流和高级特性
         self._keywords = [
             # 控制流关键字
             "if",
@@ -45,26 +47,35 @@ class BashHandler(LanguageHandler):
             "function",
             "return",
             "local",
+            "unset",
             # 条件测试
             "test",
             "[",
-            "]",
-            # 命令替换
+            "]]",
+            "((()))",
+            # 命令替换和执行
             "eval",
             "exec",
+            "source",
+            ".",
             # 其他关键字
             "time",
             "declare",
             "typeset",
             "export",
             "readonly",
-            "unset",
-            "source",
-            ".",
+            # Bash 4.0+ 关键字
+            "coproc",
+            "mapfile",
+            "readarray",
+            # 循环控制
+            "break",
+            "continue",
         ]
 
-        # 内置命令
+        # 内置命令 - 扩展常用内置命令
         builtins = [
+            # 基本命令
             "echo",
             "printf",
             "read",
@@ -72,6 +83,7 @@ class BashHandler(LanguageHandler):
             "pwd",
             "ls",
             "cat",
+            # 文本处理
             "grep",
             "sed",
             "awk",
@@ -80,6 +92,9 @@ class BashHandler(LanguageHandler):
             "wc",
             "head",
             "tail",
+            "cut",
+            "tr",
+            # 文件操作
             "find",
             "mkdir",
             "rmdir",
@@ -88,24 +103,61 @@ class BashHandler(LanguageHandler):
             "mv",
             "chmod",
             "chown",
+            "chgrp",
+            "touch",
+            # 进程管理
             "ps",
             "kill",
-            "sleep",
-            "exit",
-            "trap",
-            "wait",
+            "killall",
             "jobs",
             "fg",
             "bg",
+            "wait",
+            "sleep",
+            "nohup",
+            # 系统信息
+            "date",
+            "who",
+            "whoami",
+            "id",
+            "uname",
+            "df",
+            "du",
+            "free",
+            # 网络工具
+            "ping",
+            "wget",
+            "curl",
+            "ssh",
+            "scp",
+            "rsync",
+            # 其他常用命令
+            "exit",
+            "trap",
             "alias",
             "unalias",
             "type",
             "which",
             "whereis",
             "history",
+            "clear",
+            # Bash内置命令
+            "set",
+            "unset",
+            "export",
+            "readonly",
+            "declare",
+            "typeset",
+            "local",
+            "let",
+            "pushd",
+            "popd",
+            "dirs",
+            "shopt",
+            "ulimit",
         ]
 
-        # 正则表达式模式
+        # 正则表达式模式 - 优化和扩展以支持更多Bash语法
         self._regex_patterns = {
             # 关键字 - 使用单词边界确保匹配完整单词
             "keywords": r"\b("
@@ -113,51 +165,69 @@ class BashHandler(LanguageHandler):
             + r")\b",
             # 内置命令
             "builtins": r"\b(" + "|".join(re.escape(b) for b in builtins) + r")\b",
-            # 注释 - 从#开始到行尾
-            "comments": r"#.*$",
-            # 字符串 - 包括单引号、双引号字符串
+            # 注释 - 从#开始到行尾，但排除字符串中的#
+            "comments": r"(?<!\")#.*$",
+            # 字符串 - 包括单引号、双引号字符串，支持转义字符
             "strings": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
-            # 数字 - 包括整数、浮点数
-            "numbers": r"\b\d+(?:\.\d+)?\b",
-            # 变量 - $开头
-            "variables": r"\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[^}]*\}",
+            # 数字 - 包括整数、浮点数、十六进制、八进制
+            "numbers": r"\b(?:0[xX][0-9a-fA-F]+|0[0-7]+|\d+(?:\.\d+)?[eE][+-]?\d+|\d+(?:\.\d+)?)\b",
+            # 变量 - $开头的变量，包括位置参数、特殊参数、数组
+            "variables": r"\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[^}]*\}|\$[0-9]+|\$[#@*?%!\-_$]",
             # 函数定义 - function关键字或函数名后的括号
             "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(\s*\)|\bfunction\s+([a-zA-Z_][a-zA-Z0-9_]*)",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|=|==|!=|<|>|<=|>=|\|\||&&|\||&|!|\(|\))",
-            # 路径 - 以/开头或包含/的字符串
-            "paths": r"(/[a-zA-Z0-9_\-\.\/]+|[a-zA-Z0-9_\-\.\/]+/[a-zA-Z0-9_\-\.\/]*)",
+            # 操作符 - 扩展操作符匹配
+            "operators": r"(\+\+|--|==|!=|<=|>=|&&|\|\||<<|>>|&\^|[-+*/%=<>&!|^~?:,;()\[\]{}])",
+            # 路径 - 以/开头或包含/的字符串，包括~家目录
+            "paths": r"(?:~/[a-zA-Z0-9_\-\.\/]+|/[a-zA-Z0-9_\-\.\/]+|[a-zA-Z0-9_\-\.\/]+/[a-zA-Z0-9_\-\.\/]*)",
+            # 命令替换 - $(...)和`...`
+            "command_substitution": r"\$\([^)]*\)|`[^`]*`",
+            # 进程替换 - <(...)和>(...)
+            "process_substitution": r"<\([^)]*\)|>\([^)]*\)",
+            # 算术表达式 - $((...))和((...))
+            "arithmetic": r"\$\(\([^)]*\)\)|\(\([^)]*\)\)",
+            # 条件表达式 - [[...]]和[...]
+            "conditional": r"\[\[[^\]]*\]\]|\[[^\]]*\]",
+            # Here文档 - <<和<<-
+            "heredoc": r"<<[-\s]*['\"]?(\w+)['\"]?\s*$",
+            # 重定向操作符
+            "redirection": r"[12&]?>>>?|[12&]?<<?|&>|[12&]>>?",
+            # 通配符模式
+            "wildcards": r"\*|\?|\[.*?\]",
+            # 数组索引 - ${array[index]}
+            "array_index": r"\$\{[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\]\}",
+            # 参数扩展 - ${param#word}, ${param%word}等
+            "parameter_expansion": r"\$\{[a-zA-Z_][a-zA-Z0-9_]*[#%:=+\-\?\*@!]\}",
         }
 
-        # 标签样式 - 使用适合Bash的配色方案
+        # 标签样式 - 使用适合Bash的配色方案，仅修改颜色
         self._tag_styles = {
             # 关键字 - 深蓝色
             "keywords": {
-                "foreground": "#000080",
+                "foreground": "#0000CD",
             },
             # 内置命令 - 蓝色
             "builtins": {
-                "foreground": "#0000FF",
+                "foreground": "#4169E1",
             },
             # 注释 - 绿色
             "comments": {
-                "foreground": "#00AA00",
+                "foreground": "#228B22",
             },
             # 字符串 - 棕色
             "strings": {
-                "foreground": "#8B4513",
+                "foreground": "#A0522D",
             },
             # 数字 - 深红色
             "numbers": {
-                "foreground": "#8B0000",
+                "foreground": "#B22222",
             },
             # 变量 - 紫色
             "variables": {
-                "foreground": "#800080",
+                "foreground": "#8B008B",
             },
             # 函数 - 深紫色
             "functions": {
-                "foreground": "#4B0082",
+                "foreground": "#483D8B",
             },
             # 操作符 - 黑色
             "operators": {
@@ -166,5 +236,41 @@ class BashHandler(LanguageHandler):
             # 路径 - 深青色
             "paths": {
                 "foreground": "#008B8B",
+            },
+            # 命令替换 - 深橙色
+            "command_substitution": {
+                "foreground": "#FF8C00",
+            },
+            # 进程替换 - 深粉红色
+            "process_substitution": {
+                "foreground": "#C71585",
+            },
+            # 算术表达式 - 深金色
+            "arithmetic": {
+                "foreground": "#B8860B",
+            },
+            # 条件表达式 - 深蓝色
+            "conditional": {
+                "foreground": "#000080",
+            },
+            # Here文档 - 深灰色
+            "heredoc": {
+                "foreground": "#696969",
+            },
+            # 重定向操作符 - 深青绿色
+            "redirection": {
+                "foreground": "#008080",
+            },
+            # 通配符模式 - 深橄榄色
+            "wildcards": {
+                "foreground": "#556B2F",
+            },
+            # 数组索引 - 深紫罗兰色
+            "array_index": {
+                "foreground": "#6A5ACD",
+            },
+            # 参数扩展 - 深石板蓝
+            "parameter_expansion": {
+                "foreground": "#708090",
             },
         }

@@ -25,14 +25,12 @@ from .go_handler import GoHandler
 from .markdown_handler import MarkdownHandler
 from .dockerfile_handler import DockerfileHandler
 from .makefile_handler import MakefileHandler
-from .env_handler import EnvHandler
 from .gitignore_handler import GitIgnoreHandler
 from .log_handler import LogHandler
 from .lua_handler import LuaHandler
 from .java_handler import JavaHandler
 from .rust_handler import RustHandler
 from .php_handler import PHPHandler
-from .cpp_handler import CppHandler
 from .csv_handler import CSVHandler
 from .vim_handler import VimHandler
 
@@ -56,14 +54,12 @@ __all__ = [
     "MarkdownHandler",
     "DockerfileHandler",
     "MakefileHandler",
-    "EnvHandler",
     "GitIgnoreHandler",
     "LogHandler",
     "LuaHandler",
     "JavaHandler",
     "RustHandler",
     "PHPHandler",
-    "CppHandler",
     "CSVHandler",
     "VimHandler",
 ]

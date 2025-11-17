@@ -36,14 +36,12 @@ from .handlers.go_handler import GoHandler
 from .handlers.markdown_handler import MarkdownHandler
 from .handlers.dockerfile_handler import DockerfileHandler
 from .handlers.makefile_handler import MakefileHandler
-from .handlers.env_handler import EnvHandler
 from .handlers.gitignore_handler import GitIgnoreHandler
 from .handlers.log_handler import LogHandler
 from .handlers.lua_handler import LuaHandler
 from .handlers.java_handler import JavaHandler
 from .handlers.rust_handler import RustHandler
 from .handlers.php_handler import PHPHandler
-from .handlers.cpp_handler import CppHandler
 from .handlers.csv_handler import CSVHandler
 from .handlers.vim_handler import VimHandler
 from .handlers.auto_handler import AutoHandler
@@ -174,11 +172,6 @@ class SyntaxHighlighter:
         for ext in makefile_handler.get_file_extensions():
             self.register_special_file(ext, makefile_handler)
 
-        # 注册Env处理器
-        env_handler = EnvHandler()
-        for ext in env_handler.get_file_extensions():
-            self.register_language(ext, env_handler)
-
         # 注册GitIgnore处理器
         gitignore_handler = GitIgnoreHandler()
         for ext in gitignore_handler.get_file_extensions():
@@ -208,11 +201,6 @@ class SyntaxHighlighter:
         php_handler = PHPHandler()
         for ext in php_handler.get_file_extensions():
             self.register_language(ext, php_handler)
-
-        # 注册C++处理器
-        cpp_handler = CppHandler()
-        for ext in cpp_handler.get_file_extensions():
-            self.register_language(ext, cpp_handler)
 
         # 注册CSV处理器
         csv_handler = CSVHandler()

@@ -148,8 +148,10 @@ class AutoHandler(LanguageHandler):
             "operators": r"(\+\+|--|==|!=|<=|>=|&&|\|\||<<|>>|&\^|<-|[+\-*/%&|^=<>!.,;:\[\]{}()])",
             # 常见函数调用
             "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
-            # 常见变量赋值
-            "variables": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*=",
+            # 常见变量赋值 - 支持键名中包含连字符和点号
+            "variables": r"\b([a-zA-Z_][a-zA-Z0-9_.-]*)\s*=",
+            # 键值对格式 - 支持 key=value 格式，特别关注配置文件中的键值对
+            "key_value_pairs": r"^(\s*)([a-zA-Z_][a-zA-Z0-9_.-]*)(\s*=\s*)([^#\n]+)",
             # URL和链接
             "urls": r"\b(?:https?://|ftp://|file://|www\.)[^\s<>\"]+",
             # 邮箱地址
@@ -175,6 +177,30 @@ class AutoHandler(LanguageHandler):
             # UUID格式
             "uuids": r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
         }
+
+        # 定义模式的处理顺序（确保键值对模式有正确的优先级）
+        self._pattern_order = [
+            "comments",
+            "key_value_pairs",
+            "strings",
+            "numbers",
+            "keywords",
+            "operators",
+            "functions",
+            "variables",
+            "urls",
+            "emails",
+            "ip_addresses",
+            "datetime",
+            "file_paths",
+            "hex_values",
+            "binary_values",
+            "version_numbers",
+            "env_vars",
+            "log_levels",
+            "color_codes",
+            "uuids",
+        ]
 
         # 标签样式 - 使用通用的配色方案
         self._tag_styles = {
@@ -205,6 +231,10 @@ class AutoHandler(LanguageHandler):
             # 变量赋值 - 深青色
             "variables": {
                 "foreground": "#008080",  # 深青色
+            },
+            # 键值对 - 键名使用深紫色，等号使用黑色，值使用深蓝色
+            "key_value_pairs": {
+                "foreground": "#800080",  # 深紫色（用于键名）
             },
             # URL和链接 - 蓝色加下划线
             "urls": {
