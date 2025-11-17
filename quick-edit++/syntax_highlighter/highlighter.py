@@ -515,14 +515,14 @@ class SyntaxHighlighter:
             end_index: 结束索引
             handler: 语言处理器实例
         """
-        if not handler:
+        if not handler:  # 检查处理器是否存在
             return
 
         # 获取预编译的正则表达式模式
         compiled_patterns = handler.get_compiled_patterns()
 
         # 获取文本内容
-        try:
+        try:  # 尝试获取指定范围内的文本
             text_content = self.text_widget.get(start_index, end_index)
         except tk.TclError:
             # 如果索引无效，则返回
