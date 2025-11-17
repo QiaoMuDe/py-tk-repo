@@ -50,7 +50,7 @@ class LanguageHandler(ABC):
         # 如果已经编译过，直接返回
         if self.is_compiled:
             return
-            
+
         for name, pattern in self._regex_patterns.items():
             try:
                 self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
@@ -58,7 +58,7 @@ class LanguageHandler(ABC):
                 print(f"警告: 正则表达式 '{name}' 编译失败: {e}")
                 # 如果编译失败，使用原始模式
                 self._compiled_patterns[name] = pattern
-        
+
         # 标记为已编译
         self.is_compiled = True
 

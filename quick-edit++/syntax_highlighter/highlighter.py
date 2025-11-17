@@ -278,10 +278,6 @@ class SyntaxHighlighter:
             extension: 文件扩展名，如".py"
             handler: 语言处理器实例
         """
-        # 不再在注册时编译，将在使用时编译
-        # if hasattr(handler, "_compile_patterns"):
-        #     handler._compile_patterns()
-
         self.language_handlers[extension.lower()] = handler
 
     def register_special_file(self, filename: str, handler):
@@ -292,10 +288,6 @@ class SyntaxHighlighter:
             filename: 文件名，如"Dockerfile", "Makefile"等
             handler: 语言处理器实例
         """
-        # 不再在注册时编译，将在使用时编译
-        # if hasattr(handler, "_compile_patterns"):
-        #     handler._compile_patterns()
-
         self.language_handlers[filename] = handler
 
     def detect_language(self, file_path: Optional[str] = None) -> Optional[str]:
@@ -360,11 +352,11 @@ class SyntaxHighlighter:
             handler = self.auto_handler
         else:
             handler = self.language_handlers.get(self.current_language)
-        
+
         # 确保处理器已编译
         if handler:
             handler.ensure_compiled()
-            
+
         return handler
 
     def highlight(self, file_path: Optional[str] = None):
@@ -431,15 +423,17 @@ class SyntaxHighlighter:
 
     def _setup_tags(self):
         """设置Text组件的标签样式（使用当前语言处理器）"""
-        if not self.current_language:
-            return
-
         handler = self._get_current_handler()
         if handler:
             self._setup_tags_for_handler(handler)
 
-    def _highlight_visible_lines_with_handler(self, handler):
-        """使用指定处理器高亮当前可见的行"""
+    def _get_visible_line_range(self):
+        """
+        获取当前可见的行范围
+
+        Returns:
+            tuple: (first_line, last_line) 可见行的起始和结束行号
+        """
         # 获取可见行范围
         first_visible = self.text_widget.index("@0,0")
         last_visible = self.text_widget.index("@0,10000")
@@ -461,6 +455,13 @@ class SyntaxHighlighter:
         if (last_line - first_line) > max_lines:
             last_line = first_line + max_lines
 
+        return first_line, last_line
+
+    def _highlight_visible_lines_with_handler(self, handler):
+        """使用指定处理器高亮当前可见的行"""
+        # 获取可见行范围
+        first_line, last_line = self._get_visible_line_range()
+
         # 计算清除和添加高亮的范围
         start_index = f"{first_line}.0"
         end_index = f"{last_line}.0"
@@ -470,12 +471,6 @@ class SyntaxHighlighter:
 
         # 高亮指定范围
         self._highlight_range_with_handler(start_index, end_index, handler)
-
-    def _highlight_full_document(self):
-        """高亮整个文档（受max_lines_per_highlight限制）"""
-        handler = self._get_current_handler()
-        if handler:
-            self._highlight_full_document_with_handler(handler)
 
     def _highlight_full_document_with_handler(self, handler):
         """使用指定处理器高亮整个文档（受max_lines_per_highlight限制）"""
@@ -508,7 +503,7 @@ class SyntaxHighlighter:
 
     def _highlight_range_with_handler(self, start_index: str, end_index: str, handler):
         """
-        使用指定处理器高亮指定范围的文本
+        使用指定处理器高亮指定范围的文本（优化版本）
 
         Args:
             start_index: 起始索引
@@ -528,36 +523,41 @@ class SyntaxHighlighter:
             # 如果索引无效，则返回
             return
 
+        # 收集所有标签位置，用于批量应用
+        tag_ranges = {}
+
         # 对每种模式进行匹配和高亮
         for tag_name, compiled_pattern in compiled_patterns.items():
             full_tag_name = f"syntax_{tag_name}"
+            tag_ranges[full_tag_name] = []
 
             # 使用预编译的正则表达式查找所有匹配项
             try:
                 # 如果是预编译的正则表达式对象
                 if hasattr(compiled_pattern, "finditer"):
                     for match in compiled_pattern.finditer(text_content):
-                        # 计算匹配项在Text组件中的位置
-                        start_pos = self._get_text_position(start_index, match.start())
-                        end_pos = self._get_text_position(start_index, match.end())
-
-                        # 应用标签
-                        self.text_widget.tag_add(full_tag_name, start_pos, end_pos)
+                        # 优化的位置计算：一次计算开始和结束位置
+                        start_pos, end_pos = self._get_text_position_range(
+                            start_index, match.start(), match.end()
+                        )
+                        tag_ranges[full_tag_name].append((start_pos, end_pos))
                 else:
                     # 如果是原始字符串模式（编译失败的情况）
                     for match in re.finditer(
                         compiled_pattern, text_content, re.MULTILINE
                     ):
-                        # 计算匹配项在Text组件中的位置
-                        start_pos = self._get_text_position(start_index, match.start())
-                        end_pos = self._get_text_position(start_index, match.end())
-
-                        # 应用标签
-                        self.text_widget.tag_add(full_tag_name, start_pos, end_pos)
+                        # 优化的位置计算：一次计算开始和结束位置
+                        start_pos, end_pos = self._get_text_position_range(
+                            start_index, match.start(), match.end()
+                        )
+                        tag_ranges[full_tag_name].append((start_pos, end_pos))
             except Exception as e:
                 # 如果匹配过程中出错，跳过该模式
                 print(f"警告: 正则匹配 '{tag_name}' 时出错: {e}")
                 continue
+
+        # 批量应用所有标签，减少API调用
+        self._apply_tags_batch(tag_ranges)
 
     def _get_text_position(self, base_index: str, offset: int) -> str:
         """
@@ -571,6 +571,44 @@ class SyntaxHighlighter:
             str: 计算后的位置索引
         """
         return f"{base_index}+{offset}c"
+
+    def _get_text_position_range(
+        self, base_index: str, start_offset: int, end_offset: int
+    ) -> tuple:
+        """
+        计算偏移量范围对应的文本位置（优化版本，减少重复计算）
+
+        Args:
+            base_index: 基础索引
+            start_offset: 起始偏移量
+            end_offset: 结束偏移量
+
+        Returns:
+            tuple: (start_pos, end_pos) 元组
+        """
+        start_pos = f"{base_index}+{start_offset}c"
+        end_pos = f"{base_index}+{end_offset}c"
+        return start_pos, end_pos
+
+    def _apply_tags_batch(self, tag_ranges: dict):
+        """
+        批量应用标签到文本组件（优化版本，减少API调用）
+
+        Args:
+            tag_ranges: 标签范围字典，格式为 {tag_name: [(start1, end1), (start2, end2), ...]}
+        """
+        # 直接使用底层的_textbox组件，支持一次添加多个范围
+        for tag_name, ranges in tag_ranges.items():
+            if not ranges:
+                continue
+
+            # 展平所有范围，准备一次性添加
+            flat_ranges = []
+            for start_pos, end_pos in ranges:
+                flat_ranges.extend([start_pos, end_pos])
+
+            # 直接调用底层_textbox的tag_add方法，支持多个范围
+            self.text_widget._textbox.tag_add(tag_name, *flat_ranges)
 
     def clear_highlight(self, start_index=None, end_index=None):
         """
@@ -587,20 +625,7 @@ class SyntaxHighlighter:
         if start_index is None or end_index is None:
             if self.render_visible_only:
                 # 可见行模式：只清除可见区域的高亮
-                first_visible = self.text_widget.index("@0,0")
-                last_visible = self.text_widget.index("@0,10000")
-
-                # 扩展范围以确保覆盖所有可见内容
-                first_line = int(first_visible.split(".")[0])
-                last_line = int(last_visible.split(".")[0]) + 1
-
-                # 确保范围有效
-                if first_line < 1:
-                    first_line = 1
-                total_lines = int(self.text_widget.index("end").split(".")[0])
-                if last_line > total_lines:
-                    last_line = total_lines
-
+                first_line, last_line = self._get_visible_line_range()
                 start_index = f"{first_line}.0"
                 end_index = f"{last_line}.0"
             else:
@@ -703,5 +728,5 @@ class SyntaxHighlighter:
             self.clear_highlight("1.0", "end")
             self.current_language = None
             self.current_file_extension = None
-        except Exception as e:
+        except Exception:
             pass
