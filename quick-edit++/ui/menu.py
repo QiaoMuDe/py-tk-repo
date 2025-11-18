@@ -805,13 +805,6 @@ def create_menu(root):
     # 将主题菜单添加到主菜单
     main_menu.add_cascade(label="主题", menu=theme_menu)
 
-    # 创建工具菜单
-    tool_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    main_menu.add_cascade(label="工具", menu=tool_menu)
-
-    # 创建选中内容处理菜单到工具菜单
-    create_selected_text_submenu(tool_menu, root, menu_font_tuple, False)
-
     # 创建设置菜单
     settings_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
