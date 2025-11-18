@@ -53,6 +53,7 @@ class FileWatcher:
         self.edit_notify_delay = (
             self.config["edit_notify_delay"] * 1000
         )  # 编辑模式下通知重置延迟（毫秒）
+        self.monitoring_enabled = self.config.get("monitoring_enabled", True)  # 是否启用文件变更监控
 
     def start_watching(self, file_path: str) -> None:
         """
@@ -62,6 +63,10 @@ class FileWatcher:
             file_path: 要监听的文件路径
         """
         if not file_path or not os.path.exists(file_path):
+            return
+
+        # 检查是否启用了文件变更监控
+        if not self.monitoring_enabled:
             return
 
         # 停止之前的监听
@@ -212,6 +217,12 @@ class FileWatcher:
             self._schedule_check()
             return
 
+        # 检查是否启用了文件变更监控
+        if not self.monitoring_enabled:
+            # 如果禁用了监控，不执行任何检查
+            self._schedule_check()
+            return
+
         self.is_checking = True
 
         # 检查是否处于只读模式
@@ -318,3 +329,22 @@ class FileWatcher:
             bool: 是否正在监听该文件
         """
         return self.watched_file == file_path
+
+    def update_monitoring_setting(self, enabled: bool) -> None:
+        """
+        更新文件变更监控设置
+
+        Args:
+            enabled: 是否启用文件变更监控
+        """
+        self.monitoring_enabled = enabled
+        # 更新配置
+        config_manager.set("file_watcher.monitoring_enabled", enabled)
+        config_manager.save_config()
+        
+        # 如果禁用了监控，停止当前的文件监听
+        if not enabled and self.watched_file:
+            self.stop_watching()
+        # 如果启用了监控，且当前有打开的文件，则开始监听
+        elif enabled and self.app.current_file_path and not self.watched_file:
+            self.start_watching(self.app.current_file_path)

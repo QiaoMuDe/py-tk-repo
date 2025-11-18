@@ -906,6 +906,13 @@ def create_menu(root):
         variable=root.highlight_current_line_var,
     )
 
+    # 文件变更监控设置
+    settings_menu.add_checkbutton(
+        label="启用文件变更监控",
+        command=lambda: toggle_file_monitoring(root),
+        variable=root.file_monitoring_var,
+    )
+
     # 创建语法高亮模式子菜单
     highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 
@@ -1381,6 +1388,23 @@ def toggle_highlight_current_line(root):
 
     # 显示通知
     messagebox.showinfo("通知", f"光标所在行高亮已{current_state and '启用' or '禁用'}")
+
+
+def toggle_file_monitoring(root):
+    """
+    切换文件变更监控功能状态
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前文件变更监控状态（此时Checkbutton已经自动切换了值）
+    current_state = root.file_monitoring_var.get()
+
+    # 更新FileWatcher的监控设置
+    root.file_watcher.update_monitoring_setting(current_state)
+
+    # 显示通知
+    messagebox.showinfo("通知", f"文件变更监控已{current_state and '启用' or '禁用'}")
 
 
 def set_text_background_color(root):

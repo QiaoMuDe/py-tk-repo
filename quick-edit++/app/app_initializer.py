@@ -183,6 +183,11 @@ class AppInitializer:
             value=config_manager.get("text_editor.highlight_current_line", True)
         )
 
+        # 初始化文件变更监控功能状态变量
+        self.app.file_monitoring_var = tk.BooleanVar(
+            value=config_manager.get("file_watcher.monitoring_enabled", True)
+        )
+
         # 重新打开文件菜单实例
         self.app.reopen_file_menu = None
 

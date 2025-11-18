@@ -43,6 +43,7 @@ DEFAULT_CONFIG = {
         "save_buffer": 1.0,  # 保存后的缓冲时间（秒），在此期间内不提示文件变更
         "readonly_notify_delay": 30,  # 只读模式下通知重置延迟（秒）
         "edit_notify_delay": 120,  # 编辑模式下通知重置延迟（秒）
+        "monitoring_enabled": True,  # 是否启用文件变更监控
     },
     # 最近打开文件配置
     "recent_files": {
