@@ -53,7 +53,9 @@ class FileWatcher:
         self.edit_notify_delay = (
             self.config["edit_notify_delay"] * 1000
         )  # 编辑模式下通知重置延迟（毫秒）
-        self.monitoring_enabled = self.config.get("monitoring_enabled", True)  # 是否启用文件变更监控
+        self.monitoring_enabled = self.config.get(
+            "monitoring_enabled", True
+        )  # 是否启用文件变更监控
 
     def start_watching(self, file_path: str) -> None:
         """
@@ -341,7 +343,7 @@ class FileWatcher:
         # 更新配置
         config_manager.set("file_watcher.monitoring_enabled", enabled)
         config_manager.save_config()
-        
+
         # 如果禁用了监控，停止当前的文件监听
         if not enabled and self.watched_file:
             self.stop_watching()

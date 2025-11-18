@@ -438,7 +438,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self._update_status_bar()
         # 更新光标行高亮
         self._highlight_current_line()
-        
+
         # 语法高亮现在由语法高亮控制器统一管理，不再在此处处理
 
     def set_modified(self, modified=False):

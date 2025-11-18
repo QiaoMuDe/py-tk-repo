@@ -891,7 +891,7 @@ def create_menu(root):
         variable=root.syntax_highlight_var,
         accelerator="Ctrl+L",
     )
-    
+
     # 创建语法高亮模式子菜单
     highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 

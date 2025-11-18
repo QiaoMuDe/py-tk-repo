@@ -236,10 +236,10 @@ class SyntaxHighlighter:
         # 根据渲染模式绑定不同的事件
         if self.render_visible_only:
             # 可见行模式 - 需要响应滚动和编辑事件
-            
+
             # 文本修改事件(修改状态)
             self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
-            
+
             # 文本变化事件 - 统一处理所有文本变化(插入/删除)
             self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
             self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
@@ -345,12 +345,12 @@ class SyntaxHighlighter:
 
         return handler
 
-    def highlight(self, file_path: Optional[str] = None):
+    def apply_highlighting(self, file_path: Optional[str] = None):
         """
-        执行语法高亮
+        应用语法高亮
 
         Args:
-            file_path: 文件路径，如果为None则使用当前文件路径
+            file_path: 文件路径, 如果为None则使用当前文件路径
         """
         # 如果未启用高亮，则直接返回
         if not self.highlight_enabled:
@@ -644,7 +644,7 @@ class SyntaxHighlighter:
             return
 
         # 对于所有事件，统一调用highlight方法，它内部会根据模式选择合适的高亮方式
-        self.text_widget.after_idle(self.highlight)
+        self.text_widget.after_idle(self.apply_highlighting)
 
     def set_render_mode(self, render_visible_only: bool):
         """
@@ -657,7 +657,7 @@ class SyntaxHighlighter:
         # 重新绑定事件
         self._bind_events()
         # 重新高亮
-        self.highlight()
+        self.apply_highlighting()
 
     def set_enabled(self, enabled: bool, file_path: Optional[str] = None):
         """
@@ -674,10 +674,10 @@ class SyntaxHighlighter:
         else:
             # 如果启用，则重新高亮，使用当前文件路径
             if file_path:
-                self.highlight(file_path)
+                self.apply_highlighting(file_path)
             elif self.current_language:
                 # 如果有当前语言但没有文件路径，也尝试高亮
-                self.highlight()
+                self.apply_highlighting()
 
     def is_enabled(self) -> bool:
         """
@@ -696,15 +696,6 @@ class SyntaxHighlighter:
             Optional[str]: 当前语言的文件扩展名
         """
         return self.current_language
-
-    def apply_highlighting(self, file_path: Optional[str] = None):
-        """
-        应用语法高亮 - 别名方法，与highlight方法功能相同
-
-        Args:
-            file_path: 文件路径，如果为None则使用当前设置的语言
-        """
-        self.highlight(file_path)
 
     def reset_highlighting(self):
         """
