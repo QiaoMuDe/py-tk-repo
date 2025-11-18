@@ -114,7 +114,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
             "<Button-1>", self._on_mouse_left_click, add="+"
-        )  # 额外的鼠标左击事件处理器
+        )  # 额外的鼠标左击事件处理器，用于清除高亮
         self.text_area.bind(
             "<<Selection>>", self._on_cursor_move
         )  # 监听选择内容改变事件
@@ -496,15 +496,20 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def _on_mouse_left_click(self, event=None):
         """
         鼠标左击事件处理函数
+        
+        在左键点击时清除查找替换的高亮标签
 
         Args:
             event: 事件对象，包含鼠标点击的位置信息
         """
+        # 清除查找替换的高亮
+        try:
+            self.find_replace_engine.clear_highlights()
+        except Exception as e:
+            #print(f"Error in _on_mouse_left_click: {e}")
+            pass
+        
         # 确保文本框处理完点击事件后立即更新行高亮
-        # 使用after_idle确保在事件队列处理完后立即执行
-        # self.after_idle(self._highlight_current_line)
-        # 更新状态栏
-        # self._update_status_bar()
         self.after_idle(self._on_cursor_move)
 
     def _update_status_bar(self):

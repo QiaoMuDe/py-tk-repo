@@ -17,6 +17,7 @@ from .file_watcher import FileWatcher
 from syntax_highlighter import SyntaxHighlighter
 from ui.line_number_canvas import LineNumberCanvas
 from ui.file_properties_dialog import update_file_properties_menu_state
+from .find_replace_engine import FindReplaceEngine
 
 
 class AppInitializer:
@@ -320,6 +321,11 @@ class AppInitializer:
         """初始化语法高亮功能"""
         # 创建语法高亮实例并关联到文本区域
         self.app.syntax_highlighter = SyntaxHighlighter(self.app)
+        
+    def init_other(self):
+        """初始化其他组件"""
+        # 初始化查找替换引擎
+        self.app.find_replace_engine = FindReplaceEngine(self.app)
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""
@@ -341,6 +347,7 @@ class AppInitializer:
         self.init_menu_bar()
         self.init_syntax_highlighting()
         self.init_read_only_mode()
+        self.init_other()
 
         # 初始化文件菜单部分项的状态
         self.app.update_file_menu_state()

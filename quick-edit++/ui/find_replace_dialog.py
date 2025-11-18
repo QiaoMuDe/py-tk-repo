@@ -58,8 +58,8 @@ class FindReplaceDialog:
         self.text_widget = text_widget  # 文本编辑器控件
         self.config_manager = ConfigManager()  # 配置管理器
 
-        # 创建查找替换引擎实例
-        self.find_replace_engine = FindReplaceEngine(self.parent)
+        # 使用编辑器实例的查找替换引擎，而不是创建新的
+        self.find_replace_engine = parent.find_replace_engine
 
         # 标记为已初始化
         self._initialized = True
@@ -563,14 +563,8 @@ class FindReplaceDialog:
 
     def _close_dialog(self):
         """关闭对话框时清理资源"""
-        # 确保在关闭时清除高亮
-        if self.find_replace_engine is not None:
-            try:
-                # 清除高亮
-                self.find_replace_engine.clear_highlights()
-            except Exception as e:
-                print(f"清除高亮时出错: {e}")
-
+        # 不再自动清除高亮，保留高亮直到用户右键点击清除
+        
         # 清除类变量引用
         FindReplaceDialog._instance = None
 
