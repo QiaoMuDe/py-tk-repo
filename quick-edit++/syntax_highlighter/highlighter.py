@@ -415,6 +415,10 @@ class SyntaxHighlighter:
 
             self.text_widget.tag_config(full_tag_name, **safe_config)
             self._highlight_tags.add(full_tag_name)
+        
+        # 确保选中标签的优先级最高，防止被语法高亮覆盖
+        # 在所有语法高亮标签设置完成后，提高选中标签的优先级
+        self.text_widget.tag_raise("sel")
 
     def _setup_tags(self):
         """设置Text组件的标签样式（使用当前语言处理器）"""

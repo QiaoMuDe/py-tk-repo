@@ -307,6 +307,29 @@ class AppInitializer:
         self.app.text_area.configure(border_width=0)
         self.app.text_frame.configure(border_width=0)
 
+        # 设置选中背景色为最高优先级，防止被其他背景色覆盖
+        # 使用底层textbox的tag_configure方法设置sel标签的背景色
+        # sel标签是Text组件内置的选中标签，我们将其设置为最高优先级
+        self.app.text_area._textbox.tag_configure(
+            "sel", 
+            background="#0078D7",  # Windows风格的选中蓝色
+            foreground="white",     # 选中文字为白色
+            # 注意：Text组件中标签优先级由创建顺序决定，后创建的优先级更高
+            # 我们通过直接修改sel标签来确保选中样式可见
+        )
+        
+        # 再次设置选中样式，确保优先级最高（在所有语法高亮标签之后）
+        # 这个调用会在语法高亮设置之后执行，确保选中样式始终可见
+        def ensure_selection_visibility():
+            """确保选中文本始终可见，不被语法高亮覆盖"""
+            self.app.text_area._textbox.tag_raise("sel")
+        
+        # 绑定事件，确保在选中状态改变时提高选中标签的优先级
+        self.app.text_area._textbox.bind("<<Selection>>", lambda e: ensure_selection_visibility())
+        
+        # 初始调用一次，确保初始状态下选中样式优先级最高
+        ensure_selection_visibility()
+
         # 根据配置决定是否显示行号栏
         if self.app.line_numbers_var.get():
             self.app.line_number_canvas.grid(row=0, column=0, sticky="nsw")
@@ -333,6 +356,10 @@ class AppInitializer:
         """初始化语法高亮功能"""
         # 创建语法高亮实例并关联到文本区域
         self.app.syntax_highlighter = SyntaxHighlighter(self.app)
+        
+        # 确保选中样式优先级最高，在语法高亮初始化后调用
+        # 这样可以确保语法高亮不会覆盖选中文本的样式
+        self.app.text_area._textbox.tag_raise("sel")
 
     def init_other(self):
         """初始化其他组件"""

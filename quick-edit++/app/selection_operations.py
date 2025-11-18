@@ -393,6 +393,7 @@ class SelectionOperations:
         移除选中文本的首尾空白
 
         检查是否有选中文本和是否为只读模式, 然后移除选中文本的首尾空白
+        能够智能判断单行或多行文本，采用相应的处理方式
         """
         # 检查是否可以进行编辑操作
         if not self._check_editable_selection("移除首尾空白"):
@@ -403,17 +404,35 @@ class SelectionOperations:
             selected_text = self.get_selected_text()
             start_index, end_index = self.get_selection_range()
 
-            # 移除选中文本的首尾空白
-            trimmed_text = selected_text.strip()
+            # 判断是否为多行文本
+            is_multiline = "\n" in selected_text
+            
+            if is_multiline:
+                # 多行处理：移除每一行的首尾空白
+                lines = selected_text.split("\n")
+                trimmed_lines = [line.strip() for line in lines]
+                trimmed_text = "\n".join(trimmed_lines)
+                
+                # 计算新的结束位置
+                start_line = int(start_index.split(".")[0])
+                line_count = len(trimmed_lines)
+                end_line = start_line + line_count - 1
+                end_column = len(trimmed_lines[-1]) if trimmed_lines else 0
+            else:
+                # 单行处理：直接移除首尾空白
+                trimmed_text = selected_text.strip()
+                
+                # 计算新的结束位置
+                end_line = int(start_index.split(".")[0])
+                end_column = len(trimmed_text)
+            
+            new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
             self.text_area.insert(start_index, trimmed_text)
 
             # 重新选中修改后的文本
-            end_line = int(start_index.split(".")[0])
-            end_column = len(trimmed_text)
-            new_end_index = f"{end_line}.{end_column}"
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
@@ -424,6 +443,7 @@ class SelectionOperations:
         移除选中文本的左侧空白
 
         检查是否有选中文本和是否为只读模式, 然后移除选中文本的左侧空白
+        能够智能判断单行或多行文本，采用相应的处理方式
         """
         # 检查是否可以进行编辑操作
         if not self._check_editable_selection("移除左侧空白"):
@@ -434,17 +454,35 @@ class SelectionOperations:
             selected_text = self.get_selected_text()
             start_index, end_index = self.get_selection_range()
 
-            # 移除选中文本的左侧空白
-            trimmed_text = selected_text.lstrip()
+            # 判断是否为多行文本
+            is_multiline = "\n" in selected_text
+            
+            if is_multiline:
+                # 多行处理：移除每一行的左侧空白
+                lines = selected_text.split("\n")
+                trimmed_lines = [line.lstrip() for line in lines]
+                trimmed_text = "\n".join(trimmed_lines)
+                
+                # 计算新的结束位置
+                start_line = int(start_index.split(".")[0])
+                line_count = len(trimmed_lines)
+                end_line = start_line + line_count - 1
+                end_column = len(trimmed_lines[-1]) if trimmed_lines else 0
+            else:
+                # 单行处理：直接移除左侧空白
+                trimmed_text = selected_text.lstrip()
+                
+                # 计算新的结束位置
+                end_line = int(start_index.split(".")[0])
+                end_column = len(trimmed_text)
+            
+            new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
             self.text_area.insert(start_index, trimmed_text)
 
             # 重新选中修改后的文本
-            end_line = int(start_index.split(".")[0])
-            end_column = len(trimmed_text)
-            new_end_index = f"{end_line}.{end_column}"
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
@@ -455,6 +493,7 @@ class SelectionOperations:
         移除选中文本的右侧空白
 
         检查是否有选中文本和是否为只读模式, 然后移除选中文本的右侧空白
+        能够智能判断单行或多行文本，采用相应的处理方式
         """
         # 检查是否可以进行编辑操作
         if not self._check_editable_selection("移除右侧空白"):
@@ -465,17 +504,35 @@ class SelectionOperations:
             selected_text = self.get_selected_text()
             start_index, end_index = self.get_selection_range()
 
-            # 移除选中文本的右侧空白
-            trimmed_text = selected_text.rstrip()
+            # 判断是否为多行文本
+            is_multiline = "\n" in selected_text
+            
+            if is_multiline:
+                # 多行处理：移除每一行的右侧空白
+                lines = selected_text.split("\n")
+                trimmed_lines = [line.rstrip() for line in lines]
+                trimmed_text = "\n".join(trimmed_lines)
+                
+                # 计算新的结束位置
+                start_line = int(start_index.split(".")[0])
+                line_count = len(trimmed_lines)
+                end_line = start_line + line_count - 1
+                end_column = len(trimmed_lines[-1]) if trimmed_lines else 0
+            else:
+                # 单行处理：直接移除右侧空白
+                trimmed_text = selected_text.rstrip()
+                
+                # 计算新的结束位置
+                end_line = int(start_index.split(".")[0])
+                end_column = len(trimmed_text)
+            
+            new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
             self.text_area.insert(start_index, trimmed_text)
 
             # 重新选中修改后的文本
-            end_line = int(start_index.split(".")[0])
-            end_column = len(trimmed_text)
-            new_end_index = f"{end_line}.{end_column}"
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
@@ -486,6 +543,7 @@ class SelectionOperations:
         移除选中文本中的多余空白
 
         检查是否有选中文本和是否为只读模式, 然后移除选中文本中的多余空白
+        能够智能判断单行或多行文本，采用相应的处理方式
         """
         # 检查是否可以进行编辑操作
         if not self._check_editable_selection("移除多余空白"):
@@ -496,18 +554,35 @@ class SelectionOperations:
             selected_text = self.get_selected_text()
             start_index, end_index = self.get_selection_range()
 
-            # 移除选中文本中的多余空白
-            # 使用split()分割所有空白字符, 然后用单个空格连接
-            cleaned_text = " ".join(selected_text.split())
+            # 判断是否为多行文本
+            is_multiline = "\n" in selected_text
+            
+            if is_multiline:
+                # 多行处理：对每一行移除多余空白，保留行结构
+                lines = selected_text.split("\n")
+                cleaned_lines = [" ".join(line.split()) for line in lines]
+                cleaned_text = "\n".join(cleaned_lines)
+                
+                # 计算新的结束位置
+                start_line = int(start_index.split(".")[0])
+                line_count = len(cleaned_lines)
+                end_line = start_line + line_count - 1
+                end_column = len(cleaned_lines[-1]) if cleaned_lines else 0
+            else:
+                # 单行处理：直接移除多余空白
+                cleaned_text = " ".join(selected_text.split())
+                
+                # 计算新的结束位置
+                end_line = int(start_index.split(".")[0])
+                end_column = len(cleaned_text)
+            
+            new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
             self.text_area.insert(start_index, cleaned_text)
 
             # 重新选中修改后的文本
-            end_line = int(start_index.split(".")[0])
-            end_column = len(cleaned_text)
-            new_end_index = f"{end_line}.{end_column}"
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:

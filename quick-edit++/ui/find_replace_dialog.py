@@ -82,7 +82,7 @@ class FindReplaceDialog:
 
         # 存储搜索选项，避免每次创建新对象
         self.search_options = None
-        # 搜索模式变量（0:普通模式, 1:全词匹配, 2:正则表达式）
+        # 搜索模式变量 (0:普通模式, 1:全词匹配, 2:正则表达式)
         self.search_mode_var = None
 
         # 创建对话框窗口

@@ -8,6 +8,7 @@
 import tkinter as tk
 from typing import List, Tuple, Optional
 from tkinter import messagebox
+from config.config_manager import config_manager
 
 
 class SearchOptions:
@@ -112,6 +113,9 @@ class FindReplaceEngine:
 
         # 设置当前匹配项标签的优先级高于所有匹配项标签
         self.text_widget.tag_raise(self.highlight_tag_current, self.highlight_tag_all)
+        
+        # 确保选中标签的优先级最高，防止被查找高亮覆盖
+        self.text_widget.tag_raise("sel", self.highlight_tag_current)
 
         # 启用高亮
         self.highlighting_enabled = True
@@ -149,6 +153,7 @@ class FindReplaceEngine:
 
         # 清除当前匹配项
         self.current_match = None
+        
 
     def find(
         self, pattern: str, search_options: SearchOptions
