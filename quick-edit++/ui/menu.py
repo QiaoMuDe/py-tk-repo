@@ -899,6 +899,13 @@ def create_menu(root):
         variable=root.auto_increment_number_var,
     )
 
+    # 光标所在行高亮设置
+    settings_menu.add_checkbutton(
+        label="启用光标所在行高亮",
+        command=lambda: toggle_highlight_current_line(root),
+        variable=root.highlight_current_line_var,
+    )
+
     # 创建语法高亮模式子菜单
     highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 
@@ -1349,6 +1356,31 @@ def toggle_auto_increment_number(root):
 
     # 显示通知
     messagebox.showinfo("通知", f"自动递增编号已{current_state and '启用' or '禁用'}")
+
+
+def toggle_highlight_current_line(root):
+    """
+    切换光标所在行高亮功能状态
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前光标所在行高亮状态（此时Checkbutton已经自动切换了值）
+    current_state = root.highlight_current_line_var.get()
+
+    # 保存配置
+    config_manager.set("text_editor.highlight_current_line", current_state)
+    config_manager.save_config()
+
+    # 重新初始化行高亮设置
+    root._setup_line_highlight(full_init=False)
+
+    # 如果禁用了高亮，清除当前高亮
+    if not current_state and hasattr(root, "current_line_tag"):
+        root.text_area.tag_remove(root.current_line_tag, "1.0", "end")
+
+    # 显示通知
+    messagebox.showinfo("通知", f"光标所在行高亮已{current_state and '启用' or '禁用'}")
 
 
 def set_text_background_color(root):

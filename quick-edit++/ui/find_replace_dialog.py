@@ -564,7 +564,7 @@ class FindReplaceDialog:
     def _close_dialog(self):
         """关闭对话框时清理资源"""
         # 不再自动清除高亮，保留高亮直到用户右键点击清除
-        
+
         # 清除类变量引用
         FindReplaceDialog._instance = None
 

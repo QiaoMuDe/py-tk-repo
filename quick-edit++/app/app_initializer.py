@@ -18,6 +18,7 @@ from syntax_highlighter import SyntaxHighlighter
 from ui.line_number_canvas import LineNumberCanvas
 from ui.file_properties_dialog import update_file_properties_menu_state
 from .find_replace_engine import FindReplaceEngine
+from ctypes import windll
 
 
 class AppInitializer:
@@ -44,8 +45,6 @@ class AppInitializer:
     def init_dpi_support(self):
         """启用DPI缩放支持"""
         try:
-            from ctypes import windll
-
             windll.shcore.SetProcessDpiAwareness(1)
         except Exception as e:
             print(f"警告: 无法启用DPI缩放支持: {e}")
@@ -179,6 +178,11 @@ class AppInitializer:
             value=config_manager.get("text_editor.auto_increment_number", True)
         )
 
+        # 初始化光标所在行高亮功能状态变量
+        self.app.highlight_current_line_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.highlight_current_line", True)
+        )
+
         # 重新打开文件菜单实例
         self.app.reopen_file_menu = None
 
@@ -237,6 +241,9 @@ class AppInitializer:
             fg_color=config_manager.get(
                 "text_editor.bg_color", "#F5F5F5"
             ),  # 背景色设置
+            insertwidth=config_manager.get(
+                "text_editor.cursor_width", 5
+            ),  # 光标宽度设置
         )
 
         # 设置初始滚动条检查更新显示时间为50毫秒
@@ -321,7 +328,7 @@ class AppInitializer:
         """初始化语法高亮功能"""
         # 创建语法高亮实例并关联到文本区域
         self.app.syntax_highlighter = SyntaxHighlighter(self.app)
-        
+
     def init_other(self):
         """初始化其他组件"""
         # 初始化查找替换引擎

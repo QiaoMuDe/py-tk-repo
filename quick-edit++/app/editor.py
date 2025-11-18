@@ -73,7 +73,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def handle_drag_drop(self, files):
         """
         处理文件拖拽事件，先检查是否为只读模式，再调用实际的拖拽处理方法
-        
+
         Args:
             files: 拖拽的文件列表，可能是字节串或字符串
         """
@@ -81,7 +81,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.is_read_only:
             messagebox.showinfo("提示", "当前为只读模式，无法通过拖拽打开文件")
             return
-            
+
         # 调用实际的拖拽处理方法
         self.file_ops.handle_dropped_files(files)
 
@@ -211,6 +211,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                               True - 应用启动时调用，执行完整配置
                               False - 仅更新颜色（主题切换时调用）
         """
+        # 如果未启用高亮功能，直接返回
+        if not self.highlight_current_line_var.get():
+            # 如果之前有高亮，清除它
+            self._clear_current_line_highlight()
+            return
+
         # 从配置管理器获取当前主题模式
         theme_mode = config_manager.get("app.theme_mode", "light")
 
@@ -466,13 +472,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self._highlight_current_line()
         self._update_status_bar()
 
-    def _highlight_current_line(self):
+    def _clear_current_line_highlight(self):
         """
-        高亮光标所在的当前行，包括整行宽度（含右侧空白区域）
-        仅执行实际的高亮操作，标签样式配置已在初始化时完成
-        清除之前高亮的行，并高亮当前光标所在的行
+        清除当前光标所在行的高亮
+
+        如果存在高亮的行，则移除高亮标签并重置当前高亮行号
         """
-        # 先清除之前高亮的行
         if self.current_highlighted_line is not None:
             self.text_area.tag_remove(
                 "current_line",
@@ -480,6 +485,19 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 f"{int(self.current_highlighted_line) + 1}.0",
             )
             self.current_highlighted_line = None
+
+    def _highlight_current_line(self):
+        """
+        高亮光标所在的当前行，包括整行宽度（含右侧空白区域）
+        仅执行实际的高亮操作，标签样式配置已在初始化时完成
+        清除之前高亮的行，并高亮当前光标所在的行
+        """
+        # 如果未启用高亮功能，直接返回
+        if not self.highlight_current_line_var.get():
+            return
+
+        # 先清除之前高亮的行
+        self._clear_current_line_highlight()
 
         # 获取当前光标位置
         cursor_pos = self.text_area.index(ctk.INSERT)
@@ -496,7 +514,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def _on_mouse_left_click(self, event=None):
         """
         鼠标左击事件处理函数
-        
+
         在左键点击时清除查找替换的高亮标签
 
         Args:
@@ -506,9 +524,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         try:
             self.find_replace_engine.clear_highlights()
         except Exception as e:
-            #print(f"Error in _on_mouse_left_click: {e}")
+            # print(f"Error in _on_mouse_left_click: {e}")
             pass
-        
+
         # 确保文本框处理完点击事件后立即更新行高亮
         self.after_idle(self._on_cursor_move)
 
@@ -659,7 +677,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.is_read_only:
             messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
             return
-            
+
         self.file_ops._open_file(
             check_save=True, check_backup=True, file_path=file_path
         )

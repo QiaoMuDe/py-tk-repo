@@ -63,6 +63,8 @@ DEFAULT_CONFIG = {
         "max_undo": 50,  # 最大撤销次数
         "show_line_numbers": True,  # 是否显示行号
         "auto_increment_number": True,  # 是否启用自动递增编号功能
+        "highlight_current_line": True,  # 是否启用光标所在行高亮
+        "cursor_width": 5,  # 光标宽度（像素）
     },
     # 工具栏配置
     "toolbar": {
