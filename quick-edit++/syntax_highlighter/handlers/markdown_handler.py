@@ -35,7 +35,7 @@ class MarkdownHandler(LanguageHandler):
             # 前置元数据 - YAML前置内容，优先级最高
             "frontmatter": r"^---\n[\s\S]*?\n---",
             # 代码块
-            "code_blocks": r"^```(\w*)\n([\s\S]*?)^```",
+            # "code_blocks": r"^```(\w*)\n([\s\S]*?)^```",
             # 数学公式块 - LaTeX数学公式
             "math_blocks": r"^\$\$([\s\S]*?)^\$\$",
             # Mermaid图表 - 流程图和图表，优化版本
@@ -79,7 +79,7 @@ class MarkdownHandler(LanguageHandler):
             # 粗体 - 优化版本，确保完整匹配包括结束标记
             "bold": r"\*\*(?!\s)(.+?)(?<!\s)\*\*",
             # 斜体 - 改进版本，避免与粗体冲突
-            "italic": r"(\*)(?!\s)(.+?)(?<!\s)\1|(_)(?!\s)(.+?)(?<!\s)\3",
+            # "italic": r"(\*)(?!\s)(.+?)(?<!\s)\1|(_)(?!\s)(.+?)(?<!\s)\3",
             # 删除线 - 改进版本
             "strikethrough": r"(~~)(?!\s)(.+?)(?<!\s)\1",
             # 强调 - 改进版本
@@ -98,7 +98,7 @@ class MarkdownHandler(LanguageHandler):
         self._pattern_order = [
             # 优先处理块级元素
             "frontmatter",  # 前置元数据
-            "code_blocks",  # 代码块
+            # "code_blocks",  # 代码块
             "math_blocks",  # 数学公式块
             "mermaid",  # Mermaid图表
             "comments",  # HTML注释
@@ -123,7 +123,7 @@ class MarkdownHandler(LanguageHandler):
             "reference_links",  # 引用式链接
             "autolinks",  # 自动链接
             "bold",  # 粗体
-            "italic",  # 斜体
+            # "italic",  # 斜体
             "strikethrough",  # 删除线
             "highlight",  # 强调
             "superscript",  # 上标
@@ -131,134 +131,126 @@ class MarkdownHandler(LanguageHandler):
             "html_tags",  # HTML标签
         ]
 
-        # 标签样式 - 增强版配色方案，提高对比度和视觉体验
+        # 标签样式 - 仅使用前景色方案，避免与查找界面标签冲突
         self._tag_styles = {
-            # 前置元数据 - 深灰色背景，浅色文字
+            # 前置元数据 - 深灰色文字
             "frontmatter": {
                 "foreground": "#6A6A6A",
-                "background": "#F8F8F8",
             },
-            # 代码块 - 使用浅色背景，确保文字清晰可见
-            "code_blocks": {
-                "background": "#F6F8FA",
-            },
-            # 数学公式块 - 深蓝色背景，浅色文字
+            # 代码块 - 深蓝色文字
+            # "code_blocks": {
+            #    "foreground": "#0366D6",
+            # },
+            # 数学公式块 - 深靛蓝色文字
             "math_blocks": {
-                "foreground": "#F8F8F2",
-                "background": "#1E3A8A",
+                "foreground": "#1E3A8A",
             },
-            # Mermaid图表 - 紫色背景，浅色文字
+            # Mermaid图表 - 紫色文字
             "mermaid": {
-                "foreground": "#F8F8F2",
-                "background": "#4B1B8A",
+                "foreground": "#4B1B8A",
             },
-            # 标题 - 蓝色前景色和浅蓝色背景，整行高亮
+            # 标题 - 深蓝色文字
             "headers": {
-                "foreground": "#0366D6",
-                "background": "#F0F7FF",
+                "foreground": "#0969DA",
             },
-            # 水平线 - 浅灰色，更加柔和
+            # 水平线 - 浅灰色文字
             "horizontal_rules": {
                 "foreground": "#D1D5DA",
             },
-            # 引用块 - 紫色前景色和浅紫色背景，整行高亮
+            # 引用块 - 深紫色文字
             "quotes": {
-                "foreground": "#6F42C1",
-                "background": "#F5F0FF",
+                "foreground": "#8B5CF6",
             },
-            # 表格分隔符 - 中灰色，更加明显
+            # 表格分隔符 - 中灰色文字
             "table_separators": {
                 "foreground": "#586069",
             },
-            # 表格 - 深蓝色，增强可读性
+            # 表格 - 深蓝色文字
             "tables": {
                 "foreground": "#24292E",
             },
-            # 任务列表 - 深青色，更加明显
+            # 任务列表 - 青色文字
             "task_lists": {
-                "foreground": "#0077CC",
+                "foreground": "#1B80E2",
             },
-            # 无序列表 - 深绿色，更加明显
+            # 无序列表 - 绿色文字
             "unordered_lists": {
-                "foreground": "#22863A",
+                "foreground": "#1F883D",
             },
-            # 有序列表 - 深绿色，更加明显
+            # 有序列表 - 深绿色文字
             "ordered_lists": {
                 "foreground": "#22863A",
             },
-            # 定义列表 - 深绿色，更加明显
+            # 定义列表 - 橄榄绿色文字
             "definition_lists": {
-                "foreground": "#22863A",
+                "foreground": "#6B7280",
             },
-            # 脚注定义 - 深紫色，更加明显
+            # 脚注定义 - 紫红色文字
             "footnotes": {
-                "foreground": "#6F42C1",
+                "foreground": "#A433FF",
             },
-            # 脚注引用 - 深紫色，更加明显
+            # 脚注引用 - 紫色文字
             "footnote_refs": {
-                "foreground": "#6F42C1",
+                "foreground": "#9333EA",
             },
-            # HTML注释 - 绿色，更加明显
+            # HTML注释 - 深绿色文字
             "comments": {
-                "foreground": "#22863A",
+                "foreground": "#0E7C57",
             },
-            # 行内代码 - 深红色背景，浅色文字，增强对比度
+            # 行内代码 - 粉红色文字
             "inline_code": {
                 "foreground": "#E83E8C",
-                "background": "#FFF5F5",
             },
-            # 行内数学公式 - 深蓝色背景，浅色文字，增强对比度
+            # 行内数学公式 - 深蓝色文字
             "inline_math": {
-                "foreground": "#1E3A8A",
-                "background": "#EFF6FF",
+                "foreground": "#1E40AF",
             },
-            # 图片 - 深绿色，更加明显
+            # 图片 - 深绿色文字
             "images": {
-                "foreground": "#22863A",
+                "foreground": "#0D7377",
             },
-            # 链接 - 深紫色，更加明显
+            # 链接 - 蓝色文字
             "links": {
-                "foreground": "#6F42C1",
+                "foreground": "#0A5EBD",
             },
-            # 引用式链接 - 深紫色，更加明显
+            # 引用式链接 - 深蓝色文字
             "reference_links": {
-                "foreground": "#6F42C1",
+                "foreground": "#1E40AF",
             },
-            # 引用式链接定义 - 灰色，更加明显
+            # 引用式链接定义 - 中灰色文字
             "link_definitions": {
-                "foreground": "#586069",
+                "foreground": "#6B7280",
             },
-            # 粗体 - 仅使用背景色表示，避免与其他文本颜色冲突
+            # 粗体 - 深红色文字
             "bold": {
-                "background": "#FFF0F0",  # 浅红色背景，标识粗体文本
+                "foreground": "#CF222E",
             },
-            # 斜体 - 深灰色，增强可读性
-            "italic": {
-                "foreground": "#586069",
-            },
-            # 删除线 - 灰色，更加明显
+            # 斜体 - 深灰色文字
+            # "italic": {
+            #    "foreground": "#586069",
+            # },
+            # 删除线 - 灰色文字
             "strikethrough": {
-                "foreground": "#959DA5",
+                "foreground": "#8B949E",
             },
-            # 强调 - 黄色背景，深色文字，增强对比度
+            # 强调 - 橙色文字
             "highlight": {
-                "foreground": "#24292E",
-                "background": "#FFF3CD",
+                "foreground": "#FB8500",
             },
-            # 上标 - 深橙色，更加明显
+            # 上标 - 橘红色文字
             "superscript": {
-                "foreground": "#E36209",
+                "foreground": "#F97316",
             },
-            # 下标 - 深橙色，更加明显
+            # 下标 - 琥珀色文字
             "subscript": {
-                "foreground": "#E36209",
+                "foreground": "#F59E0B",
             },
-            # HTML标签 - 棕色，更加明显
+            # HTML标签 - 棕色文字
             "html_tags": {
                 "foreground": "#A04B1C",
             },
-            # 自动链接 - 深紫色，更加明显
+            # 自动链接 - 深蓝色文字
             "autolinks": {
-                "foreground": "#6F42C1",
+                "foreground": "#0969DA",
             },
         }

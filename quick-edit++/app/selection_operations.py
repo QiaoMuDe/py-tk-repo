@@ -406,13 +406,13 @@ class SelectionOperations:
 
             # 判断是否为多行文本
             is_multiline = "\n" in selected_text
-            
+
             if is_multiline:
                 # 多行处理：移除每一行的首尾空白
                 lines = selected_text.split("\n")
                 trimmed_lines = [line.strip() for line in lines]
                 trimmed_text = "\n".join(trimmed_lines)
-                
+
                 # 计算新的结束位置
                 start_line = int(start_index.split(".")[0])
                 line_count = len(trimmed_lines)
@@ -421,11 +421,11 @@ class SelectionOperations:
             else:
                 # 单行处理：直接移除首尾空白
                 trimmed_text = selected_text.strip()
-                
+
                 # 计算新的结束位置
                 end_line = int(start_index.split(".")[0])
                 end_column = len(trimmed_text)
-            
+
             new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
@@ -456,13 +456,13 @@ class SelectionOperations:
 
             # 判断是否为多行文本
             is_multiline = "\n" in selected_text
-            
+
             if is_multiline:
                 # 多行处理：移除每一行的左侧空白
                 lines = selected_text.split("\n")
                 trimmed_lines = [line.lstrip() for line in lines]
                 trimmed_text = "\n".join(trimmed_lines)
-                
+
                 # 计算新的结束位置
                 start_line = int(start_index.split(".")[0])
                 line_count = len(trimmed_lines)
@@ -471,11 +471,11 @@ class SelectionOperations:
             else:
                 # 单行处理：直接移除左侧空白
                 trimmed_text = selected_text.lstrip()
-                
+
                 # 计算新的结束位置
                 end_line = int(start_index.split(".")[0])
                 end_column = len(trimmed_text)
-            
+
             new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
@@ -506,13 +506,13 @@ class SelectionOperations:
 
             # 判断是否为多行文本
             is_multiline = "\n" in selected_text
-            
+
             if is_multiline:
                 # 多行处理：移除每一行的右侧空白
                 lines = selected_text.split("\n")
                 trimmed_lines = [line.rstrip() for line in lines]
                 trimmed_text = "\n".join(trimmed_lines)
-                
+
                 # 计算新的结束位置
                 start_line = int(start_index.split(".")[0])
                 line_count = len(trimmed_lines)
@@ -521,11 +521,11 @@ class SelectionOperations:
             else:
                 # 单行处理：直接移除右侧空白
                 trimmed_text = selected_text.rstrip()
-                
+
                 # 计算新的结束位置
                 end_line = int(start_index.split(".")[0])
                 end_column = len(trimmed_text)
-            
+
             new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
@@ -556,13 +556,13 @@ class SelectionOperations:
 
             # 判断是否为多行文本
             is_multiline = "\n" in selected_text
-            
+
             if is_multiline:
                 # 多行处理：对每一行移除多余空白，保留行结构
                 lines = selected_text.split("\n")
                 cleaned_lines = [" ".join(line.split()) for line in lines]
                 cleaned_text = "\n".join(cleaned_lines)
-                
+
                 # 计算新的结束位置
                 start_line = int(start_index.split(".")[0])
                 line_count = len(cleaned_lines)
@@ -571,11 +571,11 @@ class SelectionOperations:
             else:
                 # 单行处理：直接移除多余空白
                 cleaned_text = " ".join(selected_text.split())
-                
+
                 # 计算新的结束位置
                 end_line = int(start_index.split(".")[0])
                 end_column = len(cleaned_text)
-            
+
             new_end_index = f"{end_line}.{end_column}"
 
             # 替换选中文本
