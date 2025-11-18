@@ -14,6 +14,7 @@ from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
 from ui.file_properties_dialog import update_file_properties_menu_state
 import shutil
+from config.config_manager import CONFIG_PATH
 
 
 class FileOperations:
@@ -441,7 +442,7 @@ class FileOperations:
         """
         # 参数验证：当不需要选择路径时，必须提供有效的文件路径
         if not select_path and not file_path:
-            print("参数错误：当select_path=False时，必须提供有效的文件路径")
+            print("参数错误: 当select_path=False时, 必须提供有效的文件路径")
             return False  # 参数错误
 
         # 检查是否需要检查文件是否为保存状态
@@ -604,9 +605,6 @@ class FileOperations:
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""
         try:
-            # 获取配置文件路径
-            from config.config_manager import CONFIG_PATH
-
             # 检查配置文件是否存在
             if not os.path.exists(CONFIG_PATH):
                 messagebox.showinfo(

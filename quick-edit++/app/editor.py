@@ -61,14 +61,29 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         使用windnd库实现文件拖拽功能
         """
         try:
-            # 注册拖拽目标，使用文件操作类的处理方法
-            wd.hook_dropfiles(self, func=self.file_ops.handle_dropped_files)
+            # 注册拖拽目标，使用编辑器的拖拽处理方法（包含只读模式检查）
+            wd.hook_dropfiles(self, func=self.handle_drag_drop)
 
         except ImportError:
             print("警告: 未安装windnd库, 拖拽功能将不可用")
             print("请使用以下命令安装: pip install windnd")
         except Exception as e:
             pass
+
+    def handle_drag_drop(self, files):
+        """
+        处理文件拖拽事件，先检查是否为只读模式，再调用实际的拖拽处理方法
+        
+        Args:
+            files: 拖拽的文件列表，可能是字节串或字符串
+        """
+        # 检查是否为只读模式
+        if self.is_read_only:
+            messagebox.showinfo("提示", "当前为只读模式，无法通过拖拽打开文件")
+            return
+            
+        # 调用实际的拖拽处理方法
+        self.file_ops.handle_dropped_files(files)
 
     def _on_closing(self):
         """窗口关闭事件处理"""
@@ -635,6 +650,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def open_file_with_path(self, file_path):
         """通过指定路径打开文件"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
+            return
+            
         self.file_ops._open_file(
             check_save=True, check_backup=True, file_path=file_path
         )

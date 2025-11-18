@@ -24,7 +24,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
         # 获取文本框字体配置
         text_editor_config = config_manager.get("text_editor", {})
         font_family = text_editor_config.get("font", "Microsoft YaHei UI")
-        font_size = text_editor_config.get("font_size", 15)
+        font_size = text_editor_config.get("font_size", 15) - 3  # 字体大小减3
 
         # 设置文本颜色
         self.text_color = config_manager.get(
@@ -261,7 +261,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 # 计算行号中心位置（垂直居中）
                 # 使用文本的基线位置来对齐行号，确保与文本行完全对齐
                 text_baseline = (
-                    y_pos + line_height // 2 + 10
+                    y_pos + line_height // 2 + 15
                 )  # 微调位置，使行号与文本对齐
 
                 # 在行号区域绘制行号
