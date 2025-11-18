@@ -291,16 +291,30 @@ class FileOperations:
                 )
                 return
 
-            # 关闭当前文件
-            self.close_file()
-
-            # 使用通用方法打开文件
-            self._open_file(check_backup=True, file_path=file_path)
+            # 延迟关闭当前文件和打开新文件，确保在主线程中执行
+            self.root.after(10, lambda: self._process_dropped_file(file_path))
         else:
             # 路径不存在，提示用户
             messagebox.showwarning(
                 "文件不存在", f"无法打开文件: {os.path.basename(file_path)}"
             )
+
+    def _process_dropped_file(self, file_path):
+        """
+        处理拖拽的文件，确保在主线程中执行
+
+        Args:
+            file_path: 文件路径
+        """
+        try:
+            # 关闭当前文件
+            self.close_file()
+
+            # 使用通用方法打开文件
+            self._open_file(check_backup=True, file_path=file_path)
+        except Exception as e:
+            print(f"处理拖拽文件时出错: {e}")
+            messagebox.showerror("错误", f"处理拖拽文件时出错: {e}")
 
     def _reset_editor_state(self):
         """重置编辑器状态，包括清空内容、重置文件属性和更新状态栏"""
@@ -334,6 +348,10 @@ class FileOperations:
 
         # 更新文件菜单状态
         self.root.update_file_menu_state()
+
+        # 检查配置管理器的语法高亮是否启用，如果启用则将临时禁用的语法高亮器重新启用
+        if self.config_manager.get("syntax_highlighter.enabled", False):
+            self.root.syntax_highlighter.highlight_enabled = True
 
     def _handle_backup_on_close(self, file_saved):
         """
