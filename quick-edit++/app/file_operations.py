@@ -530,6 +530,28 @@ class FileOperations:
                     encoding = data["encoding"]
                     line_ending = data["line_ending"]
 
+                    # 在启用语法高亮的情况下检查文件大小
+                    if self.root.syntax_highlighter.highlight_enabled:
+                        # 检查文件大小，决定是否禁用语法高亮
+                        disable_highlight_file_size = self.config_manager.get(
+                            "syntax_highlighter.disable_highlight_file_size",
+                            1 * 1024 * 1024,
+                        )  # 默认1MB
+
+                        try:
+                            file_size = os.path.getsize(file_path)
+                            if file_size >= disable_highlight_file_size:
+                                # 禁用语法高亮
+                                self.root.syntax_highlighter.highlight_enabled = False
+                                # 显示提示信息
+                                messagebox.showinfo(
+                                    "提示",
+                                    f"文件较大({self.file_core.format_file_size(file_size)})，已禁用语法高亮以提高性能",
+                                )
+                        except (OSError, IOError):
+                            # 如果无法获取文件大小，不做任何操作
+                            pass
+
                     # 更新编辑器内容
                     self.root.text_area.delete("1.0", tk.END)
                     self.root.text_area.insert("1.0", content)
