@@ -236,14 +236,15 @@ class SyntaxHighlighter:
         # 根据渲染模式绑定不同的事件
         if self.render_visible_only:
             # 可见行模式 - 需要响应滚动和编辑事件
-            # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
+            
+            # 文本修改事件(修改状态)
             self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
             
-            # 文本变化事件 - 统一处理所有文本变化
+            # 文本变化事件 - 统一处理所有文本变化(插入/删除)
             self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
             self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
 
-            # 滚动事件 - 仅在只渲染可见行模式下需要
+            # 鼠标滚动事件 - 仅在只渲染可见行模式下需要
             self.text_widget.bind(
                 "<Configure>", self._handle_event, add="+"
             )  # 窗口大小变化时触发
