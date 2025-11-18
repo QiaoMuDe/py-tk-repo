@@ -251,6 +251,15 @@ class SyntaxHighlighter:
             self.text_widget.bind(
                 "<MouseWheel>", self._handle_event, add="+"
             )  # 鼠标滚轮滚动时触发
+
+            # Linux 平台下的鼠标滚轮事件
+            self.text_widget.bind(
+                "<Button-4>", self._handle_event, add="+"
+            )  # 鼠标滚轮向上滚动时触发
+            self.text_widget.bind(
+                "<Button-5>", self._handle_event, add="+"
+            )  # 鼠标滚轮向下滚动时触发
+
         else:
             # 全部渲染模式 - 不需要绑定实时更新事件
             # 只保留文件操作时的高亮，不绑定任何实时事件
@@ -471,21 +480,6 @@ class SyntaxHighlighter:
 
         # 高亮指定范围，使用+1确保最后一行也被包含
         self._highlight_range_with_handler("1.0", f"{max_lines}.end", handler)
-
-    def _highlight_range(self, start_index: str, end_index: str):
-        """
-        高亮指定范围的文本
-
-        Args:
-            start_index: 起始索引
-            end_index: 结束索引
-        """
-        if not self.current_language:
-            return
-
-        handler = self._get_current_handler()
-        if handler:
-            self._highlight_range_with_handler(start_index, end_index, handler)
 
     def _highlight_range_with_handler(self, start_index: str, end_index: str, handler):
         """
