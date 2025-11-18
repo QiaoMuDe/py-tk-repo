@@ -110,7 +110,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         # 绑定按键事件
         self.text_area.bind("<Key>", self._on_key_press)  # 监听按键事件
-        self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听文本改变事件
+        self.text_area.bind("<KeyRelease>", self._on_text_change)  # 监听按键释放事件
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
             "<Button-1>", self._on_mouse_left_click, add="+"
@@ -438,15 +438,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self._update_status_bar()
         # 更新光标行高亮
         self._highlight_current_line()
-
-        # 应用语法高亮（如果有当前文件路径）
-        if self.current_file_path:
-            # 使用延迟更新，避免频繁更新影响性能
-            self.after_idle(
-                lambda: self.syntax_highlighter.apply_highlighting(
-                    self.current_file_path
-                )
-            )
+        
+        # 语法高亮现在由语法高亮控制器统一管理，不再在此处处理
 
     def set_modified(self, modified=False):
         """

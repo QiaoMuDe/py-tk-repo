@@ -238,6 +238,10 @@ class SyntaxHighlighter:
             # 可见行模式 - 需要响应滚动和编辑事件
             # 文本修改事件 - 使用add='+'参数避免覆盖editor中的事件绑定
             self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
+            
+            # 文本变化事件 - 统一处理所有文本变化
+            self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
+            self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
 
             # 滚动事件 - 仅在只渲染可见行模式下需要
             self.text_widget.bind(
@@ -246,13 +250,6 @@ class SyntaxHighlighter:
             self.text_widget.bind(
                 "<MouseWheel>", self._handle_event, add="+"
             )  # 鼠标滚轮滚动时触发
-
-            # 键盘事件 - 只绑定释放事件，减少触发频率
-            self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
-
-            # 建议添加的事件绑定
-            self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
-            self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
         else:
             # 全部渲染模式 - 不需要绑定实时更新事件
             # 只保留文件操作时的高亮，不绑定任何实时事件

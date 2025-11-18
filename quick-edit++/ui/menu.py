@@ -891,6 +891,24 @@ def create_menu(root):
         variable=root.syntax_highlight_var,
         accelerator="Ctrl+L",
     )
+    
+    # 创建语法高亮模式子菜单
+    highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 添加语法高亮模式选项
+    highlight_mode_submenu.add_radiobutton(
+        label="渲染可见行",
+        variable=root.syntax_highlight_mode_var,
+        value=True,
+        command=lambda: set_syntax_highlight_mode(True, root),
+    )
+    highlight_mode_submenu.add_radiobutton(
+        label="渲染全部",
+        variable=root.syntax_highlight_mode_var,
+        value=False,
+        command=lambda: set_syntax_highlight_mode(False, root),
+    )
+    settings_menu.add_cascade(label="高亮模式", menu=highlight_mode_submenu)
 
     # 自动递增编号设置
     settings_menu.add_checkbutton(
@@ -912,24 +930,6 @@ def create_menu(root):
         command=lambda: toggle_file_monitoring(root),
         variable=root.file_monitoring_var,
     )
-
-    # 创建语法高亮模式子菜单
-    highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
-
-    # 添加语法高亮模式选项
-    highlight_mode_submenu.add_radiobutton(
-        label="渲染可见行",
-        variable=root.syntax_highlight_mode_var,
-        value=True,
-        command=lambda: set_syntax_highlight_mode(True, root),
-    )
-    highlight_mode_submenu.add_radiobutton(
-        label="渲染全部",
-        variable=root.syntax_highlight_mode_var,
-        value=False,
-        command=lambda: set_syntax_highlight_mode(False, root),
-    )
-    settings_menu.add_cascade(label="高亮模式", menu=highlight_mode_submenu)
 
     settings_menu.add_separator()
 
@@ -1323,7 +1323,7 @@ def set_syntax_highlight_mode(mode: bool, root):
 
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
-    messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}")
+    messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}, 请重启应用以生效")
 
 
 def toggle_line_numbers(root):
