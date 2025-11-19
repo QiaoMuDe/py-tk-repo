@@ -147,7 +147,8 @@ class FileOperations:
 
         # 情况1: 没有打开文件且文本框没有内容
         if not has_current_path and not content:
-            messagebox.showinfo("提示", "没有内容可保存")
+            info_text = "没有内容可另存为" if force_save_as else "没有内容可保存"
+            messagebox.showinfo("提示", info_text)
             return False
 
         # 情况2: 已经打开文件, 检查是否修改 (除非是强制另存为)
