@@ -22,6 +22,16 @@ class HTMLHandler(LanguageHandler):
     # HTML文件扩展名
     file_extensions = [".html", ".htm", ".xhtml"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"html"
+        """
+        return "html"
+
     def _setup_language(self):
         """设置HTML语言的语法规则"""
         # HTML关键字

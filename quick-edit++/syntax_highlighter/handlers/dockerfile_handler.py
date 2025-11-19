@@ -19,6 +19,16 @@ class DockerfileHandler(LanguageHandler):
     # Dockerfile通常没有扩展名，文件名就是Dockerfile
     file_extensions = ["Dockerfile", "dockerfile"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"dockerfile"
+        """
+        return "dockerfile"
+
     def _setup_language(self):
         """
         设置Dockerfile语言的语法高亮规则

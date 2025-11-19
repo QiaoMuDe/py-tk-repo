@@ -115,3 +115,14 @@ class LanguageHandler(ABC):
             List[str]: 支持的文件扩展名列表
         """
         return cls.file_extensions
+
+    @classmethod
+    @abstractmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+
+        Returns:
+            str: 语言处理器名称，如"go"、"python"等
+        """
+        pass

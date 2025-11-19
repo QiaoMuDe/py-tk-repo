@@ -23,6 +23,16 @@ class PowerShellHandler(LanguageHandler):
     # PowerShell文件扩展名
     file_extensions = [".ps1", ".psm1", ".psd1"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"powershell"
+        """
+        return "powershell"
+
     def _setup_language(self):
         """设置PowerShell语言的语法规则"""
         # PowerShell关键字

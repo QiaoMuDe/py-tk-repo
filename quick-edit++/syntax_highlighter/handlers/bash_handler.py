@@ -22,7 +22,17 @@ class BashHandler(LanguageHandler):
     """
 
     # Bash文件扩展名
-    file_extensions = [".sh", ".bash", ".zsh", ".fish", ".ksh"]
+    file_extensions = [".sh", ".bash"]
+
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"bash"
+        """
+        return "bash"
 
     def _setup_language(self):
         """设置Bash语言的语法规则"""

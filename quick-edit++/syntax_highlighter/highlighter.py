@@ -324,6 +324,18 @@ class SyntaxHighlighter:
         # 3. 如果没有匹配到, 返回"auto"使用自动处理器
         return "auto"
 
+    def get_language_name(self) -> str:
+        """
+        获取当前语言的名称
+        
+        Returns:
+            str: 当前语言的名称，如果未设置语言则返回"auto"
+        """
+        handler = self._get_current_handler()
+        if handler and hasattr(handler, 'get_language_name'):
+            return handler.get_language_name()
+        return "auto"
+
     def set_language(self, file_path: Optional[str] = None):
         """
         设置当前语言

@@ -24,6 +24,16 @@ class BatHandler(LanguageHandler):
     # Bat文件扩展名
     file_extensions = [".bat", ".cmd"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"bat"
+        """
+        return "bat"
+
     def _setup_language(self):
         """设置Bat脚本的语法规则"""
         # Bat关键字

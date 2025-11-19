@@ -23,6 +23,16 @@ class PHPHandler(LanguageHandler):
     # PHP文件扩展名
     file_extensions = [".php", ".phtml", ".php3", ".php4", ".php5", ".phps", ".phar"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"php"
+        """
+        return "php"
+
     def _setup_language(self):
         """
         设置PHP语言的语法高亮规则

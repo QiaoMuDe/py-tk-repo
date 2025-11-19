@@ -22,6 +22,16 @@ class CSSHandler(LanguageHandler):
     # CSS文件扩展名
     file_extensions = [".css", ".scss", ".sass", ".less"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"css"
+        """
+        return "css"
+
     def _setup_language(self):
         """设置CSS语言的语法规则"""
         # CSS关键字

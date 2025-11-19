@@ -30,6 +30,16 @@ class VimHandler(LanguageHandler):
         "gvimrc",
     ]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"vim"
+        """
+        return "vim"
+
     def _setup_language(self):
         """设置Vim配置文件的语法规则"""
         # Vim命令和选项

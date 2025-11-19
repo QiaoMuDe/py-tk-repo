@@ -25,6 +25,16 @@ class MarkdownHandler(LanguageHandler):
     # Markdown文件扩展名
     file_extensions = [".md", ".markdown", ".mdown", ".mkd", ".mkdn"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"markdown"
+        """
+        return "markdown"
+
     def _setup_language(self):
         """设置Markdown语言的语法规则"""
         # Markdown特殊元素

@@ -23,6 +23,16 @@ class SQLHandler(LanguageHandler):
     # SQL文件扩展名
     file_extensions = [".sql", ".ddl", ".dml", ".dql", ".dcl", ".tcl"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"sql"
+        """
+        return "sql"
+
     def _setup_language(self):
         """设置SQL语言的语法规则"""
         # SQL关键字

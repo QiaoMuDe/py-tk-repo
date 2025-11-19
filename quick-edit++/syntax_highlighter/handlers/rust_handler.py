@@ -23,6 +23,16 @@ class RustHandler(LanguageHandler):
     # Rust文件扩展名
     file_extensions = [".rs"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"rust"
+        """
+        return "rust"
+
     def _setup_language(self):
         """
         设置Rust语言的语法高亮规则

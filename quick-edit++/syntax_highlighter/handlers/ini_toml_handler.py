@@ -22,6 +22,16 @@ class IniTomlHandler(LanguageHandler):
     # 支持的文件扩展名
     file_extensions = [".ini", ".toml"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"ini_toml"
+        """
+        return "ini_toml"
+
     def _setup_language(self):
         """
         设置INI/TOML语言的语法规则

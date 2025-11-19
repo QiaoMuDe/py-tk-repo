@@ -19,6 +19,16 @@ class MakefileHandler(LanguageHandler):
     # Makefile通常没有扩展名，文件名就是Makefile或makefile
     file_extensions = ["Makefile", "makefile", "GNUmakefile"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"makefile"
+        """
+        return "makefile"
+
     def _setup_language(self):
         """
         设置Makefile语言的语法高亮规则

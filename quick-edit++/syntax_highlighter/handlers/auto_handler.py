@@ -37,6 +37,16 @@ class AutoHandler(LanguageHandler):
     # 支持所有文件扩展名，作为默认处理器
     file_extensions = ["*"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"auto"
+        """
+        return "auto"
+
     def _setup_language(self):
         """设置通用语言的语法规则"""
         # 常见编程语言关键字（跨语言）

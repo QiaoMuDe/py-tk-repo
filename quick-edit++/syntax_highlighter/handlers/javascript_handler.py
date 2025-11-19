@@ -22,6 +22,16 @@ class JavaScriptHandler(LanguageHandler):
     # JavaScript文件扩展名
     file_extensions = [".js", ".jsx", ".mjs", ".cjs"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"javascript"
+        """
+        return "javascript"
+
     def _setup_language(self):
         """设置JavaScript语言的语法规则"""
         # JavaScript关键字

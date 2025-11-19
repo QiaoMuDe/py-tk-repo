@@ -23,6 +23,16 @@ class CSVHandler(LanguageHandler):
     # CSV文件扩展名
     file_extensions = [".csv", ".tsv"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"csv"
+        """
+        return "csv"
+
     def _setup_language(self):
         """设置CSV语言的语法规则"""
         # CSV没有关键字，但可以有一些常见的标识符

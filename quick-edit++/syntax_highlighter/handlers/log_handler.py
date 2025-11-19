@@ -24,6 +24,16 @@ class LogHandler(LanguageHandler):
     # 日志文件扩展名
     file_extensions = [".log", ".out", ".trace", ".debug", ".err"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"log"
+        """
+        return "log"
+
     def _setup_language(self):
         """
         设置日志文件的语法高亮规则

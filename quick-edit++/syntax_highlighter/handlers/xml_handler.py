@@ -35,6 +35,16 @@ class XMLHandler(LanguageHandler):
         ".xul",
     ]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"xml"
+        """
+        return "xml"
+
     def _setup_language(self):
         """设置XML语言的语法规则"""
         # 正则表达式模式

@@ -23,6 +23,16 @@ class YAMLHandler(LanguageHandler):
     # YAML文件扩展名
     file_extensions = [".yaml", ".yml"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"yaml"
+        """
+        return "yaml"
+
     def _setup_language(self):
         """设置YAML语言的语法规则"""
         # YAML关键字和特殊值

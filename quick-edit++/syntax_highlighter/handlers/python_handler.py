@@ -23,6 +23,16 @@ class PythonHandler(LanguageHandler):
     # Python文件扩展名
     file_extensions = [".py", ".pyw", ".pyi"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"python"
+        """
+        return "python"
+
     def _setup_language(self):
         """设置Python语言的语法规则"""
         # Python关键字

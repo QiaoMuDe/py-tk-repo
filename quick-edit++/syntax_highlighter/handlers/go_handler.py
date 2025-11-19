@@ -28,6 +28,16 @@ class GoHandler(LanguageHandler):
     # Go文件扩展名
     file_extensions = [".go"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"go"
+        """
+        return "go"
+
     def _setup_language(self):
         """设置Go语言的语法规则"""
         # Go关键字 - 按功能分类组织

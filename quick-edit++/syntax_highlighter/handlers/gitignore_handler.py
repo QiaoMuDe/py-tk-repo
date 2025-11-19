@@ -31,6 +31,16 @@ class GitIgnoreHandler(LanguageHandler):
         ".bzrignore",
     ]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"gitignore"
+        """
+        return "gitignore"
+
     def _setup_language(self):
         """
         设置忽略文件的语法高亮规则

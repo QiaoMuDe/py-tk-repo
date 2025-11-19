@@ -27,6 +27,16 @@ class LuaHandler(LanguageHandler):
         ".wlua",
     ]  # .luac是编译后的Lua文件，.wlua是Windows Lua脚本
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"lua"
+        """
+        return "lua"
+
     def _setup_language(self):
         """
         设置Lua脚本的语法高亮规则

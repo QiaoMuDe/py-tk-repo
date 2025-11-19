@@ -23,6 +23,16 @@ class JavaHandler(LanguageHandler):
     # Java文件扩展名
     file_extensions = [".java", ".class", ".jar"]  # .class和.jar是Java编译后的文件
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"java"
+        """
+        return "java"
+
     def _setup_language(self):
         """
         设置Java语言的语法高亮规则

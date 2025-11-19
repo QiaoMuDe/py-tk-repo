@@ -22,6 +22,16 @@ class TypeScriptHandler(LanguageHandler):
     # TypeScript文件扩展名
     file_extensions = [".ts", ".tsx"]
 
+    @classmethod
+    def get_language_name(cls) -> str:
+        """
+        获取语言处理器名称
+        
+        Returns:
+            str: 语言处理器名称"typescript"
+        """
+        return "typescript"
+
     def _setup_language(self):
         """设置TypeScript语言的语法规则"""
         # TypeScript关键字
