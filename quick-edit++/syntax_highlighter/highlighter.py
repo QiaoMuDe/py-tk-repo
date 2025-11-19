@@ -4,7 +4,7 @@
 """
 语法高亮主控制器模块
 
-提供语法高亮的核心功能，包括与Text组件的交互和高亮逻辑
+提供语法高亮的核心功能, 包括与Text组件的交互和高亮逻辑
 """
 
 import re
@@ -51,7 +51,7 @@ class SyntaxHighlighter:
     """
     语法高亮主控制器
 
-    负责管理语言处理器，控制高亮过程，并提供与Text组件的接口
+    负责管理语言处理器, 控制高亮过程, 并提供与Text组件的接口
     """
 
     def __init__(self, app):
@@ -78,6 +78,12 @@ class SyntaxHighlighter:
         self.current_language = None  # 当前使用的语言
         self.current_file_extension = None  # 当前文件扩展名
         self._highlight_tags = set()  # 存储已创建的高亮标签
+
+        # 防抖机制相关属性
+        self._highlight_task_id = None  # 用于执行高亮任务的任务ID
+        self._debounce_delay = syntax_config.get(
+            "debounce_delay", 100
+        )  # 从配置获取防抖延迟时间 (毫秒)
 
         # 注册默认语言处理器
         self._register_default_handlers()
@@ -162,7 +168,7 @@ class SyntaxHighlighter:
         for ext in markdown_handler.file_extensions:
             self.register_language(ext, markdown_handler)
 
-        # 注册Dockerfile处理器（特殊文件名）
+        # 注册Dockerfile处理器 (特殊文件名)
         dockerfile_handler = DockerfileHandler()
         for ext in dockerfile_handler.get_file_extensions():
             self.register_special_file(ext, dockerfile_handler)
@@ -210,7 +216,7 @@ class SyntaxHighlighter:
         # 注册Vim处理器
         vim_handler = VimHandler()
         for ext in vim_handler.get_file_extensions():
-            # 对于无扩展名的特殊文件名（如vimrc, gvimrc），使用register_special_file
+            # 对于无扩展名的特殊文件名 (如vimrc, gvimrc) , 使用register_special_file
             if ext.startswith("."):
                 self.register_language(ext, vim_handler)
             else:
@@ -225,7 +231,7 @@ class SyntaxHighlighter:
         注册语言处理器类
 
         Args:
-            handler_class: 语言处理器类，继承自LanguageHandler
+            handler_class: 语言处理器类, 继承自LanguageHandler
         """
         handler = handler_class()
         for ext in handler.get_file_extensions():
@@ -236,6 +242,9 @@ class SyntaxHighlighter:
         # 根据渲染模式绑定不同的事件
         if self.render_visible_only:
             # 可见行模式 - 需要响应滚动和编辑事件
+
+            # 键盘释放事件
+            self.text_widget.bind("<KeyRelease>", self._handle_event, add="+")
 
             # 文本修改事件(修改状态)
             self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
@@ -262,25 +271,25 @@ class SyntaxHighlighter:
 
         else:
             # 全部渲染模式 - 不需要绑定实时更新事件
-            # 只保留文件操作时的高亮，不绑定任何实时事件
+            # 只保留文件操作时的高亮, 不绑定任何实时事件
             pass
 
     def register_language(self, extension: str, handler):
         """
-        注册语言处理器（用于有扩展名的文件）
+        注册语言处理器 (用于有扩展名的文件)
 
         Args:
-            extension: 文件扩展名，如".py"
+            extension: 文件扩展名, 如".py"
             handler: 语言处理器实例
         """
         self.language_handlers[extension.lower()] = handler
 
     def register_special_file(self, filename: str, handler):
         """
-        注册特殊文件名处理器（用于无扩展名的文件）
+        注册特殊文件名处理器 (用于无扩展名的文件)
 
         Args:
-            filename: 文件名，如"Dockerfile", "Makefile"等
+            filename: 文件名, 如"Dockerfile", "Makefile"等
             handler: 语言处理器实例
         """
         self.language_handlers[filename] = handler
@@ -290,10 +299,10 @@ class SyntaxHighlighter:
         根据文件路径检测语言
 
         Args:
-            file_path: 文件路径，如果为None则尝试使用当前文件路径
+            file_path: 文件路径, 如果为None则尝试使用当前文件路径
 
         Returns:
-            Optional[str]: 检测到的文件扩展名，如果无法识别则返回"auto"
+            Optional[str]: 检测到的文件扩展名, 如果无法识别则返回"auto"
         """
         if not file_path:
             return None
@@ -303,7 +312,7 @@ class SyntaxHighlighter:
         _, ext = os.path.splitext(file_path)
         extension = ext.lower()
 
-        # 1. 首先检查特殊文件名（无扩展名的文件）
+        # 1. 首先检查特殊文件名 (无扩展名的文件)
         # 例如: Dockerfile, Makefile, requirements.txt等
         if filename in self.language_handlers:
             return filename
@@ -312,7 +321,7 @@ class SyntaxHighlighter:
         if extension in self.language_handlers:
             return extension
 
-        # 3. 如果没有匹配到，返回"auto"使用自动处理器
+        # 3. 如果没有匹配到, 返回"auto"使用自动处理器
         return "auto"
 
     def set_language(self, file_path: Optional[str] = None):
@@ -361,21 +370,21 @@ class SyntaxHighlighter:
         Args:
             file_path: 文件路径, 如果为None则使用当前文件路径
         """
-        # 如果未启用高亮，则直接返回
+        # 如果未启用高亮, 则直接返回
         if not self.highlight_enabled:
             return
 
         # 确定要使用的文件路径
         target_file_path = file_path or self.app.current_file_path
 
-        # 如果没有文件路径，则不进行高亮
+        # 如果没有文件路径, 则不进行高亮
         if not target_file_path:
             return
 
         # 设置语言处理器
         self.set_language(target_file_path)
 
-        # 如果没有语言处理器，则不进行高亮
+        # 如果没有语言处理器, 则不进行高亮
         if not self.current_language:
             return
 
@@ -404,24 +413,24 @@ class SyntaxHighlighter:
 
         # 为每种样式创建标签
         for tag_name, style_config in tag_styles.items():
-            # 创建完整的标签名，避免与其他标签冲突
+            # 创建完整的标签名, 避免与其他标签冲突
             full_tag_name = f"syntax_{tag_name}"
 
             # 确保不设置任何可能导致缩放问题的属性
             safe_config = {}
             for key, value in style_config.items():
-                if key != "font":  # 跳过font属性，避免缩放问题
+                if key != "font":  # 跳过font属性, 避免缩放问题
                     safe_config[key] = value
 
             self.text_widget.tag_config(full_tag_name, **safe_config)
             self._highlight_tags.add(full_tag_name)
 
-        # 确保选中标签的优先级最高，防止被语法高亮覆盖
-        # 在所有语法高亮标签设置完成后，提高选中标签的优先级
+        # 确保选中标签的优先级最高, 防止被语法高亮覆盖
+        # 在所有语法高亮标签设置完成后, 提高选中标签的优先级
         self.text_widget.tag_raise("sel")
 
     def _setup_tags(self):
-        """设置Text组件的标签样式（使用当前语言处理器）"""
+        """设置Text组件的标签样式 (使用当前语言处理器)"""
         handler = self._get_current_handler()
         if handler:
             self._setup_tags_for_handler(handler)
@@ -444,12 +453,12 @@ class SyntaxHighlighter:
         # 确保范围有效
         if first_line < 1:
             first_line = 1
-        # 获取文档总行数，使用end确保获取实际行数
+        # 获取文档总行数, 使用end确保获取实际行数
         total_lines = int(self.text_widget.index("end").split(".")[0])
         if last_line > total_lines:
             last_line = total_lines
 
-        # 限制高亮的行数，不超过配置的最大值
+        # 限制高亮的行数, 不超过配置的最大值
         max_lines = self.max_lines_per_highlight
         if (last_line - first_line) > max_lines:
             last_line = first_line + max_lines
@@ -472,22 +481,22 @@ class SyntaxHighlighter:
         self._highlight_range_with_handler(start_index, end_index, handler)
 
     def _highlight_full_document_with_handler(self, handler):
-        """使用指定处理器高亮整个文档（受max_lines_per_highlight限制）"""
+        """使用指定处理器高亮整个文档 (受max_lines_per_highlight限制)"""
         # 清除整个文档的高亮
         self.clear_highlight("1.0", "end")
 
-        # 获取文档总行数，使用end确保获取实际行数
+        # 获取文档总行数, 使用end确保获取实际行数
         total_lines = int(self.text_widget.index("end").split(".")[0])
 
-        # 限制高亮的行数，不超过配置的最大值
+        # 限制高亮的行数, 不超过配置的最大值
         max_lines = min(total_lines, self.max_lines_per_highlight)
 
-        # 高亮指定范围，使用+1确保最后一行也被包含
+        # 高亮指定范围, 使用+1确保最后一行也被包含
         self._highlight_range_with_handler("1.0", f"{max_lines}.end", handler)
 
     def _highlight_range_with_handler(self, start_index: str, end_index: str, handler):
         """
-        使用指定处理器高亮指定范围的文本（优化版本）
+        使用指定处理器高亮指定范围的文本 (优化版本)
 
         Args:
             start_index: 起始索引
@@ -504,10 +513,10 @@ class SyntaxHighlighter:
         try:  # 尝试获取指定范围内的文本
             text_content = self.text_widget.get(start_index, end_index)
         except tk.TclError:
-            # 如果索引无效，则返回
+            # 如果索引无效, 则返回
             return
 
-        # 收集所有标签位置，用于批量应用
+        # 收集所有标签位置, 用于批量应用
         tag_ranges = {}
 
         # 对每种模式进行匹配和高亮
@@ -520,27 +529,27 @@ class SyntaxHighlighter:
                 # 如果是预编译的正则表达式对象
                 if hasattr(compiled_pattern, "finditer"):
                     for match in compiled_pattern.finditer(text_content):
-                        # 优化的位置计算：一次计算开始和结束位置
+                        # 优化的位置计算: 一次计算开始和结束位置
                         start_pos, end_pos = self._get_text_position_range(
                             start_index, match.start(), match.end()
                         )
                         tag_ranges[full_tag_name].append((start_pos, end_pos))
                 else:
-                    # 如果是原始字符串模式（编译失败的情况）
+                    # 如果是原始字符串模式 (编译失败的情况)
                     for match in re.finditer(
                         compiled_pattern, text_content, re.MULTILINE
                     ):
-                        # 优化的位置计算：一次计算开始和结束位置
+                        # 优化的位置计算: 一次计算开始和结束位置
                         start_pos, end_pos = self._get_text_position_range(
                             start_index, match.start(), match.end()
                         )
                         tag_ranges[full_tag_name].append((start_pos, end_pos))
             except Exception as e:
-                # 如果匹配过程中出错，跳过该模式
+                # 如果匹配过程中出错, 跳过该模式
                 print(f"警告: 正则匹配 '{tag_name}' 时出错: {e}")
                 continue
 
-        # 批量应用所有标签，减少API调用
+        # 批量应用所有标签, 减少API调用
         self._apply_tags_batch(tag_ranges)
 
     def _get_text_position(self, base_index: str, offset: int) -> str:
@@ -560,7 +569,7 @@ class SyntaxHighlighter:
         self, base_index: str, start_offset: int, end_offset: int
     ) -> tuple:
         """
-        计算偏移量范围对应的文本位置（优化版本，减少重复计算）
+        计算偏移量范围对应的文本位置 (优化版本, 减少重复计算)
 
         Args:
             base_index: 基础索引
@@ -576,31 +585,31 @@ class SyntaxHighlighter:
 
     def _apply_tags_batch(self, tag_ranges: dict):
         """
-        批量应用标签到文本组件（优化版本，减少API调用）
+        批量应用标签到文本组件 (优化版本, 减少API调用)
 
         Args:
-            tag_ranges: 标签范围字典，格式为 {tag_name: [(start1, end1), (start2, end2), ...]}
+            tag_ranges: 标签范围字典, 格式为 {tag_name: [(start1, end1), (start2, end2), ...]}
         """
-        # 直接使用底层的_textbox组件，支持一次添加多个范围
+        # 直接使用底层的_textbox组件, 支持一次添加多个范围
         for tag_name, ranges in tag_ranges.items():
             if not ranges:
                 continue
 
-            # 展平所有范围，准备一次性添加
+            # 展平所有范围, 准备一次性添加
             flat_ranges = []
             for start_pos, end_pos in ranges:
                 flat_ranges.extend([start_pos, end_pos])
 
-            # 直接调用底层_textbox的tag_add方法，支持多个范围
+            # 直接调用底层_textbox的tag_add方法, 支持多个范围
             self.text_widget._textbox.tag_add(tag_name, *flat_ranges)
 
     def clear_highlight(self, start_index=None, end_index=None):
         """
-        清除语法高亮，根据当前模式决定清除范围
+        清除语法高亮, 根据当前模式决定清除范围
 
         Args:
-            start_index: 起始索引，如果为None则根据模式自动确定
-            end_index: 结束索引，如果为None则根据模式自动确定
+            start_index: 起始索引, 如果为None则根据模式自动确定
+            end_index: 结束索引, 如果为None则根据模式自动确定
         """
         # 获取Text组件中的所有标签
         all_tags = self.text_widget.tag_names()
@@ -608,12 +617,12 @@ class SyntaxHighlighter:
         # 根据模式确定清除范围
         if start_index is None or end_index is None:
             if self.render_visible_only:
-                # 可见行模式：只清除可见区域的高亮
+                # 可见行模式: 只清除可见区域的高亮
                 first_line, last_line = self._get_visible_line_range()
                 start_index = f"{first_line}.0"
                 end_index = f"{last_line}.0"
             else:
-                # 全文档模式：清除整个文档的高亮
+                # 全文档模式: 清除整个文档的高亮
                 start_index = "1.0"
                 end_index = "end"
 
@@ -622,13 +631,13 @@ class SyntaxHighlighter:
             if tag_name.startswith("syntax_"):
                 self.text_widget.tag_remove(tag_name, start_index, end_index)
 
-        # 如果是全文档清除，则清空标签集合
+        # 如果是全文档清除, 则清空标签集合
         if start_index == "1.0" and end_index == "end":
             self._highlight_tags.clear()
 
     def _handle_event(self, event=None):
         """
-        通用事件处理方法
+        通用事件处理方法 (带防抖机制)
 
         Args:
             event: 事件对象
@@ -641,7 +650,25 @@ class SyntaxHighlighter:
         if not self.current_language:
             return
 
-        # 对于所有事件，统一调用highlight方法，它内部会根据模式选择合适的高亮方式
+        # 防抖机制: 取消之前的高亮任务
+        if self._highlight_task_id is not None:
+            self.text_widget.after_cancel(self._highlight_task_id)
+
+        # 设置新的高亮任务, 延迟执行
+        self._highlight_task_id = self.text_widget.after(
+            self._debounce_delay, self._execute_highlight_task
+        )
+
+    def _execute_highlight_task(self):
+        """
+        实际执行高亮任务的方法
+
+        该方法在防抖延迟后被调用, 执行实际的语法高亮操作
+        """
+        # 重置任务ID
+        self._highlight_task_id = None
+
+        # 使用after_idle调用高亮方法, 确保在UI空闲时执行
         self.text_widget.after_idle(self.apply_highlighting)
 
     def set_render_mode(self, render_visible_only: bool):
@@ -649,7 +676,7 @@ class SyntaxHighlighter:
         设置高亮渲染模式
 
         Args:
-            render_visible_only: 是否只渲染可见行，False表示渲染全部，True表示只渲染可见行
+            render_visible_only: 是否只渲染可见行, False表示渲染全部, True表示只渲染可见行
         """
         self.render_visible_only = render_visible_only
         # 重新绑定事件
@@ -663,18 +690,18 @@ class SyntaxHighlighter:
 
         Args:
             enabled: 是否启用
-            file_path: 文件路径，如果为None则使用当前设置的语言
+            file_path: 文件路径, 如果为None则使用当前设置的语言
         """
         self.highlight_enabled = enabled
         if not enabled:
-            # 如果禁用，则重置高亮
+            # 如果禁用, 则重置高亮
             self.reset_highlighting()
         else:
-            # 如果启用，则重新高亮，使用当前文件路径
+            # 如果启用, 则重新高亮, 使用当前文件路径
             if file_path:
                 self.apply_highlighting(file_path)
             elif self.current_language:
-                # 如果有当前语言但没有文件路径，也尝试高亮
+                # 如果有当前语言但没有文件路径, 也尝试高亮
                 self.apply_highlighting()
 
     def is_enabled(self) -> bool:
@@ -700,6 +727,11 @@ class SyntaxHighlighter:
         重置语法高亮 - 用于文件操作时关闭文件时调用
         """
         try:
+            # 取消任何待执行的高亮任务
+            if self._highlight_task_id is not None:
+                self.text_widget.after_cancel(self._highlight_task_id)
+                self._highlight_task_id = None
+
             self.clear_highlight("1.0", "end")
             self.current_language = None
             self.current_file_extension = None
