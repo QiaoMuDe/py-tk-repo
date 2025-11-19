@@ -594,13 +594,25 @@ class FileOperations:
                         try:
                             file_size = os.path.getsize(file_path)
                             if file_size >= disable_highlight_file_size:
-                                # 禁用语法高亮
-                                self.root.syntax_highlighter.highlight_enabled = False
-                                # 显示提示信息
-                                messagebox.showinfo(
-                                    "提示",
-                                    f"文件较大({self.file_core.format_file_size(file_size)}), 已禁用语法高亮以提高性能",
+                                # 询问用户是否禁用语法高亮
+                                choice = messagebox.askyesnocancel(
+                                    "大文件提示",
+                                    f"文件较大 ({self.file_core.format_file_size(file_size)}), 是否禁用语法高亮以提高性能?\n\n"
+                                    "是: 禁用语法高亮\n"
+                                    "否: 继续使用语法高亮\n"
+                                    "取消: 不打开文件",
                                 )
+                                if choice is True:
+                                    # 用户选择是，禁用语法高亮
+                                    self.root.syntax_highlighter.highlight_enabled = (
+                                        False
+                                    )
+                                elif choice is False:
+                                    # 用户选择否，继续使用语法高亮
+                                    pass
+                                else:
+                                    # 用户选择取消，不打开文件
+                                    return False
                         except (OSError, IOError):
                             # 如果无法获取文件大小, 不做任何操作
                             pass
