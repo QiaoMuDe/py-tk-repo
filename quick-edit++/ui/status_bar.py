@@ -43,7 +43,7 @@ class StatusBar(ctk.CTkFrame):
         self.original_status_text = ""
 
         # 配置网格布局权重 - 调整为4个标签的布局
-        self.grid_columnconfigure(0, weight=2)  # 左侧（状态信息）
+        self.grid_columnconfigure(0, weight=1)  # 左侧（状态信息）
         self.grid_columnconfigure(1, weight=1)  # 中间（自动保存）
         self.grid_columnconfigure(2, weight=1)  # 右侧（编码和换行符）
 

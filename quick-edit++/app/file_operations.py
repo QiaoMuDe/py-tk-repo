@@ -568,7 +568,7 @@ class FileOperations:
             )  # 转换为字节
 
             # 在状态栏显示正在读取文件的提示
-            self.root.status_bar.show_notification("正在读取文件...",500)
+            self.root.status_bar.show_notification("正在读取文件...", 500)
 
             # 使用核心类同步读取文件
             result = self.file_core.read_file_sync(file_path, max_file_size, encoding)
