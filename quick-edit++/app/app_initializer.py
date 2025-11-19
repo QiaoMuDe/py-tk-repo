@@ -259,36 +259,6 @@ class AppInitializer:
         # 设置内部水平滚动条的高度为15像素
         self.app.text_area._x_scrollbar.configure(height=15)
 
-        # 保存底层textbox的原始xview和yview方法
-        original_textbox = self.app.text_area._textbox
-        original_xview = original_textbox.xview
-        original_yview = original_textbox.yview
-
-        # 创建包装函数，在调用原始方法的同时触发语法高亮和行号更新
-        def wrapped_xview(*args):
-            # 调用原始的xview方法
-            result = original_xview(*args)
-            # 只有在渲染可见行模式下才触发语法高亮更新
-            if self.app.syntax_highlighter.render_visible_only:
-                self.app.syntax_highlighter._handle_event()
-            # 触发行号更新
-            self.app.line_number_canvas.draw_line_numbers()
-            return result
-
-        def wrapped_yview(*args):
-            # 调用原始的yview方法
-            result = original_yview(*args)
-            # 只有在渲染可见行模式下才触发语法高亮更新
-            if self.app.syntax_highlighter.render_visible_only:
-                self.app.syntax_highlighter._handle_event()
-            # 触发行号更新
-            self.app.line_number_canvas.draw_line_numbers()
-            return result
-
-        # 替换底层textbox的xview和yview方法为包装后的方法
-        original_textbox.xview = wrapped_xview
-        original_textbox.yview = wrapped_yview
-
         # 光标行高亮相关变量
         self.app.current_highlighted_line = None
 
