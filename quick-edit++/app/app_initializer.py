@@ -279,13 +279,11 @@ class AppInitializer:
 
         # 设置选中背景色为最高优先级，防止被其他背景色覆盖
         # 使用底层textbox的tag_configure方法设置sel标签的背景色
-        # sel标签是Text组件内置的选中标签，我们将其设置为最高优先级
+        # sel标签是Text组件内置的选中标签, 设置为最高优先级
         self.app.text_area._textbox.tag_configure(
             "sel",
             background="#0078D7",  # Windows风格的选中蓝色
             foreground="white",  # 选中文字为白色
-            # 注意：Text组件中标签优先级由创建顺序决定，后创建的优先级更高
-            # 我们通过直接修改sel标签来确保选中样式可见
         )
 
         # 再次设置选中样式，确保优先级最高（在所有语法高亮标签之后）
@@ -362,3 +360,6 @@ class AppInitializer:
 
         # 初始化文件菜单部分项的状态
         self.app.update_file_menu_state()
+
+        # 触发首次绘制行号
+        self.app.line_number_canvas.draw_line_numbers()

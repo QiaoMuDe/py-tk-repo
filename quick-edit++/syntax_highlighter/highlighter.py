@@ -238,28 +238,27 @@ class SyntaxHighlighter:
             # 可见行模式 - 需要响应滚动和编辑事件
 
             # 文本修改事件(修改状态)
-            #self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
+            self.text_widget.bind("<<Modified>>", self._handle_event, add="+")
 
             # 文本变化事件 - 统一处理所有文本变化(插入/删除)
-            #self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
-            # self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
+            self.text_widget.bind("<<TextInsert>>", self._handle_event, add="+")
+            self.text_widget.bind("<<TextDelete>>", self._handle_event, add="+")
 
             # 鼠标滚动事件 - 仅在只渲染可见行模式下需要
-            # self.text_widget.bind(
-                # "<Configure>", self._handle_event, add="+"
-            # )  # 窗口大小变化时触发
-            # self.text_widget.bind(
-                # "<MouseWheel>", self._handle_event, add="+"
-            # )  # 鼠标滚轮滚动时触发
+            self.text_widget.bind(
+                "<Configure>", self._handle_event, add="+"
+            )  # 窗口大小变化时触发
+            self.text_widget.bind(
+                "<MouseWheel>", self._handle_event, add="+"
+            )  # 鼠标滚轮滚动时触发
 
             # Linux 平台下的鼠标滚轮事件
-            # self.text_widget.bind(
-            #     "<Button-4>", self._handle_event, add="+"
-            # )  # 鼠标滚轮向上滚动时触发
-            # self.text_widget.bind(
-            #     "<Button-5>", self._handle_event, add="+"
-            # )  # 鼠标滚轮向下滚动时触发
-            pass
+            self.text_widget.bind(
+                "<Button-4>", self._handle_event, add="+"
+            )  # 鼠标滚轮向上滚动时触发
+            self.text_widget.bind(
+                "<Button-5>", self._handle_event, add="+"
+            )  # 鼠标滚轮向下滚动时触发
 
         else:
             # 全部渲染模式 - 不需要绑定实时更新事件
@@ -305,7 +304,7 @@ class SyntaxHighlighter:
         extension = ext.lower()
 
         # 1. 首先检查特殊文件名（无扩展名的文件）
-        # 例如：Dockerfile, Makefile, requirements.txt等
+        # 例如: Dockerfile, Makefile, requirements.txt等
         if filename in self.language_handlers:
             return filename
 
@@ -634,9 +633,6 @@ class SyntaxHighlighter:
         Args:
             event: 事件对象
         """
-        print(f"_handle_event 被调用，事件类型: {event.type if event else '无'}")
-        print(event)
-        
         # 检查是否启用高亮
         if not self.highlight_enabled and self.app.current_file_path is None:
             return

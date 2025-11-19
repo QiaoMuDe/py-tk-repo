@@ -1,9 +1,0 @@
-@echo off
-
-@REM nuitka --standalone --windows-console-mode=disable --enable-plugin=tk-inter --windows-icon-from-ico=.\icons\QuickEdit++.ico  .\QuickEdit++.py
-@REM move QuickEdit++.dist QuickEdit++
-@REM 7z a -tzip nuitka-QuickEditPlus.zip QuickEdit++
-
-pyinstaller.exe -w -D -i .\icons\QuickEdit++.ico .\QuickEdit++.py
-@REM cd dist
-@REM 7z a -tzip pyinstaller-QuickEditPlus.zip QuickEdit++

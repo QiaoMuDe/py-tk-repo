@@ -119,9 +119,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             "<<Selection>>", self._on_cursor_move
         )  # 监听选择内容改变事件
         self.text_area.bind("<MouseWheel>", self._on_cursor_move)  # 监听鼠标滚轮事件
-        
+
         # 绑定Linux鼠标滚轮事件
-        self.text_area.bind("<Button-4>", self._on_cursor_move, add="+") 
+        self.text_area.bind("<Button-4>", self._on_cursor_move, add="+")
         self.text_area.bind("<Button-5>", self._on_cursor_move, add="+")
 
         # 直接绑定回车键事件，确保自动递增编号功能优先级最高
@@ -202,24 +202,36 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind(
             "<Control-f>", lambda e: show_find_replace_dialog(self, self.text_area)
         )  # 查找和替换
-        
-        # 绑定垂直滚动条的鼠标拖动事件
-        def on_vertical_scrollbar_drag(event):
-            # 触发行号更新
-            self.line_number_canvas.draw_line_numbers()
-            
-            # 触发语法高亮更新 - 只在渲染可见区域模式时才触发
-            if self.syntax_highlighter.render_visible_only:
-                self.syntax_highlighter._handle_event()
-        
+
         # 绑定文本框的水平/垂直滚动条的鼠标点击和拖动事件
-        self.text_area._y_scrollbar._canvas.bind("<Button-1>", on_vertical_scrollbar_drag, add="+")
-        self.text_area._y_scrollbar._canvas.bind("<B1-Motion>", on_vertical_scrollbar_drag, add="+")
-        self.text_area._x_scrollbar._canvas.bind("<Button-1>", on_vertical_scrollbar_drag, add="+")
-        self.text_area._x_scrollbar._canvas.bind("<B1-Motion>", on_vertical_scrollbar_drag, add="+")
+        self.text_area._y_scrollbar._canvas.bind(
+            "<Button-1>", self.on_scroll_drag, add="+"
+        )
+        self.text_area._y_scrollbar._canvas.bind(
+            "<B1-Motion>", self.on_scroll_drag, add="+"
+        )
+        self.text_area._x_scrollbar._canvas.bind(
+            "<Button-1>", self.on_scroll_drag, add="+"
+        )
+        self.text_area._x_scrollbar._canvas.bind(
+            "<B1-Motion>", self.on_scroll_drag, add="+"
+        )
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
+
+    def on_scroll_drag(self, event=None):
+        """处理滚动条拖动事件"""
+        # 如果启用行号, 则触发绘制行号
+        if self.line_numbers_var.get():
+            self.line_number_canvas.draw_line_numbers()
+
+        # 如果启用语法高亮, 并且渲染可见区域模式, 则触发语法高亮更新
+        if (
+            self.syntax_highlight_var.get()
+            and self.syntax_highlighter.render_visible_only
+        ):
+            self.syntax_highlighter._handle_event()
 
     def _setup_line_highlight(self, full_init=False):
         """
@@ -483,10 +495,10 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """光标移动事件处理"""
         # 行号更新
         self.line_number_canvas.draw_line_numbers()
-        
+
         # 光标所在行高亮
         self._highlight_current_line()
-        
+
         # 状态栏更新
         self._update_status_bar()
 
