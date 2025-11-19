@@ -289,9 +289,7 @@ class FileWatcher:
                     self.app.text_area.configure(state="normal")
 
                 # 重新加载文件
-                self.app.file_ops._open_file(
-                    file_path=self.watched_file, check_backup=False, check_save=False
-                )
+                self.app.file_ops._open_file(file_path=self.watched_file)
 
                 # 尝试恢复光标位置和滚动位置
                 try:

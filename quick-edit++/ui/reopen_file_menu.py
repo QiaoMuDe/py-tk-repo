@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-重新打开文件菜单组件
+重新载入文件菜单组件
 负责处理使用不同编码重新打开当前文件的功能
 """
 
@@ -14,13 +14,13 @@ from ui.utils import get_supported_encodings
 
 class ReopenFileMenu:
     """
-    重新打开文件菜单类
-    负责创建和管理重新打开文件的子菜单
+    重新载入文件菜单类
+    负责创建和管理重新载入文件的子菜单
     """
 
     def __init__(self, root, parent_menu, on_reopen_file_callback):
         """
-        初始化重新打开文件菜单
+        初始化重新载入文件菜单
 
         Args:
             root: 主应用实例
@@ -34,10 +34,10 @@ class ReopenFileMenu:
 
     def create_reopen_file_menu(self):
         """
-        创建重新打开文件的子菜单
+        创建重新载入文件的子菜单
 
         Returns:
-            tk.Menu: 创建的重新打开文件子菜单
+            tk.Menu: 创建的重新载入文件子菜单
         """
         # 获取菜单栏字体配置
         menu_font_config = config_manager.get_font_config("menu_bar")
@@ -95,7 +95,7 @@ class ReopenFileMenu:
         # 将子菜单添加到父菜单
         # 获取即将添加的菜单项索引
         self.menu_index = self.parent_menu.index(tk.END) + 1
-        self.parent_menu.add_cascade(label="重新打开", menu=self.reopen_menu)
+        self.parent_menu.add_cascade(label="重新载入", menu=self.reopen_menu)
 
         return self.reopen_menu
 
@@ -132,24 +132,24 @@ class ReopenFileMenu:
 
     def _reopen_with_default_encoding(self):
         """
-        使用默认编码重新打开当前文件
+        使用默认编码重新载入当前文件
         """
         default_encoding = config_manager.get("app.default_encoding", "UTF-8")
         self._reopen_with_encoding(default_encoding)
 
     def _reopen_with_encoding(self, encoding):
         """
-        使用指定编码重新打开当前文件
+        使用指定编码重新载入当前文件
 
         Args:
             encoding (str): 要使用的文件编码
         """
         # 检查是否有当前打开的文件
         if not self.root.current_file_path:
-            messagebox.showinfo("提示", "没有当前打开的文件，无法重新打开。")
+            messagebox.showinfo("提示", "没有当前打开的文件，无法重新载入。")
             return
 
-        # 调用回调函数重新打开文件
+        # 调用回调函数重新载入文件
         if self.on_reopen_file_callback:
             self.on_reopen_file_callback(self.root.current_file_path, encoding)
 
@@ -172,11 +172,3 @@ class ReopenFileMenu:
                 print(
                     f"Error updating menu state at index {self.menu_index}: {tk.TclError}"
                 )
-                # 如果出现任何错误，回退到遍历方式
-                # for i in range(self.parent_menu.index(tk.END) + 1):
-                #     try:
-                #         if self.parent_menu.entrycget(i, "label") == "重新打开":
-                #             self.parent_menu.entryconfig(i, state=state)
-                #             break
-                #     except tk.TclError:
-                #         continue

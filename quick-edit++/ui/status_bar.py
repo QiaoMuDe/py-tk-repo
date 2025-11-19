@@ -12,11 +12,10 @@ import time
 import datetime
 import sys
 import os
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ui.menu import create_encoding_submenu, set_file_encoding
 from config.config_manager import config_manager
 from ui.menu import set_file_line_ending
+from ui.document_stats_dialog import show_document_stats_dialog
 
 
 class StatusBar(ctk.CTkFrame):
@@ -43,10 +42,10 @@ class StatusBar(ctk.CTkFrame):
         self.notification_job = None
         self.original_status_text = ""
 
-        # 配置网格布局权重
-        self.grid_columnconfigure(0, weight=1)  # 左侧（状态信息）权重高，显示更多信息
-        self.grid_columnconfigure(1, weight=2)  # 中间（自动保存）权重增加，显示更宽
-        self.grid_columnconfigure(2, weight=1)  # 右侧（编码和换行符）权重中等
+        # 配置网格布局权重 - 调整为4个标签的布局
+        self.grid_columnconfigure(0, weight=2)  # 左侧（状态信息）
+        self.grid_columnconfigure(1, weight=1)  # 中间（自动保存）
+        self.grid_columnconfigure(2, weight=1)  # 右侧（编码和换行符）
 
         # 获取状态栏字体配置
         font_config = config_manager.get_font_config("status_bar")
@@ -250,10 +249,32 @@ class StatusBar(ctk.CTkFrame):
 
     def update_file_info(self):
         """更新右侧文件信息（编码和换行符类型）"""
-        # 构建显示文本，只显示编码和换行符
         current_encoding = self.app.current_encoding.upper()  # 编码转换为大写
         current_line_ending = self.app.current_line_ending  # 换行符类型
-        self.right_label.configure(text=f"{current_encoding} | {current_line_ending}")
+        language_name = None  # 语言名称
+
+        # 检查应用程序是否有语法高亮器并且打开文件
+        if (
+            self.app.syntax_highlighter
+            and self.app.current_file_path
+            and self.app.syntax_highlighter.highlight_enabled
+        ):
+            # 获取语言名称
+            language_name = self.app.syntax_highlighter.get_language_name()
+
+        # 根据语言名称构建显示文本
+        if language_name is None:
+            self.right_label.configure(
+                text=f"{current_encoding} | {current_line_ending}"
+            )
+        else:
+            # 将语言名称首字母大写
+            display_language_name = (
+                language_name.capitalize() if language_name else language_name
+            )
+            self.right_label.configure(
+                text=f"{display_language_name} | {current_encoding} | {current_line_ending}"
+            )
 
     def show_notification(self, message, duration=1000):
         """
@@ -342,33 +363,71 @@ class StatusBar(ctk.CTkFrame):
             if not text:
                 return
 
-            # 解析状态栏文本，格式为: "编码 | 换行符"
+            # 解析状态栏文本，格式可能为: "语言名称 | 编码 | 换行符" 或 "编码 | 换行符"
             parts = [part.strip() for part in text.split("|")]
 
-            if len(parts) >= 2:
-                # 只处理编码和换行符两部分
+            # 获取标签的实际宽度
+            label_width = self.right_label.winfo_width()
+
+            # 添加容错范围
+            tolerance = 10  # 10像素的容错范围
+
+            if len(parts) == 3:
+                # 格式为: "语言名称 | 编码 | 换行符"
+                language_part = parts[0]
+                encoding_part = parts[1]
+                line_ending_part = parts[2]
+
+                # 计算各部分的文本长度
+                language_length = len(language_part)
+                encoding_length = len(encoding_part)
+                line_ending_length = len(line_ending_part)
+
+                # 计算总文本长度（包括分隔符）
+                total_text_length = (
+                    language_length + encoding_length + line_ending_length + 6
+                )  # 6是两个" | "分隔符的总长度
+
+                # 计算各部分的相对位置（基于字符长度的比例）
+                language_ratio = language_length / total_text_length
+                encoding_ratio = encoding_length / total_text_length
+                separator_ratio = 3 / total_text_length  # " | "的长度为3
+
+                # 计算各部分的x坐标范围
+                language_end = label_width * language_ratio
+                encoding_start = language_end + label_width * separator_ratio
+                encoding_end = encoding_start + label_width * encoding_ratio
+                line_ending_start = encoding_end + label_width * separator_ratio
+
+                # 判断点击位置
+                if x >= encoding_start - tolerance and x <= encoding_end + tolerance:
+                    # 点击了编码部分
+                    self._show_encoding_menu(event)
+                elif x >= line_ending_start - tolerance:
+                    # 点击了换行符部分
+                    self._show_line_ending_menu(event)
+
+            elif len(parts) == 2:
+                # 格式为: "编码 | 换行符"
                 encoding_part = parts[0]
                 line_ending_part = parts[1]
 
-                # 使用更精确的方法计算各部分的宽度
-                # 获取标签的实际宽度
-                label_width = self.right_label.winfo_width()
+                # 计算各部分的文本长度
+                encoding_length = len(encoding_part)
+                line_ending_length = len(line_ending_part)
 
-                # 计算各部分文本的相对宽度比例
+                # 计算总文本长度（包括分隔符）
                 total_text_length = (
-                    len(encoding_part) + len(line_ending_part) + 3
+                    encoding_length + line_ending_length + 3
                 )  # 3是" | "分隔符的长度
 
                 # 计算各部分的相对位置（基于字符长度的比例）
-                encoding_ratio = len(encoding_part) / total_text_length
+                encoding_ratio = encoding_length / total_text_length
                 separator_ratio = 3 / total_text_length  # " | "的长度为3
 
                 # 计算各部分的x坐标范围
                 encoding_end = label_width * encoding_ratio
                 line_ending_start = encoding_end + label_width * separator_ratio
-
-                # 添加一些容错范围
-                tolerance = 10  # 10像素的容错范围
 
                 # 判断点击位置
                 if x <= encoding_end + tolerance:
@@ -484,9 +543,6 @@ class StatusBar(ctk.CTkFrame):
     def _on_left_click(self, event):
         """处理左侧标签点击事件，打开文档统计对话框"""
         try:
-            # 导入文档统计对话框函数
-            from ui.document_stats_dialog import show_document_stats_dialog
-
             # 打开文档统计对话框
             show_document_stats_dialog(self.app)
         except Exception as e:

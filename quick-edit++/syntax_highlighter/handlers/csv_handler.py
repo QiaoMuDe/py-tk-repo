@@ -27,7 +27,7 @@ class CSVHandler(LanguageHandler):
     def get_language_name(cls) -> str:
         """
         获取语言处理器名称
-        
+
         Returns:
             str: 语言处理器名称"csv"
         """

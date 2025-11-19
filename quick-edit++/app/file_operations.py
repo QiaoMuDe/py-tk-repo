@@ -230,9 +230,6 @@ class FileOperations:
             self.root.set_modified(False)  # 清除修改状态标志
             self.root.is_new_file = False  # 清除新文件状态标志
 
-            # 更新状态栏文件信息
-            self.root.status_bar.update_file_info()
-
             # 获取当前光标位置
             try:
                 cursor_pos = self.root.text_area.index("insert")
@@ -256,6 +253,9 @@ class FileOperations:
             if self.root.syntax_highlighter and final_path:
                 self.root.syntax_highlighter.apply_highlighting(final_path)
 
+            # 更新状态栏文件信息
+            self.root.status_bar.update_file_info()
+
             # 更新文件菜单状态
             self.root.update_file_menu_state()
 
@@ -271,31 +271,12 @@ class FileOperations:
         Args:
             filename: 文件名, 默认为"新文件"
         """
-        # 清空文本框内容
-        self.root.text_area.delete("1.0", tk.END)
+        # 先调用关闭文件方法
+        if not self.close_file():
+            return False
 
-        # 更新字符数缓存, 确保_total_chars为0
-        self.root.update_char_count()
-
-        # 设置新文件状态标志
+        # 设置新文件特定的状态
         self.root.is_new_file = True
-
-        # 重置文件路径
-        self.root.current_file_path = None
-
-        # 设置修改状态为False (新文件初始未修改)
-        self.root.set_modified(False)
-
-        # 获取配置中的默认换行符和编码
-        default_line_ending = self.config_manager.get("app.default_line_ending", "LF")
-        default_encoding = self.config_manager.get("app.default_encoding", "UTF-8")
-
-        # 更新编辑器的当前换行符和编码
-        self.root.current_line_ending = default_line_ending
-        self.root.current_encoding = default_encoding
-
-        # 更新状态栏为新文件状态
-        self.root.status_bar.update_file_info()
 
         # 更新窗口标题为新文件
         self.root.title(f"{filename} - QuickEdit++")
@@ -355,10 +336,11 @@ class FileOperations:
         """
         try:
             # 关闭当前文件
-            self.close_file()
+            if not self.close_file():
+                return False  # 用户取消了操作
 
             # 使用通用方法打开文件
-            self._open_file(check_backup=True, file_path=file_path)
+            self._open_file(check_save=True, check_backup=True, file_path=file_path)
         except Exception as e:
             print(f"处理拖拽文件时出错: {e}")
             messagebox.showerror("错误", f"处理拖拽文件时出错: {e}")
@@ -382,23 +364,27 @@ class FileOperations:
         self.root.set_modified(False)  # 重置文件修改状态
         self.root.is_new_file = False  # 清除新文件状态标志
 
-        # 更新状态栏
-        self.root.status_bar.set_status_info("就绪")
-        # 重置状态栏右侧文件信息
-        self.root.status_bar.update_file_info()
-
         # 更新窗口标题
         self.root._update_window_title()
 
         # 清除语法高亮
         self.root.syntax_highlighter.reset_highlighting()
 
-        # 更新文件菜单状态
-        self.root.update_file_menu_state()
-
         # 检查配置管理器的语法高亮是否启用, 如果启用则将临时禁用的语法高亮器重新启用
         if self.config_manager.get("syntax_highlighter.enabled", False):
             self.root.syntax_highlighter.highlight_enabled = True
+
+        # 更新文件状态
+        self.root.status_bar.set_status_info("就绪")
+        # 重置状态栏右侧文件信息
+        self.root.status_bar.update_file_info()
+
+        # 停止文件监听
+        if self.root.file_watcher:
+            self.root.file_watcher.stop_watching()
+
+        # 更新文件菜单状态
+        self.root.update_file_menu_state()
 
     def _handle_backup_on_close(self, file_saved):
         """
@@ -438,14 +424,12 @@ class FileOperations:
         """关闭当前文件, 重置窗口和状态栏状态"""
         # 检查是否需要保存当前文件
         if not self.check_save_before_close():
-            return  # 用户取消了操作
-
-        # 停止文件监听
-        if self.root.file_watcher:
-            self.root.file_watcher.stop_watching()
+            return False  # 用户取消了操作
 
         # 重置编辑器状态
         self._reset_editor_state()
+
+        return True
 
     def check_save_before_close(self):
         """
@@ -483,20 +467,20 @@ class FileOperations:
 
     def _open_file(
         self,
-        select_path=False,
-        check_save=False,
-        check_backup=False,
         file_path=None,
+        select_path=False,
+        check_backup=False,
+        check_save=False,
         encoding=None,
     ):
         """
         打开文件核心逻辑
 
         Args:
-            select_path (bool): 是否需要选择文件路径界面
-            check_save (bool): 是否需要检查文件是否为保存状态
-            check_backup (bool): 是否需要检查备份
             file_path (str): 文件路径
+            select_path (bool): 是否需要选择文件路径界面
+            check_save (bool): 是否需要检查文件是否已保存
+            check_backup (bool): 是否需要检查备份
             encoding (str, optional): 指定文件编码, 如果为None则自动检测
 
         Returns:
@@ -507,10 +491,10 @@ class FileOperations:
         """
         # 参数验证: 当不需要选择路径时, 必须提供有效的文件路径
         if not select_path and not file_path:
-            print("参数错误: 当select_path=False时, 必须提供有效的文件路径")
-            return False  # 参数错误
+            print("Error: file_path cannot be empty when select_path is False")
+            return False
 
-        # 检查是否需要检查文件是否为保存状态
+        # 检查文件是否已保存
         if check_save:
             if not self.check_save_before_close():
                 return False  # 用户取消了操作
@@ -534,6 +518,9 @@ class FileOperations:
         if not os.path.isfile(file_path):
             messagebox.showerror("错误", f"指定路径不是文件: {file_path}")
             return False
+
+        # 重置编辑器状态
+        self._reset_editor_state()
 
         # 检查是否需要处理备份恢复逻辑
         if check_backup:
@@ -633,9 +620,6 @@ class FileOperations:
                     # 更新缓存的字符数
                     self.root.update_char_count()
 
-                    # 更新状态栏文件信息
-                    self.root.status_bar.update_file_info()
-
                     # 更新状态栏
                     self.root.status_bar.show_notification(
                         f"已打开: {os.path.basename(file_path)}", 500
@@ -659,6 +643,9 @@ class FileOperations:
 
                     # 应用语法高亮
                     self.root.syntax_highlighter.apply_highlighting(file_path)
+
+                    # 更新状态栏文件信息
+                    self.root.status_bar.update_file_info()
 
                     # 更新文件菜单状态
                     self.root.update_file_menu_state()
@@ -700,7 +687,11 @@ class FileOperations:
                 return
 
             # 使用通用文件打开方法打开配置文件
-            self._open_file(file_path=CONFIG_PATH, check_backup=True, check_save=True)
+            self._open_file(
+                file_path=CONFIG_PATH,
+                check_save=True,
+                check_backup=True,
+            )
         except (ImportError, AttributeError) as e:
             messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
         except Exception as e:
@@ -766,14 +757,14 @@ class FileOperations:
 
             elif choice == BackupActions.OPEN_ORIGINAL:
                 # 从源文件打开
-                self._open_file_core(file_path)
+                self._open_file(file_path)
                 return True  # 已处理, 无需继续打开原文件
 
             elif choice == BackupActions.OPEN_ORIGINAL_DELETE_BACKUP:
                 # 从源文件打开并删除备份文件
                 try:
                     os.remove(backup_path)
-                    self._open_file_core(file_path)
+                    self._open_file(file_path)
                     return True  # 已处理, 无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
@@ -787,7 +778,7 @@ class FileOperations:
                     # 重命名备份文件为原文件名
                     os.rename(backup_path, file_path)
                     # 打开重命名后的文件
-                    self._open_file_core(file_path)
+                    self._open_file(file_path)
                     return True  # 已处理, 无需继续打开原文件
                 except Exception as e:
                     messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
@@ -796,7 +787,7 @@ class FileOperations:
             elif choice == BackupActions.OPEN_BACKUP:
                 # 从备份文件打开 (不重命名)
                 # 直接打开备份文件
-                self._open_file_core(backup_path)
+                self._open_file(backup_path)
                 return True  # 已处理, 无需继续打开原文件
 
         except Exception as e:

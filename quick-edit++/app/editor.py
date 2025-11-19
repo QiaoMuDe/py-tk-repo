@@ -708,6 +708,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
             return
 
+        # 直接调用文件操作处理器的打开文件方法
         self.file_ops._open_file(
             check_save=True, check_backup=True, file_path=file_path
         )
@@ -736,8 +737,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """关闭当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
             return
         # 直接调用文件操作处理器的关闭文件方法
@@ -756,8 +755,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
             )
             return
-        # 关闭当前文件
-        self.file_ops.close_file()
 
         # 调用新建文件辅助方法
         self.file_ops._new_file_helper()

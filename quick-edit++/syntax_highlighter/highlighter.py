@@ -165,7 +165,7 @@ class SyntaxHighlighter:
 
         # 注册Markdown处理器
         markdown_handler = MarkdownHandler()
-        for ext in markdown_handler.file_extensions:
+        for ext in markdown_handler.get_file_extensions():
             self.register_language(ext, markdown_handler)
 
         # 注册Dockerfile处理器 (特殊文件名)
@@ -327,12 +327,12 @@ class SyntaxHighlighter:
     def get_language_name(self) -> str:
         """
         获取当前语言的名称
-        
+
         Returns:
             str: 当前语言的名称，如果未设置语言则返回"auto"
         """
         handler = self._get_current_handler()
-        if handler and hasattr(handler, 'get_language_name'):
+        if handler:
             return handler.get_language_name()
         return "auto"
 
@@ -353,7 +353,7 @@ class SyntaxHighlighter:
             if handler:
                 self._setup_tags_for_handler(handler)
         else:
-            self.current_language = None
+            self.current_language = "auto"
             self.current_file_extension = None
 
     def _get_current_handler(self):

@@ -571,15 +571,15 @@ def create_menu(root):
     # 保存到root对象中，方便文件打开后刷新
     root.recent_files_menu = recent_menu
 
-    # 创建重新打开文件子菜单
-    # 创建重新打开文件的回调函数
+    # 创建重新载入文件子菜单
+    # 创建重新载入文件的回调函数
     def on_reopen_file(file_path, encoding):
         # 使用现有的文件重新打开功能
         root.file_ops._open_file(
-            file_path=file_path, encoding=encoding, check_save=False, check_backup=False
+            file_path=file_path, encoding=encoding, check_save=True
         )
 
-    # 初始化重新打开文件菜单
+    # 初始化重新载入文件菜单
     reopen_menu = ReopenFileMenu(root, file_menu, on_reopen_file)
     reopen_menu.create_reopen_file_menu()
     # 保存到root对象中，方便文件状态更新
