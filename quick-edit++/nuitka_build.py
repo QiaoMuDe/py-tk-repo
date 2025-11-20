@@ -18,6 +18,34 @@ def check_command_exists(command):
     return cmd_path is not None, cmd_path
 
 
+def format_version(version):
+    """
+    格式化版本号为标准格式（vX.X.X）
+
+    Args:
+        version (str): 原始版本号
+
+    Returns:
+        str: 格式化后的版本号，如果不符合标准格式则返回None
+    """
+    import re
+
+    # 匹配标准版本格式：vX.X.X（其中X是数字）
+    match = re.match(r"^v(\d+)\.(\d+)\.(\d+)$", version)
+    if match:
+        return version  # 已经是标准格式，直接返回
+
+    # 尝试从带哈希的版本中提取标准部分（如vX.X.X-xxx）
+    match = re.match(r"^v(\d+)\.(\d+)\.(\d+)-", version)
+    if match:
+        # 提取标准部分
+        major, minor, patch = match.groups()
+        return f"v{major}.{minor}.{patch}"
+
+    # 如果都不匹配，返回None
+    return None
+
+
 def get_git_version():
     """获取Git版本信息"""
     try:
@@ -48,9 +76,27 @@ def get_git_version():
         if tag_result.returncode == 0 and hash_result.returncode == 0:
             tag = tag_result.stdout.strip()
             commit_hash = hash_result.stdout.strip()
-            return f"{tag}-{commit_hash}"
+            version_with_hash = f"{tag}-{commit_hash}"
+
+            # 尝试格式化版本号
+            formatted_version = format_version(version_with_hash)
+            if formatted_version:
+                return formatted_version
+
+            # 如果格式化失败，尝试只使用标签
+            formatted_tag = format_version(tag)
+            if formatted_tag:
+                return formatted_tag
+
+            return "unknown"
         elif tag_result.returncode == 0:
-            return tag_result.stdout.strip()
+            tag = tag_result.stdout.strip()
+            # 尝试格式化标签
+            formatted_tag = format_version(tag)
+            if formatted_tag:
+                return formatted_tag
+
+            return "unknown"
         else:
             return "unknown"
     except subprocess.CalledProcessError:
