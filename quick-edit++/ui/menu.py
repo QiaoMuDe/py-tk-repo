@@ -702,13 +702,23 @@ def create_menu(root):
         label="转到文件底部", command=lambda: root.goto_bottom(), accelerator="End"
     )
     edit_menu.add_command(
-        label="向上翻页", command=lambda: root.page_up(), accelerator="PageUp"
+        label="向上翻页", command=lambda: root.page_up(), accelerator="PgUp"
     )
     edit_menu.add_command(
-        label="向下翻页", command=lambda: root.page_down(), accelerator="PageDown"
+        label="向下翻页", command=lambda: root.page_down(), accelerator="PgDn"
     )
     edit_menu.add_command(
         label="转到行", command=lambda: root.goto_line(), accelerator="Ctrl+G"
+    )
+    edit_menu.add_command(
+        label="转到行首",
+        command=lambda: root.goto_line_start(),
+        accelerator="Ctrl+Shift+<",
+    )
+    edit_menu.add_command(
+        label="转到行尾",
+        command=lambda: root.goto_line_end(),
+        accelerator="Ctrl+Shift+>",
     )
     edit_menu.add_separator()
 

@@ -40,9 +40,9 @@ class FileOperationCore:
                 return False
 
             # 方法1: 检查NULL字节 (二进制文件通常包含大量NULL字节)
-            if b'\x00' in sample:
+            if b"\x00" in sample:
                 # 如果NULL字节数量很少，可能是文本文件中的乱码
-                null_count = sample.count(b'\x00')
+                null_count = sample.count(b"\x00")
                 if null_count / len(sample) > 0.02:  # 2%以上认为是二进制
                     return True
 
@@ -61,16 +61,16 @@ class FileOperationCore:
 
             # 方法3: 尝试使用常见编码解码文件
             # 如果能成功解码，更可能是文本文件
-            encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'gb2312', 'gbk']
+            encodings_to_try = ["utf-8", "latin-1", "cp1252", "gb2312", "gbk"]
             success_decodings = 0
             max_errors = len(sample) * 0.15  # 允许15%的解码错误
-            
+
             for encoding in encodings_to_try:
                 try:
                     # 尝试解码，但允许一些错误
-                    decoded_text = sample.decode(encoding, errors='replace')
+                    decoded_text = sample.decode(encoding, errors="replace")
                     # 计算解码后的替换字符数量（乱码）
-                    replacement_count = decoded_text.count('\ufffd')  # Unicode替换字符
+                    replacement_count = decoded_text.count("\ufffd")  # Unicode替换字符
                     if replacement_count <= max_errors:
                         success_decodings += 1
                 except Exception:
@@ -82,7 +82,7 @@ class FileOperationCore:
 
             # 综合判断：如果通过了上述所有检查，可能是文本文件
             return control_char_ratio > 0.05  # 最后使用一个较低的阈值
-            
+
         except Exception:
             # 如果读取文件出错，先尝试从错误类型判断
             # 大多数情况下保持保守判断

@@ -1438,6 +1438,42 @@ func (s *StructName) IsValid() bool {
             # 忽略转到底部操作异常
             pass
 
+    def goto_line_start(self):
+        """转到当前行首"""
+        try:
+            # 获取当前行号
+            current_pos = self.text_area.index(tk.INSERT)
+            line_num = current_pos.split(".")[0]
+            # 设置光标位置到当前行首
+            self.text_area.mark_set(tk.INSERT, f"{line_num}.0")
+            # 确保光标可见
+            self.text_area.see(tk.INSERT)
+            # 更新状态栏
+            self._update_status_bar()
+            # 显示通知
+            self.status_bar.show_notification("已转到行首", 500)
+        except Exception as e:
+            # 忽略转到行首操作异常
+            pass
+
+    def goto_line_end(self):
+        """转到当前行尾"""
+        try:
+            # 获取当前行号
+            current_pos = self.text_area.index(tk.INSERT)
+            line_num = current_pos.split(".")[0]
+            # 设置光标位置到当前行尾
+            self.text_area.mark_set(tk.INSERT, f"{line_num}.end")
+            # 确保光标可见
+            self.text_area.see(tk.INSERT)
+            # 更新状态栏
+            self._update_status_bar()
+            # 显示通知
+            self.status_bar.show_notification("已转到行尾", 500)
+        except Exception as e:
+            # 忽略转到行尾操作异常
+            pass
+
     def page_up(self):
         """向上翻页"""
         try:

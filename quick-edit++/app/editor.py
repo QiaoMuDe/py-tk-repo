@@ -157,6 +157,13 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind("<Prior>", lambda e: self.page_up())  # 向上翻页
         self.bind("<Next>", lambda e: self.page_down())  # 向下翻页
         self.bind("<Control-g>", lambda e: self.goto_line())  # 转到行
+        # 绑定转到行首和行尾的快捷键
+        self.bind(
+            "<Control-Shift-less>", lambda e: self.goto_line_start()
+        )  # 转到行首 Ctrl+Shift+<
+        self.bind(
+            "<Control-Shift-greater>", lambda e: self.goto_line_end()
+        )  # 转到行尾 Ctrl+Shift+>
 
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
