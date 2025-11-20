@@ -543,7 +543,9 @@ def create_menu(root):
         command=lambda: toggle_highlight_current_line(root),
         variable=root.highlight_current_line_var,
     )
+    settings_menu.add_separator()
 
+    # 第三组：文件与编辑器设置
     # 文件变更监控设置
     settings_menu.add_checkbutton(
         label="启用文件变更监控",
@@ -586,10 +588,9 @@ def create_menu(root):
         )
 
     settings_menu.add_cascade(label="制表符宽度", menu=tab_width_submenu)
-
     settings_menu.add_separator()
 
-    # 第三组：保存设置
+    # 第四组：保存设置
     # 获取自动保存设置
     settings_menu.add_checkbutton(
         label="启用自动保存",
@@ -644,7 +645,7 @@ def create_menu(root):
     )
     settings_menu.add_separator()
 
-    # 第四组：配置管理
+    # 第五组：配置管理
     settings_menu.add_command(
         label="查看配置",
         command=lambda: root.file_ops.open_config_file(),
