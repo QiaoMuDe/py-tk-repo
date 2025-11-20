@@ -934,6 +934,42 @@ def create_menu(root):
         variable=root.file_monitoring_var,
     )
 
+    # 制表符设置
+    settings_menu.add_checkbutton(
+        label="使用空格代替制表符",
+        command=lambda: toggle_use_spaces_for_tab(root),
+        variable=root.use_spaces_for_tab_var,
+    )
+
+    # 创建制表符宽度子菜单
+    tab_width_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 定义可用的制表符宽度选项
+    tab_width_options = [
+        ("1", 1),
+        ("2", 2),
+        ("4", 4),
+        ("6", 6),
+        ("8", 8),
+        ("10", 10),
+        ("12", 12),
+        ("14", 14),
+        ("16", 16),
+        ("18", 18),
+        ("20", 20),
+    ]
+
+    # 创建制表符宽度菜单项
+    for label, value in tab_width_options:
+        tab_width_submenu.add_radiobutton(
+            label=f"{label}",
+            variable=root.tab_width_var,
+            value=value,
+            command=lambda: set_tab_width(root),
+        )
+
+    settings_menu.add_cascade(label="制表符宽度", menu=tab_width_submenu)
+
     settings_menu.add_separator()
 
     # 第三组：保存设置
@@ -1093,6 +1129,40 @@ def set_file_line_ending(line_ending, app_instance=None):
         app_instance.set_modified(True)
         # 更新状态栏
         app_instance._update_status_bar()
+
+
+def toggle_use_spaces_for_tab(root):
+    """切换是否使用空格代替制表符的设置
+
+    Args:
+        root: 主窗口实例，用于访问配置
+    """
+    # 保存配置
+    config_manager.set(
+        "text_editor.use_spaces_for_tab", root.use_spaces_for_tab_var.get()
+    )
+    config_manager.save_config()
+
+    # 通知用户
+    root.status_bar.show_notification(
+        "已使用空格代替制表符"
+        if root.use_spaces_for_tab_var.get()
+        else "已使用制表符代替空格"
+    )
+
+
+def set_tab_width(root):
+    """设置制表符宽度
+
+    Args:
+        root: 主窗口实例，用于访问配置
+    """
+    # 保存配置
+    config_manager.set("text_editor.tab_width", root.tab_width_var.get())
+    config_manager.save_config()
+
+    # 通知用户
+    root.status_bar.show_notification(f"已设置制表符宽度为: {root.tab_width_var.get()}")
 
 
 def toggle_toolbar_visibility(root):

@@ -66,6 +66,8 @@ DEFAULT_CONFIG = {
         "auto_increment_number": True,  # 是否启用自动递增编号功能
         "highlight_current_line": True,  # 是否启用光标所在行高亮
         "cursor_width": 5,  # 光标宽度（像素）
+        "tab_width": 1,  # 制表符宽度（空格数）
+        "use_spaces_for_tab": False,  # 是否使用空格代替制表符
     },
     # 工具栏配置
     "toolbar": {

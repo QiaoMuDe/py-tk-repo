@@ -127,6 +127,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 直接绑定回车键事件，确保自动递增编号功能优先级最高
         self.text_area.bind("<Return>", self._on_enter_key)  # 专门处理回车键
 
+        # 绑定Tab键事件
+        self.text_area.bind("<Tab>", self._on_tab_press)  # 确保Tab键被捕获
+
         # 绑定文本框焦点离开事件，触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
 
@@ -226,6 +229,93 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
+
+    def _on_tab_press(self, event=None):
+        """处理Tab键按下事件, 支持单行和多行缩进
+
+        功能:
+        - 无选中文本时: 在光标位置插入指定数量的空格或制表符
+        - 有选中文本时: 对选中的每一行开头添加缩进
+        - 支持撤销操作组，确保整个缩进操作可以一次性撤销
+        """
+        # 检查是否为只读模式
+        if self.is_read_only:
+            self.status_bar.show_notification("当前为只读模式, 无法进行缩进")
+            return "break"
+
+        try:
+            # 检测是否有选中的文本
+            has_selection = False
+            start_pos = None
+            end_pos = None
+
+            try:
+                start_pos = self.text_area.index("sel.first")
+                end_pos = self.text_area.index("sel.last")
+                has_selection = True
+            except:
+                # 没有选中的文本
+                pass
+
+            # 开始撤销操作组
+            self.text_area.edit_separator()
+
+            if has_selection:
+                # 多行缩进处理
+                # 获取选中内容的起始行和结束行
+                start_line = int(start_pos.split(".")[0])
+                end_line = int(end_pos.split(".")[0])
+
+                # 保存当前光标位置
+                current_pos = self.text_area.index("insert")
+
+                # 对每一行添加缩进
+                for line_num in range(start_line, end_line + 1):
+                    # 在每行开头插入指定数量的空格或制表符
+                    if self.use_spaces_for_tab_var.get():
+                        self.text_area.insert(
+                            f"{line_num}.0", " " * self.tab_width_var.get()
+                        )
+                    else:
+                        self.text_area.insert(
+                            f"{line_num}.0", "\t" * self.tab_width_var.get()
+                        )
+
+                # 重新选择修改后的文本（每一行都需要向右偏移）
+                self.text_area.tag_remove("sel", "1.0", "end")
+                for line_num in range(start_line, end_line + 1):
+                    line_end = self.text_area.index(f"{line_num}.end")
+                    self.text_area.tag_add("sel", f"{line_num}.0", line_end)
+
+                # 恢复光标位置并向右偏移 (考虑添加的缩进)
+                line, col = map(int, current_pos.split("."))
+                new_col = col + (
+                    self.tab_width_var.get() if self.use_spaces_for_tab_var.get() else 1
+                )
+                self.text_area.mark_set("insert", f"{line}.{new_col}")
+
+            else:
+                # 没有选中的文本，在当前位置插入指定数量的制表符或空格
+                if self.use_spaces_for_tab_var.get():
+                    self.text_area.insert("insert", " " * self.tab_width_var.get())
+                else:
+                    self.text_area.insert("insert", "\t" * self.tab_width_var.get())
+
+            # 结束撤销操作组
+            self.text_area.edit_separator()
+
+        except Exception as e:
+            # 错误处理，确保功能不中断
+            print(f"Error: Tab键处理失败 - {str(e)}")
+            # 出现错误时至少保证默认插入行为
+            try:
+                self.text_area.insert("insert", "\t")
+            except:
+                pass
+
+        finally:
+            # 确保默认Tab键行为
+            return "break"
 
     def on_scroll_drag(self, event=None):
         """处理滚动条拖动事件"""

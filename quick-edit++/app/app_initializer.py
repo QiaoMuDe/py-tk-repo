@@ -188,6 +188,16 @@ class AppInitializer:
             value=config_manager.get("file_watcher.monitoring_enabled", True)
         )
 
+        # 初始化使用空格代替制表符的状态变量
+        self.app.use_spaces_for_tab_var = tk.BooleanVar(
+            value=config_manager.get("text_editor.use_spaces_for_tab", False)
+        )
+
+        # 初始化制表符宽度状态变量
+        self.app.tab_width_var = tk.IntVar(
+            value=config_manager.get("text_editor.tab_width", 1)
+        )
+
         # 重新打开文件菜单实例
         self.app.reopen_file_menu = None
 
