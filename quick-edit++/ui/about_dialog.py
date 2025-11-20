@@ -38,7 +38,7 @@ def show_about_dialog(parent):
     # 居中显示
     about_window.update_idletasks()
     width = 500
-    height = 500
+    height = 550
     # 获取屏幕宽度和高度
     screen_width = about_window.winfo_screenwidth()
     screen_height = about_window.winfo_screenheight()
