@@ -12,11 +12,11 @@ import threading
 class FileOperationCore:
     """文件操作核心功能类，提供基础的文件操作功能"""
 
-    def is_binary_file(self, file_path=None, sample_data=None, sample_size=1024):
+    def is_binary_file(self, file_path=None, sample_data=None, sample_size=4096):
         """
         检测文件是否为二进制文件
 
-        原理：通过检查文件中是否包含非文本字符（控制字符）来判断
+        原理：结合多种启发式方法判断，减少对包含少量乱码的文本文件的误判
 
         Args:
             file_path: 文件路径（如果提供了sample_data，则忽略此参数）
@@ -39,7 +39,14 @@ class FileOperationCore:
             if not sample:
                 return False
 
-            # 统计控制字符的数量（除了换行符、回车符和制表符）
+            # 方法1: 检查NULL字节 (二进制文件通常包含大量NULL字节)
+            if b'\x00' in sample:
+                # 如果NULL字节数量很少，可能是文本文件中的乱码
+                null_count = sample.count(b'\x00')
+                if null_count / len(sample) > 0.02:  # 2%以上认为是二进制
+                    return True
+
+            # 方法2: 统计控制字符（更宽松的阈值）
             control_chars = 0
             for byte in sample:
                 # 检查是否为控制字符（ASCII值小于32的字符）
@@ -47,11 +54,38 @@ class FileOperationCore:
                 if byte < 32 and byte not in (9, 10, 13):
                     control_chars += 1
 
-            # 如果控制字符占比超过5%，认为是二进制文件
-            # 这个阈值可以根据需要调整
-            return control_chars / len(sample) > 0.05
+            # 降低阈值到10%，减少对包含少量乱码的文本文件的误判
+            control_char_ratio = control_chars / len(sample)
+            if control_char_ratio > 0.10:
+                return True
+
+            # 方法3: 尝试使用常见编码解码文件
+            # 如果能成功解码，更可能是文本文件
+            encodings_to_try = ['utf-8', 'latin-1', 'cp1252', 'gb2312', 'gbk']
+            success_decodings = 0
+            max_errors = len(sample) * 0.15  # 允许15%的解码错误
+            
+            for encoding in encodings_to_try:
+                try:
+                    # 尝试解码，但允许一些错误
+                    decoded_text = sample.decode(encoding, errors='replace')
+                    # 计算解码后的替换字符数量（乱码）
+                    replacement_count = decoded_text.count('\ufffd')  # Unicode替换字符
+                    if replacement_count <= max_errors:
+                        success_decodings += 1
+                except Exception:
+                    pass
+
+            # 如果能成功解码一种以上的编码，更可能是文本文件
+            if success_decodings > 0:
+                return False
+
+            # 综合判断：如果通过了上述所有检查，可能是文本文件
+            return control_char_ratio > 0.05  # 最后使用一个较低的阈值
+            
         except Exception:
-            # 如果读取文件出错，保守地认为可能是二进制文件
+            # 如果读取文件出错，先尝试从错误类型判断
+            # 大多数情况下保持保守判断
             return True
 
     def detect_file_encoding_and_line_ending(self, file_path=None, sample_data=None):
@@ -59,7 +93,7 @@ class FileOperationCore:
         检测文件编码和换行符类型
 
         Args:
-            file_path: 文件路径（如果提供了sample_data，则忽略此参数）
+            file_path: 文件路径 (如果提供了sample_data, 则忽略此参数)
             sample_data: 已读取的文件样本数据（字节类型）
 
         Returns:
@@ -78,8 +112,8 @@ class FileOperationCore:
             else:
                 # 否则从文件中读取样本
                 with open(file_path, "rb") as file:
-                    # 减少读取量，对于编码检测和换行符识别，通常1KB就足够了
-                    raw_data = file.read(1024)
+                    # 减少读取量，对于编码检测和换行符识别，通常4KB就足够了
+                    raw_data = file.read(4096)
 
             # 检测编码
             if raw_data:
@@ -116,8 +150,8 @@ class FileOperationCore:
 
         Args:
             file_path: 要读取的文件路径
-            max_file_size: 最大允许的文件大小（字节），默认10MB
-            encoding (str, optional): 指定文件编码，如果为None则自动检测
+            max_file_size: 最大允许的文件大小(字节), 默认10MB
+            encoding (str, optional): 指定文件编码, 如果为None则自动检测
 
         Returns:
             dict: 包含读取结果的字典
@@ -144,10 +178,10 @@ class FileOperationCore:
                 )
                 return result
 
-            # 读取1KB样本数据用于检测
+            # 读取4KB样本数据用于检测
             sample_data = None
             with open(file_path, "rb") as file:
-                sample_data = file.read(1024)
+                sample_data = file.read(4096)
 
             # 检测是否为二进制文件
             if self.is_binary_file(sample_data=sample_data):
