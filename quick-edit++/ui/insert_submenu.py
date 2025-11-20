@@ -7,6 +7,7 @@ import tkinter as tk
 插入子菜单
 """
 
+
 def create_insert_submenu(parent_menu, root, menu_font_tuple):
     """
     创建插入子菜单，包含所有插入功能

@@ -7,6 +7,7 @@ import tkinter as tk
 选中文本子菜单
 """
 
+
 def create_selected_text_submenu(
     selected_text_submenu, root, menu_font_tuple, return_instance=False
 ):

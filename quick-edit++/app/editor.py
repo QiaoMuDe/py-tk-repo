@@ -8,24 +8,18 @@
 
 import customtkinter as ctk
 import tkinter as tk
-import sys
 import os
-import time
-from datetime import datetime
 from config.config_manager import config_manager
 from ui.menu import create_menu, create_insert_submenu
-from ui.toolbar import Toolbar
-from ui.status_bar import StatusBar
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
-from .file_operations import FileOperations
 from tkinter import messagebox
 from app.app_initializer import AppInitializer
 from app.auto_save_manager import AutoSaveManager
 from app.edit_operations import EditOperations
 from app.selection_operations import SelectionOperations
-from syntax_highlighter import SyntaxHighlighter
+from app.bookmark_manager import BookmarkManager
 from ui.menu import toggle_syntax_highlight
 from ui.font_dialog import show_font_dialog
 from ui.menu import set_text_background_color
@@ -47,6 +41,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 执行完整的应用初始化流程
         self.initializer.initialize_app()
+
+        # 初始化书签管理器
+        self.bookmark_manager = BookmarkManager(self)
 
         # 绑定应用程序事件和快捷方式
         self._bind_app_events()
@@ -170,6 +167,21 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 绑定退出应用程序事件
         self.bind("<Control-q>", lambda e: self._on_closing())  # 退出应用程序
+
+        # 书签功能快捷键
+        self.bind(
+            "<Control-b>", lambda e: self.bookmark_manager.toggle_bookmark()
+        )  # 添加/删除书签
+        self.bind_all(
+            "<Control-bracketleft>", lambda e: self.handle_bookmark_navigation("up", e)
+        )  # 上一个书签 (Ctrl+[)
+        self.bind_all(
+            "<Control-bracketright>",
+            lambda e: self.handle_bookmark_navigation("down", e),
+        )  # 下一个书签 (Ctrl+])
+        self.bind(
+            "<Alt-l>", lambda e: self.bookmark_manager.clear_all_bookmarks()
+        )  # 清除所有书签
 
         # 绑定全屏快捷键
         self.bind("<F11>", lambda e: self.toggle_fullscreen())  # F11切换全屏
@@ -861,6 +873,19 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 直接调用文件操作处理器的关闭文件方法
         self.file_ops.close_file()
 
+    def handle_bookmark_navigation(self, direction, event):
+        """
+        处理书签导航的专用方法
+
+        Args:
+            direction (str): 导航方向，"up" 表示上一个书签，"down" 表示下一个书签
+            event: 事件对象
+        """
+        if direction == "up":
+            self.bookmark_manager.goto_previous_bookmark()
+        elif direction == "down":
+            self.bookmark_manager.goto_next_bookmark()
+
     def check_save_before_close(self):
         """在关闭文件前检查是否需要保存"""
         # 直接调用文件操作处理器的检查保存方法
@@ -988,6 +1013,27 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.file_menu is not None:
             # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
             update_file_properties_menu_state(self)
+
+    # 书签功能方法
+    def toggle_bookmark(self):
+        """切换当前行的书签状态"""
+        if hasattr(self, "bookmark_manager"):
+            self.bookmark_manager.toggle_bookmark()
+
+    def goto_next_bookmark(self):
+        """跳转到下一个书签"""
+        if hasattr(self, "bookmark_manager"):
+            self.bookmark_manager.goto_next_bookmark()
+
+    def goto_previous_bookmark(self):
+        """跳转到上一个书签"""
+        if hasattr(self, "bookmark_manager"):
+            self.bookmark_manager.goto_previous_bookmark()
+
+    def clear_all_bookmarks(self):
+        """清除所有书签"""
+        if hasattr(self, "bookmark_manager"):
+            self.bookmark_manager.clear_all_bookmarks()
 
     def run(self):
         """运行应用"""

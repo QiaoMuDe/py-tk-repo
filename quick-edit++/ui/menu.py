@@ -311,7 +311,7 @@ def create_menu(root):
 
     # 创建导航菜单
     navigate_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
-    
+
     # 文件导航功能
     navigate_menu.add_command(
         label="转到文件顶部", command=lambda: root.goto_top(), accelerator="Ctrl+Home"
@@ -320,7 +320,7 @@ def create_menu(root):
         label="转到文件底部", command=lambda: root.goto_bottom(), accelerator="Ctrl+End"
     )
     navigate_menu.add_separator()
-    
+
     # 页面导航功能
     navigate_menu.add_command(
         label="向上翻页", command=lambda: root.page_up(), accelerator="PgUp"
@@ -329,7 +329,7 @@ def create_menu(root):
         label="向下翻页", command=lambda: root.page_down(), accelerator="PgDn"
     )
     navigate_menu.add_separator()
-    
+
     # 行导航功能
     navigate_menu.add_command(
         label="转到行", command=lambda: root.goto_line(), accelerator="Ctrl+G"
@@ -344,7 +344,30 @@ def create_menu(root):
         command=lambda: root.goto_line_end(),
         accelerator="Ctrl+Shift+>",
     )
-    
+    navigate_menu.add_separator()
+
+    # 书签功能
+    navigate_menu.add_command(
+        label="添加/删除书签",
+        command=lambda: root.toggle_bookmark(),
+        accelerator="Ctrl+B",
+    )
+    navigate_menu.add_command(
+        label="上一个书签",
+        command=lambda: root.goto_previous_bookmark(),
+        accelerator="Ctrl+[",
+    )
+    navigate_menu.add_command(
+        label="下一个书签",
+        command=lambda: root.goto_next_bookmark(),
+        accelerator="Ctrl+]",
+    )
+    navigate_menu.add_command(
+        label="清除所有书签",
+        command=lambda: root.clear_all_bookmarks(),
+        accelerator="Alt+L",
+    )
+
     # 将导航菜单添加到主菜单
     main_menu.add_cascade(label="导航", menu=navigate_menu)
 
