@@ -230,12 +230,44 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 设置应用程序启动后获取焦点
         self.after(100, self._on_app_startup)
 
+    def _get_selected_lines(self):
+        """获取当前选中的所有行及其索引范围
+
+        Returns:
+            list: 包含元组的列表，每个元组为 (行号, 起始索引, 结束索引)
+                例如: [(1, "1.0", "1.end"), (3, "3.0", "3.end")]
+                如果没有选中文本，返回空列表
+        """
+        selected_lines = []
+
+        try:
+            # 获取选中区域的起始和结束位置
+            pos = self.text_area.index("sel.first")
+            last_pos = self.text_area.index("sel.last")
+
+            # 解析起始和结束行
+            start_line = int(pos.split(".")[0])
+            end_line = int(last_pos.split(".")[0])
+
+            # 简化逻辑：无论选择是否连续，都将范围内的所有行包含在内
+            # 这样，如果选中第2行和第5行，则会将2到5行都选中缩进
+            for line_num in range(start_line, end_line + 1):
+                line_start = f"{line_num}.0"
+                line_end = self.text_area.index(f"{line_num}.end")
+                selected_lines.append((line_num, line_start, line_end))
+
+        except Exception as e:
+            # 如果获取选中行失败（比如没有选中文本）
+            pass
+
+        return selected_lines
+
     def _on_tab_press(self, event=None):
         """处理Tab键按下事件, 支持单行和多行缩进
 
         功能:
         - 无选中文本时: 在光标位置插入指定数量的空格或制表符
-        - 有选中文本时: 对选中的每一行开头添加缩进
+        - 有选中文本时: 对选中的每一行开头添加缩进（精确处理选中行）
         - 支持撤销操作组，确保整个缩进操作可以一次性撤销
         """
         # 检查是否为只读模式
@@ -244,48 +276,38 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             return "break"
 
         try:
-            # 检测是否有选中的文本
-            has_selection = False
-            start_pos = None
-            end_pos = None
-
-            try:
-                start_pos = self.text_area.index("sel.first")
-                end_pos = self.text_area.index("sel.last")
-                has_selection = True
-            except:
-                # 没有选中的文本
-                pass
+            # 获取选中的行信息
+            selected_lines = self._get_selected_lines()
 
             # 开始撤销操作组
             self.text_area.edit_separator()
 
-            if has_selection:
-                # 多行缩进处理
-                # 获取选中内容的起始行和结束行
-                start_line = int(start_pos.split(".")[0])
-                end_line = int(end_pos.split(".")[0])
-
+            if selected_lines:
+                # 有选中的文本，对每一个选中的行进行处理
                 # 保存当前光标位置
                 current_pos = self.text_area.index("insert")
 
-                # 对每一行添加缩进
-                for line_num in range(start_line, end_line + 1):
+                # 注意：需要从大到小排序行号，避免索引偏移问题
+                # 当在前面的行插入内容后，后面行的索引会变化
+                for line_num, line_start, line_end in sorted(
+                    selected_lines, reverse=True, key=lambda x: x[0]
+                ):
                     # 在每行开头插入指定数量的空格或制表符
                     if self.use_spaces_for_tab_var.get():
                         self.text_area.insert(
-                            f"{line_num}.0", " " * self.tab_width_var.get()
+                            line_start, " " * self.tab_width_var.get()
                         )
                     else:
                         self.text_area.insert(
-                            f"{line_num}.0", "\t" * self.tab_width_var.get()
+                            line_start, "\t" * self.tab_width_var.get()
                         )
 
-                # 重新选择修改后的文本（每一行都需要向右偏移）
+                # 重新选择修改后的文本
                 self.text_area.tag_remove("sel", "1.0", "end")
-                for line_num in range(start_line, end_line + 1):
-                    line_end = self.text_area.index(f"{line_num}.end")
-                    self.text_area.tag_add("sel", f"{line_num}.0", line_end)
+                for line_num, line_start, line_end in selected_lines:
+                    # 由于在每行开头插入了内容，需要重新获取行结束位置
+                    new_line_end = self.text_area.index(f"{line_num}.end")
+                    self.text_area.tag_add("sel", f"{line_num}.0", new_line_end)
 
                 # 恢复光标位置并向右偏移 (考虑添加的缩进)
                 line, col = map(int, current_pos.split("."))
