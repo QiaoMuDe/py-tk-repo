@@ -291,7 +291,7 @@ class SyntaxHighlighter:
     def _register_language_name(self, language_name: str):
         """
         注册语言名称到已注册语言字典中
-        
+
         Args:
             language_name: 语言名称
         """
@@ -309,7 +309,7 @@ class SyntaxHighlighter:
         # 获取语言名称并注册
         language_name = handler.get_language_name()
         self._register_language_name(language_name)
-        
+
         # 注册扩展名到语言处理器字典中
         self.language_handlers[extension.lower()] = handler
 
@@ -324,7 +324,7 @@ class SyntaxHighlighter:
         # 获取语言名称并注册
         language_name = handler.get_language_name()
         self._register_language_name(language_name)
-            
+
         # 注册特殊文件名到语言处理器字典中
         self.language_handlers[filename] = handler
 

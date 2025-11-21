@@ -446,15 +446,17 @@ def create_menu(root):
 
     settings_menu.add_checkbutton(
         label="显示工具栏",
-        command=lambda: toggle_toolbar_visibility(root),
+        command=lambda: toggle_toolbar_visibility(root, switch_state=False),
         variable=root.toolbar_var,
+        accelerator="Ctrl+Shift+T",
     )
 
     # 行号显示设置
     settings_menu.add_checkbutton(
         label="显示行号",
-        command=lambda: toggle_line_numbers(root),
+        command=lambda: toggle_line_numbers(root, switch_state=False),
         variable=root.line_numbers_var,
+        accelerator="Ctrl+Shift+N",
     )
 
     # 全屏模式设置
@@ -500,16 +502,17 @@ def create_menu(root):
         root.auto_wrap_var.set(auto_wrap)
     settings_menu.add_checkbutton(
         label="启用自动换行",
-        command=lambda: toggle_auto_wrap(root),
+        command=lambda: toggle_auto_wrap(root, switch_state=False),
         variable=root.auto_wrap_var,
+        accelerator="Ctrl+Shift+W",
     )
 
     # 语法高亮设置
     settings_menu.add_checkbutton(
         label="启用语法高亮",
-        command=lambda: toggle_syntax_highlight_menu(root),
+        command=lambda: toggle_syntax_highlight(root, switch_state=False),
         variable=root.syntax_highlight_var,
-        accelerator="Ctrl+L",
+        accelerator="Ctrl+Shift+L",
     )
 
     # 创建语法高亮模式子菜单
@@ -540,8 +543,9 @@ def create_menu(root):
     # 光标所在行高亮设置
     settings_menu.add_checkbutton(
         label="启用光标所在行高亮",
-        command=lambda: toggle_highlight_current_line(root),
+        command=lambda: toggle_highlight_current_line(root, switch_state=False),
         variable=root.highlight_current_line_var,
+        accelerator="Ctrl+Shift+H",
     )
     settings_menu.add_separator()
 
@@ -785,17 +789,30 @@ def set_tab_width(root):
     )
 
 
-def toggle_toolbar_visibility(root):
+def toggle_toolbar_visibility(root, switch_state=True):
     """切换工具栏的显示/隐藏状态
 
     Args:
         root: 主窗口实例，用于访问工具栏组件
+        switch_state (bool): 是否需要翻转状态，默认为True
+                             True - 切换状态（用于快捷键）
+                             False - 应用当前状态（用于菜单点击）
     """
-    # 获取当前工具栏显示状态（此时Checkbutton已经自动切换了值）
-    current_state = root.toolbar_var.get()
+    if switch_state:
+        # 获取当前工具栏显示状态
+        current_state = root.toolbar_var.get()
+
+        # 计算新状态（当前状态的取反）
+        new_state = not current_state
+
+        # 设置新状态
+        root.toolbar_var.set(new_state)
+    else:
+        # 应用当前状态（不翻转）
+        new_state = root.toolbar_var.get()
 
     # 保存配置
-    config_manager.set("app.show_toolbar", current_state)
+    config_manager.set("app.show_toolbar", new_state)
     config_manager.save_config()
 
     # 暂时捕获所有事件，防止用户交互
@@ -806,7 +823,7 @@ def toggle_toolbar_visibility(root):
         try:
             # 切换工具栏显示状态
             if hasattr(root, "toolbar"):
-                if current_state:
+                if new_state:
                     # 显示工具栏
                     root.toolbar.grid(row=0, column=0, sticky="ew")
                 else:
@@ -870,25 +887,42 @@ def set_color_theme(theme, root=None):
     messagebox.showinfo("通知", f"颜色主题已切换为: {theme_name}, 请重启应用以生效")
 
 
-def toggle_auto_wrap(root):
-    """切换自动换行模式"""
-    # 获取当前自动换行状态（此时Checkbutton已经自动切换了值）
-    current_state = root.auto_wrap_var.get()
+def toggle_auto_wrap(root, switch_state=True):
+    """切换自动换行模式
+
+    Args:
+        root: 主窗口实例，用于访问文本编辑器
+        switch_state (bool): 是否需要翻转状态，默认为True
+                             True - 切换状态（用于快捷键）
+                             False - 应用当前状态（用于菜单点击）
+    """
+    if switch_state:
+        # 获取当前自动换行状态
+        current_state = root.auto_wrap_var.get()
+
+        # 计算新状态（当前状态的取反）
+        new_state = not current_state
+
+        # 设置新状态
+        root.auto_wrap_var.set(new_state)
+    else:
+        # 应用当前状态（不翻转）
+        new_state = root.auto_wrap_var.get()
 
     # 保存配置
-    config_manager.set("text_editor.auto_wrap", current_state)
+    config_manager.set("text_editor.auto_wrap", new_state)
     config_manager.save_config()
 
     # 直接设置文本框的自动换行属性
     if hasattr(root, "text_area"):
         # 设置文本框的自动换行属性
-        wrap_mode = "word" if current_state else "none"
+        wrap_mode = "word" if new_state else "none"
         root.text_area.configure(wrap=wrap_mode)
 
         # 滚动条的显示/隐藏将由app_initializer中的自动检查机制处理
 
         # 显示通知
-        status_text = "已启用" if current_state else "已禁用"
+        status_text = "已启用" if new_state else "已禁用"
         root.status_bar.show_notification(f"自动换行{status_text}", 500)
 
 
@@ -955,38 +989,23 @@ def set_window_title_mode(mode, root):
     root.status_bar.show_notification(f"窗口标题显示模式已切换为: {mode_name}", 500)
 
 
-def toggle_syntax_highlight(root):
-    """切换语法高亮的启用/禁用状态(用于快捷键)
+def toggle_syntax_highlight(root, switch_state=True):
+    """切换语法高亮的启用/禁用状态
 
     Args:
         root: 主窗口实例，用于访问语法高亮管理器
+        switch_state (bool): 是否需要翻转状态，默认为True
+                             True - 切换状态（用于快捷键）
+                             False - 应用当前状态（用于菜单点击）
     """
-    # 获取当前语法高亮状态并切换
-    current_state = root.syntax_highlight_var.get()
-    new_state = not current_state
-    root.syntax_highlight_var.set(new_state)
-
-    # 保存配置到配置管理器
-    config_manager.set("syntax_highlighter.enabled", new_state)
-    config_manager.save_config()
-
-    # 应用设置到语法高亮管理器
-    root.syntax_highlighter.set_enabled(new_state, root.current_file_path)
-
-    # 显示通知
-    root.status_bar.show_notification(
-        f"语法高亮已{'启用' if new_state else '禁用'}", 500
-    )
-
-
-def toggle_syntax_highlight_menu(root):
-    """切换语法高亮的启用/禁用状态(用于菜单栏)
-
-    Args:
-        root: 主窗口实例，用于访问语法高亮管理器
-    """
-    # 获取当前语法高亮状态（此时Checkbutton已经自动切换了值）
-    new_state = root.syntax_highlight_var.get()
+    if switch_state:
+        # 获取当前语法高亮状态并切换
+        current_state = root.syntax_highlight_var.get()
+        new_state = not current_state
+        root.syntax_highlight_var.set(new_state)
+    else:
+        # 应用当前状态（不翻转）
+        new_state = root.syntax_highlight_var.get()
 
     # 保存配置到配置管理器
     config_manager.set("syntax_highlighter.enabled", new_state)
@@ -1021,31 +1040,42 @@ def set_syntax_highlight_mode(mode: bool, root):
 
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
-    root.status_bar.show_notification(
-        f"语法高亮模式已设置为: {mode_text}, 请重启应用以生效", 500
-    )
+    messagebox.showinfo("提示", f"语法高亮模式已设置为: {mode_text}, 请重启应用以生效")
 
 
-def toggle_line_numbers(root):
+def toggle_line_numbers(root, switch_state=True):
     """
     切换行号显示状态
 
     Args:
         root: 主窗口实例
+        switch_state (bool): 是否需要翻转状态，默认为True
+                             True - 切换状态（用于快捷键）
+                             False - 应用当前状态（用于菜单点击）
     """
-    # 获取当前行号显示状态（此时Checkbutton已经自动切换了值）
-    current_state = root.line_numbers_var.get()
+    if switch_state:
+        # 获取当前行号显示状态
+        current_state = root.line_numbers_var.get()
+
+        # 计算新状态（当前状态的取反）
+        new_state = not current_state
+
+        # 设置新状态
+        root.line_numbers_var.set(new_state)
+    else:
+        # 应用当前状态（不翻转）
+        new_state = root.line_numbers_var.get()
 
     # 保存配置
-    config_manager.set("text_editor.show_line_numbers", current_state)
+    config_manager.set("text_editor.show_line_numbers", new_state)
     config_manager.save_config()
 
     # 控制行号侧边栏的显示和隐藏
-    root.line_number_canvas.toggle_visibility(current_state)
+    root.line_number_canvas.toggle_visibility(new_state)
 
     # 显示通知
     root.status_bar.show_notification(
-        f"行号显示已{current_state and '启用' or '禁用'}", 500
+        f"行号显示已{new_state and '启用' or '禁用'}", 500
     )
 
 
@@ -1056,43 +1086,56 @@ def toggle_auto_increment_number(root):
     Args:
         root: 主窗口实例
     """
-    # 获取当前自动递增编号状态（此时Checkbutton已经自动切换了值）
-    current_state = root.auto_increment_number_var.get()
+    # 获取当前自动递增编号状态
+    new_state = root.auto_increment_number_var.get()
 
     # 保存配置
-    config_manager.set("text_editor.auto_increment_number", current_state)
+    config_manager.set("text_editor.auto_increment_number", new_state)
     config_manager.save_config()
 
     # 显示通知
     root.status_bar.show_notification(
-        f"自动递增编号已{current_state and '启用' or '禁用'}", 500
+        f"自动递增编号已{new_state and '启用' or '禁用'}", 500
     )
 
 
-def toggle_highlight_current_line(root):
+def toggle_highlight_current_line(root, switch_state=True):
     """
     切换光标所在行高亮功能状态
 
     Args:
         root: 主窗口实例
+        switch_state (bool): 是否需要翻转状态，默认为True
+                             True - 切换状态（用于快捷键）
+                             False - 应用当前状态（用于菜单点击）
     """
-    # 获取当前光标所在行高亮状态（此时Checkbutton已经自动切换了值）
-    current_state = root.highlight_current_line_var.get()
+    if switch_state:
+        # 获取当前光标所在行高亮状态
+        current_state = root.highlight_current_line_var.get()
+
+        # 计算新状态（当前状态的取反）
+        new_state = not current_state
+
+        # 设置新状态
+        root.highlight_current_line_var.set(new_state)
+    else:
+        # 应用当前状态（不翻转）
+        new_state = root.highlight_current_line_var.get()
 
     # 保存配置
-    config_manager.set("text_editor.highlight_current_line", current_state)
+    config_manager.set("text_editor.highlight_current_line", new_state)
     config_manager.save_config()
 
     # 重新初始化行高亮设置
     root._setup_line_highlight(full_init=False)
 
     # 如果禁用了高亮，清除当前高亮
-    if not current_state and hasattr(root, "current_line_tag"):
+    if not new_state and hasattr(root, "current_line_tag"):
         root.text_area.tag_remove(root.current_line_tag, "1.0", "end")
 
     # 显示通知
     root.status_bar.show_notification(
-        f"光标所在行高亮已{current_state and '启用' or '禁用'}", 500
+        f"光标所在行高亮已{new_state and '启用' or '禁用'}", 500
     )
 
 

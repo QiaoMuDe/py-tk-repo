@@ -11,7 +11,6 @@ import gc
 import tkinter as tk
 import os
 from config.config_manager import config_manager
-from ui.menu import create_menu, create_insert_submenu
 from ui.about_dialog import show_about_dialog
 from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
@@ -21,7 +20,16 @@ from app.auto_save_manager import AutoSaveManager
 from app.edit_operations import EditOperations
 from app.selection_operations import SelectionOperations
 from app.bookmark_manager import BookmarkManager
-from ui.menu import toggle_syntax_highlight
+from ui.menu import (
+    toggle_syntax_highlight,
+    toggle_toolbar_visibility,
+    toggle_line_numbers,
+)
+from ui.menu import (
+    toggle_auto_wrap,
+    toggle_auto_increment_number,
+    toggle_highlight_current_line,
+)
 from ui.font_dialog import show_font_dialog
 from ui.menu import set_text_background_color
 from ui.file_properties_dialog import show_file_properties_dialog
@@ -238,16 +246,33 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 语法高亮快捷键
         self.bind(
-            "<Control-l>", lambda e: toggle_syntax_highlight(self)
+            "<Control-Shift-L>",
+            lambda e: toggle_syntax_highlight(self, switch_state=True),
         )  # 切换语法高亮
 
-        # 禁用默认的Ctrl+H行为 (退格)
+        # 禁用默认的Ctrl+H行为 (退格)，但不影响Ctrl+Shift+H
         self.bind("<Control-h>", lambda e: "break")
 
         # 查找和替换
         self.bind(
             "<Control-f>", lambda e: show_find_replace_dialog(self, self.text_area)
         )  # 查找和替换
+
+        # 绑定设置快捷键
+        self.bind(
+            "<Control-Shift-T>",
+            lambda e: toggle_toolbar_visibility(self, switch_state=True),
+        )  # 切换工具栏显示
+        self.bind(
+            "<Control-Shift-N>", lambda e: toggle_line_numbers(self, switch_state=True)
+        )  # 切换行号显示
+        self.bind(
+            "<Control-Shift-W>", lambda e: toggle_auto_wrap(self, switch_state=True)
+        )  # 切换自动换行
+        self.bind(
+            "<Control-Shift-H>",
+            lambda e: toggle_highlight_current_line(self, switch_state=True),
+        )  # 切换光标所在行高亮
 
         # 绑定文本框的水平/垂直滚动条的鼠标点击和拖动事件
         self.text_area._y_scrollbar._canvas.bind(
@@ -294,7 +319,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         except Exception as e:
             # 如果获取选中行失败（比如没有选中文本）
-            logger.error(f"获取选中行失败: {e}")
+            pass
 
         return selected_lines
 
@@ -591,8 +616,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def _on_key_press(self, event=None):
         """按键/键盘事件处理"""
 
-        # 检测Ctrl+H组合键，阻止默认的退格行为
-        if (event.state & 0x4) and (event.keysym == "h" or event.char == "\x08"):
+        # 检测Ctrl+H组合键（但不包括Ctrl+Shift+H），阻止默认的退格行为
+        if (
+            (event.state & 0x4)
+            and not (event.state & 0x1)
+            and (event.keysym == "h" or event.char == "\x08")
+        ):
             return "break"
 
         # 检测Ctrl+O组合键，拦截底层行为，只执行我们的自定义实现

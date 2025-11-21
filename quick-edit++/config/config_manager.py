@@ -157,7 +157,6 @@ class ConfigManager:
         logger.info("config manager initialized successfully!")
         logger.info(f"config file path: {CONFIG_PATH}")
 
-
     def load_config(self):
         """
         加载配置文件
