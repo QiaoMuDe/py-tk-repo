@@ -557,6 +557,13 @@ def create_menu(root):
         variable=root.file_monitoring_var,
     )
 
+    # 静默重载模式设置
+    settings_menu.add_checkbutton(
+        label="文件变更时静默重载",
+        command=lambda: toggle_silent_reload(root),
+        variable=root.silent_reload_var,
+    )
+
     # 制表符设置
     settings_menu.add_checkbutton(
         label="使用空格代替制表符",
@@ -1155,6 +1162,25 @@ def toggle_file_monitoring(root):
     # 显示通知
     root.status_bar.show_notification(
         f"文件变更监控已{current_state and '启用' or '禁用'}", 500
+    )
+
+
+def toggle_silent_reload(root):
+    """
+    切换文件变更时静默重载模式
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前静默重载状态（此时Checkbutton已经自动切换了值）
+    current_state = root.silent_reload_var.get()
+
+    # 更新FileWatcher的静默重载设置
+    root.file_watcher.set_silent_reload(current_state)
+
+    # 显示通知
+    root.status_bar.show_notification(
+        f"静默重载模式已{current_state and '启用' or '禁用'}", 500
     )
 
 

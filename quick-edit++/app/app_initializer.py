@@ -190,6 +190,11 @@ class AppInitializer:
             value=config_manager.get("file_watcher.monitoring_enabled", True)
         )
 
+        # 初始化静默重载模式状态变量
+        self.app.silent_reload_var = tk.BooleanVar(
+            value=config_manager.get("file_watcher.silent_reload", False)
+        )
+
         # 初始化使用空格代替制表符的状态变量
         self.app.use_spaces_for_tab_var = tk.BooleanVar(
             value=config_manager.get("text_editor.use_spaces_for_tab", False)

@@ -45,6 +45,7 @@ DEFAULT_CONFIG = {
         "readonly_notify_delay": 30,  # 只读模式下通知重置延迟（秒）
         "edit_notify_delay": 120,  # 编辑模式下通知重置延迟（秒）
         "monitoring_enabled": True,  # 是否启用文件变更监控
+        "silent_reload": False,  # 是否静默自动重载（False=弹窗提示，True=静默重载）
     },
     # 最近打开文件配置
     "recent_files": {

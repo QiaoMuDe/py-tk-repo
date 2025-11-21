@@ -57,6 +57,7 @@ class FileWatcher:
         self.monitoring_enabled = self.config.get(
             "monitoring_enabled", True
         )  # 是否启用文件变更监控
+        self.silent_reload = self.config.get("silent_reload", False)  # 是否静默自动重载
 
     def start_watching(self, file_path: str) -> None:
         """
@@ -230,6 +231,14 @@ class FileWatcher:
 
         self.is_checking = True
 
+        # 检查是否处于静默重载模式
+        if self.silent_reload:
+            # 静默模式下直接重新加载文件
+            self._reload_file()
+            self.is_checking = False
+            self._schedule_check()
+            return
+
         # 检查是否处于只读模式
         is_read_only = self.app.is_read_only
 
@@ -354,3 +363,15 @@ class FileWatcher:
         # 如果启用了监控，且当前有打开的文件，则开始监听
         elif enabled and self.app.current_file_path and not self.watched_file:
             self.start_watching(self.app.current_file_path)
+
+    def set_silent_reload(self, silent: bool) -> None:
+        """
+        设置静默重载模式
+
+        Args:
+            silent: 是否启用静默重载模式
+        """
+        self.silent_reload = silent
+        # 更新配置
+        config_manager.set("file_watcher.silent_reload", silent)
+        config_manager.save_config()
