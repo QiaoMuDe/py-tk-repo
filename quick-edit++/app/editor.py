@@ -396,16 +396,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def on_scroll_drag(self, event=None):
         """处理滚动条拖动事件"""
-        # 如果启用行号, 则触发绘制行号
-        if self.line_numbers_var.get():
-            self.line_number_canvas.draw_line_numbers()
-
-        # 如果启用语法高亮, 并且渲染可见区域模式, 则触发语法高亮更新
-        if (
-            self.syntax_highlight_var.get()
-            and self.syntax_highlighter.render_visible_only
-        ):
-            self.syntax_highlighter._handle_event()
+        # 使用统一的更新方法
+        self.update_editor_display()
 
     def _setup_line_highlight(self, full_init=False):
         """
@@ -643,12 +635,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         ) and self.get_char_count() == 0:
             self.set_modified(False)
 
-        # 显示自动保存状态
-        self._update_status_bar()
-        # 更新光标行高亮
-        self._highlight_current_line()
-
-        # 语法高亮现在由语法高亮控制器统一管理，不再在此处处理
+        # 使用统一的更新方法
+        self.update_editor_display()
 
     def set_modified(self, modified=False):
         """
@@ -669,16 +657,40 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         status = self.text_area.edit_modified()
         return status != 0  # CTK返回0表示未修改，非0表示已修改
 
+    def update_editor_display(self):
+        """
+        统一更新编辑器显示元素的方法，包括行号绘制、当前行高亮和语法高亮
+
+        这个方法提供了一个统一的接口来更新编辑器的各种视觉元素，避免代码重复，
+        并确保在需要时可以一次性更新所有相关的显示组件。
+        方法内部会根据当前的配置状态判断是否需要执行相应的更新。
+        """
+        try:
+            # 更新行号绘制 - 只有在启用行号显示时才执行
+            if self.line_numbers_var.get():
+                self.line_number_canvas.draw_line_numbers()
+
+            # 更新当前行高亮 - 只有在启用当前行高亮时才执行
+            if self.highlight_current_line_var.get():
+                self._highlight_current_line()
+
+            # 更新语法高亮 - 只有在启用语法高亮且使用可见区域渲染模式时才执行
+            if (
+                self.syntax_highlight_var.get()
+                and self.syntax_highlighter.render_visible_only
+            ):
+                self.syntax_highlighter._handle_event()
+
+            # 更新状态栏信息
+            self._update_status_bar()
+
+        except Exception as e:
+            logger.error(f"更新编辑器显示时出错: {e}")
+
     def _on_cursor_move(self, event=None):
         """光标移动事件处理"""
-        # 行号更新
-        self.line_number_canvas.draw_line_numbers()
-
-        # 光标所在行高亮
-        self._highlight_current_line()
-
-        # 状态栏更新
-        self._update_status_bar()
+        # 使用统一的更新方法
+        self.update_editor_display()
 
     def _clear_current_line_highlight(self):
         """
@@ -735,8 +747,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             # print(f"Error in _on_mouse_left_click: {e}")
             pass
 
-        # 确保文本框处理完点击事件后立即更新行高亮
-        self.after_idle(self._on_cursor_move)
+        # 确保文本框处理完点击事件后立即更新显示
+        self.after_idle(self.update_editor_display)
 
     def _update_status_bar(self):
         """更新状态栏信息"""

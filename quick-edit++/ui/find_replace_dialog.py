@@ -5,6 +5,7 @@
 查找替换对话框模块
 """
 
+from loguru import logger
 import customtkinter as ctk
 from config.config_manager import ConfigManager
 from app.find_replace_engine import SearchOptions, FindReplaceEngine
@@ -473,6 +474,10 @@ class FindReplaceDialog:
         # 使用查找替换引擎查找上一个匹配项
         found = self.find_replace_engine.find_previous(find_text, search_options)
 
+        # 如果找到匹配项，更新行号和语法高亮
+        if found:
+            self._update_line_numbers_and_syntax_highlighting()
+
         # 如果未找到匹配项，显示提示信息
         if not found:
             self._show_message("查找结果", "未找到匹配项")
@@ -496,9 +501,27 @@ class FindReplaceDialog:
         # 使用查找替换引擎查找下一个匹配项
         found = self.find_replace_engine.find_next(find_text, search_options)
 
+        # 如果找到匹配项，更新行号和语法高亮
+        if found:
+            self._update_line_numbers_and_syntax_highlighting()
+
         # 如果未找到匹配项，显示提示信息
         if not found:
             self._show_message("查找结果", "未找到匹配项")
+
+    def _update_line_numbers_and_syntax_highlighting(self):
+        """
+        更新行号绘制和语法高亮
+
+        在查找上一个/下一个匹配项后调用此方法，确保行号和语法高亮与当前光标位置同步
+        """
+        try:
+            # 使用父窗口的统一更新方法
+            self.parent.update_editor_display()
+
+        except Exception as e:
+            # 如果出现异常，记录日志但不中断程序
+            logger.error(f"更新行号和语法高亮时出错: {str(e)}")
 
     def _replace(self):
         """替换当前匹配项
