@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import messagebox
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
+from loguru import logger
 
 
 class ReopenFileMenu:
@@ -169,6 +170,6 @@ class ReopenFileMenu:
                 self.parent_menu.entryconfig(self.menu_index, state=state)
             except tk.TclError:
                 # 如果通过索引更新失败，打印错误信息
-                print(
+                logger.error(
                     f"Error updating menu state at index {self.menu_index}: {tk.TclError}"
                 )

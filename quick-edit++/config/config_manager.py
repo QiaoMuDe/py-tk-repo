@@ -9,6 +9,7 @@ import os
 import json
 from tkinter import messagebox
 from pathlib import Path
+from loguru import logger
 
 # 应用程序常量
 APP_VERSION = "v0.0.23"  # 版本号
@@ -101,6 +102,14 @@ DEFAULT_CONFIG = {
         "disable_highlight_file_size": 1048576,  # 禁用语法高亮的文件大小阈值 (1MB)
         "debounce_delay": 100,  # 语法高亮防抖延迟时间 (毫秒)
     },
+    # 日志配置
+    "logging": {
+        "log_dir": "logs",  # 日志目录
+        "log_file": "app.log",  # 日志文件名
+        "log_level": "INFO",  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        "rotation_size": "5 MB",  # 日志文件旋转大小
+        "retention_time": "7 days",  # 日志文件保留时间
+    },
 }
 
 
@@ -142,11 +151,12 @@ class ConfigManager:
 
     def __init__(self):
         """初始化配置管理器"""
+        logger.info("初始化配置管理器")
+
         # 加载配置文件
         self.config = self.load_config()
 
-        # 图标路径
-        self.ICON_PATH = "ico/QuickEdit++.ico"
+        logger.info(f"配置管理器初始化完成，配置文件路径: {CONFIG_PATH}")
 
     def load_config(self):
         """
@@ -159,10 +169,14 @@ class ConfigManager:
             - 如果配置文件不存在，先保存默认配置，然后返回默认配置
             - 如果配置文件存在但解析失败，返回默认配置
         """
+        logger.debug(f"开始加载配置文件: {CONFIG_PATH}")
+
         # 检查配置文件是否存在
         if not os.path.exists(CONFIG_PATH):
+            logger.info(f"配置文件不存在，创建默认配置文件: {CONFIG_PATH}")
             # 保存默认配置
             self.save_config(DEFAULT_CONFIG)
+            logger.info("默认配置文件创建完成")
             return DEFAULT_CONFIG.copy()
 
         try:
@@ -171,9 +185,12 @@ class ConfigManager:
                 config = json.load(f)
 
             # 合并默认配置，确保所有必要字段都存在
-            return merge_configs(DEFAULT_CONFIG, config)
+            merged_config = merge_configs(DEFAULT_CONFIG, config)
+            logger.info(f"配置文件加载成功，配置项数量: {len(merged_config)}")
+            return merged_config
         except (json.JSONDecodeError, IOError) as e:
             # 配置文件解析失败或读取错误，返回默认配置
+            logger.error(f"配置文件加载失败: {str(e)}，使用默认配置")
             messagebox.showerror(
                 "配置文件错误", f"配置文件读取失败，已返回默认配置\n错误信息: {str(e)}"
             )
@@ -197,6 +214,10 @@ class ConfigManager:
             # 使用传入的配置或当前配置
             config_to_save = config if config is not None else self.config
 
+            is_current_config = config is None
+            config_type = "当前配置" if is_current_config else "传入配置"
+            logger.debug(f"开始保存{config_type}到文件: {CONFIG_PATH}")
+
             # 确保用户家目录存在（理论上总是存在的）
             os.makedirs(str(Path.home()), exist_ok=True)
 
@@ -208,9 +229,11 @@ class ConfigManager:
             if config is None:
                 self.config = config_to_save
 
+            logger.info(f"配置文件保存成功，配置项数量: {len(config_to_save)}")
             return True
         except IOError as e:
             # 保存失败
+            logger.error(f"配置文件保存失败: {e}")
             print(f"配置文件保存失败: {e}")
             return False
 
@@ -255,11 +278,22 @@ class ConfigManager:
             if key not in config:
                 config[key] = {}
             elif not isinstance(config[key], dict):
+                logger.warning(
+                    f"配置路径 {key_path} 中间节点 {key} 不是字典类型，设置失败"
+                )
                 return False
             config = config[key]
 
         # 设置最后一个键的值
+        old_value = config.get(keys[-1]) if keys[-1] in config else None
         config[keys[-1]] = value
+
+        # 记录配置变更
+        if old_value is None:
+            logger.debug(f"新增配置项 {key_path} = {value}")
+        else:
+            logger.debug(f"更新配置项 {key_path}: {old_value} -> {value}")
+
         return True
 
     def get_component_config(self, component_name):
@@ -335,8 +369,16 @@ class ConfigManager:
         Returns:
             bool: 是否重置成功
         """
+        logger.info("开始重置配置为默认值")
         self.config = DEFAULT_CONFIG.copy()
-        return self.save_config()
+        result = self.save_config()
+
+        if result:
+            logger.info("配置重置成功并已保存")
+        else:
+            logger.error("配置重置失败，无法保存到文件")
+
+        return result
 
     def get_full_config(self):
         """
@@ -367,25 +409,38 @@ class ConfigManager:
             bool: 是否添加成功
         """
         if not file_path or not os.path.exists(file_path):
+            logger.warning(f"添加最近文件失败，文件路径无效或文件不存在: {file_path}")
             return False
 
         recent_files = self.get_recent_files()
         max_items = self.get("recent_files.max_items", 10)
+        file_existed = file_path in recent_files
 
         # 如果文件已存在于列表中，先移除
-        if file_path in recent_files:
+        if file_existed:
             recent_files.remove(file_path)
+            logger.debug(f"文件已存在于最近列表中，更新位置: {file_path}")
 
         # 添加到列表开头
         recent_files.insert(0, file_path)
 
         # 限制列表长度
         if len(recent_files) > max_items:
+            removed_files = recent_files[max_items:]
             recent_files = recent_files[:max_items]
+            logger.debug(f"最近文件列表超出限制，移除文件: {removed_files}")
 
         # 更新配置
         self.set("recent_files.history", recent_files)
-        return self.save_config()
+        result = self.save_config()
+
+        if result:
+            action = "更新" if file_existed else "添加"
+            logger.info(f"{action}最近文件成功: {file_path}")
+        else:
+            logger.error(f"保存最近文件列表失败: {file_path}")
+
+        return result
 
     def clear_recent_files(self):
         """
@@ -394,8 +449,22 @@ class ConfigManager:
         Returns:
             bool: 是否清空成功
         """
+        recent_files = self.get_recent_files()
+        file_count = len(recent_files)
+
+        if file_count == 0:
+            logger.debug("最近文件列表已经为空，无需清空")
+            return True
+
         self.set("recent_files.history", [])
-        return self.save_config()
+        result = self.save_config()
+
+        if result:
+            logger.info(f"成功清空最近文件列表，共移除 {file_count} 个文件")
+        else:
+            logger.error("清空最近文件列表失败，无法保存配置")
+
+        return result
 
     def remove_recent_file(self, file_path):
         """
@@ -408,11 +477,21 @@ class ConfigManager:
             bool: 是否移除成功
         """
         recent_files = self.get_recent_files()
-        if file_path in recent_files:
-            recent_files.remove(file_path)
-            self.set("recent_files.history", recent_files)
-            return self.save_config()
-        return False
+
+        if file_path not in recent_files:
+            logger.debug(f"文件不在最近列表中，无需移除: {file_path}")
+            return False
+
+        recent_files.remove(file_path)
+        self.set("recent_files.history", recent_files)
+        result = self.save_config()
+
+        if result:
+            logger.info(f"成功从最近文件列表中移除文件: {file_path}")
+        else:
+            logger.error(f"移除最近文件失败，无法保存配置: {file_path}")
+
+        return result
 
 
 # 创建全局配置管理器实例

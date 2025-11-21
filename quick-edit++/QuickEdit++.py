@@ -9,6 +9,7 @@ import sys
 import os
 import argparse
 from app.editor import QuickEditApp
+from loguru import logger
 
 
 def main():
@@ -37,7 +38,7 @@ def main():
         if os.path.exists(args.file):
             # 检查是否是目录
             if os.path.isdir(args.file):
-                print(f"error: 无法打开目录: {args.file}")
+                print("error: 无法打开目录")
                 sys.exit(1)
 
             # 文件存在，直接打开
@@ -46,7 +47,7 @@ def main():
             # 文件不存在，检查上级目录是否存在
             dir_path = os.path.dirname(args.file)
             if dir_path and not os.path.exists(dir_path):
-                print(f"error: 上级目录不存在: {dir_path}")
+                print("error: 上级目录不存在")
                 sys.exit(1)
 
             # 作为新文件创建
@@ -57,7 +58,8 @@ def main():
                 # 然后通过文件操作打开它
                 app.open_file_with_path(args.file)
             except Exception as e:
-                print(f"error: 无法创建文件: {str(e)}")
+                print(f"error: 无法创建文件: {args.file}，错误信息: {str(e)}")
+                logger.error(f"无法创建文件: {args.file}，错误信息: {str(e)}")
                 sys.exit(1)
 
     app.run()

@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import font
 import customtkinter as ctk
 from config.config_manager import config_manager
+from loguru import logger
 
 
 class LineNumberCanvas(ctk.CTkCanvas):
@@ -173,7 +174,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 self.text_widget.mark_set("insert", line_end)  # 设置光标位置到行尾
                 self.text_widget.focus_set()  # 确保文本框获得焦点
             except Exception as e:
-                print(f"Error selecting line: {e}")
+                logger.error(f"Error selecting line: {e}")
                 pass
 
     def _on_text_change(self, event=None):
@@ -287,7 +288,7 @@ class LineNumberCanvas(ctk.CTkCanvas):
                 )
         except Exception as e:
             # 忽略错误, 保持程序稳定
-            print(f"Error in update_line_numbers: {e}")
+            logger.error(f"Error in update_line_numbers: {e}")
             pass
 
     def toggle_visibility(self, show=True):

@@ -711,7 +711,7 @@ def set_file_encoding(encoding, app_instance=None):
         app_instance._update_status_bar()
 
     # 显示通知
-    messagebox.showinfo("通知", f"文件编码已更改为: {encoding}")
+    root.status_bar.show_notification(f"文件编码已更改为: {encoding}", 500)
 
 
 def set_file_line_ending(line_ending, app_instance=None):
@@ -737,8 +737,8 @@ def set_file_line_ending(line_ending, app_instance=None):
     }
 
     # 显示通知
-    messagebox.showinfo(
-        "通知", f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}"
+    root.status_bar.show_notification(
+        f"换行符已更改为: {line_ending_names.get(line_ending, line_ending)}", 500
     )
 
     # 如果有文件路径或总字符数大于0，则标记文件为已修改
@@ -780,7 +780,9 @@ def set_tab_width(root):
     config_manager.save_config()
 
     # 通知用户
-    root.status_bar.show_notification(f"已设置制表符宽度为: {root.tab_width_var.get()}")
+    root.status_bar.show_notification(
+        f"已设置制表符宽度为: {root.tab_width_var.get()}", 500
+    )
 
 
 def toggle_toolbar_visibility(root):
@@ -887,7 +889,7 @@ def toggle_auto_wrap(root):
 
         # 显示通知
         status_text = "已启用" if current_state else "已禁用"
-        messagebox.showinfo("通知", f"自动换行{status_text}")
+        root.status_bar.show_notification(f"自动换行{status_text}", 500)
 
 
 def toggle_auto_save(root):
@@ -921,8 +923,8 @@ def toggle_backup(root):
         root.file_ops._create_backup_copy(root.current_file_path)
 
     # 显示通知
-    messagebox.showinfo(
-        "通知", f"备份模式已切换为: {'已启用' if current_state else '已禁用'}"
+    root.status_bar.show_notification(
+        f"备份模式已切换为: {'已启用' if current_state else '已禁用'}", 500
     )
 
 
@@ -948,6 +950,9 @@ def set_window_title_mode(mode, root):
         "filename_and_dir": "显示文件名和目录路径",
     }
     mode_name = mode_names.get(mode, mode)
+
+    # 显示通知
+    root.status_bar.show_notification(f"窗口标题显示模式已切换为: {mode_name}", 500)
 
 
 def toggle_syntax_highlight(root):
@@ -991,7 +996,9 @@ def toggle_syntax_highlight_menu(root):
     root.syntax_highlighter.set_enabled(new_state, root.current_file_path)
 
     # 显示通知
-    messagebox.showinfo("通知", f"语法高亮已{'启用' if new_state else '禁用'}")
+    root.status_bar.show_notification(
+        f"语法高亮已{'启用' if new_state else '禁用'}", 500
+    )
 
 
 def set_syntax_highlight_mode(mode: bool, root):
@@ -1014,7 +1021,9 @@ def set_syntax_highlight_mode(mode: bool, root):
 
     # 显示通知
     mode_text = "渲染可见行" if mode else "渲染全部"
-    messagebox.showinfo("通知", f"语法高亮模式已设置为: {mode_text}, 请重启应用以生效")
+    root.status_bar.show_notification(
+        f"语法高亮模式已设置为: {mode_text}, 请重启应用以生效", 500
+    )
 
 
 def toggle_line_numbers(root):
@@ -1035,7 +1044,9 @@ def toggle_line_numbers(root):
     root.line_number_canvas.toggle_visibility(current_state)
 
     # 显示通知
-    messagebox.showinfo("通知", f"行号显示已{current_state and '启用' or '禁用'}")
+    root.status_bar.show_notification(
+        f"行号显示已{current_state and '启用' or '禁用'}", 500
+    )
 
 
 def toggle_auto_increment_number(root):
@@ -1053,7 +1064,9 @@ def toggle_auto_increment_number(root):
     config_manager.save_config()
 
     # 显示通知
-    messagebox.showinfo("通知", f"自动递增编号已{current_state and '启用' or '禁用'}")
+    root.status_bar.show_notification(
+        f"自动递增编号已{current_state and '启用' or '禁用'}", 500
+    )
 
 
 def toggle_highlight_current_line(root):
@@ -1078,7 +1091,9 @@ def toggle_highlight_current_line(root):
         root.text_area.tag_remove(root.current_line_tag, "1.0", "end")
 
     # 显示通知
-    messagebox.showinfo("通知", f"光标所在行高亮已{current_state and '启用' or '禁用'}")
+    root.status_bar.show_notification(
+        f"光标所在行高亮已{current_state and '启用' or '禁用'}", 500
+    )
 
 
 def toggle_file_monitoring(root):
@@ -1095,7 +1110,9 @@ def toggle_file_monitoring(root):
     root.file_watcher.update_monitoring_setting(current_state)
 
     # 显示通知
-    messagebox.showinfo("通知", f"文件变更监控已{current_state and '启用' or '禁用'}")
+    root.status_bar.show_notification(
+        f"文件变更监控已{current_state and '启用' or '禁用'}", 500
+    )
 
 
 def set_text_background_color(root):

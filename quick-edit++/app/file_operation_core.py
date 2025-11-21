@@ -7,6 +7,7 @@ import sys
 import codecs
 import chardet
 import threading
+from loguru import logger
 
 
 class FileOperationCore:
@@ -127,6 +128,7 @@ class FileOperationCore:
                 except Exception:
                     # 如果chardet检测失败，使用默认编码
                     encoding = "UTF-8"
+                    logger.warning(f"chardet检测编码失败, 使用默认编码: {encoding}")
             else:
                 encoding = "UTF-8"
 
@@ -142,6 +144,7 @@ class FileOperationCore:
 
             return encoding, line_ending
         except Exception:
+            logger.error(f"检测文件编码和换行符类型时出错: {file_path}")
             return "UTF-8", "LF"  # 出错时返回默认值
 
     def read_file_sync(self, file_path, max_file_size=10 * 1024 * 1024, encoding=None):
@@ -227,6 +230,7 @@ class FileOperationCore:
             return result
 
         except Exception as e:
+            logger.error(f"读取文件时出错: {file_path}, 错误信息: {str(e)}")
             result["title"] = "读取文件错误"
             result["message"] = f"无法打开文件: {str(e)}"
             return result

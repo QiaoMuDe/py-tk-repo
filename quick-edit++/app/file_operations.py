@@ -15,6 +15,7 @@ from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
 from ui.file_properties_dialog import update_file_properties_menu_state
 import shutil
 from config.config_manager import CONFIG_PATH
+from loguru import logger
 
 
 class FileOperations:
@@ -74,6 +75,7 @@ class FileOperations:
                 messagebox.showerror("备份错误", f"创建备份时发生未知错误: {str(e)}")
 
         except Exception as e:
+            logger.error(f"创建备份时出错: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("备份错误", f"备份处理失败: {str(e)}")
 
     def _generate_default_filename(self, content_prefix):
@@ -204,12 +206,15 @@ class FileOperations:
                 with codecs.open(final_path, "w", encoding=encoding) as f:
                     f.write(content)
             except (IOError, OSError, PermissionError) as e:
+                logger.error(f"无法写入文件: {final_path}, 错误信息: {str(e)}")
                 messagebox.showerror("保存错误", f"无法写入文件: {str(e)}")
                 return False
             except UnicodeEncodeError as e:
+                logger.error(f"编码错误: {final_path}, 错误信息: {str(e)}")
                 messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
                 return False
             except Exception as e:
+                logger.error(f"保存文件时出错: {final_path}, 错误信息: {str(e)}")
                 messagebox.showerror("保存错误", f"保存文件时发生未知错误: {str(e)}")
                 return False
 
@@ -240,7 +245,8 @@ class FileOperations:
 
                 # 更新状态栏状态信息 (从"已修改"改为"就绪")
                 self.root.status_bar.set_status_info(status="就绪", row=row, col=col)
-            except Exception:
+            except Exception as e:
+                logger.error(f"获取当前光标位置时出错: {str(e)}")
                 # 如果获取位置失败, 使用默认值
                 self.root.status_bar.set_status_info(status="就绪")
 
@@ -263,6 +269,7 @@ class FileOperations:
             return True
 
         except Exception as e:
+            logger.error(f"保存文件时出错: {final_path}, 错误信息: {str(e)}")
             messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
             return False
 
@@ -343,7 +350,7 @@ class FileOperations:
             # 使用通用方法打开文件
             self._open_file(check_save=True, check_backup=True, file_path=file_path)
         except Exception as e:
-            print(f"处理拖拽文件时出错: {e}")
+            logger.error(f"处理拖拽文件时出错: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("错误", f"处理拖拽文件时出错: {e}")
 
     def _reset_editor_state(self):
@@ -419,6 +426,7 @@ class FileOperations:
                 self.root.status_bar.show_notification("已保留备份文件")
         except Exception as e:
             # 删除或处理备份文件出错, 仅记录错误不影响关闭流程
+            logger.error(f"处理备份文件时出错: {backup_path}, 错误信息: {str(e)}")
             self.root.status_bar.show_notification(f"处理备份文件时出错: {str(e)}")
 
     def close_file(self):
@@ -492,7 +500,7 @@ class FileOperations:
         """
         # 参数验证: 当不需要选择路径时, 必须提供有效的文件路径
         if not select_path and not file_path:
-            print("Error: file_path cannot be empty when select_path is False")
+            logger.error("打开文件时未提供有效文件路径")
             return False
 
         # 检查文件是否已保存
@@ -513,10 +521,12 @@ class FileOperations:
 
         # 验证文件路径有效性
         if not os.path.exists(file_path):
+            logger.error(f"文件不存在: {file_path}")
             messagebox.showerror("错误", f"文件不存在: {file_path}")
             return False
 
         if not os.path.isfile(file_path):
+            logger.error(f"指定路径不是文件: {file_path}")
             messagebox.showerror("错误", f"指定路径不是文件: {file_path}")
             return False
 
@@ -615,6 +625,7 @@ class FileOperations:
                                     return False
                         except (OSError, IOError):
                             # 如果无法获取文件大小, 不做任何操作
+                            logger.warning(f"无法获取文件大小: {file_path}")
                             pass
 
                     # 更新编辑器内容
@@ -666,26 +677,35 @@ class FileOperations:
                     return True
 
                 except Exception as e:
+                    logger.error(f"处理文件内容时出错: {file_path}, 错误信息: {str(e)}")
                     messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
                     return False
             else:
                 # 读取失败
+                logger.error(
+                    f"读取文件时出错: {file_path}, 错误信息: {result['message']}"
+                )
                 messagebox.showerror(result["title"], result["message"])
                 return False
 
         except (IOError, OSError, PermissionError) as e:
+            logger.error(f"启动文件读取时出错: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("文件访问错误", f"启动文件读取时出错: {str(e)}")
             return False
         except UnicodeDecodeError as e:
+            logger.error(f"启动文件读取时编码错误: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("编码错误", f"启动文件读取时编码错误: {str(e)}")
             return False
         except MemoryError as e:
+            logger.error(f"启动文件读取时内存不足: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("内存错误", f"启动文件读取时内存不足: {str(e)}")
             return False
         except ValueError as e:
+            logger.error(f"启动文件读取时参数无效: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("参数错误", f"启动文件读取时参数无效: {str(e)}")
             return False
         except Exception as e:
+            logger.error(f"启动文件读取时出错: {file_path}, 错误信息: {str(e)}")
             messagebox.showerror("错误", f"启动文件读取时出错: {str(e)}")
             return False
 
@@ -706,8 +726,10 @@ class FileOperations:
                 check_backup=True,
             )
         except (ImportError, AttributeError) as e:
+            logger.error(f"配置管理器导入失败: {str(e)}")
             messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
         except Exception as e:
+            logger.error(f"打开配置文件时出错: {str(e)}")
             messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 
     def _check_backup_recovery(self, file_path):
@@ -804,6 +826,7 @@ class FileOperations:
                 return True  # 已处理, 无需继续打开原文件
 
         except Exception as e:
+            logger.error(f"处理备份文件时出错: {str(e)}")
             messagebox.showerror("错误", f"处理备份文件时出错: {str(e)}")
             return True  # 出错, 不打开任何文件
 

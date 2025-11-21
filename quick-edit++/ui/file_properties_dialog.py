@@ -11,6 +11,7 @@ import customtkinter as ctk
 from tkinter import messagebox
 from datetime import datetime
 from config.config_manager import config_manager
+from loguru import logger
 
 
 class FilePropertiesDialog(ctk.CTkToplevel):
@@ -414,6 +415,6 @@ def update_file_properties_menu_state(app):
             app.file_menu.entryconfig(app.file_properties_menu_index, state=state)
         except Exception as e:
             # 如果通过索引更新失败，打印错误信息
-            print(
+            logger.error(
                 f"Error updating file properties menu state at index {app.file_properties_menu_index}: {e}"
             )

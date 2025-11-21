@@ -83,3 +83,4 @@ WMI==1.5.1
 yt-dlp==2025.1.26
 zipp==3.20.2
 zstandard==0.25.0
+loguru==0.7.3

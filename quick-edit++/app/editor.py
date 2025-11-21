@@ -26,6 +26,8 @@ from ui.menu import set_text_background_color
 from ui.file_properties_dialog import show_file_properties_dialog
 import windnd as wd
 from ui.file_properties_dialog import update_file_properties_menu_state
+from loguru import logger
+from customtkinter import ThemeManager
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -62,10 +64,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             wd.hook_dropfiles(self, func=self.handle_drag_drop)
 
         except ImportError:
-            print("警告: 未安装windnd库, 拖拽功能将不可用")
-            print("请使用以下命令安装: pip install windnd")
+            logger.warning("未安装windnd库, 拖拽功能将不可用")
+            logger.warning("请使用以下命令安装: pip install windnd")
+            logger.error(f"拖拽功能初始化失败: {e}")
         except Exception as e:
-            pass
+            logger.error(f"拖拽功能初始化失败: {e}")
 
     def handle_drag_drop(self, files):
         """
@@ -98,6 +101,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.check_save_before_close():
             self.destroy()
         # 如果用户取消保存，则不关闭窗口
+
+        logger.info("exit app...")
 
     def _bind_app_events(self):
         """
@@ -270,7 +275,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         except Exception as e:
             # 如果获取选中行失败（比如没有选中文本）
-            pass
+            logger.error(f"获取选中行失败: {e}")
 
         return selected_lines
 
@@ -340,7 +345,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         except Exception as e:
             # 错误处理，确保功能不中断
-            print(f"Error: Tab键处理失败 - {str(e)}")
+            logger.error(f"Tab键处理失败: {str(e)}")
             # 出现错误时至少保证默认插入行为
             try:
                 self.text_area.insert("insert", "\t")
@@ -908,8 +913,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.is_read_only = not self.is_read_only
 
         # 保存只读模式状态到配置文件
-        from config.config_manager import config_manager
-
         config_manager.set("text_editor.read_only", self.is_read_only)
         config_manager.save_config()
 
@@ -927,8 +930,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             self.text_area.configure(state="normal")
             self.status_bar.show_notification("已切换到编辑模式")
             # 恢复工具栏按钮默认外观
-            from customtkinter import ThemeManager
-
             default_fg_color = ThemeManager.theme["CTkButton"]["fg_color"]
             default_hover_color = ThemeManager.theme["CTkButton"]["hover_color"]
             self.toolbar.readonly_button.configure(
@@ -945,16 +946,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                     # 在Windows上使用explorer命令打开文件夹
                     os.startfile(directory)
                 else:
-                    from tkinter import messagebox
-
                     messagebox.showerror("错误", "文件所在目录不存在")
             except Exception as e:
-                from tkinter import messagebox
-
+                logger.error(f"无法打开文件所在文件夹: {str(e)}")
                 messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
         else:
-            from tkinter import messagebox
-
             messagebox.showinfo("提示", "当前没有打开的文件")
 
     def get_char_count(self):
@@ -1017,23 +1013,19 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     # 书签功能方法
     def toggle_bookmark(self):
         """切换当前行的书签状态"""
-        if hasattr(self, "bookmark_manager"):
-            self.bookmark_manager.toggle_bookmark()
+        self.bookmark_manager.toggle_bookmark()
 
     def goto_next_bookmark(self):
         """跳转到下一个书签"""
-        if hasattr(self, "bookmark_manager"):
-            self.bookmark_manager.goto_next_bookmark()
+        self.bookmark_manager.goto_next_bookmark()
 
     def goto_previous_bookmark(self):
         """跳转到上一个书签"""
-        if hasattr(self, "bookmark_manager"):
-            self.bookmark_manager.goto_previous_bookmark()
+        self.bookmark_manager.goto_previous_bookmark()
 
     def clear_all_bookmarks(self):
         """清除所有书签"""
-        if hasattr(self, "bookmark_manager"):
-            self.bookmark_manager.clear_all_bookmarks()
+        self.bookmark_manager.clear_all_bookmarks()
 
     def run(self):
         """运行应用"""

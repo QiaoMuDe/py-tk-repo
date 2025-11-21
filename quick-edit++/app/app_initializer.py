@@ -19,6 +19,8 @@ from ui.line_number_canvas import LineNumberCanvas
 from ui.file_properties_dialog import update_file_properties_menu_state
 from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
+from loguru import logger
+import os
 
 
 class AppInitializer:
@@ -346,6 +348,39 @@ class AppInitializer:
         # 初始化查找替换引擎
         self.app.find_replace_engine = FindReplaceEngine(self.app)
 
+        # 初始化日志目录
+        log_dir = config_manager.get("logging.log_dir", "logs")
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir, exist_ok=True)
+
+        # 从配置管理器获取日志配置
+        log_file = config_manager.get("logging.log_file", "app.log")
+        log_level = config_manager.get("logging.log_level", "INFO")
+        rotation_size = config_manager.get("logging.rotation_size", "5 MB")
+        retention_time = config_manager.get("logging.retention_time", "7 days")
+
+        # 构建日志文件完整路径
+        log_path = os.path.join(log_dir, log_file)
+
+        # 初始化日志记录器
+        logger.add(
+            log_path,  # 日志文件路径
+            level=log_level,  # 日志级别
+            filter="",  # 过滤器
+            colorize=False,  # 是否使用颜色
+            backtrace=True,  # 是否显示回溯信息
+            diagnose=False,  # 是否启用诊断信息
+            enqueue=True,  # 是否异步写入日志
+            catch=False,  # 是否捕获异常
+            rotation=rotation_size,  # 日志文件旋转大小
+            retention=retention_time,  # 日志文件保留时间
+            compression="tar.gz",  # 日志文件压缩格式
+            delay=True,  # 是否延迟初始化日志记录器
+            watch=True,  # 是否监控日志文件
+            encoding="utf-8",  # 日志文件编码
+        )
+        logger.info("日志记录器初始化成功!")
+
     def initialize_app(self):
         """执行完整的应用初始化流程"""
         # 按顺序执行初始化步骤
@@ -373,3 +408,5 @@ class AppInitializer:
 
         # 触发首次绘制行号
         self.app.line_number_canvas.draw_line_numbers()
+
+        logger.info("QuickEdit++ 初始化成功!")

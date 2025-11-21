@@ -9,6 +9,7 @@
 import time
 import tkinter as tk
 from config.config_manager import config_manager
+from loguru import logger
 
 
 class AutoSaveManager:
@@ -99,17 +100,23 @@ class AutoSaveManager:
         # 检查文件是否已修改
         if self.app.is_modified():
             # 执行保存操作
-            self.app.save_file()
-            # 更新上次自动保存时间
-            self.last_auto_save_time = time.time()
-            # 更新状态栏的自动保存信息，显示具体的保存时间
-            self.app.status_bar.show_auto_save_status(saved=True)
-
+            file_path = self.app.current_file_path
+            try:
+                self.app.save_file()
+                # 更新上次自动保存时间
+                self.last_auto_save_time = time.time()
+                # 更新状态栏的自动保存信息，显示具体的保存时间
+                self.app.status_bar.show_auto_save_status(saved=True)
+                logger.info(f"自动保存成功: {file_path}")
+            except Exception as e:
+                logger.error(f"自动保存失败: {file_path}, 错误: {str(e)}")
+                self.app.status_bar.show_notification(f"自动保存失败: {str(e)}")
         else:
             # 文件未修改，更新状态栏显示检查状态
             self.app.status_bar.show_auto_save_status(saved=False)
             # 即使没有保存，也要更新上次自动保存时间，以重置计时器
             self.last_auto_save_time = time.time()
+            logger.debug("文件未修改，跳过自动保存")
 
     def on_text_area_focus_out(self, event=None):
         """
@@ -120,6 +127,10 @@ class AutoSaveManager:
         """
         # 检查是否启用了自动保存功能
         if self.auto_save_enabled and self.app.current_file_path:
+            # 记录焦点离开事件
+            logger.debug(
+                f"文本区域失去焦点，触发焦点离开自动保存: {self.app.current_file_path}"
+            )
             # 立即执行保存操作
             self._auto_save()
 
@@ -160,6 +171,7 @@ class AutoSaveManager:
             # 开启的时候立即保存一次(如果文件已修改)
             if self.app.current_file_path and self.app.is_modified():
                 self.app.save_file()
+                logger.info(f"启用自动保存时立即保存文件: {self.app.current_file_path}")
 
         else:
             # 禁用自动保存，取消自动保存任务

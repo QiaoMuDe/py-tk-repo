@@ -15,6 +15,7 @@ import xml.dom.minidom as minidom
 import black
 from ruamel.yaml import YAML
 import sqlparse
+from loguru import logger
 
 
 class SelectionOperations:
@@ -129,6 +130,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"添加注释时出错: {str(e)}")
             messagebox.showerror("错误", f"添加注释时出错: {str(e)}")
 
     def add_slash_comment(self):
@@ -165,6 +167,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"添加注释时出错: {str(e)}")
             messagebox.showerror("错误", f"添加注释时出错: {str(e)}")
 
     def remove_line_comment(self):
@@ -218,6 +221,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除注释时出错: {str(e)}")
             messagebox.showerror("错误", f"移除注释时出错: {str(e)}")
 
     def base64_encode(self):
@@ -251,6 +255,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"Base64编码时出错: {str(e)}")
             messagebox.showerror("错误", f"Base64编码时出错: {str(e)}")
 
     def base64_decode(self):
@@ -290,6 +295,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"Base64解码时出错: {str(e)}")
             messagebox.showerror(
                 "错误",
                 f"Base64解码时出错: {str(e)}\n请确保选中的文本是有效的Base64编码",
@@ -324,6 +330,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"转为大写时出错: {str(e)}")
             messagebox.showerror("错误", f"转为大写时出错: {str(e)}")
 
     def to_lower_case(self):
@@ -355,6 +362,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"转为小写时出错: {str(e)}")
             messagebox.showerror("错误", f"转为小写时出错: {str(e)}")
 
     def to_title_case(self):
@@ -386,6 +394,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"首字母大写时出错: {str(e)}")
             messagebox.showerror("错误", f"首字母大写时出错: {str(e)}")
 
     def trim_whitespace(self):
@@ -436,6 +445,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除首尾空白时出错: {str(e)}")
             messagebox.showerror("错误", f"移除首尾空白时出错: {str(e)}")
 
     def trim_left_whitespace(self):
@@ -486,6 +496,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除左侧空白时出错: {str(e)}")
             messagebox.showerror("错误", f"移除左侧空白时出错: {str(e)}")
 
     def trim_right_whitespace(self):
@@ -536,6 +547,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除右侧空白时出错: {str(e)}")
             messagebox.showerror("错误", f"移除右侧空白时出错: {str(e)}")
 
     def remove_extra_whitespace(self):
@@ -586,6 +598,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除多余空白时出错: {str(e)}")
             messagebox.showerror("错误", f"移除多余空白时出错: {str(e)}")
 
     def remove_empty_lines(self):
@@ -620,6 +633,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除空白行时出错: {str(e)}")
             messagebox.showerror("错误", f"移除空白行时出错: {str(e)}")
 
     def merge_empty_lines(self):
@@ -664,6 +678,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"合并空白行时出错: {str(e)}")
             messagebox.showerror("错误", f"合并空白行时出错: {str(e)}")
 
     def remove_duplicate_lines(self):
@@ -705,6 +720,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"移除重复行时出错: {str(e)}")
             messagebox.showerror("错误", f"移除重复行时出错: {str(e)}")
 
     def merge_duplicate_lines(self):
@@ -746,6 +762,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"合并重复行时出错: {str(e)}")
             messagebox.showerror("错误", f"合并重复行时出错: {str(e)}")
 
     def sort_lines_ascending(self):
@@ -779,6 +796,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"升序排序时出错: {str(e)}")
             messagebox.showerror("错误", f"升序排序时出错: {str(e)}")
 
     def sort_lines_descending(self):
@@ -812,6 +830,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"降序排序时出错: {str(e)}")
             messagebox.showerror("错误", f"降序排序时出错: {str(e)}")
 
     def reverse_characters(self):
@@ -843,6 +862,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"反转字符时出错: {str(e)}")
             messagebox.showerror("错误", f"反转字符时出错: {str(e)}")
 
     def reverse_lines(self):
@@ -878,6 +898,7 @@ class SelectionOperations:
             self.text_area.tag_add(tk.SEL, start_index, new_end_index)
 
         except Exception as e:
+            logger.error(f"反转行时出错: {str(e)}")
             messagebox.showerror("错误", f"反转行时出错: {str(e)}")
 
     # 基本命名转换方法
@@ -907,6 +928,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(camel_case))
 
         except Exception as e:
+            logger.error(f"下划线转驼峰时出错: {str(e)}")
             messagebox.showerror("错误", f"下划线转驼峰时出错: {str(e)}")
 
     def camel_to_snake(self):
@@ -933,6 +955,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(snake_case))
 
         except Exception as e:
+            logger.error(f"驼峰转下划线时出错: {str(e)}")
             messagebox.showerror("错误", f"驼峰转下划线时出错: {str(e)}")
 
     # 扩展命名转换方法
@@ -959,6 +982,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(pascal_case))
 
         except Exception as e:
+            logger.error(f"下划线转帕斯卡时出错: {str(e)}")
             messagebox.showerror("错误", f"下划线转帕斯卡时出错: {str(e)}")
 
     def pascal_to_snake(self):
@@ -985,6 +1009,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(snake_case))
 
         except Exception as e:
+            logger.error(f"帕斯卡转下划线时出错: {str(e)}")
             messagebox.showerror("错误", f"帕斯卡转下划线时出错: {str(e)}")
 
     def camel_to_pascal(self):
@@ -1011,6 +1036,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(pascal_case))
 
         except Exception as e:
+            logger.error(f"驼峰转帕斯卡时出错: {str(e)}")
             messagebox.showerror("错误", f"驼峰转帕斯卡时出错: {str(e)}")
 
     def pascal_to_camel(self):
@@ -1037,6 +1063,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(camel_case))
 
         except Exception as e:
+            logger.error(f"帕斯卡转驼峰时出错: {str(e)}")
             messagebox.showerror("错误", f"帕斯卡转驼峰时出错: {str(e)}")
 
     def kebab_to_snake(self):
@@ -1061,6 +1088,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(snake_case))
 
         except Exception as e:
+            logger.error(f"短横线转下划线时出错: {str(e)}")
             messagebox.showerror("错误", f"短横线转下划线时出错: {str(e)}")
 
     def snake_to_kebab(self):
@@ -1085,6 +1113,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(kebab_case))
 
         except Exception as e:
+            logger.error(f"下划线转短横线时出错: {str(e)}")
             messagebox.showerror("错误", f"下划线转短横线时出错: {str(e)}")
 
     def kebab_to_camel(self):
@@ -1113,6 +1142,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(camel_case))
 
         except Exception as e:
+            logger.error(f"短横线转驼峰时出错: {str(e)}")
             messagebox.showerror("错误", f"短横线转驼峰时出错: {str(e)}")
 
     def camel_to_kebab(self):
@@ -1139,6 +1169,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(kebab_case))
 
         except Exception as e:
+            logger.error(f"驼峰转短横线时出错: {str(e)}")
             messagebox.showerror("错误", f"驼峰转短横线时出错: {str(e)}")
 
     # 大小写转换方法
@@ -1164,6 +1195,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(title_case))
 
         except Exception as e:
+            logger.error(f"标题格式转换时出错: {str(e)}")
             messagebox.showerror("错误", f"标题格式转换时出错: {str(e)}")
 
     # 空格处理方法
@@ -1189,6 +1221,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(snake_case))
 
         except Exception as e:
+            logger.error(f"空格转下划线时出错: {str(e)}")
             messagebox.showerror("错误", f"空格转下划线时出错: {str(e)}")
 
     def space_to_kebab(self):
@@ -1213,6 +1246,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(kebab_case))
 
         except Exception as e:
+            logger.error(f"空格转短横线时出错: {str(e)}")
             messagebox.showerror("错误", f"空格转短横线时出错: {str(e)}")
 
     def space_to_camel(self):
@@ -1241,6 +1275,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(camel_case))
 
         except Exception as e:
+            logger.error(f"空格转驼峰时出错: {str(e)}")
             messagebox.showerror("错误", f"空格转驼峰时出错: {str(e)}")
 
     def snake_to_space(self):
@@ -1265,6 +1300,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(space_case))
 
         except Exception as e:
+            logger.error(f"下划线转空格时出错: {str(e)}")
             messagebox.showerror("错误", f"下划线转空格时出错: {str(e)}")
 
     def kebab_to_space(self):
@@ -1289,6 +1325,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(space_case))
 
         except Exception as e:
+            logger.error(f"短横线转空格时出错: {str(e)}")
             messagebox.showerror("错误", f"短横线转空格时出错: {str(e)}")
 
     def camel_to_space(self):
@@ -1315,6 +1352,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(space_case))
 
         except Exception as e:
+            logger.error(f"驼峰转空格时出错: {str(e)}")
             messagebox.showerror("错误", f"驼峰转空格时出错: {str(e)}")
 
     # 编程特定转换方法
@@ -1345,6 +1383,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(constant_case))
 
         except Exception as e:
+            logger.error(f"常量命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"常量命名转换时出错: {str(e)}")
 
     def to_private_variable(self):
@@ -1373,6 +1412,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(private_var))
 
         except Exception as e:
+            logger.error(f"私有变量命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"私有变量命名转换时出错: {str(e)}")
 
     def to_class_name(self):
@@ -1408,6 +1448,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(class_name))
 
         except Exception as e:
+            logger.error(f"类命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"类命名转换时出错: {str(e)}")
 
     def to_interface_name(self):
@@ -1443,6 +1484,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(interface_name))
 
         except Exception as e:
+            logger.error(f"接口命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"接口命名转换时出错: {str(e)}")
 
     def to_function_name(self):
@@ -1479,6 +1521,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(function_name))
 
         except Exception as e:
+            logger.error(f"函数命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"函数命名转换时出错: {str(e)}")
 
     # 数据库相关转换方法
@@ -1510,6 +1553,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(table_name))
 
         except Exception as e:
+            logger.error(f"表名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"表名转换时出错: {str(e)}")
 
     def to_column_name(self):
@@ -1534,6 +1578,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(column_name))
 
         except Exception as e:
+            logger.error(f"列名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"列名转换时出错: {str(e)}")
 
     def to_foreign_key(self):
@@ -1558,6 +1603,7 @@ class SelectionOperations:
             self._reselect_text(start_index, len(foreign_key))
 
         except Exception as e:
+            logger.error(f"外键命名转换时出错: {str(e)}")
             messagebox.showerror("错误", f"外键命名转换时出错: {str(e)}")
 
     def _reselect_text(self, start_index, text_length):
@@ -1601,6 +1647,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_json))
 
         except Exception as e:
+            logger.error(f"格式化JSON时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化JSON时出错: {str(e)}")
 
     def compress_json(self):
@@ -1633,6 +1680,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(compressed_json))
 
         except Exception as e:
+            logger.error(f"压缩JSON时出错: {str(e)}")
             messagebox.showerror("错误", f"压缩JSON时出错: {str(e)}")
 
     def format_xml(self):
@@ -1671,6 +1719,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_xml))
 
         except Exception as e:
+            logger.error(f"格式化XML时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化XML时出错: {str(e)}")
 
     def format_csv(self, compress=False):
@@ -1703,6 +1752,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_csv))
 
         except Exception as e:
+            logger.error(f"格式化CSV时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化CSV时出错: {str(e)}")
 
     def _custom_csv_formatter(self, csv_text, compress=False):
@@ -1968,6 +2018,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_ini))
 
         except Exception as e:
+            logger.error(f"格式化INI时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化INI时出错: {str(e)}")
 
     def format_python(self):
@@ -2011,6 +2062,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_code))
 
         except Exception as e:
+            logger.error(f"格式化Python代码时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化Python代码时出错: {str(e)}")
 
     def format_yaml(self):
@@ -2058,6 +2110,7 @@ class SelectionOperations:
             # self._reselect_text(start_index, len(formatted_yaml))
 
         except Exception as e:
+            logger.error(f"格式化YAML时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化YAML时出错: {str(e)}")
 
     def format_sql_upper(self):
@@ -2092,6 +2145,7 @@ class SelectionOperations:
             self.text_area.insert(start_index, formatted_sql)
 
         except Exception as e:
+            logger.error(f"SQL关键字大写时出错: {str(e)}")
             messagebox.showerror("错误", f"SQL关键字大写时出错: {str(e)}")
 
     def format_sql_lower(self):
@@ -2126,6 +2180,7 @@ class SelectionOperations:
             self.text_area.insert(start_index, formatted_sql)
 
         except Exception as e:
+            logger.error(f"SQL关键字小写时出错: {str(e)}")
             messagebox.showerror("错误", f"SQL关键字小写时出错: {str(e)}")
 
     def format_sql(self):
@@ -2160,6 +2215,7 @@ class SelectionOperations:
             self.text_area.insert(start_index, formatted_sql)
 
         except Exception as e:
+            logger.error(f"格式化SQL时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化SQL时出错: {str(e)}")
 
     def compress_sql(self):
@@ -2194,4 +2250,5 @@ class SelectionOperations:
             self.text_area.insert(start_index, formatted_sql)
 
         except Exception as e:
+            logger.error(f"压缩SQL时出错: {str(e)}")
             messagebox.showerror("错误", f"压缩SQL时出错: {str(e)}")

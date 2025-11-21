@@ -9,6 +9,7 @@
 import tkinter as tk
 from typing import List, Tuple, Optional
 import random
+from loguru import logger
 
 
 class BookmarkManager:
@@ -128,6 +129,7 @@ class BookmarkManager:
                 raise ValueError(f"无效的索引格式: {index_str}")
             return int(parts[0]), int(parts[1])
         except (ValueError, AttributeError) as e:
+            logger.error(f"解析索引字符串失败: {index_str}, 错误: {str(e)}")
             raise ValueError(f"解析索引字符串失败: {index_str}, 错误: {str(e)}")
 
     def _get_cursor_position(self) -> Tuple[int, int]:
@@ -144,6 +146,7 @@ class BookmarkManager:
             cursor_pos = self.editor.text_area.index(tk.INSERT)
             return self._parse_index(cursor_pos)
         except Exception as e:
+            logger.error(f"获取光标位置失败: {str(e)}")
             raise ValueError(f"获取光标位置失败: {str(e)}")
 
     def _is_position_in_bookmark(
@@ -255,6 +258,7 @@ class BookmarkManager:
                 return True
         except tk.TclError as e:
             # 处理Tkinter文本选择相关的错误
+            logger.error(f"获取文本选择时出错: {str(e)}")
             # 没有选中文本，为当前光标位置添加书签
             try:
                 line_num, column_num = self._get_cursor_position()
@@ -271,12 +275,14 @@ class BookmarkManager:
                 return True
             except Exception as inner_e:
                 # 处理获取光标位置时的错误
+                logger.error(f"书签操作失败: {str(inner_e)}")
                 self.editor.status_bar.show_notification(
                     f"书签操作失败: {str(inner_e)}", 1000
                 )
                 return False
         except Exception as e:
             # 处理其他未预期的错误
+            logger.error(f"书签操作失败: {str(e)}")
             self.editor.status_bar.show_notification(f"书签操作失败: {str(e)}", 1000)
             return False
 
@@ -410,6 +416,7 @@ class BookmarkManager:
 
             return True
         except Exception as e:
+            logger.error(f"删除书签失败: {str(e)}")
             self.editor.status_bar.show_notification(f"删除书签失败: {str(e)}", 1000)
             return False
 
@@ -516,7 +523,8 @@ class BookmarkManager:
         try:
             current_pos = self.editor.text_area.index(tk.INSERT)
             current_line, current_col = self._parse_index(current_pos)
-        except Exception:
+        except Exception as e:
+            logger.error(f"获取当前光标位置失败: {str(e)}")
             current_line, current_col = 1, 0
 
         # 查找下一个书签
@@ -545,7 +553,8 @@ class BookmarkManager:
         try:
             current_pos = self.editor.text_area.index(tk.INSERT)
             current_line, current_col = self._parse_index(current_pos)
-        except Exception:
+        except Exception as e:
+            logger.error(f"获取当前光标位置失败: {str(e)}")
             current_line, current_col = 1, 0
 
         # 查找上一个书签
@@ -587,42 +596,58 @@ class BookmarkManager:
             line_num: 行号
             column_num: 列号
         """
-        # 设置光标位置
-        self.editor.text_area.mark_set(tk.INSERT, f"{line_num}.{column_num}")
-        self.editor.text_area.see(tk.INSERT)
-        self.editor.text_area.focus_set()
+        try:
+            # 设置光标位置
+            self.editor.text_area.mark_set(tk.INSERT, f"{line_num}.{column_num}")
+            self.editor.text_area.see(tk.INSERT)
+            self.editor.text_area.focus_set()
 
-        # 显示提示信息
-        self.editor.status_bar.show_notification(f"已跳转到书签: 行 {line_num}", 500)
+            # 显示提示信息
+            self.editor.status_bar.show_notification(
+                f"已跳转到书签: 行 {line_num}", 500
+            )
+        except Exception as e:
+            logger.error(
+                f"跳转到位置失败: 行 {line_num}, 列 {column_num}, 错误: {str(e)}"
+            )
+            self.editor.status_bar.show_notification(f"跳转到书签失败: {str(e)}", 1000)
 
     def refresh_bookmarks(self):
         """刷新书签显示（在文件内容发生变化时调用）"""
-        # 保存当前书签位置
-        current_bookmarks = self.bookmarks.copy()
+        try:
+            # 保存当前书签位置
+            current_bookmarks = self.bookmarks.copy()
 
-        # 清除所有标签
-        for tag_name in self.bookmark_tags:
-            self.editor.text_area.tag_delete(tag_name)
-        self.bookmark_tags.clear()
+            # 清除所有标签
+            for tag_name in self.bookmark_tags:
+                self.editor.text_area.tag_delete(tag_name)
+            self.bookmark_tags.clear()
 
-        # 重新添加标签
-        self.bookmarks = []
-        for start_line, start_col, end_line, end_col in current_bookmarks:
-            # 检查行号是否仍然有效（文件可能已被修改）
-            last_line = int(self.editor.text_area.index("end-1c").split(".")[0])
-            if start_line <= last_line:
-                # 如果是范围书签，检查结束行是否有效
-                if end_line > last_line:
-                    # 调整结束行到文件末尾
-                    end_line = last_line
-                    end_col = len(
-                        self.editor.text_area.get(f"{end_line}.0", f"{end_line}.end")
-                    )
+            # 重新添加标签
+            self.bookmarks = []
+            for start_line, start_col, end_line, end_col in current_bookmarks:
+                # 检查行号是否仍然有效（文件可能已被修改）
+                last_line = int(self.editor.text_area.index("end-1c").split(".")[0])
+                if start_line <= last_line:
+                    # 如果是范围书签，检查结束行是否有效
+                    if end_line > last_line:
+                        # 调整结束行到文件末尾
+                        end_line = last_line
+                        end_col = len(
+                            self.editor.text_area.get(
+                                f"{end_line}.0", f"{end_line}.end"
+                            )
+                        )
 
-                # 重新添加书签
-                if start_line == end_line and start_col == end_col:
-                    # 单点书签
-                    self._add_bookmark(start_line, start_col)
-                else:
-                    # 范围书签
-                    self._add_bookmark_range(start_line, start_col, end_line, end_col)
+                    # 重新添加书签
+                    if start_line == end_line and start_col == end_col:
+                        # 单点书签
+                        self._add_bookmark(start_line, start_col)
+                    else:
+                        # 范围书签
+                        self._add_bookmark_range(
+                            start_line, start_col, end_line, end_col
+                        )
+        except Exception as e:
+            logger.error(f"刷新书签失败: {str(e)}")
+            self.editor.status_bar.show_notification(f"刷新书签失败: {str(e)}", 1000)

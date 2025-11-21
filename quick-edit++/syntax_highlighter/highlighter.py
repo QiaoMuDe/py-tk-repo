@@ -46,6 +46,9 @@ from .handlers.csv_handler import CSVHandler
 from .handlers.vim_handler import VimHandler
 from .handlers.auto_handler import AutoHandler
 
+# 导入日志记录器
+from loguru import logger
+
 
 class SyntaxHighlighter:
     """
@@ -61,8 +64,12 @@ class SyntaxHighlighter:
         Args:
             text_widget: tkinter Text组件实例
         """
+        logger.debug("初始化语法高亮器")
+
         # 从配置管理器获取配置
         syntax_config = config_manager.get_component_config("syntax_highlighter")
+        if not syntax_config:
+            logger.warning("无法获取语法高亮器配置，将使用默认配置")
 
         # 设置初始化参数
         self.app = app
@@ -91,8 +98,12 @@ class SyntaxHighlighter:
         # 绑定事件
         self._bind_events()
 
+        logger.debug("语法高亮器初始化完成")
+
     def _register_default_handlers(self):
         """注册默认的语言处理器"""
+        logger.debug("开始注册默认语言处理器")
+
         # 注册Python处理器
         python_handler = PythonHandler()
         for ext in python_handler.get_file_extensions():
@@ -226,6 +237,10 @@ class SyntaxHighlighter:
         auto_handler = AutoHandler()
         self.auto_handler = auto_handler  # 保存引用以便后续使用
 
+        logger.debug(
+            f"默认语言处理器注册完成，共注册了{len(self.language_handlers)}种语言/文件类型"
+        )
+
     def register_language_handler(self, handler_class):
         """
         注册语言处理器类
@@ -305,6 +320,7 @@ class SyntaxHighlighter:
             Optional[str]: 检测到的文件扩展名, 如果无法识别则返回"auto"
         """
         if not file_path:
+            logger.debug("文件路径为空，无法检测语言")
             return None
 
         # 获取文件名和扩展名
@@ -312,16 +328,21 @@ class SyntaxHighlighter:
         _, ext = os.path.splitext(file_path)
         extension = ext.lower()
 
+        logger.debug(f"检测文件语言: 文件名={filename}, 扩展名={extension}")
+
         # 1. 首先检查特殊文件名 (无扩展名的文件)
         # 例如: Dockerfile, Makefile, requirements.txt等
         if filename in self.language_handlers:
+            logger.debug(f"检测到特殊文件名: {filename}")
             return filename
 
         # 2. 然后检查常规扩展名
         if extension in self.language_handlers:
+            logger.debug(f"检测到扩展名: {extension}")
             return extension
 
         # 3. 如果没有匹配到, 返回"auto"使用自动处理器
+        logger.debug(f"未识别的文件类型: {file_path}, 将使用自动处理器")
         return "auto"
 
     def get_language_name(self) -> str:
@@ -391,25 +412,36 @@ class SyntaxHighlighter:
 
         # 如果没有文件路径, 则不进行高亮
         if not target_file_path:
+            logger.debug("无文件路径，跳过语法高亮")
             return
+
+        logger.debug(f"开始应用语法高亮: {target_file_path}")
 
         # 设置语言处理器
         self.set_language(target_file_path)
 
         # 如果没有语言处理器, 则不进行高亮
         if not self.current_language:
+            logger.warning(f"无法识别文件语言: {target_file_path}")
             return
 
         # 获取当前处理器
         handler = self._get_current_handler()
         if not handler:
+            logger.error(f"无法获取语言处理器: {self.current_language}")
             return
 
+        logger.debug(f"使用语言处理器: {handler.get_language_name()}")
+
         # 根据模式选择高亮方法
-        if self.render_visible_only:
-            self._highlight_visible_lines_with_handler(handler)
-        else:
-            self._highlight_full_document_with_handler(handler)
+        try:
+            if self.render_visible_only:
+                self._highlight_visible_lines_with_handler(handler)
+            else:
+                self._highlight_full_document_with_handler(handler)
+            logger.debug(f"语法高亮应用成功: {target_file_path}")
+        except Exception as e:
+            logger.error(f"应用语法高亮失败: {target_file_path}, 错误: {str(e)}")
 
     def _setup_tags_for_handler(self, handler):
         """
@@ -516,6 +548,7 @@ class SyntaxHighlighter:
             handler: 语言处理器实例
         """
         if not handler:  # 检查处理器是否存在
+            logger.error("语言处理器为空，无法进行高亮")
             return
 
         # 获取预编译的正则表达式模式
@@ -524,8 +557,9 @@ class SyntaxHighlighter:
         # 获取文本内容
         try:  # 尝试获取指定范围内的文本
             text_content = self.text_widget.get(start_index, end_index)
-        except tk.TclError:
+        except tk.TclError as e:
             # 如果索引无效, 则返回
+            logger.error(f"获取文本内容失败: {str(e)}")
             return
 
         # 收集所有标签位置, 用于批量应用
@@ -558,11 +592,14 @@ class SyntaxHighlighter:
                         tag_ranges[full_tag_name].append((start_pos, end_pos))
             except Exception as e:
                 # 如果匹配过程中出错, 跳过该模式
-                print(f"警告: 正则匹配 '{tag_name}' 时出错: {e}")
+                logger.error(f"正则匹配 '{tag_name}' 时出错: {str(e)}")
                 continue
 
         # 批量应用所有标签, 减少API调用
-        self._apply_tags_batch(tag_ranges)
+        try:
+            self._apply_tags_batch(tag_ranges)
+        except Exception as e:
+            logger.error(f"应用标签时出错: {str(e)}")
 
     def _get_text_position(self, base_index: str, offset: int) -> str:
         """
@@ -656,10 +693,12 @@ class SyntaxHighlighter:
         """
         # 检查是否启用高亮
         if not self.highlight_enabled and self.app.current_file_path is None:
+            logger.debug("语法高亮未启用且无当前文件路径，跳过事件处理")
             return
 
         # 检查当前语言
         if not self.current_language:
+            logger.debug("无当前语言设置，跳过事件处理")
             return
 
         # 防抖机制: 取消之前的高亮任务
@@ -670,6 +709,7 @@ class SyntaxHighlighter:
         self._highlight_task_id = self.text_widget.after(
             self._debounce_delay, self._execute_highlight_task
         )
+        logger.debug(f"已安排语法高亮任务，延迟{self._debounce_delay}ms执行")
 
     def _execute_highlight_task(self):
         """

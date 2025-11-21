@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import colorchooser
 import customtkinter as ctk
 from config.config_manager import config_manager
+from loguru import logger
 
 
 class HexColorPicker(ctk.CTkToplevel):
@@ -322,7 +323,7 @@ class HexColorPicker(ctk.CTkToplevel):
             if color[1]:  # 如果用户选择了颜色
                 self._set_color(color[1])
         except Exception as e:
-            print(f"打开系统颜色选择器失败: {e}")
+            logger.error(f"打开系统颜色选择器失败: {e}")
 
     def _copy_to_clipboard(self):
         """复制当前颜色代码到剪贴板"""
@@ -331,7 +332,7 @@ class HexColorPicker(ctk.CTkToplevel):
             self.clipboard_append(self.selected_color)
             self.update()
         except Exception as e:
-            print(f"复制到剪贴板失败: {e}")
+            logger.error(f"复制到剪贴板失败: {e}")
 
     def _on_ok(self):
         """确定按钮处理函数"""

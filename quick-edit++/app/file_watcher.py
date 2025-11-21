@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import messagebox
 from typing import Optional, Dict, Tuple
 from config.config_manager import config_manager
+from loguru import logger
 
 
 class FileWatcher:
@@ -97,7 +98,8 @@ class FileWatcher:
             if update_mtime:
                 self.last_saved_mtime = stat.st_mtime  # 记录修改时间
 
-        except (OSError, IOError):
+        except (OSError, IOError) as e:
+            logger.error(f"更新文件缓存时出错: {file_path}, 错误信息: {str(e)}")
             # 文件可能被删除或无法访问
             self.file_info[file_path] = (0, 0)
             if update_mtime:
@@ -206,7 +208,8 @@ class FileWatcher:
                 # 文件未变更，继续检查
                 self._schedule_check()
 
-        except (OSError, IOError):
+        except (OSError, IOError) as e:
+            logger.error(f"检查文件变更时出错: {self.watched_file}, 错误信息: {str(e)}")
             # 文件可能被删除或无法访问，继续检查
             self._schedule_check()
 
@@ -309,6 +312,9 @@ class FileWatcher:
                 self.user_notified = False  # 重置通知状态
 
             except Exception as e:
+                logger.error(
+                    f"重新加载文件时出错: {self.watched_file}, 错误信息: {str(e)}"
+                )
                 messagebox.showerror("错误", f"重新加载文件时出错: {str(e)}")
 
                 # 如果出错且原本是只读模式，确保恢复禁用状态

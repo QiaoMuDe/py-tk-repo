@@ -295,20 +295,6 @@ class FindReplaceEngine:
                 else:
                     pos = end_idx
 
-        # # 高亮匹配项
-        # if matches:
-        #     # 高亮所有匹配项
-        #     self._highlight_all_matches(matches)
-
-        #     # 高亮当前匹配项（第一个匹配项）
-        #     self.text_widget.tag_add(self.highlight_tag_current, matches[0][0], matches[0][1])
-
-        #     # 设置当前匹配项
-        #     self.current_match = matches[0]
-
-        #     # 滚动到当前匹配项
-        #     self.text_widget.see(matches[0][0])
-
         return matches
 
     def find_next(
