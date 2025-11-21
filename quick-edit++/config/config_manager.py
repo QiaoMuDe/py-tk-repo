@@ -60,8 +60,8 @@ DEFAULT_CONFIG = {
         "font_bold": False,  # 是否使用粗体
         "auto_wrap": True,  # 是否自动换行
         "read_only": False,  # 是否只读模式
-        "bg_color": "#FFFFFF",  # 文本编辑器背景色
-        "line_number_bg_color": "#cccccc",  # 行号背景色
+        "line_number_bg_color": "#cccccc",  # 行号背景色（浅色模式）
+        "line_number_bg_color_dark": "#2b2b2b",  # 行号背景色（深色模式）
         "line_number_font_color": "#2b91af",  # 行号字体颜色
         "max_undo": 50,  # 最大撤销次数
         "show_line_numbers": True,  # 是否显示行号

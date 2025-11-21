@@ -32,15 +32,26 @@ class LineNumberCanvas(ctk.CTkCanvas):
             "text_editor.line_number_font_color", "#2b91af"
         )
 
-        # 设置背景颜色
-        self.bg_color = config_manager.get(
-            "text_editor.line_number_bg_color", "#f0f0f0"
-        )
+        # 设置背景颜色 - 根据主题模式选择合适的颜色
+        theme_mode = config_manager.get("app.theme_mode", "light")
+        if theme_mode == "dark":
+            self.bg_color = config_manager.get(
+                "text_editor.line_number_bg_color_dark", "#2b2b2b"
+            )
+        else:
+            self.bg_color = config_manager.get(
+                "text_editor.line_number_bg_color", "#cccccc"
+            )
 
-        # 配置Canvas样式
-        self.configure(
-            bg=self.bg_color, highlightthickness=1, highlightbackground="#cccccc"
-        )
+        # 配置Canvas样式 - 根据主题模式设置边框
+        if theme_mode == "dark":
+            # 深色模式下隐藏边框
+            self.configure(bg=self.bg_color, highlightthickness=0)
+        else:
+            # 浅色模式下显示边框
+            self.configure(
+                bg=self.bg_color, highlightthickness=1, highlightbackground="#cccccc"
+            )
 
         # 初始化缓存属性
         self._cached_total_lines = None
@@ -314,3 +325,41 @@ class LineNumberCanvas(ctk.CTkCanvas):
         self.configure(width=new_width)
         # 更新宽度缓存
         self._cached_line_number_width = new_width
+
+    def update_theme(self):
+        """
+        更新行号栏主题，根据当前主题模式设置合适的背景色
+
+        当应用程序主题模式改变时调用此方法，以更新行号栏的背景色
+        """
+        # 获取当前主题模式
+        theme_mode = config_manager.get("app.theme_mode", "light")
+
+        # 根据主题模式选择背景色
+        if theme_mode == "dark":
+            new_bg_color = config_manager.get(
+                "text_editor.line_number_bg_color_dark", "#2b2b2b"
+            )
+        else:
+            new_bg_color = config_manager.get(
+                "text_editor.line_number_bg_color", "#cccccc"
+            )
+
+        # 如果背景色发生变化，更新背景色并重绘
+        if new_bg_color != self.bg_color:
+            self.bg_color = new_bg_color
+
+            # 根据主题模式设置边框样式
+            if theme_mode == "dark":
+                # 深色模式下隐藏边框
+                self.configure(bg=self.bg_color, highlightthickness=0)
+            else:
+                # 浅色模式下显示边框
+                self.configure(
+                    bg=self.bg_color,
+                    highlightthickness=1,
+                    highlightbackground="#cccccc",
+                )
+
+            # 重绘行号以应用新的背景色
+            self.draw_line_numbers()

@@ -260,9 +260,6 @@ class AppInitializer:
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
             activate_scrollbars=True,  # 启用内置滚动条
-            fg_color=config_manager.get(
-                "text_editor.bg_color", "#F5F5F5"
-            ),  # 背景色设置
             insertwidth=config_manager.get(
                 "text_editor.cursor_width", 5
             ),  # 光标宽度设置
@@ -412,7 +409,7 @@ class AppInitializer:
         # 初始化文件菜单部分项的状态
         self.app.update_file_menu_state()
 
-        # 初始化后50ms绘制行号
-        self.app.after(50, self.app.line_number_canvas.draw_line_numbers)
+        # 初始化后300ms绘制行号
+        self.app.after(300, self.app.line_number_canvas.draw_line_numbers)
 
         logger.info("QuickEdit++ initialized successfully!")

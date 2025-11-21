@@ -27,11 +27,9 @@ from ui.menu import (
 )
 from ui.menu import (
     toggle_auto_wrap,
-    toggle_auto_increment_number,
     toggle_highlight_current_line,
 )
 from ui.font_dialog import show_font_dialog
-from ui.menu import set_text_background_color
 from ui.file_properties_dialog import show_file_properties_dialog
 import windnd as wd
 from ui.file_properties_dialog import update_file_properties_menu_state
@@ -232,11 +230,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 字体设置快捷键
         self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
-
-        # 背景色设置快捷键
-        self.bind(
-            "<Control-Shift-B>", lambda e: set_text_background_color(self)
-        )  # 设置文本背景色
 
         # 文件属性快捷键
         self.bind(

@@ -378,13 +378,6 @@ def create_menu(root):
     theme_menu.add_command(
         label="字体", command=lambda: show_font_dialog(root), accelerator="Ctrl+T"
     )
-
-    # 背景色
-    theme_menu.add_command(
-        label="背景色",
-        command=lambda: set_text_background_color(root),
-        accelerator="Ctrl+Shift+B",
-    )
     theme_menu.add_separator()
 
     # 外观模式分组（3种模式）- 使用单选按钮
@@ -863,12 +856,17 @@ def set_theme_mode(mode, root=None):
     mode_text = {"light": "浅色模式", "dark": "深色模式", "system": "跟随系统"}
     mode_name = mode_text.get(mode, mode)
 
-    # 如果提供了主窗口实例，更新行高亮颜色
-    if root and hasattr(root, "_setup_line_highlight"):
-        root._setup_line_highlight(full_init=False)
+    # 更新行高亮颜色
+    root.after(60, lambda: root._setup_line_highlight(full_init=False))
+
+    # 更新行号栏
+    root.after(100, lambda: root.line_number_canvas.draw_line_numbers())
+
+    # 更新行号栏主题
+    root.after(120, lambda: root.line_number_canvas.update_theme())
 
     # 显示通知
-    messagebox.showinfo("通知", f"主题模式已切换为: {mode_name}")
+    root.status_bar.show_notification(f"主题模式已切换为: {mode_name}", 500)
 
 
 def set_color_theme(theme, root=None):
@@ -891,7 +889,9 @@ def set_color_theme(theme, root=None):
     theme_name = theme_text.get(theme, theme)
 
     # 显示通知
-    messagebox.showinfo("通知", f"颜色主题已切换为: {theme_name}, 请重启应用以生效")
+    root.status_bar.show_notification(
+        f"颜色主题已切换为: {theme_name}, 请重启应用以生效", 1000
+    )
 
 
 def toggle_auto_wrap(root, switch_state=True):
@@ -1182,30 +1182,3 @@ def toggle_silent_reload(root):
     root.status_bar.show_notification(
         f"静默重载模式已{current_state and '启用' or '禁用'}", 500
     )
-
-
-def set_text_background_color(root):
-    """
-    设置文本编辑器背景色
-
-    Args:
-        root: 主窗口实例
-    """
-    # 获取当前背景色
-    current_color = config_manager.get("text_editor.bg_color", "#F5F5F5")
-
-    # 显示颜色选择器对话框
-    selected_color = show_color_picker(root, current_color)
-
-    if selected_color:
-        # 保存配置
-        config_manager.set("text_editor.bg_color", selected_color)
-        config_manager.save_config()
-
-        # 应用到文本编辑器
-        root.text_area.configure(fg_color=selected_color)
-
-        # 显示通知
-        root.status_bar.show_notification(
-            f"文本编辑器背景色已设置为: {selected_color}", 500
-        )
