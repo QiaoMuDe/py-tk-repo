@@ -736,6 +736,80 @@ class FileOperations:
             logger.error(f"打开配置文件时出错: {str(e)}")
             messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 
+    def save_file_copy(self):
+        """
+        保存当前文件的副本
+
+        此方法执行以下操作:
+        1. 检查是否有打开的文件
+        2. 如果有未保存的更改，先保存当前文件
+        3. 生成带有时间戳的副本文件名
+        4. 创建文件副本
+
+        Returns:
+            bool: 操作是否成功
+        """
+        # 检查是否有打开的文件
+        if not self.root.current_file_path:
+            messagebox.showinfo("提示", "没有打开的文件，无法创建副本")
+            return False
+
+        # 如果文件已修改，先保存当前文件
+        if self.root.is_modified():
+            result = messagebox.askyesno(
+                "未保存的更改", "当前文件有未保存的更改，是否先保存？"
+            )
+            if result:
+                save_success = self._save_file()
+                if not save_success:
+                    return False
+            else:
+                # 用户选择不保存，但仍继续创建副本
+                pass
+
+        try:
+            # 获取原文件路径和名称
+            original_path = self.root.current_file_path
+            dir_name = os.path.dirname(original_path)
+            file_name = os.path.basename(original_path)
+
+            # 分离文件名和扩展名
+            name_without_ext, ext = os.path.splitext(file_name)
+
+            # 生成时间戳
+            timestamp = time.strftime("%Y%m%d%H%M%S")
+
+            # 限制文件名部分最多为10个字符（包括汉字和英文字符）
+            max_name_length = 10
+
+            # 如果文件名超过最大长度，进行截断
+            if len(name_without_ext) > max_name_length:
+                # 截断文件名，确保不超过最大长度
+                truncated_name = name_without_ext[:max_name_length]
+                # 记录截断日志
+                logger.debug(
+                    f"文件名过长，已截断: {name_without_ext} -> {truncated_name}"
+                )
+                name_without_ext = truncated_name
+
+            # 构建副本文件名: 文件名_时间戳_副本.扩展名
+            copy_filename = f"{name_without_ext}_{timestamp}_副本{ext}"
+            copy_path = os.path.join(dir_name, copy_filename)
+
+            # 创建文件副本
+            shutil.copy2(original_path, copy_path)
+
+            # 显示成功消息
+            self.root.status_bar.show_notification(
+                f"已创建文件副本:\n{copy_filename}", 1500
+            )
+            return True
+
+        except Exception as e:
+            logger.error(f"创建文件副本时出错: {str(e)}")
+            messagebox.showerror("错误", f"创建文件副本时出错: {str(e)}")
+            return False
+
     def _check_backup_recovery(self, file_path):
         """
         检查并处理备份恢复逻辑, 当检测到备份文件存在时提供恢复选项

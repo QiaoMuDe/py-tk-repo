@@ -134,6 +134,14 @@ def create_menu(root):
         label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S"
     )
     file_menu.add_command(
+        label="保存副本",
+        command=root.save_file_copy,
+        accelerator="Ctrl+Shift+B",
+        font=menu_font_tuple,
+    )
+    root.save_copy_menu_index = file_menu.index(tk.END)  # 保存菜单项索引
+
+    file_menu.add_command(
         label="关闭文件", command=lambda: root.close_file(), accelerator="Ctrl+W"
     )
 
@@ -174,9 +182,6 @@ def create_menu(root):
     # 第二组：文件编码
     # 创建文件编码子菜单
     encoding_submenu = tk.Menu(file_menu, tearoff=0, font=menu_font_tuple)
-
-    # 获取当前编码设置
-    current_encoding = config_manager.get("file.default_encoding", "UTF-8")
 
     # 创建常用编码子菜单
     create_encoding_submenu(

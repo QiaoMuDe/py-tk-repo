@@ -165,6 +165,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # self.bind("<Control-o>", lambda e: self.open_file())  # 打开文件 - 已在_on_key_press中处理
         self.bind("<Control-s>", lambda e: self.save_file())  # 保存文件
         self.bind("<Control-Shift-S>", lambda e: self.save_file_as())  # 另存为
+        self.bind("<Control-Shift-B>", lambda e: self.save_file_copy())  # 保存副本
         self.bind("<Control-w>", lambda e: self.close_file())  # 关闭文件
         self.bind(
             "<Control-e>", lambda e: self.open_containing_folder()
@@ -910,6 +911,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 直接调用文件操作处理器的另存为方法
         return self.file_ops._save_file(force_save_as=True)
 
+    def save_file_copy(self):
+        """保存当前文件的副本"""
+        # 直接调用文件操作处理器的保存副本方法
+        return self.file_ops.save_file_copy()
+
     def close_file(self):
         """关闭当前文件"""
         # 检查是否为只读模式
@@ -1050,6 +1056,20 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.file_menu is not None:
             # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
             update_file_properties_menu_state(self)
+
+            # 更新保存副本菜单状态
+            has_current_file = self.current_file_path
+            state = "normal" if has_current_file else "disabled"
+
+            # 使用保存的索引直接禁用或启用保存副本菜单项
+            if self.save_copy_menu_index is not None:
+                try:
+                    self.file_menu.entryconfig(self.save_copy_menu_index, state=state)
+                except Exception as e:
+                    # 如果通过索引更新失败，打印错误信息
+                    logger.error(
+                        f"Error updating save copy menu state at index {self.save_copy_menu_index}: {e}"
+                    )
 
     # 书签功能方法
     def toggle_bookmark(self):
