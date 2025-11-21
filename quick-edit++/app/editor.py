@@ -7,6 +7,7 @@
 """
 
 import customtkinter as ctk
+import gc
 import tkinter as tk
 import os
 from config.config_manager import config_manager
@@ -85,6 +86,23 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 调用实际的拖拽处理方法
         self.file_ops.handle_dropped_files(files)
 
+    def clear_memory(self):
+        """
+        清理编辑器内存的方法
+        包括清空文本区域、重置编辑状态和触发垃圾回收
+        """
+        try:
+            logger.info("触发垃圾回收...")
+
+            # 清空撤销/重做堆栈
+            self.text_area.edit_reset()
+
+            # 手动触发垃圾回收
+            gc.collect()
+
+        except Exception as e:
+            logger.error(f"内存清理过程中发生错误: {e}")
+
     def _on_closing(self):
         """窗口关闭事件处理"""
         # 取消自动保存任务 (如果有)
@@ -99,7 +117,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 检查是否需要保存当前文件
         if self.check_save_before_close():
-            self.destroy()
+            self.clear_memory()  # 清理内存
+            self.destroy()  # 关闭窗口
         # 如果用户取消保存，则不关闭窗口
 
         logger.info("exit app...")

@@ -3,6 +3,7 @@
 """
 
 import codecs
+import gc
 import os
 import sys
 import time
@@ -393,6 +394,9 @@ class FileOperations:
 
         # 更新文件菜单状态
         self.root.update_file_menu_state()
+
+        # 使用统一的内存清理方法
+        self.root.clear_memory()
 
     def _handle_backup_on_close(self, file_saved):
         """
