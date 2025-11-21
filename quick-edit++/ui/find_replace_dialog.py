@@ -8,7 +8,7 @@
 from loguru import logger
 import customtkinter as ctk
 from config.config_manager import ConfigManager
-from app.find_replace_engine import SearchOptions, FindReplaceEngine
+from app.find_replace_engine import SearchOptions
 
 
 class FindReplaceDialog:
@@ -89,9 +89,6 @@ class FindReplaceDialog:
         # 创建对话框窗口
         self.dialog = ctk.CTkToplevel(parent)
         self.dialog.title("查找和替换")
-        self.dialog.geometry(
-            f"500x480+{(self.dialog.winfo_screenwidth()//3)}+{(self.dialog.winfo_screenheight()//4)}"
-        )
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
@@ -119,177 +116,208 @@ class FindReplaceDialog:
 
     def _create_widgets(self):
         """创建对话框UI组件"""
-        # 主框架
-        main_frame = ctk.CTkFrame(self.dialog)
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # 设置对话框为更现代的尺寸
+        self.dialog.geometry(
+            f"550x390+{(self.dialog.winfo_screenwidth()//2)}+{(self.dialog.winfo_screenheight()//4)}"
+        )
 
-        # 查找区域
-        find_frame = ctk.CTkFrame(main_frame)
-        find_frame.pack(fill="x", pady=(0, 10))
-        self.find_frame = find_frame
+        # 主框架 - 铺满整个窗口背景，统一颜色
+        main_frame = ctk.CTkFrame(self.dialog, corner_radius=0)
+        main_frame.pack(fill="both", expand=True, padx=0, pady=0)
+
+        # 标题区域
+        title_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        title_frame.pack(fill="x", padx=15, pady=(15, 10))
+
+        title_label = ctk.CTkLabel(
+            title_frame,
+            text="查找和替换",
+            font=(self.font_family, self.font_size + 4, "bold"),
+        )
+        title_label.pack(anchor="center")
+
+        # 分隔线
+        separator = ctk.CTkFrame(main_frame, height=1)
+        separator.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 输入区域 - 使用更紧凑的布局
+        input_frame = ctk.CTkFrame(main_frame)
+        input_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 查找输入区域
+        find_container = ctk.CTkFrame(input_frame, fg_color="transparent")
+        find_container.pack(fill="x", pady=(0, 10))
 
         find_label = ctk.CTkLabel(
-            find_frame,
+            find_container,
             text="查找内容:",
-            font=(
-                self.font_family,
-                self.font_size,
-                self.font_bold,
-            ),
+            font=(self.font_family, self.font_size - 2, "bold"),
+            width=70,
+            anchor="w",
         )
-        find_label.pack(anchor="w", padx=10, pady=(10, 5))
+        find_label.pack(side="left", padx=(0, 10))
 
         self.find_entry = ctk.CTkEntry(
-            find_frame, font=(self.font_family, self.font_size), height=35
-        )
-        self.find_entry.pack(fill="x", padx=10, pady=(0, 10))
-
-        # 重新设计的搜索选项区域
-        options_section = ctk.CTkFrame(find_frame)
-        options_section.pack(fill="x", padx=10, pady=(0, 5))
-
-        # 搜索模式标签
-        mode_label = ctk.CTkLabel(
-            options_section,
-            text="搜索模式:",
-            font=(self.font_family, self.font_size - 1, self.font_bold),
-        )
-        mode_label.pack(anchor="w", padx=5, pady=(5, 0))
-
-        # 搜索模式单选按钮组 - 使用Frame进行垂直布局
-        radio_frame = ctk.CTkFrame(options_section)
-        radio_frame.pack(fill="x", padx=20, pady=5)
-
-        # 使用IntVar来管理单选按钮组
-        self.search_mode_var = ctk.IntVar(
-            value=0
-        )  # 0:普通模式, 1:全词匹配, 2:正则表达式
-
-        # 普通模式单选按钮
-        normal_radio = ctk.CTkRadioButton(
-            radio_frame,
-            text="普通模式",
-            variable=self.search_mode_var,
-            value=0,
+            find_container,
             font=(self.font_family, self.font_size - 1),
-            command=self._update_search_options,
+            height=32,
+            placeholder_text="输入要查找的文本...",
         )
-        normal_radio.pack(anchor="w", pady=3)
+        self.find_entry.pack(side="left", fill="x", expand=True)
 
-        # 全词匹配单选按钮
-        whole_word_radio = ctk.CTkRadioButton(
-            radio_frame,
-            text="全词匹配",
-            variable=self.search_mode_var,
-            value=1,
-            font=(self.font_family, self.font_size - 1),
-            command=self._update_search_options,
-        )
-        whole_word_radio.pack(anchor="w", pady=3)
-
-        # 正则表达式单选按钮
-        regex_radio = ctk.CTkRadioButton(
-            radio_frame,
-            text="正则表达式",
-            variable=self.search_mode_var,
-            value=2,
-            font=(self.font_family, self.font_size - 1),
-            command=self._update_search_options,
-        )
-        regex_radio.pack(anchor="w", pady=3)
-
-        # 不区分大小写复选框 - 单独一行，更明显
-        self.nocase_var = ctk.BooleanVar(value=False)
-        nocase_check = ctk.CTkCheckBox(
-            options_section,
-            text="不区分大小写",
-            variable=self.nocase_var,
-            font=(self.font_family, self.font_size - 1),
-            command=self._update_search_options,
-        )
-        nocase_check.pack(anchor="w", padx=20, pady=(5, 5))
-
-        # 替换区域
-        replace_frame = ctk.CTkFrame(main_frame)
-        replace_frame.pack(fill="x", pady=(0, 10))
-        self.replace_frame = replace_frame
+        # 替换输入区域
+        replace_container = ctk.CTkFrame(input_frame, fg_color="transparent")
+        replace_container.pack(fill="x")
 
         replace_label = ctk.CTkLabel(
-            replace_frame,
+            replace_container,
             text="替换为:",
-            font=(
-                self.font_family,
-                self.font_size,
-                self.font_bold,
-            ),
+            font=(self.font_family, self.font_size - 2, "bold"),
+            width=70,
+            anchor="w",
         )
-        replace_label.pack(anchor="w", padx=10, pady=(10, 5))
+        replace_label.pack(side="left", padx=(0, 10))
 
         self.replace_entry = ctk.CTkEntry(
-            replace_frame, font=(self.font_family, self.font_size), height=35
+            replace_container,
+            font=(self.font_family, self.font_size - 1),
+            height=32,
+            placeholder_text="输入替换的文本...",
         )
-        self.replace_entry.pack(fill="x", padx=10, pady=(0, 5))
+        self.replace_entry.pack(side="left", fill="x", expand=True)
 
-        # 按钮区域 - 重新设计为更紧凑的布局
+        # 选项区域 - 使用更现代的开关式设计
+        options_frame = ctk.CTkFrame(main_frame)
+        options_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        options_label = ctk.CTkLabel(
+            options_frame,
+            text="搜索选项",
+            font=(self.font_family, self.font_size - 1, "bold"),
+        )
+        options_label.pack(anchor="w", padx=10, pady=(10, 5))
+
+        # 选项容器 - 使用水平布局
+        options_container = ctk.CTkFrame(options_frame, fg_color="transparent")
+        options_container.pack(fill="x", padx=10, pady=(0, 10))
+
+        # 搜索模式选项 - 使用分段控件
+        self.search_mode_var = ctk.StringVar(value="普通")
+        mode_segmented = ctk.CTkSegmentedButton(
+            options_container,
+            values=["普通", "全词匹配", "正则表达式"],
+            variable=self.search_mode_var,
+            font=(self.font_family, self.font_size - 2),
+            command=self._update_search_options,
+            dynamic_resizing=False,
+            selected_color="#1a5fb4",
+            unselected_color="#343638",
+        )
+        mode_segmented.pack(fill="x", pady=(0, 10))
+
+        # 不区分大小写选项 - 使用开关式设计
+        switch_container = ctk.CTkFrame(options_container, fg_color="transparent")
+        switch_container.pack(fill="x")
+
+        self.nocase_var = ctk.BooleanVar(value=False)
+        nocase_switch = ctk.CTkSwitch(
+            switch_container,
+            text="不区分大小写",
+            variable=self.nocase_var,
+            font=(self.font_family, self.font_size - 2),
+            command=self._update_search_options,
+            onvalue=True,
+            offvalue=False,
+        )
+        nocase_switch.pack(side="left")
+
+        # 按钮区域 - 使用更现代的布局
         button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x", pady=(5, 0))
+        button_frame.pack(fill="x", padx=15, pady=(0, 15))
 
-        # 查找相关按钮
-        find_buttons_frame = ctk.CTkFrame(button_frame)
-        find_buttons_frame.pack(fill="x", padx=10, pady=(10, 5))
+        # 查找按钮行 - 按比例分配空间
+        find_buttons = ctk.CTkFrame(button_frame, fg_color="transparent")
+        find_buttons.pack(fill="x", pady=(0, 8))
+
+        # 使用网格布局来实现按钮按比例分配
+        find_buttons.columnconfigure(0, weight=1)
+        find_buttons.columnconfigure(1, weight=1)
+        find_buttons.columnconfigure(2, weight=1)
 
         find_prev_btn = ctk.CTkButton(
-            find_buttons_frame,
-            text="查找上一个",
-            font=(self.font_family, self.font_size),
+            find_buttons,
+            text="▲ 上一个",
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._find_previous,
+            fg_color="#3584e4",
+            hover_color="#1c71d8",
         )
-        find_prev_btn.pack(side="left", padx=(0, 5))
+        find_prev_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
 
         find_next_btn = ctk.CTkButton(
-            find_buttons_frame,
-            text="查找下一个",
-            font=(self.font_family, self.font_size),
+            find_buttons,
+            text="▼ 下一个",
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._find_next,
+            fg_color="#3584e4",
+            hover_color="#1c71d8",
         )
-        find_next_btn.pack(side="left", padx=5)
+        find_next_btn.grid(row=0, column=1, padx=4, sticky="ew")
 
         find_all_btn = ctk.CTkButton(
-            find_buttons_frame,
+            find_buttons,
             text="查找全部",
-            font=(self.font_family, self.font_size),
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._find_all,
+            fg_color="#26a269",
+            hover_color="#2ec27e",
         )
-        find_all_btn.pack(side="left", padx=5)
+        find_all_btn.grid(row=0, column=2, padx=(4, 0), sticky="ew")
 
-        # 替换和关闭按钮
-        replace_buttons_frame = ctk.CTkFrame(button_frame)
-        replace_buttons_frame.pack(fill="x", padx=10, pady=(5, 5))
+        # 替换按钮行 - 按比例分配空间
+        replace_buttons = ctk.CTkFrame(button_frame, fg_color="transparent")
+        replace_buttons.pack(fill="x")
+
+        # 使用网格布局来实现按钮按比例分配
+        replace_buttons.columnconfigure(0, weight=1)
+        replace_buttons.columnconfigure(1, weight=1)
+        replace_buttons.columnconfigure(2, weight=1)
 
         replace_btn = ctk.CTkButton(
-            replace_buttons_frame,
+            replace_buttons,
             text="替换",
-            font=(self.font_family, self.font_size),
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._replace,
+            fg_color="#e01b24",
+            hover_color="#c01c28",
         )
-        replace_btn.pack(side="left", padx=(0, 5))
+        replace_btn.grid(row=0, column=0, padx=(0, 4), sticky="ew")
 
         replace_all_btn = ctk.CTkButton(
-            replace_buttons_frame,
-            text="替换全部",
-            font=(self.font_family, self.font_size),
+            replace_buttons,
+            text="全部替换",
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._replace_all,
+            fg_color="#e01b24",
+            hover_color="#c01c28",
         )
-        replace_all_btn.pack(side="left", padx=5)
+        replace_all_btn.grid(row=0, column=1, padx=4, sticky="ew")
 
-        # 右侧放置关闭按钮，保持布局平衡
         close_btn = ctk.CTkButton(
-            replace_buttons_frame,
+            replace_buttons,
             text="关闭",
-            font=(self.font_family, self.font_size),
+            font=(self.font_family, self.font_size - 2),
+            height=35,
             command=self._close_dialog,
+            fg_color="#5e5c64",
+            hover_color="#4a484e",
         )
-        close_btn.pack(side="right", padx=5)
+        close_btn.grid(row=0, column=2, padx=(4, 0), sticky="ew")
 
     def _bind_events_and_shortcuts(self):
         """
@@ -302,6 +330,13 @@ class FindReplaceDialog:
 
         # 绑定查找输入框内容变化事件
         self.find_entry.bind("<KeyRelease>", self._on_find_entry_change)
+
+        # 绑定回车键到查找全部功能 - 绑定到整个对话框
+        self.dialog.bind("<Return>", lambda e: self._find_all())
+
+        # 绑定上下键到查找上一个和查找下一个功能 - 绑定到整个对话框
+        self.dialog.bind("<Up>", lambda e: (self._find_previous(), "break")[1])
+        self.dialog.bind("<Down>", lambda e: (self._find_next(), "break")[1])
 
     def _on_find_entry_change(self, event=None):
         """
@@ -335,27 +370,31 @@ class FindReplaceDialog:
         """获取替换输入框的内容"""
         return self.replace_entry.get() if self.replace_entry else ""
 
-    def _update_search_options(self):
-        """更新搜索选项对象
+    def _update_search_options(self, value=None):
+        """
+        更新搜索选项对象
 
         根据用户在UI界面上选择的搜索模式和不区分大小写选项，
         动态创建并更新SearchOptions对象，用于后续的查找替换操作。
 
+        Args:
+            value: 分段按钮传递的值（可选）
+
         搜索模式映射关系：
-        - 0: 普通模式 - 简单文本匹配，不启用特殊选项
-        - 1: 全词匹配 - 仅匹配完整单词，不启用正则表达式
-        - 2: 正则表达式 - 使用正则表达式语法进行复杂匹配
+        - "普通": 普通模式 - 简单文本匹配，不启用特殊选项
+        - "全词匹配": 全词匹配 - 仅匹配完整单词，不启用正则表达式
+        - "正则表达式": 正则表达式 - 使用正则表达式语法进行复杂匹配
         """
         # 获取当前选择的搜索模式
         search_mode = self.search_mode_var.get()
 
         # 使用简洁的条件赋值设置选项参数
-        # 0: 普通模式 - whole_word=False, regex=False
-        # 1: 全词匹配 - whole_word=True, regex=False
-        # 2: 正则表达式 - whole_word=False, regex=True
-        normal_search = search_mode == 0
-        whole_word = search_mode == 1
-        regex = search_mode == 2
+        # "普通": 普通模式 - whole_word=False, regex=False
+        # "全词匹配": 全词匹配 - whole_word=True, regex=False
+        # "正则表达式": 正则表达式 - whole_word=False, regex=True
+        normal_search = search_mode == "普通"
+        whole_word = search_mode == "全词匹配"
+        regex = search_mode == "正则表达式"
 
         # 创建并更新搜索选项对象，集成不区分大小写设置
         self.search_options = SearchOptions(
