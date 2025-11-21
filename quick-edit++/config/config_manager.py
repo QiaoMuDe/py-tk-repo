@@ -151,12 +151,12 @@ class ConfigManager:
 
     def __init__(self):
         """初始化配置管理器"""
-        logger.info("初始化配置管理器")
-
         # 加载配置文件
         self.config = self.load_config()
 
-        logger.info(f"配置管理器初始化完成，配置文件路径: {CONFIG_PATH}")
+        logger.info("config manager initialized successfully!")
+        logger.info(f"config file path: {CONFIG_PATH}")
+
 
     def load_config(self):
         """
@@ -169,14 +169,11 @@ class ConfigManager:
             - 如果配置文件不存在，先保存默认配置，然后返回默认配置
             - 如果配置文件存在但解析失败，返回默认配置
         """
-        logger.debug(f"开始加载配置文件: {CONFIG_PATH}")
-
         # 检查配置文件是否存在
         if not os.path.exists(CONFIG_PATH):
             logger.info(f"配置文件不存在，创建默认配置文件: {CONFIG_PATH}")
             # 保存默认配置
             self.save_config(DEFAULT_CONFIG)
-            logger.info("默认配置文件创建完成")
             return DEFAULT_CONFIG.copy()
 
         try:
@@ -185,9 +182,8 @@ class ConfigManager:
                 config = json.load(f)
 
             # 合并默认配置，确保所有必要字段都存在
-            merged_config = merge_configs(DEFAULT_CONFIG, config)
-            logger.info(f"配置文件加载成功，配置项数量: {len(merged_config)}")
-            return merged_config
+            return merge_configs(DEFAULT_CONFIG, config)
+
         except (json.JSONDecodeError, IOError) as e:
             # 配置文件解析失败或读取错误，返回默认配置
             logger.error(f"配置文件加载失败: {str(e)}，使用默认配置")
@@ -214,10 +210,6 @@ class ConfigManager:
             # 使用传入的配置或当前配置
             config_to_save = config if config is not None else self.config
 
-            is_current_config = config is None
-            config_type = "当前配置" if is_current_config else "传入配置"
-            logger.debug(f"开始保存{config_type}到文件: {CONFIG_PATH}")
-
             # 确保用户家目录存在（理论上总是存在的）
             os.makedirs(str(Path.home()), exist_ok=True)
 
@@ -228,9 +220,8 @@ class ConfigManager:
             # 如果保存的是当前配置，则更新内部状态
             if config is None:
                 self.config = config_to_save
-
-            logger.info(f"配置文件保存成功，配置项数量: {len(config_to_save)}")
             return True
+
         except IOError as e:
             # 保存失败
             logger.error(f"配置文件保存失败: {e}")

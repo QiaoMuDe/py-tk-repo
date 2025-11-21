@@ -82,6 +82,7 @@ class SyntaxHighlighter:
 
         # 内部状态
         self.language_handlers = {}  # 存储不同语言的处理器
+        self.registered_languages = {}  # 存储已注册的语言名称，用于统计实际语言数量
         self.current_language = None  # 当前使用的语言
         self.current_file_extension = None  # 当前文件扩展名
         self._highlight_tags = set()  # 存储已创建的高亮标签
@@ -98,12 +99,10 @@ class SyntaxHighlighter:
         # 绑定事件
         self._bind_events()
 
-        logger.debug("语法高亮器初始化完成")
+        logger.debug("highlighter init complete!")
 
     def _register_default_handlers(self):
         """注册默认的语言处理器"""
-        logger.debug("开始注册默认语言处理器")
-
         # 注册Python处理器
         python_handler = PythonHandler()
         for ext in python_handler.get_file_extensions():
@@ -136,12 +135,12 @@ class SyntaxHighlighter:
 
         # 注册PowerShell处理器
         powershell_handler = PowerShellHandler()
-        for ext in powershell_handler.file_extensions:
+        for ext in powershell_handler.get_file_extensions():
             self.register_language(ext, powershell_handler)
 
         # 注册SQL处理器
         sql_handler = SQLHandler()
-        for ext in sql_handler.file_extensions:
+        for ext in sql_handler.get_file_extensions():
             self.register_language(ext, sql_handler)
 
         # 注册HTML处理器
@@ -238,7 +237,7 @@ class SyntaxHighlighter:
         self.auto_handler = auto_handler  # 保存引用以便后续使用
 
         logger.debug(
-            f"默认语言处理器注册完成，共注册了{len(self.language_handlers)}种语言/文件类型"
+            f"默认语言处理器注册完成，共注册了{len(self.registered_languages)}种语言，{len(self.language_handlers)}种文件扩展名/特殊文件名"
         )
 
     def register_language_handler(self, handler_class):
@@ -289,6 +288,16 @@ class SyntaxHighlighter:
             # 只保留文件操作时的高亮, 不绑定任何实时事件
             pass
 
+    def _register_language_name(self, language_name: str):
+        """
+        注册语言名称到已注册语言字典中
+        
+        Args:
+            language_name: 语言名称
+        """
+        if language_name not in self.registered_languages:
+            self.registered_languages[language_name] = True
+
     def register_language(self, extension: str, handler):
         """
         注册语言处理器 (用于有扩展名的文件)
@@ -297,6 +306,11 @@ class SyntaxHighlighter:
             extension: 文件扩展名, 如".py"
             handler: 语言处理器实例
         """
+        # 获取语言名称并注册
+        language_name = handler.get_language_name()
+        self._register_language_name(language_name)
+        
+        # 注册扩展名到语言处理器字典中
         self.language_handlers[extension.lower()] = handler
 
     def register_special_file(self, filename: str, handler):
@@ -307,6 +321,11 @@ class SyntaxHighlighter:
             filename: 文件名, 如"Dockerfile", "Makefile"等
             handler: 语言处理器实例
         """
+        # 获取语言名称并注册
+        language_name = handler.get_language_name()
+        self._register_language_name(language_name)
+            
+        # 注册特殊文件名到语言处理器字典中
         self.language_handlers[filename] = handler
 
     def detect_language(self, file_path: Optional[str] = None) -> Optional[str]:
@@ -709,7 +728,6 @@ class SyntaxHighlighter:
         self._highlight_task_id = self.text_widget.after(
             self._debounce_delay, self._execute_highlight_task
         )
-        logger.debug(f"已安排语法高亮任务，延迟{self._debounce_delay}ms执行")
 
     def _execute_highlight_task(self):
         """

@@ -379,7 +379,8 @@ class AppInitializer:
             watch=True,  # 是否监控日志文件
             encoding="utf-8",  # 日志文件编码
         )
-        logger.info("日志记录器初始化成功!")
+        logger.info("logger initialized successfully!")
+        logger.info(f"log file path: {log_path}")
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""
@@ -406,7 +407,7 @@ class AppInitializer:
         # 初始化文件菜单部分项的状态
         self.app.update_file_menu_state()
 
-        # 触发首次绘制行号
-        self.app.line_number_canvas.draw_line_numbers()
+        # 初始化后50ms绘制行号
+        self.app.after(50, self.app.line_number_canvas.draw_line_numbers)
 
-        logger.info("QuickEdit++ 初始化成功!")
+        logger.info("QuickEdit++ initialized successfully!")
