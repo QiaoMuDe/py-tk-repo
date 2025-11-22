@@ -12,7 +12,7 @@ from pathlib import Path
 from loguru import logger
 
 # 应用程序常量
-APP_VERSION = "v0.0.23"  # 版本号
+APP_VERSION = "v0.0.24"  # 版本号
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"  # 项目地址
 
 # 默认配置文件路径：用户家目录下的.QuickEditPlus.json
@@ -107,7 +107,7 @@ DEFAULT_CONFIG = {
     "logging": {
         "log_dir": "logs",  # 日志目录
         "log_file": "app.log",  # 日志文件名
-        "log_level": "INFO",  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
+        "log_level": "WARNING",  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
         "rotation_size": "5 MB",  # 日志文件旋转大小
         "retention_time": "7 days",  # 日志文件保留时间
     },
