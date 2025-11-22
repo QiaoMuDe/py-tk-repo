@@ -379,10 +379,6 @@ class FileOperations:
         # 清除语法高亮
         self.root.syntax_highlighter.reset_highlighting()
 
-        # 检查配置管理器的语法高亮是否启用, 如果启用则将临时禁用的语法高亮器重新启用
-        if self.config_manager.get("syntax_highlighter.enabled", False):
-            self.root.syntax_highlighter.highlight_enabled = True
-
         # 更新文件状态
         self.root.status_bar.set_status_info("就绪")
         # 重置状态栏右侧文件信息
@@ -596,41 +592,6 @@ class FileOperations:
                     content = data["content"]
                     encoding = data["encoding"]
                     line_ending = data["line_ending"]
-
-                    # 在启用语法高亮的情况下检查文件大小
-                    if self.root.syntax_highlighter.highlight_enabled:
-                        # 检查文件大小, 决定是否禁用语法高亮
-                        disable_highlight_file_size = self.config_manager.get(
-                            "syntax_highlighter.disable_highlight_file_size",
-                            1 * 1024 * 1024,
-                        )  # 默认1MB
-
-                        try:
-                            file_size = os.path.getsize(file_path)
-                            if file_size >= disable_highlight_file_size:
-                                # 询问用户是否禁用语法高亮
-                                choice = messagebox.askyesnocancel(
-                                    "大文件提示",
-                                    f"文件较大 ({self.file_core.format_file_size(file_size)}), 是否禁用语法高亮以提高性能?\n\n"
-                                    "是: 禁用语法高亮\n"
-                                    "否: 继续使用语法高亮\n"
-                                    "取消: 不打开文件",
-                                )
-                                if choice is True:
-                                    # 用户选择是，禁用语法高亮
-                                    self.root.syntax_highlighter.highlight_enabled = (
-                                        False
-                                    )
-                                elif choice is False:
-                                    # 用户选择否，继续使用语法高亮
-                                    pass
-                                else:
-                                    # 用户选择取消，不打开文件
-                                    return False
-                        except (OSError, IOError):
-                            # 如果无法获取文件大小, 不做任何操作
-                            logger.warning(f"无法获取文件大小: {file_path}")
-                            pass
 
                     # 更新编辑器内容
                     self.root.text_area.delete("1.0", tk.END)
