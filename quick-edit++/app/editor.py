@@ -215,7 +215,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         )  # 清除所有书签
 
         # 绑定全屏快捷键
-        self.bind("<F11>", lambda e: self.toggle_fullscreen())  # F11切换全屏
+        self.bind(
+            "<F11>", lambda e: self.toggle_fullscreen(switch_state=True)
+        )  # F11切换全屏
 
         # 绑定配置管理快捷键
         self.bind(
@@ -808,36 +810,21 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 更新窗口标题
         self._update_window_title()
 
-    def toggle_fullscreen(self):
+    def toggle_fullscreen(self, switch_state=True):
         """
         切换全屏模式
         切换应用程序窗口的全屏/窗口模式状态
 
+        Args:
+            switch_state (bool): 是否需要翻转状态，默认为True
+                                True - 切换状态（用于快捷键）
+                                False - 应用当前状态（用于菜单点击）
+
         Returns:
             bool: 切换后的全屏状态
         """
-        # 切换全屏状态
-        self.is_fullscreen = not self.is_fullscreen
-        self.fullscreen_var.set(self.is_fullscreen)
-
-        # 设置窗口全屏属性
-        if self.is_fullscreen:
-            # 保存当前窗口状态
-            self.normal_geometry = self.geometry()
-            # 设置全屏
-            self.attributes("-fullscreen", True)
-            # 对于某些平台可能需要额外处理
-            self.update_idletasks()
-        else:
-            # 恢复正常窗口状态
-            self.attributes("-fullscreen", False)
-            # 恢复原来的窗口大小和位置
-            if self.normal_geometry:
-                self.geometry(self.normal_geometry)
-            # 确保窗口可见
-            self.update_idletasks()
-
-        return self.is_fullscreen
+        # 调用工具栏的全屏切换方法
+        return self.toolbar.toggle_fullscreen(switch_state)
 
     def _update_window_title(self):
         """根据文件修改状态更新窗口标题"""

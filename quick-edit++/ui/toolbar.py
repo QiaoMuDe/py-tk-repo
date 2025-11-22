@@ -193,8 +193,6 @@ class Toolbar(ctk.CTkFrame):
             command=lambda: self.toggle_fullscreen(),
         )
         self.fullscreen_button.pack(side="left", padx=2, pady=10)
-        # 记录全屏状态
-        self.is_fullscreen = False
 
         # 退出按钮
         self.exit_button = ctk.CTkButton(
@@ -207,13 +205,48 @@ class Toolbar(ctk.CTkFrame):
         )
         self.exit_button.pack(side="left", padx=2, pady=10)
 
-    def toggle_fullscreen(self):
+    def toggle_fullscreen(self, switch_state=True):
         """
         切换全屏模式
-        调用父窗口的全屏方法并更新按钮文本
+        切换应用程序窗口的全屏/窗口模式状态
+
+        Args:
+            switch_state (bool): 是否需要翻转状态，默认为True
+                                True - 切换状态（用于快捷键和按钮）
+                                False - 应用当前状态（用于菜单点击）
+
+        Returns:
+            bool: 切换后的全屏状态
         """
-        # 调用父窗口的全屏方法
-        is_fullscreen = self.parent.toggle_fullscreen()
+        if switch_state:
+            # 获取当前全屏状态
+            current_state = self.parent.fullscreen_var.get()
+            # 计算新状态（当前状态的取反）
+            new_state = not current_state
+            # 设置新状态
+            self.parent.fullscreen_var.set(new_state)
+        else:
+            # 应用当前状态（不翻转）
+            new_state = self.parent.fullscreen_var.get()
+
+        # 设置窗口全屏属性
+        if new_state:
+            # 保存当前窗口状态
+            self.parent.normal_geometry = self.parent.geometry()
+            # 设置全屏
+            self.parent.attributes("-fullscreen", True)
+            # 对于某些平台可能需要额外处理
+            self.parent.update_idletasks()
+        else:
+            # 恢复正常窗口状态
+            self.parent.attributes("-fullscreen", False)
+            # 恢复原来的窗口大小和位置
+            if self.parent.normal_geometry:
+                self.parent.geometry(self.parent.normal_geometry)
+            # 确保窗口可见
+            self.parent.update_idletasks()
 
         # 更新按钮文本
-        self.fullscreen_button.configure(text="退出全屏" if is_fullscreen else "全屏")
+        self.fullscreen_button.configure(text="退出全屏" if new_state else "全屏")
+
+        return new_state

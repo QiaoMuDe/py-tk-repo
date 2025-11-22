@@ -601,8 +601,8 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         # 移除计算器的初始化，将在工作线程中创建
         self.calculator = None
 
-        # 全屏状态标志
-        self.is_fullscreen = False
+        # 创建全屏状态变量
+        self.fullscreen_var = tk.BooleanVar(value=False)
 
         # 创建队列用于线程间通信
         self.result_queue = queue.Queue()
@@ -1456,20 +1456,25 @@ class DocumentStatsDialog(ctk.CTkToplevel):
 
     def _toggle_fullscreen(self):
         """切换全屏模式"""
-        if self.is_fullscreen:
+        # 获取当前状态
+        is_fullscreen = self.fullscreen_var.get()
+
+        # 切换状态
+        self.fullscreen_var.set(not is_fullscreen)
+        new_state = self.fullscreen_var.get()
+
+        if new_state:
+            # 进入全屏
+            self.attributes("-fullscreen", True)
+            self.fullscreen_button.configure(text="退出全屏")
+        else:
             # 退出全屏
             self.attributes("-fullscreen", False)
-            self.is_fullscreen = False
             self.fullscreen_button.configure(text="全屏")
             # 恢复原始窗口大小
             self.geometry("500x400")
             # 重新居中窗口
             self._center_window()
-        else:
-            # 进入全屏
-            self.attributes("-fullscreen", True)
-            self.is_fullscreen = True
-            self.fullscreen_button.configure(text="退出全屏")
 
     def _on_tab_double_click(self, event):
         """处理基本统计选项卡双击事件，切换全屏"""
@@ -1478,7 +1483,7 @@ class DocumentStatsDialog(ctk.CTkToplevel):
 
     def _on_escape(self, event=None):
         """处理ESC键事件"""
-        if self.is_fullscreen:
+        if self.fullscreen_var.get():
             # 如果是全屏模式，则退出全屏
             self._toggle_fullscreen()
         else:

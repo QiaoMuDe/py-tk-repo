@@ -48,24 +48,26 @@ class BashHandler(LanguageHandler):
 
         # 定义高亮规则的执行顺序
         self._pattern_order = [
-            "strings",  # 字符串 - 包括单引号、双引号字符串，支持转义字符
-            "comments",  # 注释 - 从#开始到行尾，但排除字符串中的#
-            "heredoc",  # Here文档 - <<和<<-
-            "keywords",  # 关键字 - 使用单词边界确保匹配完整单词
+            "comments",  # 注释 - 最高优先级
+            "strings",  # 字符串
+            "string_variables",  # 字符串中的变量引用
+            "heredoc",  # Here文档
+            "command_substitution",  # 命令替换
+            "variables",  # 变量
+            "functions",  # 函数
+            "command_options",  # 命令选项
+            "keywords",  # 关键字
             "builtins",  # 内置命令
-            "functions",  # 函数定义 - function关键字或函数名后的括号
-            "variables",  # 变量 - $开头的变量，包括位置参数、特殊参数、数组
-            "parameter_expansion",  # 参数扩展 - ${param#word}, ${param%word}等
-            "array_index",  # 数组索引 - ${array[index]}
-            "numbers",  # 数字 - 包括整数、浮点数、十六进制、八进制
-            "arithmetic",  # 算术表达式 - $((...))和((...))
-            "conditional",  # 条件表达式 - [[...]]和[...]
-            "command_substitution",  # 命令替换 - $(...)和`...`
-            "process_substitution",  # 进程替换 - <(...)和>(...)
+            "variable_names",  # 变量名
+            "numbers",  # 数字
+            "arithmetic",  # 算术表达式
+            "operators",  # 操作符
+            "paths",  # 路径
             "redirection",  # 重定向操作符
-            "operators",  # 操作符 - 扩展操作符匹配
-            "paths",  # 路径 - 以/开头或包含/的字符串，包括~家目录
             "wildcards",  # 通配符模式
+            "array_index",  # 数组索引
+            "parameter_expansion",  # 参数扩展
+            "process_substitution",  # 进程替换
         ]
 
         # Bash关键字 - 扩展以支持更多控制流和高级特性
@@ -92,9 +94,6 @@ class BashHandler(LanguageHandler):
             "unset",
             # 条件测试
             "test",
-            "[",
-            "]]",
-            "((()))",
             # 命令替换和执行
             "eval",
             "exec",
@@ -213,6 +212,10 @@ class BashHandler(LanguageHandler):
             "strings": r'"(?:[^"\\]|\\.)*"|\'(?:[^\'\\]|\\.)*\'',
             # 数字 - 包括整数、浮点数、十六进制、八进制
             "numbers": r"\b(?:0[xX][0-9a-fA-F]+|0[0-7]+|\d+(?:\.\d+)?[eE][+-]?\d+|\d+(?:\.\d+)?)\b",
+            # 命令选项 - -x和--x形式的参数
+            "command_options": r"(?:^|\s)(-{1,2}[a-zA-Z][a-zA-Z0-9_-]*)",
+            # 变量名 - 赋值语句中的变量名
+            "variable_names": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?==)",
             # 变量 - $开头的变量，包括位置参数、特殊参数、数组
             "variables": r"\$[a-zA-Z_][a-zA-Z0-9_]*|\$\{[^}]*\}|\$[0-9]+|\$[#@*?%!\-_$]",
             # 函数定义 - function关键字或函数名后的括号
@@ -227,8 +230,6 @@ class BashHandler(LanguageHandler):
             "process_substitution": r"<\([^)]*\)|>\([^)]*\)",
             # 算术表达式 - $((...))和((...))
             "arithmetic": r"\$\(\([^)]*\)\)|\(\([^)]*\)\)",
-            # 条件表达式 - [[...]]和[...]
-            "conditional": r"\[\[[^\]]*\]\]|\[[^\]]*\]",
             # Here文档 - <<和<<-
             "heredoc": r"<<[-\s]*['\"]?(\w+)['\"]?\s*$",
             # 重定向操作符
@@ -263,6 +264,14 @@ class BashHandler(LanguageHandler):
             "numbers": {
                 "foreground": "#B22222",
             },
+            # 命令选项 - 橙色
+            "command_options": {
+                "foreground": "#FFA500",
+            },
+            # 变量名 - 深青色
+            "variable_names": {
+                "foreground": "#008B8B",
+            },
             # 变量 - 紫色
             "variables": {
                 "foreground": "#8B008B",
@@ -271,9 +280,9 @@ class BashHandler(LanguageHandler):
             "functions": {
                 "foreground": "#483D8B",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 路径 - 深青色
             "paths": {
@@ -290,10 +299,6 @@ class BashHandler(LanguageHandler):
             # 算术表达式 - 深金色
             "arithmetic": {
                 "foreground": "#B8860B",
-            },
-            # 条件表达式 - 深蓝色
-            "conditional": {
-                "foreground": "#000080",
             },
             # Here文档 - 深灰色
             "heredoc": {
@@ -316,3 +321,12 @@ class BashHandler(LanguageHandler):
                 "foreground": "#708090",
             },
         }
+
+    def get_file_extensions(self) -> List[str]:
+        """
+        获取文件扩展名列表
+
+        Returns:
+            List[str]: 文件扩展名列表
+        """
+        return self.file_extensions

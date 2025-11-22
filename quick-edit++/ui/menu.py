@@ -460,7 +460,7 @@ def create_menu(root):
     # 全屏模式设置
     settings_menu.add_checkbutton(
         label="全屏模式",
-        command=lambda: root.toggle_fullscreen(),
+        command=lambda: root.toggle_fullscreen(switch_state=False),
         variable=root.fullscreen_var,
         accelerator="F11",
     )

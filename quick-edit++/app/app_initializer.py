@@ -149,7 +149,6 @@ class AppInitializer:
 
         # 初始化全屏模式状态
         self.app.fullscreen_var = tk.BooleanVar(value=False)  # 全屏模式状态变量
-        self.app.is_fullscreen = False  # 全屏模式状态
         self.app.normal_geometry = None  # 正常窗口几何形状
 
         # 初始化行号显示状态变量

@@ -53,6 +53,7 @@ class GoHandler(LanguageHandler):
         self._pattern_order = [
             "strings",  # 字符串放在第一位，确保优先匹配
             "comments",  # 注释放在第二位
+            "walrus_operator",  # := 操作符单独匹配
             "numbers",  # 数字
             "keywords",  # 关键字
             "builtins",  # 内置类型和函数
@@ -65,6 +66,7 @@ class GoHandler(LanguageHandler):
             "imports",  # 包导入
             "format_verbs",  # 格式化动词
             "operators",  # 操作符
+            "identifiers",  # 标识符 - 放在操作符之后，确保操作符优先匹配
             "type_assertions",  # 类型断言
             "channel_ops",  # 通道操作
             "type_parameters",  # 泛型类型参数
@@ -190,6 +192,8 @@ class GoHandler(LanguageHandler):
 
         # 正则表达式模式 - 优化匹配性能和准确性
         self._regex_patterns = {
+            # := 操作符单独匹配
+            "walrus_operator": r"(:=)",
             # 注释 - 单行和多行注释，优化匹配，避免贪婪匹配
             "comments": r"//.*?(?=\n)|/\*[^*]*\*+(?:[^/*][^*]*\*+)*/",
             # 字符串 - Go特有的字符串字面量，包括原始字符串和转义序列
@@ -203,21 +207,23 @@ class GoHandler(LanguageHandler):
             # 常用包 - 优化包名匹配，包括子包
             "packages": r"\b(?:fmt|os|io|strings|strconv|math|time|http|json|xml|regexp|bytes|bufio|filepath|log|sort|sync|context|reflect|unsafe|net|encoding|database|runtime|testing|errors|crypto)\b",
             # 函数定义 - 优化函数定义匹配，包括接收器和泛型类型参数
-            "functions": r"\bfunc\s+(?:\([^)]*\)\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\[.*?\])?\s*\(",
-            # 方法调用 - 优化方法调用匹配，包括链式调用
-            "method_calls": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*\(",
+            "functions": r"\bfunc\s+(?:\([^)]*\)\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\[.*?\])?(?=\s*\()",
+            # 方法调用 - 优化方法调用匹配，包括链式调用，但不包含括号，使用前瞻断言避免匹配操作符
+            "method_calls": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()",
             # 结构体字段 - 优化结构体字段匹配，包括标签
             "struct_fields": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:`[^`]*`)?\s*:",
             # 接口方法 - 优化接口方法匹配，包括泛型约束
-            "interface_methods": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\[.*?\])?\s*\(",
+            "interface_methods": r"([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:\[.*?\])?(?=\s*\()",
             # 结构体标签 - 优化结构体标签匹配
             "tags": r"`([^`]*)`",
             # 包导入 - 优化包导入匹配，包括别名和点导入
             "imports": r"\bimport\s+(?:\([^)]*\)|\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s+)?\"[^\"]*\")",
             # 格式化动词 - 优化格式化动词匹配，包括所有Go格式化选项
             "format_verbs": r"%[#0+\- ]*[0-9]*\.?[0-9]*[tT]?[vbcdoqxXUeEfFgGspw%]",
-            # 操作符 - 优化操作符匹配，包括所有Go操作符
-            "operators": r"(\+\+|--|==|!=|<=|>=|&&|\|\||<<|>>|&\^|<-|[+\-*/%&|^=<>!.,;:\[\]{}()])",
+            # 标识符 - 简化标识符匹配规则，不再使用负向前瞻
+            "identifiers": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b",
+            # 操作符 - 移除:=，因为已单独处理
+            "operators": r"(\+\+|--|==|!=|<=|>=|&&|\|\||<<|>>|&\^|<-|=|[+\-*/%&|^<>!.,;:\[\]{}])",
             # 类型断言 - 优化类型断言匹配，包括类型开关
             "type_assertions": r"\.\s*\([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*\)",
             # 通道操作 - 优化通道操作匹配，包括发送和接收
@@ -298,9 +304,15 @@ class GoHandler(LanguageHandler):
             "format_verbs": {
                 "foreground": "#A31515",  # 深红色
             },
-            # 操作符 - 黑色，保持原色
+            # 操作符 - 灰色，更加柔和
             "operators": {
-                "foreground": "#000000",  # 黑色
+                "foreground": "#808080",  # 灰色
+            },
+            # := 操作符样式 - 使用更醒目的颜色
+            "walrus_operator": {"foreground": "#808080"},  # 灰色
+            # 标识符 - 深蓝色，与其他标识符类型保持一致
+            "identifiers": {
+                "foreground": "#001080",  # 深蓝色
             },
             # 类型断言 - 深蓝色，使用更鲜艳的色调
             "type_assertions": {
