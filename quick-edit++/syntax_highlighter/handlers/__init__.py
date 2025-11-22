@@ -29,7 +29,6 @@ from .gitignore_handler import GitIgnoreHandler
 from .log_handler import LogHandler
 from .lua_handler import LuaHandler
 from .java_handler import JavaHandler
-from .php_handler import PHPHandler
 from .csv_handler import CSVHandler
 from .vim_handler import VimHandler
 
@@ -57,7 +56,6 @@ __all__ = [
     "LogHandler",
     "LuaHandler",
     "JavaHandler",
-    "PHPHandler",
     "CSVHandler",
     "VimHandler",
 ]

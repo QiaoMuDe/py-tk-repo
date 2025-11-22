@@ -39,7 +39,6 @@ from .handlers.gitignore_handler import GitIgnoreHandler
 from .handlers.log_handler import LogHandler
 from .handlers.lua_handler import LuaHandler
 from .handlers.java_handler import JavaHandler
-from .handlers.php_handler import PHPHandler
 from .handlers.csv_handler import CSVHandler
 from .handlers.vim_handler import VimHandler
 from .handlers.auto_handler import AutoHandler
@@ -205,11 +204,6 @@ class SyntaxHighlighter:
         java_handler = JavaHandler()
         for ext in java_handler.get_file_extensions():
             self.register_language(ext, java_handler)
-
-        # 注册PHP处理器
-        php_handler = PHPHandler()
-        for ext in php_handler.get_file_extensions():
-            self.register_language(ext, php_handler)
 
         # 注册CSV处理器
         csv_handler = CSVHandler()
