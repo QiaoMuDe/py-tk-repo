@@ -40,22 +40,28 @@ class LogHandler(LanguageHandler):
         """
         # 定义模式处理顺序，确保字符串和注释有正确的优先级
         self._pattern_order = [
-            "string",  # 字符串放在第一位，确保优先匹配
-            "comment",  # 注释放在第二位
             "timestamp",  # 时间戳
             "log_level",  # 日志级别
+            "thread_id",  # 线程ID/进程ID
+            "class_name",  # 类名/模块名
+            "method_name",  # 方法名
+            "file_location",  # 文件名和行号
             "ip_address",  # IP地址
             "url",  # URL
-            "file_path",  # 文件路径
-            "error_code",  # 错误代码
-            "exception",  # 异常信息
+            "exception_type",  # 异常/错误类型
             "stack_trace",  # 堆栈跟踪
-            "key_value",  # 键值对
-            "json",  # JSON数据
-            "xml",  # XML数据
+            "structured_data",  # JSON/XML内容
+            "custom_marker",  # 用户自定义标记
+            "hex_value",  # 十六进制值
             "number",  # 数字
+            "http_status",  # HTTP状态码
+            "http_method",  # HTTP方法
+            "sql_query",  # 数据库查询语句
+            "file_path",  # 文件路径
+            "mac_address",  # MAC地址
             "uuid",  # UUID
-            "hash",  # 哈希值
+            "performance_metric",  # 性能指标
+            "username",  # 用户名
         ]
         # 日志文件的关键字
         self._keywords = [

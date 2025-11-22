@@ -39,18 +39,33 @@ class MarkdownHandler(LanguageHandler):
         """设置Markdown语言的语法规则"""
         # 定义模式处理顺序，确保字符串和注释有正确的优先级
         self._pattern_order = [
-            "strings",  # 字符串放在第一位，确保优先匹配
-            "comments",  # 注释放在第二位
-            "code_blocks",  # 代码块
+            "frontmatter",  # 前置元数据
+            "math_blocks",  # 数学公式块
+            "mermaid",  # Mermaid图表
+            "comments",  # HTML注释
             "inline_code",  # 行内代码
-            "headings",  # 标题
-            "emphasis",  # 强调
-            "strong_emphasis",  # 强强调
-            "links",  # 链接
+            "inline_math",  # 行内数学公式
             "images",  # 图片
-            "lists",  # 列表
-            "blockquotes",  # 引用
+            "links",  # 链接
+            "reference_links",  # 引用式链接
+            "link_definitions",  # 引用式链接定义
+            "bold",  # 粗体
+            "strikethrough",  # 删除线
+            "highlight",  # 强调
+            "superscript",  # 上标
+            "subscript",  # 下标
+            "autolinks",  # 自动链接
+            "headers",  # 标题
             "horizontal_rules",  # 水平线
+            "quotes",  # 引用块
+            "table_separators",  # 表格分隔符
+            "tables",  # 表格
+            "task_lists",  # 任务列表
+            "unordered_lists",  # 无序列表
+            "ordered_lists",  # 有序列表
+            "definition_lists",  # 定义列表
+            "footnotes",  # 脚注定义
+            "footnote_refs",  # 脚注引用
             "html_tags",  # HTML标签
         ]
         # Markdown特殊元素

@@ -38,14 +38,11 @@ class JSONHandler(LanguageHandler):
         """
         # 定义模式处理顺序，确保字符串和注释有正确的优先级
         self._pattern_order = [
-            "string",  # 字符串放在第一位，确保优先匹配
-            "comment",  # 注释放在第二位
-            "number",  # 数字
-            "boolean",  # 布尔值
-            "null",  # null值
-            "key",  # JSON键
-            "separator",  # 分隔符
-            "whitespace",  # 空白字符
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "keywords",  # 关键字
+            "numbers",  # 数字
+            "punctuation",  # 标点符号
         ]
         # JSON关键字
         self._keywords = ["true", "false", "null"]

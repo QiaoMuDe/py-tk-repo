@@ -47,19 +47,14 @@ class IniTomlHandler(LanguageHandler):
         """
         # 定义模式处理顺序，确保字符串和注释有正确的优先级
         self._pattern_order = [
-            "string",  # 字符串放在第一位，确保优先匹配
-            "comment",  # 注释放在第二位
-            "section",  # 节标题
-            "key",  # 键名
-            "value",  # 值
-            "boolean",  # 布尔值
-            "number",  # 数字
-            "date",  # 日期时间
-            "array",  # 数组
-            "inline_table",  # 内联表
-            "multiline_string",  # 多行字符串
-            "raw_string",  # 原始字符串
-            "operator",  # 操作符
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "sections",  # 节标题
+            "keys",  # 键名
+            "booleans",  # 布尔值
+            "numbers",  # 数字
+            "dates",  # 日期时间
+            "punctuation",  # 标点符号
         ]
         # INI/TOML关键字（实际上INI/TOML没有太多关键字，主要是保留字）
         self._keywords = []

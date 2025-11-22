@@ -33,16 +33,18 @@ class MakefileHandler(LanguageHandler):
         """设置Makefile语言的语法规则"""
         # 定义模式处理顺序，确保字符串和注释有正确的优先级
         self._pattern_order = [
-            "strings",  # 字符串放在第一位，确保优先匹配
-            "comments",  # 注释放在第二位
-            "variables",  # 变量定义
-            "targets",  # 目标定义
-            "prerequisites",  # 依赖项
-            "commands",  # 命令
-            "keywords",  # 关键字
-            "functions",  # 内置函数
-            "operators",  # 操作符
-            "numbers",  # 数字
+            "string",  # 字符串放在第一位，确保优先匹配
+            "comment",  # 注释放在第二位
+            "variable",  # 变量引用
+            "target",  # 目标定义
+            "command",  # 命令
+            "phony",  # 伪目标声明
+            "assignment",  # 变量赋值
+            "autovar",  # 自动变量
+            "function",  # 内置函数
+            "special_target",  # 特殊目标
+            "pattern",  # 模式规则
+            "number",  # 数字
         ]
         # Makefile内置函数和关键字
         self._keywords = [
