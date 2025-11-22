@@ -15,9 +15,12 @@ from loguru import logger
 APP_VERSION = "v0.0.24"  # 版本号
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"  # 项目地址
 
-# 默认配置文件路径：用户家目录下的.QuickEditPlus.json
-CONFIG_FILE_NAME = ".QuickEditPlus.json"
-CONFIG_PATH = os.path.join(str(Path.home()), CONFIG_FILE_NAME)
+# 创建应用程序配置目录
+APP_CONFIG_DIR = os.path.join(str(Path.home()), ".QuickEditPlus")
+
+# 默认配置文件路径: 配置目录下的config.json
+CONFIG_FILE_NAME = "config.json"
+CONFIG_PATH = os.path.join(APP_CONFIG_DIR, CONFIG_FILE_NAME)
 
 # 默认配置字段
 DEFAULT_CONFIG = {
@@ -105,7 +108,9 @@ DEFAULT_CONFIG = {
     },
     # 日志配置
     "logging": {
-        "log_dir": "logs",  # 日志目录
+        "log_dir": os.path.join(
+            APP_CONFIG_DIR, "logs"
+        ),  # 日志目录：配置目录下的logs子目录
         "log_file": "app.log",  # 日志文件名
         "log_level": "WARNING",  # 日志级别: DEBUG, INFO, WARNING, ERROR, CRITICAL
         "rotation_size": "5 MB",  # 日志文件旋转大小
@@ -166,12 +171,16 @@ class ConfigManager:
             dict: 配置字典
 
         说明：
+            - 如果配置目录不存在，先创建配置目录
             - 如果配置文件不存在，先保存默认配置，然后返回默认配置
             - 如果配置文件存在但解析失败，返回默认配置
         """
+        # 确保配置目录存在
+        if not os.path.exists(APP_CONFIG_DIR):
+            os.makedirs(APP_CONFIG_DIR, exist_ok=True)
+
         # 检查配置文件是否存在
         if not os.path.exists(CONFIG_PATH):
-            logger.info(f"配置文件不存在，创建默认配置文件: {CONFIG_PATH}")
             # 保存默认配置
             self.save_config(DEFAULT_CONFIG)
             return DEFAULT_CONFIG.copy()
@@ -203,15 +212,15 @@ class ConfigManager:
             bool: 是否保存成功
 
         说明：
-            - 确保配置文件所在目录存在
+            - 确保配置目录存在
             - 使用UTF-8编码保存
         """
         try:
             # 使用传入的配置或当前配置
             config_to_save = config if config is not None else self.config
 
-            # 确保用户家目录存在（理论上总是存在的）
-            os.makedirs(str(Path.home()), exist_ok=True)
+            # 确保配置目录存在
+            os.makedirs(APP_CONFIG_DIR, exist_ok=True)
 
             # 保存配置文件
             with open(CONFIG_PATH, "w", encoding="utf-8") as f:

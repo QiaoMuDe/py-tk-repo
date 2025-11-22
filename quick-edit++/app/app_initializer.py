@@ -8,7 +8,7 @@
 
 import customtkinter as ctk
 import tkinter as tk
-from config.config_manager import config_manager
+from config.config_manager import config_manager, APP_CONFIG_DIR
 from ui.menu import create_menu
 from ui.toolbar import Toolbar
 from ui.status_bar import StatusBar
@@ -386,6 +386,7 @@ class AppInitializer:
         )
         logger.info("logger initialized successfully!")
         logger.info(f"log file path: {log_path}")
+        logger.info(f"config directory: {APP_CONFIG_DIR}")
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""
