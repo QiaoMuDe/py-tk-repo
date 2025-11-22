@@ -546,6 +546,8 @@ class FindReplaceEngine:
                 self.current_match = matches[0]
                 # 滚动到第一个匹配项
                 self.text_widget.see(matches[0][0])
+                # 移动光标到第一个匹配项
+                self.text_widget.mark_set(tk.INSERT, matches[0][0])
 
         return matches
 

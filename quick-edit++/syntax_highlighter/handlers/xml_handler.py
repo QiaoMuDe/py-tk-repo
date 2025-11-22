@@ -120,3 +120,27 @@ class XMLHandler(LanguageHandler):
                 "foreground": "#000000",
             },
         }
+
+        # 自定义模式处理顺序 - 确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串优先，避免被其他模式覆盖
+            "comments",  # 注释次优先
+            "cdata",  # CDATA部分
+            "processing_instructions",  # 处理指令
+            "doctype",  # 文档类型声明
+            "tags",  # XML标签
+            "attributes",  # 属性名
+            "attribute_values",  # 属性值
+            "namespaces",  # 命名空间
+            "entities",  # XML实体
+            "text_content",  # 文本内容
+        ]
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

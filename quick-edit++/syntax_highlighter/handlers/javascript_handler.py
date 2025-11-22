@@ -33,7 +33,24 @@ class JavaScriptHandler(LanguageHandler):
         return "javascript"
 
     def _setup_language(self):
-        """设置JavaScript语言的语法规则"""
+        """
+        设置JavaScript语言的语法规则
+        """
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "regex",  # 正则表达式放在第三位
+            "template_variables",  # 模板变量
+            "keywords",  # 关键字
+            "builtins",  # 内置对象和函数
+            "numbers",  # 数字
+            "functions",  # 函数定义
+            "variables",  # 变量
+            "operators",  # 操作符
+            "jsx_tags",  # JSX标签
+            "decorators",  # 装饰器
+        ]
         # JavaScript关键字
         self._keywords = [
             # 控制流关键字
@@ -244,3 +261,12 @@ class JavaScriptHandler(LanguageHandler):
                 "foreground": "#FF8C00",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表，确保字符串和注释有正确的优先级
+        """
+        return self._pattern_order

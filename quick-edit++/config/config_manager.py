@@ -105,6 +105,7 @@ DEFAULT_CONFIG = {
         "max_lines_per_highlight": 1000,  # 渲染全部时的最大行数限制
         "disable_highlight_file_size": 1048576,  # 禁用语法高亮的文件大小阈值 (1MB)
         "debounce_delay": 100,  # 语法高亮防抖延迟时间 (毫秒)
+        "visible_line_context": 10,  # 可见行模式下，上下扩展的行数
     },
     # 日志配置
     "logging": {

@@ -32,8 +32,32 @@ class HTMLHandler(LanguageHandler):
         """
         return "html"
 
+    def get_pattern_order(self):
+        """
+        获取模式处理顺序
+
+        Returns:
+            list: 模式处理顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置HTML语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "doctype",  # DOCTYPE声明
+            "cdata",  # CDATA部分
+            "tags",  # HTML标签
+            "keywords",  # HTML关键字
+            "attributes",  # 属性
+            "attribute_values",  # 属性值
+            "css_styles",  # CSS样式
+            "javascript",  # JavaScript代码
+            "entities",  # HTML实体
+        ]
+
         # HTML关键字
         self._keywords = [
             # 文档结构

@@ -41,6 +41,27 @@ class LuaHandler(LanguageHandler):
         """
         设置Lua脚本的语法高亮规则
         """
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "string",  # 字符串放在第一位，确保优先匹配
+            "multiline_string",  # 多行字符串放在第二位
+            "comment",  # 单行注释放在第三位
+            "multiline_comment",  # 多行注释放在第四位
+            "number",  # 数字
+            "hex_number",  # 十六进制数字
+            "boolean",  # 布尔值
+            "nil",  # nil值
+            "function_def",  # 函数定义
+            "function_call",  # 函数调用
+            "property_access",  # 属性访问
+            "table_def",  # 表定义
+            "local_var",  # 局部变量
+            "global_var",  # 全局变量
+            "operator",  # 操作符
+            "label",  # 标签
+            "goto",  # goto
+            "vararg",  # 变长参数
+        ]
         # Lua关键字
         self._keywords = [
             # 基本关键字
@@ -269,11 +290,9 @@ class LuaHandler(LanguageHandler):
         self._tag_styles = {
             "comment": {
                 "foreground": "#6A9955",
-                "font": "italic",
             },  # 绿色斜体用于单行注释
             "multiline_comment": {
                 "foreground": "#6A9955",
-                "font": "italic",
             },  # 绿色斜体用于多行注释
             "string": {"foreground": "#CE9178"},  # 橙色用于字符串
             "multiline_string": {"foreground": "#CE9178"},  # 橙色用于多行字符串
@@ -283,7 +302,6 @@ class LuaHandler(LanguageHandler):
             "nil": {"foreground": "#569CD6"},  # 蓝色用于nil值
             "function_def": {
                 "foreground": "#DCDCAA",
-                "font": "bold",
             },  # 浅黄色粗体用于函数定义
             "function_call": {"foreground": "#DCDCAA"},  # 浅黄色用于函数调用
             "property_access": {"foreground": "#9CDCFE"},  # 浅蓝色用于属性访问
@@ -295,3 +313,12 @@ class LuaHandler(LanguageHandler):
             "goto": {"foreground": "#FF7700"},  # 橙色用于goto
             "vararg": {"foreground": "#FF7700"},  # 橙色用于变长参数
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表，确保字符串和注释有正确的优先级
+        """
+        return self._pattern_order

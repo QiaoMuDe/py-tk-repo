@@ -32,8 +32,35 @@ class CSSHandler(LanguageHandler):
         """
         return "css"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则名称的列表，按照执行顺序排列
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置CSS语言的语法规则"""
+
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "strings",  # 字符串 - 引号中的字符串
+            "comments",  # 注释 - CSS注释
+            "selectors",  # 选择器 - 包括元素选择器、类选择器、ID选择器等
+            "keywords",  # 关键字 - CSS属性
+            "pseudo_classes",  # 伪类和伪元素
+            "colors",  # 颜色 - 十六进制、RGB、RGBA、HSL、HSLA颜色
+            "urls",  # URL - url()函数
+            "numbers",  # 数字 - 包括整数和浮点数
+            "units",  # 单位 - CSS单位
+            "important",  # 重要标记 - !important
+            "media_queries",  # 媒体查询 - @media
+            "at_rules",  # @规则 - @import, @charset等
+            "functions",  # 函数 - calc(), attr(), var()等
+            "values",  # 属性值 - 包括颜色、尺寸等
+        ]
 
         # CSS关键字
         self._keywords = [

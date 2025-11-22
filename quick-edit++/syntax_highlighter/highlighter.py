@@ -7,10 +7,9 @@
 提供语法高亮的核心功能, 包括与Text组件的交互和高亮逻辑
 """
 
-import re
+import bisect
 import tkinter as tk
-from tkinter import ttk
-from typing import Dict, Optional, Any
+from typing import Optional
 from pathlib import Path
 import os
 
@@ -76,6 +75,8 @@ class SyntaxHighlighter:
         self.max_lines_per_highlight = syntax_config.get(
             "max_lines_per_highlight", 1000
         )
+        # 可见行模式下，上下扩展的行数
+        self.visible_line_context = syntax_config.get("visible_line_context", 10)
 
         # 内部状态
         self.language_handlers = {}  # 存储不同语言的处理器
@@ -487,7 +488,7 @@ class SyntaxHighlighter:
 
     def _get_visible_line_range(self):
         """
-        获取当前可见的行范围
+        获取当前可见的行范围（包含上下文扩展）
 
         Returns:
             tuple: (first_line, last_line) 可见行的起始和结束行号
@@ -499,6 +500,10 @@ class SyntaxHighlighter:
         # 扩展范围以确保覆盖所有可见内容
         first_line = int(first_visible.split(".")[0])
         last_line = int(last_visible.split(".")[0]) + 1
+
+        # 添加上下文扩展行数
+        first_line -= self.visible_line_context
+        last_line += self.visible_line_context
 
         # 确保范围有效
         if first_line < 1:
@@ -544,6 +549,48 @@ class SyntaxHighlighter:
         # 高亮指定范围, 使用+1确保最后一行也被包含
         self._highlight_range_with_handler("1.0", f"{max_lines}.end", handler)
 
+    def _overlaps(self, interval, start, end):
+        """
+        检查两个区间是否重叠
+
+        Args:
+            interval: 已存在的区间 (start, end)
+            start: 新区间的起始位置
+            end: 新区间的结束位置
+
+        Returns:
+            bool: 如果重叠返回True，否则返回False
+        """
+        return not (end <= interval[0] or start >= interval[1])
+
+    def _add_highlight_range(self, highlighted_ranges, start, end):
+        """
+        添加高亮区域，如果无重叠
+
+        Args:
+            highlighted_ranges: 已高亮的区域列表，按起始位置排序
+            start: 新区间的起始位置
+            end: 新区间的结束位置
+
+        Returns:
+            bool: 如果成功添加返回True，如果重叠则返回False
+        """
+        # 使用二分查找找到插入位置
+        i = bisect.bisect_left(highlighted_ranges, (start, end))
+
+        # 只需检查前一个和后一个区间是否重叠
+        if i > 0 and self._overlaps(highlighted_ranges[i - 1], start, end):
+            return False
+
+        if i < len(highlighted_ranges) and self._overlaps(
+            highlighted_ranges[i], start, end
+        ):
+            return False
+
+        # 插入新区间
+        bisect.insort(highlighted_ranges, (start, end))
+        return True
+
     def _highlight_range_with_handler(self, start_index: str, end_index: str, handler):
         """
         使用指定处理器高亮指定范围的文本 (优化版本)
@@ -571,8 +618,8 @@ class SyntaxHighlighter:
         # 收集所有标签位置, 用于批量应用
         tag_ranges = {}
 
-        # 收集已高亮的区域，用于后续模式检查
-        highlighted_ranges = []
+        # 使用bisect优化的已高亮区域列表，按起始位置排序
+        highlighted_ranges = []  # [(start, end), ...]
 
         # 按照处理器定义的顺序处理模式
         for tag_name in handler.get_pattern_order():
@@ -595,21 +642,14 @@ class SyntaxHighlighter:
                     start_offset = match.start()
                     end_offset = match.end()
 
-                    overlaps = False
-                    for hl_start, hl_end in highlighted_ranges:
-                        if not (end_offset <= hl_start or start_offset >= hl_end):
-                            overlaps = True
-                            break
-
-                    # 如果重叠，则跳过此匹配
-                    if overlaps:
+                    # 使用优化的重叠检查
+                    if not self._add_highlight_range(
+                        highlighted_ranges, start_offset, end_offset
+                    ):
                         continue
 
                     # 添加到高亮范围
                     tag_ranges[full_tag_name].append((start_pos, end_pos))
-
-                    # 记录此区域以供后续检查
-                    highlighted_ranges.append((start_offset, end_offset))
 
             except Exception as e:
                 # 如果匹配过程中出错, 跳过该模式

@@ -38,8 +38,47 @@ class GoHandler(LanguageHandler):
         """
         return "go"
 
+    def get_pattern_order(self):
+        """
+        获取模式处理顺序
+
+        Returns:
+            list: 模式处理顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置Go语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "numbers",  # 数字
+            "keywords",  # 关键字
+            "builtins",  # 内置类型和函数
+            "packages",  # 常用包
+            "functions",  # 函数定义
+            "method_calls",  # 方法调用
+            "struct_fields",  # 结构体字段
+            "interface_methods",  # 接口方法
+            "tags",  # 标签
+            "imports",  # 包导入
+            "format_verbs",  # 格式化动词
+            "operators",  # 操作符
+            "type_assertions",  # 类型断言
+            "channel_ops",  # 通道操作
+            "type_parameters",  # 泛型类型参数
+            "generic_instantiation",  # 泛型实例化
+            "goroutines",  # Goroutine
+            "select_statements",  # Select语句
+            "defer_statements",  # Defer语句
+            "constants",  # 常量定义
+            "variables",  # 变量定义
+            "type_definitions",  # 类型定义
+            "interface_definitions",  # 接口定义
+            "struct_definitions",  # 结构体定义
+        ]
+
         # Go关键字 - 按功能分类组织
         self._keywords = [
             # 控制流关键字
@@ -215,23 +254,23 @@ class GoHandler(LanguageHandler):
             "strings": {
                 "foreground": "#A31515",  # 深红色
             },
-            # 数字 - 深绿色，使用更鲜明的色调
+            # 数字 - 深绿色，使用更鲜艳的色调
             "numbers": {
                 "foreground": "#098658",  # 深绿色
             },
-            # 关键字 - 深蓝色，使用更醒目的色调
+            # 关键字 - 深蓝色，使用更鲜艳的色调
             "keywords": {
                 "foreground": "#0000FF",  # 深蓝色
             },
-            # 内置类型和函数 - 深青色，使用更鲜明的色调
+            # 内置类型和函数 - 深青色，使用更鲜艳的色调
             "builtins": {
                 "foreground": "#008080",  # 深青色
             },
-            # 常用包 - 紫色，使用更鲜明的色调
+            # 常用包 - 紫色，使用更鲜艳的色调
             "packages": {
                 "foreground": "#800080",  # 紫色
             },
-            # 函数定义 - 深紫色，使用更鲜明的色调
+            # 函数定义 - 深紫色，使用更鲜艳的色调
             "functions": {
                 "foreground": "#795E26",  # 深棕色
             },
@@ -239,11 +278,11 @@ class GoHandler(LanguageHandler):
             "method_calls": {
                 "foreground": "#FF6B35",  # 深橙色
             },
-            # 结构体字段 - 深青色，使用更鲜明的色调
+            # 结构体字段 - 深青色，使用更鲜艳的色调
             "struct_fields": {
                 "foreground": "#001080",  # 深蓝色
             },
-            # 接口方法 - 深蓝绿色，使用更鲜明的色调
+            # 接口方法 - 深蓝绿色，使用更鲜艳的色调
             "interface_methods": {
                 "foreground": "#008B8B",  # 深蓝绿色
             },
@@ -251,11 +290,11 @@ class GoHandler(LanguageHandler):
             "tags": {
                 "foreground": "#CE9178",  # 浅棕色
             },
-            # 包导入 - 深蓝色，使用更鲜明的色调
+            # 包导入 - 深蓝色，使用更鲜艳的色调
             "imports": {
                 "foreground": "#0000CD",  # 深蓝色
             },
-            # 格式化动词 - 深红色，使用更鲜明的色调
+            # 格式化动词 - 深红色，使用更鲜艳的色调
             "format_verbs": {
                 "foreground": "#A31515",  # 深红色
             },
@@ -263,11 +302,11 @@ class GoHandler(LanguageHandler):
             "operators": {
                 "foreground": "#000000",  # 黑色
             },
-            # 类型断言 - 深蓝色，使用更鲜明的色调
+            # 类型断言 - 深蓝色，使用更鲜艳的色调
             "type_assertions": {
                 "foreground": "#0000FF",  # 深蓝色
             },
-            # 通道操作 - 深蓝色，使用更鲜明的色调
+            # 通道操作 - 深蓝色，使用更鲜艳的色调
             "channel_ops": {
                 "foreground": "#0000FF",  # 深蓝色
             },

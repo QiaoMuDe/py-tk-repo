@@ -32,21 +32,36 @@ class IniTomlHandler(LanguageHandler):
         """
         return "ini_toml"
 
+    def get_pattern_order(self):
+        """
+        获取模式处理顺序
+
+        Returns:
+            list: 模式处理顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """
-        设置INI/TOML语言的语法规则
-
-        实现了对INI和TOML共同元素的识别:
-        - 注释（INI: ;，TOML: #）
-        - 字符串（单引号和双引号）
-        - 章节（INI: [Section], TOML: [Section], [Section.Sub], [[Array]]）
-        - 日期时间（TOML）
-        - 布尔值（TOML）
-        - 数字
-        - 键名
-        - 标点符号
+        设置INI/TOML语言的语法高亮规则
         """
-        # 关键字列表（INI无关键字，TOML关键字由其他模式处理）
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "string",  # 字符串放在第一位，确保优先匹配
+            "comment",  # 注释放在第二位
+            "section",  # 节标题
+            "key",  # 键名
+            "value",  # 值
+            "boolean",  # 布尔值
+            "number",  # 数字
+            "date",  # 日期时间
+            "array",  # 数组
+            "inline_table",  # 内联表
+            "multiline_string",  # 多行字符串
+            "raw_string",  # 原始字符串
+            "operator",  # 操作符
+        ]
+        # INI/TOML关键字（实际上INI/TOML没有太多关键字，主要是保留字）
         self._keywords = []
 
         # 正则表达式模式

@@ -38,6 +38,25 @@ class LogHandler(LanguageHandler):
         """
         设置日志文件的语法高亮规则
         """
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "string",  # 字符串放在第一位，确保优先匹配
+            "comment",  # 注释放在第二位
+            "timestamp",  # 时间戳
+            "log_level",  # 日志级别
+            "ip_address",  # IP地址
+            "url",  # URL
+            "file_path",  # 文件路径
+            "error_code",  # 错误代码
+            "exception",  # 异常信息
+            "stack_trace",  # 堆栈跟踪
+            "key_value",  # 键值对
+            "json",  # JSON数据
+            "xml",  # XML数据
+            "number",  # 数字
+            "uuid",  # UUID
+            "hash",  # 哈希值
+        ]
         # 日志文件的关键字
         self._keywords = [
             # 标准日志级别
@@ -213,3 +232,12 @@ class LogHandler(LanguageHandler):
             # 新增：用户名
             "username": {"foreground": "#27AE60"},  # 绿色用于用户名
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表，确保字符串和注释有正确的优先级
+        """
+        return self._pattern_order

@@ -34,6 +34,24 @@ class TypeScriptHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置TypeScript语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "keywords",  # 关键字
+            "builtins",  # 内置对象和函数
+            "numbers",  # 数字
+            "regex",  # 正则表达式
+            "functions",  # 函数定义
+            "variables",  # 变量
+            "operators",  # 操作符
+            "template_variables",  # 模板字符串变量
+            "tsx_tags",  # TSX标签
+            "type_annotations",  # 类型注解
+            "decorators",  # 装饰器
+            "generics",  # 泛型
+        ]
+
         # TypeScript关键字
         self._keywords = [
             # JavaScript关键字
@@ -296,3 +314,12 @@ class TypeScriptHandler(LanguageHandler):
                 "foreground": "#008B8B",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

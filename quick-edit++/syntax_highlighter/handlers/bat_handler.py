@@ -34,8 +34,38 @@ class BatHandler(LanguageHandler):
         """
         return "bat"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则的执行顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置Bat脚本的语法规则"""
+
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "strings",  # 字符串 - 包括双引号字符串，增强转义支持
+            "comments",  # 注释 - 从rem或::开始到行尾，改进匹配
+            "keywords",  # 关键字 - 使用单词边界确保匹配完整单词
+            "builtins",  # 内置命令
+            "variables",  # 变量 - %开头，增强匹配
+            "environment_vars",  # 环境变量 - 以%开头和结尾
+            "labels",  # 标签 - :开头，增强匹配
+            "numbers",  # 数字 - 包括整数、浮点数、十六进制
+            "conditional",  # 条件表达式
+            "loop",  # 循环表达式
+            "function_call",  # 函数调用
+            "command_args",  # 命令参数 - 以/开头的参数
+            "redirection",  # 重定向操作符
+            "pipe",  # 管道操作符
+            "operators",  # 操作符
+            "paths",  # 路径 - 以\开头或包含\的字符串，增强匹配
+        ]
+
         # Bat关键字
         self._keywords = [
             # 控制流关键字

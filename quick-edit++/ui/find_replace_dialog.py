@@ -488,8 +488,12 @@ class FindReplaceDialog:
         # 使用查找替换引擎查找所有匹配项
         matches = self.find_replace_engine.find_all(find_text, search_options)
 
-        # 显示查找结果
+        # 如果找到匹配项，更新行号和语法高亮
         if matches:
+            # 更新行号和语法高亮
+            self._update_line_numbers_and_syntax_highlighting()
+
+            # 显示查找结果
             self._show_message("查找结果", f"找到 {len(matches)} 个匹配项")
         else:
             self._show_message("查找结果", "未找到匹配项")

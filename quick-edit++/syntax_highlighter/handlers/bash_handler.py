@@ -34,8 +34,39 @@ class BashHandler(LanguageHandler):
         """
         return "bash"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则的执行顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置Bash语言的语法规则"""
+
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "strings",  # 字符串 - 包括单引号、双引号字符串，支持转义字符
+            "comments",  # 注释 - 从#开始到行尾，但排除字符串中的#
+            "heredoc",  # Here文档 - <<和<<-
+            "keywords",  # 关键字 - 使用单词边界确保匹配完整单词
+            "builtins",  # 内置命令
+            "functions",  # 函数定义 - function关键字或函数名后的括号
+            "variables",  # 变量 - $开头的变量，包括位置参数、特殊参数、数组
+            "parameter_expansion",  # 参数扩展 - ${param#word}, ${param%word}等
+            "array_index",  # 数组索引 - ${array[index]}
+            "numbers",  # 数字 - 包括整数、浮点数、十六进制、八进制
+            "arithmetic",  # 算术表达式 - $((...))和((...))
+            "conditional",  # 条件表达式 - [[...]]和[...]
+            "command_substitution",  # 命令替换 - $(...)和`...`
+            "process_substitution",  # 进程替换 - <(...)和>(...)
+            "redirection",  # 重定向操作符
+            "operators",  # 操作符 - 扩展操作符匹配
+            "paths",  # 路径 - 以/开头或包含/的字符串，包括~家目录
+            "wildcards",  # 通配符模式
+        ]
 
         # Bash关键字 - 扩展以支持更多控制流和高级特性
         self._keywords = [

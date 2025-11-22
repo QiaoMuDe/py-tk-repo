@@ -35,6 +35,18 @@ class PythonHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置Python语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "keywords",  # 关键字
+            "builtins",  # 内置函数
+            "numbers",  # 数字
+            "functions",  # 函数定义
+            "decorators",  # 装饰器
+            "operators",  # 操作符
+        ]
+
         # Python关键字
         self._keywords = [
             # 控制流关键字
@@ -202,3 +214,12 @@ class PythonHandler(LanguageHandler):
                 "foreground": "#000000",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

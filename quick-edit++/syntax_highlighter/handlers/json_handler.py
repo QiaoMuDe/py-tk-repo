@@ -33,7 +33,20 @@ class JSONHandler(LanguageHandler):
         return "json"
 
     def _setup_language(self):
-        """设置JSON语言的语法规则"""
+        """
+        设置JSON文件的语法高亮规则
+        """
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "string",  # 字符串放在第一位，确保优先匹配
+            "comment",  # 注释放在第二位
+            "number",  # 数字
+            "boolean",  # 布尔值
+            "null",  # null值
+            "key",  # JSON键
+            "separator",  # 分隔符
+            "whitespace",  # 空白字符
+        ]
         # JSON关键字
         self._keywords = ["true", "false", "null"]
 
@@ -76,3 +89,12 @@ class JSONHandler(LanguageHandler):
                 "foreground": "#00AA00",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表，确保字符串和注释有正确的优先级
+        """
+        return self._pattern_order

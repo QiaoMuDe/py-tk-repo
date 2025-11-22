@@ -1028,7 +1028,7 @@ def toggle_syntax_highlight(root, switch_state=True):
 
     # 更新文件信息
     root.status_bar.update_file_info()
-    
+
     # 显示通知
     root.status_bar.show_notification(
         f"语法高亮已{'启用' if new_state else '禁用'}", 500

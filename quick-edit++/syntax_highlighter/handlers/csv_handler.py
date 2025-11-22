@@ -33,8 +33,32 @@ class CSVHandler(LanguageHandler):
         """
         return "csv"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则名称的列表，按照执行顺序排列
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置CSV语言的语法规则"""
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "quoted_fields",  # 引号包围的字段 - 双引号或单引号
+            "url",  # URL链接
+            "email",  # 邮箱地址
+            "datetime",  # 日期时间
+            "boolean_values",  # 布尔值
+            "number_fields",  # 数字字段 - 纯数字
+            "empty_fields",  # 空字段
+            "comma_separators",  # 逗号分隔符 - CSV字段分隔符
+            "tab_separators",  # 制表符分隔符 - TSV字段分隔符
+            "semicolon_separators",  # 分号分隔符 - 某些CSV格式使用分号
+            "pipe_separators",  # 管道分隔符 - 某些分隔文件使用管道符
+        ]
+
         # CSV没有关键字，但可以有一些常见的标识符
         self._keywords = []
 

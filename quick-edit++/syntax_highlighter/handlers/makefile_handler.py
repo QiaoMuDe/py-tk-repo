@@ -30,9 +30,20 @@ class MakefileHandler(LanguageHandler):
         return "makefile"
 
     def _setup_language(self):
-        """
-        设置Makefile语言的语法高亮规则
-        """
+        """设置Makefile语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "variables",  # 变量定义
+            "targets",  # 目标定义
+            "prerequisites",  # 依赖项
+            "commands",  # 命令
+            "keywords",  # 关键字
+            "functions",  # 内置函数
+            "operators",  # 操作符
+            "numbers",  # 数字
+        ]
         # Makefile内置函数和关键字
         self._keywords = [
             "include",
@@ -127,3 +138,12 @@ class MakefileHandler(LanguageHandler):
             "special_target": {"foreground": "#C586C0"},  # 紫色用于特殊目标
             "pattern": {"foreground": "#569CD6"},  # 蓝色用于模式规则
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

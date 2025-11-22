@@ -33,10 +33,45 @@ class JavaHandler(LanguageHandler):
         """
         return "java"
 
+    def get_pattern_order(self):
+        """
+        获取模式处理顺序
+
+        Returns:
+            list: 模式处理顺序列表
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """
         设置Java语言的语法高亮规则
         """
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "string",  # 字符串放在第一位，确保优先匹配
+            "char",  # 字符放在第二位
+            "comment",  # 单行注释放在第三位
+            "multiline_comment",  # 多行注释放在第四位
+            "javadoc_comment",  # JavaDoc注释放在第五位
+            "number",  # 数字
+            "hex_number",  # 十六进制数字
+            "binary_number",  # 二进制数字
+            "octal_number",  # 八进制数字
+            "boolean",  # 布尔值
+            "null",  # null值
+            "annotation",  # 注解
+            "package_decl",  # 包声明
+            "import_decl",  # 导入声明
+            "class_def",  # 类定义
+            "method_def",  # 方法定义
+            "method_call",  # 方法调用
+            "property_access",  # 属性访问
+            "variable_decl",  # 变量声明
+            "generic",  # 泛型
+            "lambda",  # Lambda表达式
+            "method_ref",  # 方法引用
+            "operator",  # 操作符
+        ]
         # Java关键字
         self._keywords = [
             # 基本关键字
@@ -463,16 +498,13 @@ class JavaHandler(LanguageHandler):
         self._tag_styles = {
             "comment": {
                 "foreground": "#6A9955",
-                "font": "italic",
-            },  # 绿色斜体用于单行注释
+            },  # 绿色用于单行注释
             "multiline_comment": {
                 "foreground": "#6A9955",
-                "font": "italic",
-            },  # 绿色斜体用于多行注释
+            },  # 绿色用于多行注释
             "javadoc_comment": {
                 "foreground": "#6A9955",
-                "font": "italic",
-            },  # 绿色斜体用于JavaDoc注释
+            },  # 绿色用于JavaDoc注释
             "string": {"foreground": "#CE9178"},  # 橙色用于字符串
             "char": {"foreground": "#CE9178"},  # 橙色用于字符
             "number": {"foreground": "#B5CEA8"},  # 浅绿色用于数字
@@ -483,12 +515,10 @@ class JavaHandler(LanguageHandler):
             "null": {"foreground": "#569CD6"},  # 蓝色用于null值
             "class_def": {
                 "foreground": "#569CD6",
-                "font": "bold",
-            },  # 蓝色粗体用于类定义
+            },  # 蓝色用于类定义
             "method_def": {
                 "foreground": "#DCDCAA",
-                "font": "bold",
-            },  # 浅黄色粗体用于方法定义
+            },  # 浅黄色用于方法定义
             "method_call": {"foreground": "#DCDCAA"},  # 浅黄色用于方法调用
             "property_access": {"foreground": "#9CDCFE"},  # 浅蓝色用于属性访问
             "variable_decl": {"foreground": "#C586C0"},  # 紫色用于变量声明

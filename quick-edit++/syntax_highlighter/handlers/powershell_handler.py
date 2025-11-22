@@ -35,6 +35,22 @@ class PowerShellHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置PowerShell语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "block_comments",  # 块注释放在第二位
+            "comments",  # 单行注释放在第三位
+            "keywords",  # 关键字
+            "builtins",  # 内置命令
+            "numbers",  # 数字
+            "variables",  # 变量
+            "types",  # 类型
+            "functions",  # 函数
+            "operators",  # 操作符
+            "paths",  # 路径
+            "parameters",  # 参数
+        ]
+
         # PowerShell关键字
         self._keywords = [
             # 控制流关键字
@@ -268,3 +284,12 @@ class PowerShellHandler(LanguageHandler):
                 "foreground": "#FF8C00",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

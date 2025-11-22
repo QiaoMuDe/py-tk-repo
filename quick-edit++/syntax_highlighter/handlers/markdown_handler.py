@@ -37,6 +37,22 @@ class MarkdownHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置Markdown语言的语法规则"""
+        # 定义模式处理顺序，确保字符串和注释有正确的优先级
+        self._pattern_order = [
+            "strings",  # 字符串放在第一位，确保优先匹配
+            "comments",  # 注释放在第二位
+            "code_blocks",  # 代码块
+            "inline_code",  # 行内代码
+            "headings",  # 标题
+            "emphasis",  # 强调
+            "strong_emphasis",  # 强强调
+            "links",  # 链接
+            "images",  # 图片
+            "lists",  # 列表
+            "blockquotes",  # 引用
+            "horizontal_rules",  # 水平线
+            "html_tags",  # HTML标签
+        ]
         # Markdown特殊元素
         self._keywords = []  # Markdown没有传统意义上的关键字
 
@@ -227,3 +243,12 @@ class MarkdownHandler(LanguageHandler):
                 "foreground": "#0969DA",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        return self._pattern_order

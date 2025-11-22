@@ -41,6 +41,15 @@ class GitIgnoreHandler(LanguageHandler):
         """
         return "gitignore"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则名称的列表，按照执行顺序排列
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """
         设置忽略文件的语法高亮规则
@@ -48,6 +57,20 @@ class GitIgnoreHandler(LanguageHandler):
         # 忽略文件的特殊标记
         self._keywords = [
             # 这些不是传统意义上的关键字，但在这里用于特殊模式的识别
+        ]
+
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "comment",  # 注释 (以#开头的行)
+            "negation",  # 否定模式 (以!开头的行)
+            "directory",  # 目录模式 (以/结尾的行)
+            "absolute",  # 绝对路径模式 (以/开头的行)
+            "wildcard",  # 通配符模式 (包含*或?或[]的行)
+            "double_asterisk",  # 双星号模式 (包含**的特殊通配符)
+            "bracket_pattern",  # 括号模式 (包含字符集[])
+            "brace_pattern",  # 花括号模式 (包含{}，用于扩展模式)
+            "escaped",  # 转义字符 (以\开头的特殊字符)
+            "empty_line",  # 空行 (用于格式化)
         ]
 
         # 正则表达式模式

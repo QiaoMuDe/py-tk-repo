@@ -58,8 +58,52 @@ class AutoHandler(LanguageHandler):
         """
         return "auto"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则名称的列表，按执行顺序排列
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """设置通用语言的语法规则"""
+        # 定义高亮规则执行顺序
+        self._pattern_order = [
+            "strings",  # 字符串 - 最高优先级
+            "comments",  # 注释 - 高优先级
+            "keywords",  # 关键字
+            "numbers",  # 数字
+            "operators",  # 操作符
+            "functions",  # 函数调用
+            "variables",  # 变量赋值
+            "key_value_pairs",  # 键值对
+            "urls",  # URL和链接
+            "emails",  # 邮箱地址
+            "ip_addresses",  # IP地址
+            "mac_addresses",  # MAC地址
+            "timestamps",  # ISO 8601时间戳
+            "dates",  # 简单日期格式
+            "times",  # 时间格式
+            "file_paths",  # 文件路径
+            "url_params",  # URL参数
+            "hex_values",  # 十六进制值
+            "binary_values",  # 二进制值
+            "versions",  # 语义化版本号
+            "git_hashes",  # Git提交哈希
+            "uuids",  # UUID格式
+            "file_sizes",  # 文件大小单位
+            "time_units",  # 时间单位
+            "env_vars",  # 环境变量
+            "log_levels",  # 错误级别
+            "color_codes",  # 颜色代码
+            "arrows",  # 箭头符号
+            "math_symbols",  # 数学符号
+            "md5_hashes",  # MD5哈希
+            "sha_hashes",  # SHA哈希
+        ]
+
         # 常见编程语言关键字（跨语言）
         self._keywords = [
             # 控制流关键字

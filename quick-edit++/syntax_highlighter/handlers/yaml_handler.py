@@ -132,3 +132,29 @@ class YAMLHandler(LanguageHandler):
                 "foreground": "#2F4F4F",
             },
         }
+
+        # 定义模式的处理顺序（确保字符串和注释有正确的优先级）
+        self._pattern_order = [
+            "strings",
+            "comments",
+            "keys",
+            "keywords",
+            "numbers",
+            "booleans",
+            "nulls",
+            "list_items",
+            "anchors",
+            "tags",
+            "block_scalars",
+            "literals",
+        ]
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序列表
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        # 返回自定义的模式处理顺序
+        return self._pattern_order

@@ -29,10 +29,32 @@ class DockerfileHandler(LanguageHandler):
         """
         return "dockerfile"
 
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取高亮规则的执行顺序
+
+        Returns:
+            List[str]: 高亮规则名称的列表，按照执行顺序排列
+        """
+        return self._pattern_order
+
     def _setup_language(self):
         """
         设置Dockerfile语言的语法高亮规则
         """
+        # 定义高亮规则的执行顺序
+        self._pattern_order = [
+            "string",  # 字符串 - 双引号或单引号包围
+            "comment",  # 注释 - 以#开头的行
+            "instruction",  # Dockerfile指令 - 大写字母开头，后跟空格
+            "image",  # 镜像名称 - 在FROM指令后
+            "variable",  # 变量引用 - $VAR或${VAR}
+            "number",  # 数字
+            "key_value_pairs",  # 配置类指令的键值对 - LABEL, ENV, ARG, EXPOSE
+            "health_option",  # 健康检查选项
+            "shell_option",  # Shell选项
+        ]
+
         # Dockerfile指令关键字
         self._keywords = [
             "FROM",
