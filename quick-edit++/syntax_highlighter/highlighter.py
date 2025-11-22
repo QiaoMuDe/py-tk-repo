@@ -90,6 +90,9 @@ class SyntaxHighlighter:
         self._debounce_delay = syntax_config.get(
             "debounce_delay", 100
         )  # 从配置获取防抖延迟时间 (毫秒)
+        
+        # 不需要重叠检查的语言处理器列表
+        self.no_overlap_languages = {"markdown", "html", "xml"}  # 支持嵌套格式的语言
 
         # 注册默认语言处理器
         self._register_default_handlers()
@@ -618,8 +621,12 @@ class SyntaxHighlighter:
         # 收集所有标签位置, 用于批量应用
         tag_ranges = {}
 
-        # 使用bisect优化的已高亮区域列表，按起始位置排序
-        highlighted_ranges = []  # [(start, end), ...]
+        # 检查当前语言是否需要重叠检查
+        language_name = handler.get_language_name().lower()
+        skip_overlap_check = language_name in self.no_overlap_languages
+        
+        # 如果需要重叠检查，则初始化高亮范围列表
+        highlighted_ranges = [] if not skip_overlap_check else None
 
         # 按照处理器定义的顺序处理模式
         for tag_name in handler.get_pattern_order():
@@ -638,18 +645,16 @@ class SyntaxHighlighter:
                         start_index, match.start(), match.end()
                     )
 
-                    # 检查是否与任何已高亮的区域重叠
-                    start_offset = match.start()
-                    end_offset = match.end()
-
-                    # 使用优化的重叠检查
-                    if not self._add_highlight_range(
-                        highlighted_ranges, start_offset, end_offset
-                    ):
-                        continue
-
-                    # 添加到高亮范围
-                    tag_ranges[full_tag_name].append((start_pos, end_pos))
+                    # 如果不需要重叠检查，直接添加
+                    if skip_overlap_check:
+                        tag_ranges[full_tag_name].append((start_pos, end_pos))
+                    else:
+                        # 需要重叠检查，检查是否与已有范围重叠
+                        start_offset = match.start()
+                        end_offset = match.end()
+                        
+                        if self._add_highlight_range(highlighted_ranges, start_offset, end_offset):
+                            tag_ranges[full_tag_name].append((start_pos, end_pos))
 
             except Exception as e:
                 # 如果匹配过程中出错, 跳过该模式
@@ -661,6 +666,65 @@ class SyntaxHighlighter:
             self._apply_tags_batch(tag_ranges)
         except Exception as e:
             logger.error(f"应用标签时出错: {str(e)}")
+
+    def _overlaps_any(self, highlighted_ranges, start, end):
+        """
+        检查新区间是否与任何已存在的区间重叠
+
+        Args:
+            highlighted_ranges: 已高亮的区域列表，按起始位置排序
+            start: 新区间的起始位置
+            end: 新区间的结束位置
+
+        Returns:
+            bool: 如果重叠返回True，否则返回False
+        """
+        # 使用二分查找快速定位可能重叠的区间
+        i = bisect.bisect_left(highlighted_ranges, (start, end))
+        
+        # 检查前一个区间
+        if i > 0 and self._overlaps(highlighted_ranges[i-1], start, end):
+            return True
+            
+        # 检查当前区间
+        if i < len(highlighted_ranges) and self._overlaps(highlighted_ranges[i], start, end):
+            return True
+            
+        return False
+
+    def _overlaps(self, interval, start, end):
+        """
+        检查两个区间是否重叠
+
+        Args:
+            interval: 已存在的区间 (start, end)
+            start: 新区间的起始位置
+            end: 新区间的结束位置
+
+        Returns:
+            bool: 如果重叠返回True，否则返回False
+        """
+        return not (end <= interval[0] or start >= interval[1])
+
+    def _add_highlight_range(self, highlighted_ranges, start, end):
+        """
+        添加高亮区域，如果无重叠
+
+        Args:
+            highlighted_ranges: 已高亮的区域列表，按起始位置排序
+            start: 新区间的起始位置
+            end: 新区间的结束位置
+
+        Returns:
+            bool: 如果成功添加返回True，如果重叠返回False
+        """
+        # 检查是否与任何已高亮的区域重叠
+        if self._overlaps_any(highlighted_ranges, start, end):
+            return False
+            
+        # 使用bisect保持列表有序
+        bisect.insort(highlighted_ranges, (start, end))
+        return True
 
     def _get_text_position(self, base_index: str, offset: int) -> str:
         """

@@ -31,7 +31,7 @@ class EditOperations:
             # 检查是否可以撤销
             if self.text_area.edit_undo():
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 应用语法高亮
@@ -48,7 +48,7 @@ class EditOperations:
             # 检查是否可以重做
             if self.text_area.edit_redo():
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 应用语法高亮
@@ -72,7 +72,7 @@ class EditOperations:
                     # 删除选中的文本
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
                     # 更新状态栏
-                    self._update_status_bar()
+                    self.update_editor_display()
                     # 更新
                     # 更新字符计数
                     self.update_char_count()
@@ -134,7 +134,7 @@ class EditOperations:
                         self.text_area.insert(tk.INSERT, clipboard_text)
 
                     # 更新状态栏
-                    self._update_status_bar()
+                    self.update_editor_display()
                     # 更新字符计数
                     self.update_char_count()
                     # 显示通知
@@ -160,7 +160,7 @@ class EditOperations:
             # 确保选择可见
             self.text_area.see(tk.INSERT)
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 显示通知
             total_chars = self.get_char_count()
             self.status_bar.show_notification(f"已选择全部 {total_chars} 个字符", 500)
@@ -193,7 +193,7 @@ class EditOperations:
                 # 清除所有文本
                 self.text_area.delete("1.0", tk.END)
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
@@ -219,7 +219,7 @@ class EditOperations:
                     # 删除选中的文本
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
                     # 更新状态栏
-                    self._update_status_bar()
+                    self.update_editor_display()
                     # 更新字符计数
                     self.update_char_count()
                     # 更新修改状态
@@ -249,7 +249,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, text)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -274,7 +274,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -299,7 +299,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-\n")
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -325,7 +325,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, go_code)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -364,7 +364,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, python_function)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -422,7 +422,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, python_class)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -474,7 +474,7 @@ class EditOperations:
             self.text_area.insert(tk.INSERT, html_structure)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -559,7 +559,7 @@ footer {
             self.text_area.insert(tk.INSERT, css_structure)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -620,7 +620,7 @@ const arrowFunction = (param1, param2) => {
             self.text_area.insert(tk.INSERT, js_function)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -712,7 +712,7 @@ HAVING
             self.text_area.insert(tk.INSERT, sql_query)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -798,7 +798,7 @@ func closureFunction() func(int) int {
             self.text_area.insert(tk.INSERT, go_function)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -931,7 +931,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, go_struct)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -958,7 +958,7 @@ func (s *StructName) IsValid() bool {
                 self.text_area.insert(tk.INSERT, filename)
 
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
@@ -986,7 +986,7 @@ func (s *StructName) IsValid() bool {
                 self.text_area.insert(tk.INSERT, self.current_file_path)
 
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
@@ -1017,7 +1017,7 @@ func (s *StructName) IsValid() bool {
                 self.text_area.insert(tk.INSERT, directory)
 
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 更新字符计数
                 self.update_char_count()
                 # 更新修改状态
@@ -1061,7 +1061,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, date_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1099,7 +1099,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, time_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1137,7 +1137,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, datetime_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1165,7 +1165,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, timestamp)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1193,7 +1193,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1221,7 +1221,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1249,7 +1249,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1277,7 +1277,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1309,7 +1309,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1337,7 +1337,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1372,7 +1372,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1404,7 +1404,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1432,7 +1432,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, uuid_str)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1453,7 +1453,7 @@ func (s *StructName) IsValid() bool {
             # 确保光标可见
             self.text_area.see(tk.INSERT)
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 显示通知
             self.status_bar.show_notification("已转到文件顶部", 500)
         except Exception as e:
@@ -1469,7 +1469,7 @@ func (s *StructName) IsValid() bool {
             # 确保光标可见
             self.text_area.see(tk.INSERT)
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 显示通知
             self.status_bar.show_notification("已转到文件底部", 500)
         except Exception as e:
@@ -1488,7 +1488,7 @@ func (s *StructName) IsValid() bool {
             # 确保光标可见
             self.text_area.see(tk.INSERT)
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 显示通知
             self.status_bar.show_notification("已转到行首", 500)
         except Exception as e:
@@ -1507,7 +1507,7 @@ func (s *StructName) IsValid() bool {
             # 确保光标可见
             self.text_area.see(tk.INSERT)
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 显示通知
             self.status_bar.show_notification("已转到行尾", 500)
         except Exception as e:
@@ -1522,7 +1522,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.yview_scroll(-1, "pages")
             self.text_area.focus_set()
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
         except Exception as e:
             # 记录向上翻页操作异常
             logger.error(f"向上翻页时出错: {str(e)}")
@@ -1535,7 +1535,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.yview_scroll(1, "pages")
             self.text_area.focus_set()
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
         except Exception as e:
             # 记录向下翻页操作异常
             logger.error(f"向下翻页时出错: {str(e)}")
@@ -1692,7 +1692,7 @@ func (s *StructName) IsValid() bool {
                 self.text_area.mark_set("insert", f"{line_num}.0")
                 self.text_area.see("insert")
                 # 更新状态栏
-                self._update_status_bar()
+                self.update_editor_display()
                 # 关闭对话框
                 dialog.destroy()
             except ValueError:
@@ -1771,7 +1771,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, char_value)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -1854,7 +1854,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, symbol_value)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
@@ -2131,7 +2131,7 @@ func (s *StructName) IsValid() bool {
             self.text_area.insert(tk.INSERT, code_value)
 
             # 更新状态栏
-            self._update_status_bar()
+            self.update_editor_display()
             # 更新字符计数
             self.update_char_count()
             # 更新修改状态
