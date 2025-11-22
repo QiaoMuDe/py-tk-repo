@@ -104,124 +104,42 @@ class SyntaxHighlighter:
 
     def _register_default_handlers(self):
         """注册默认的语言处理器"""
-        # 注册Python处理器
-        python_handler = PythonHandler()
-        for ext in python_handler.get_file_extensions():
-            self.register_language(ext, python_handler)
-
-        # 注册JSON处理器
-        json_handler = JSONHandler()
-        for ext in json_handler.get_file_extensions():
-            self.register_language(ext, json_handler)
-
-        # 注册INI/TOML处理器
-        ini_toml_handler = IniTomlHandler()
-        for ext in ini_toml_handler.get_file_extensions():
-            self.register_language(ext, ini_toml_handler)
-
-        # 注册YAML处理器
-        yaml_handler = YAMLHandler()
-        for ext in yaml_handler.get_file_extensions():
-            self.register_language(ext, yaml_handler)
-
-        # 注册Bash处理器
-        bash_handler = BashHandler()
-        for ext in bash_handler.get_file_extensions():
-            self.register_language(ext, bash_handler)
-
-        # 注册Bat处理器
-        bat_handler = BatHandler()
-        for ext in bat_handler.get_file_extensions():
-            self.register_language(ext, bat_handler)
-
-        # 注册PowerShell处理器
-        powershell_handler = PowerShellHandler()
-        for ext in powershell_handler.get_file_extensions():
-            self.register_language(ext, powershell_handler)
-
-        # 注册SQL处理器
-        sql_handler = SQLHandler()
-        for ext in sql_handler.get_file_extensions():
-            self.register_language(ext, sql_handler)
-
-        # 注册HTML处理器
-        html_handler = HTMLHandler()
-        for ext in html_handler.get_file_extensions():
-            self.register_language(ext, html_handler)
-
-        # 注册XML处理器
-        xml_handler = XMLHandler()
-        for ext in xml_handler.get_file_extensions():
-            self.register_language(ext, xml_handler)
-
-        # 注册CSS处理器
-        css_handler = CSSHandler()
-        for ext in css_handler.get_file_extensions():
-            self.register_language(ext, css_handler)
-
-        # 注册JavaScript处理器
-        javascript_handler = JavaScriptHandler()
-        for ext in javascript_handler.get_file_extensions():
-            self.register_language(ext, javascript_handler)
-
-        # 注册TypeScript处理器
-        typescript_handler = TypeScriptHandler()
-        for ext in typescript_handler.get_file_extensions():
-            self.register_language(ext, typescript_handler)
-
-        # 注册Go处理器
-        go_handler = GoHandler()
-        for ext in go_handler.get_file_extensions():
-            self.register_language(ext, go_handler)
-
-        # 注册Markdown处理器
-        markdown_handler = MarkdownHandler()
-        for ext in markdown_handler.get_file_extensions():
-            self.register_language(ext, markdown_handler)
-
-        # 注册Dockerfile处理器 (特殊文件名)
-        dockerfile_handler = DockerfileHandler()
-        for ext in dockerfile_handler.get_file_extensions():
-            self.register_special_file(ext, dockerfile_handler)
-
-        # 注册Makefile处理器
-        makefile_handler = MakefileHandler()
-        for ext in makefile_handler.get_file_extensions():
-            self.register_special_file(ext, makefile_handler)
-
-        # 注册GitIgnore处理器
-        gitignore_handler = GitIgnoreHandler()
-        for ext in gitignore_handler.get_file_extensions():
-            self.register_special_file(ext, gitignore_handler)
-
-        # 注册Log处理器
-        log_handler = LogHandler()
-        for ext in log_handler.get_file_extensions():
-            self.register_language(ext, log_handler)
-
-        # 注册Lua处理器
-        lua_handler = LuaHandler()
-        for ext in lua_handler.get_file_extensions():
-            self.register_language(ext, lua_handler)
-
-        # 注册Java处理器
-        java_handler = JavaHandler()
-        for ext in java_handler.get_file_extensions():
-            self.register_language(ext, java_handler)
-
-        # 注册CSV处理器
-        csv_handler = CSVHandler()
-        for ext in csv_handler.get_file_extensions():
-            self.register_language(ext, csv_handler)
-
-        # 注册Vim处理器
-        vim_handler = VimHandler()
-        for ext in vim_handler.get_file_extensions():
-            # 对于无扩展名的特殊文件名 (如vimrc, gvimrc) , 使用register_special_file
-            if ext.startswith("."):
-                self.register_language(ext, vim_handler)
-            else:
-                self.register_special_file(ext, vim_handler)
+        # 定义所有需要注册的处理器及其注册方式
+        # 格式: (处理器类, 是否为特殊文件处理器)
+        language_handlers = [
+            (PythonHandler, False),
+            (JSONHandler, False),
+            (IniTomlHandler, False),
+            (YAMLHandler, False),
+            (BashHandler, False),
+            (BatHandler, False),
+            (PowerShellHandler, False),
+            (SQLHandler, False),
+            (HTMLHandler, False),
+            (XMLHandler, False),
+            (CSSHandler, False),
+            (JavaScriptHandler, False),
+            (TypeScriptHandler, False),
+            (GoHandler, False),
+            (MarkdownHandler, False),
+            (LogHandler, False),
+            (LuaHandler, False),
+            (JavaHandler, False),
+            (CSVHandler, False),
+            (VimHandler, True),          # Vim配置文件处理器
+            (DockerfileHandler, True),    # 特殊文件处理器
+            (MakefileHandler, True),      # 特殊文件处理器
+            (GitIgnoreHandler, True),     # 特殊文件处理器
+        ]
+        
+        # 循环注册所有处理器
+        for handler_class, is_special in language_handlers:
+            handler = handler_class()
+            for ext in handler.get_file_extensions():
+                if is_special:
+                    self.register_special_file(ext, handler)
+                else:
+                    self.register_language(ext, handler)
 
         # 注册自动处理器 - 作为默认处理器
         auto_handler = AutoHandler()
