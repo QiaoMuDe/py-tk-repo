@@ -58,16 +58,6 @@ class AutoHandler(LanguageHandler):
         """
         return "auto"
 
-    def get_pattern_order(self) -> List[str]:
-        """
-        获取模式处理顺序列表
-
-        Returns:
-            List[str]: 模式处理顺序列表
-        """
-        # 返回自定义的模式处理顺序
-        return self._pattern_order
-
     def _setup_language(self):
         """设置通用语言的语法规则"""
         # 常见编程语言关键字（跨语言）
@@ -167,8 +157,8 @@ class AutoHandler(LanguageHandler):
 
         # 正则表达式模式
         self._regex_patterns = {
-            # 注释 - 支持多种常见注释格式
-            "comments": r"(?://.*?$|/\*[\s\S]*?\*/|#.*?$|<!--[\s\S]*?-->)",
+            # 注释 - 只匹配井号注释
+            "comments": r"#.*?$",
             # 字符串 - 支持多种常见字符串格式，包括转义字符
             "strings": r"(?:\"(?:\\.|[^\"\\])*\"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)",
             # 数字 - 支持常见数字格式
@@ -230,41 +220,6 @@ class AutoHandler(LanguageHandler):
             # SHA哈希
             "sha_hashes": r"\b[a-fA-F0-9]{40}\b|\b[a-fA-F0-9]{64}\b",
         }
-
-        # 定义模式的处理顺序（确保键值对模式有正确的优先级）
-        self._pattern_order = [
-            "comments",
-            "strings",
-            "key_value_pairs",
-            "numbers",
-            "keywords",
-            "operators",
-            "functions",
-            "variables",
-            "urls",
-            "url_params",
-            "emails",
-            "ip_addresses",
-            "mac_addresses",
-            "timestamps",
-            "dates",
-            "times",
-            "file_paths",
-            "hex_values",
-            "binary_values",
-            "versions",
-            "git_hashes",
-            "uuids",
-            "file_sizes",
-            "time_units",
-            "env_vars",
-            "log_levels",
-            "color_codes",
-            "arrows",
-            "math_symbols",
-            "md5_hashes",
-            "sha_hashes",
-        ]
 
         # 标签样式 - 使用通用的配色方案
         self._tag_styles = {

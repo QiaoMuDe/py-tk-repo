@@ -114,8 +114,8 @@ class LanguageHandler(ABC):
         Returns:
             List[str]: 模式处理顺序列表
         """
-        # 默认返回_regex_patterns的键列表，子类可以重写此方法
-        return list(self._regex_patterns.keys())
+        # 按字母顺序排序，确保一致性和可预测性
+        return sorted(list(self._regex_patterns.keys()))
 
     @classmethod
     def get_file_extensions(cls) -> List[str]:

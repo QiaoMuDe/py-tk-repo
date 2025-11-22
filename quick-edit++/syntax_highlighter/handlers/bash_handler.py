@@ -36,27 +36,6 @@ class BashHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置Bash语言的语法规则"""
-        # 定义语法高亮模式的处理顺序
-        self._pattern_order = [
-            "comments",  # 注释也应优先处理
-            "strings",  # 字符串必须最先处理，避免被其他模式错误匹配
-            "command_substitution",
-            "process_substitution",
-            "arithmetic",
-            "conditional",
-            "heredoc",
-            "array_index",
-            "parameter_expansion",
-            "variables",
-            "functions",
-            "numbers",
-            "paths",
-            "redirection",
-            "operators",
-            "wildcards",
-            "builtins",
-            "keywords",
-        ]
 
         # Bash关键字 - 扩展以支持更多控制流和高级特性
         self._keywords = [
@@ -306,12 +285,3 @@ class BashHandler(LanguageHandler):
                 "foreground": "#708090",
             },
         }
-
-    def get_pattern_order(self) -> List[str]:
-        """
-        获取语法高亮模式的处理顺序
-
-        Returns:
-            List[str]: 模式名称的列表，按处理优先级排序
-        """
-        return self._pattern_order

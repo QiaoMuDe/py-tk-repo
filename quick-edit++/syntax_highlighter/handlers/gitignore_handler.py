@@ -74,28 +74,6 @@ class GitIgnoreHandler(LanguageHandler):
             "escaped": r"\\[#!$&()*;<>?[\\]^`{|}]",
         }
 
-        # 定义语法高亮模式的处理顺序
-        # 优先级从上到下依次降低
-        self._pattern_order = [
-            # 最高优先级：注释 - 优先匹配整行注释
-            "comment",
-            # 高优先级：空行 - 用于格式化
-            "empty_line",
-            # 高优先级：否定模式 - 以!开头的行，表示不忽略匹配的文件
-            "negation",
-            # 高优先级：转义字符 - 特殊字符的转义
-            "escaped",
-            # 中优先级：特殊模式 - 绝对路径、目录模式
-            "absolute",
-            "directory",
-            # 中优先级：复杂通配符模式 - 包含特殊字符的模式
-            "brace_pattern",
-            "bracket_pattern",
-            "double_asterisk",
-            # 最低优先级：普通通配符 - 简单的通配符模式
-            "wildcard",
-        ]
-
         # 标签样式 - 使用适合忽略文件的配色方案
         self._tag_styles = {
             "comment": {"foreground": "#6A9955"},  # 绿色用于注释
@@ -109,12 +87,3 @@ class GitIgnoreHandler(LanguageHandler):
             "empty_line": {"foreground": "#D4D4D4"},  # 浅灰色用于空行
             "escaped": {"foreground": "#FF7700"},  # 橙红色用于转义字符
         }
-
-    def get_pattern_order(self):
-        """
-        获取语法高亮模式的处理顺序
-
-        Returns:
-            list: 包含正则表达式模式名称的列表，按照优先级排序
-        """
-        return self._pattern_order

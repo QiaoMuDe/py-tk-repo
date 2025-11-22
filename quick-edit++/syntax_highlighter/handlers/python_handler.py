@@ -202,24 +202,3 @@ class PythonHandler(LanguageHandler):
                 "foreground": "#000000",
             },
         }
-
-        # 模式处理顺序
-        self._pattern_order = [
-            "strings",
-            "comments",
-            "numbers",
-            "decorators",
-            "keywords",
-            "builtins",
-            "functions",
-            "operators",
-        ]
-
-    def get_pattern_order(self) -> List[str]:
-        """
-        获取语法高亮的模式匹配顺序
-
-        Returns:
-            List[str]: 模式匹配顺序的列表
-        """
-        return self._pattern_order

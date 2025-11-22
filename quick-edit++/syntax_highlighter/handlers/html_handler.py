@@ -138,29 +138,6 @@ class HTMLHandler(LanguageHandler):
             "aria-*",
         ]
 
-        # 定义语法高亮模式的处理顺序
-        # 优先级从上到下依次降低
-        self._pattern_order = [
-            # 最高优先级：注释 - 优先匹配HTML注释
-            "comments",
-            # 高优先级：文档结构 - DOCTYPE和CDATA优先匹配
-            "doctype",
-            "cdata",
-            # 高优先级：JavaScript和CSS - 脚本和样式内容
-            "javascript",
-            "css_styles",
-            # 中高优先级：字符串和属性值 - 属性中的字符串内容
-            "attribute_values",
-            "strings",
-            # 中优先级：标签和关键字 - HTML标签和元素名称
-            "tags",
-            "keywords",
-            # 中优先级：属性 - 标签属性名称
-            "attributes",
-            # 最低优先级：实体 - HTML实体引用
-            "entities",
-        ]
-
         # 正则表达式模式
         self._regex_patterns = {
             # 标签 - 匹配开始和结束标签
@@ -236,12 +213,3 @@ class HTMLHandler(LanguageHandler):
                 "foreground": "#008B8B",
             },
         }
-
-    def get_pattern_order(self):
-        """
-        获取语法高亮模式的处理顺序
-
-        Returns:
-            list: 包含正则表达式模式名称的列表，按照优先级排序
-        """
-        return self._pattern_order

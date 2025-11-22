@@ -132,33 +132,3 @@ class YAMLHandler(LanguageHandler):
                 "foreground": "#2F4F4F",
             },
         }
-
-        # 正则表达式模式顺序 - 控制语法高亮的优先级
-        self._pattern_order = [
-            # 注释 - 最高优先级
-            "comments",
-            # 特殊标记
-            "block_scalars",
-            "anchors",
-            "tags",
-            # 数据类型
-            "strings",
-            "numbers",
-            "booleans",
-            "nulls",
-            # YAML结构元素
-            "list_items",
-            "keys",
-            # 其他
-            "keywords",
-            "literals",
-        ]
-
-    def get_pattern_order(self):
-        """
-        获取语法高亮的模式匹配顺序
-
-        Returns:
-            List[str]: 模式匹配的优先级顺序列表
-        """
-        return self._pattern_order

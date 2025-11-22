@@ -213,38 +213,3 @@ class LogHandler(LanguageHandler):
             # 新增：用户名
             "username": {"foreground": "#27AE60"},  # 绿色用于用户名
         }
-
-        # 语法高亮模式的处理顺序
-        self._pattern_order = [
-            "timestamp",  # 时间戳
-            "log_level",  # 日志级别
-            "thread_id",  # 线程ID
-            "exception_type",  # 异常类型
-            "stack_trace",  # 堆栈跟踪
-            "class_name",  # 类名
-            "method_name",  # 方法名
-            "file_location",  # 文件位置
-            "ip_address",  # IP地址
-            "mac_address",  # MAC地址
-            "uuid",  # UUID
-            "url",  # URL
-            "file_path",  # 文件路径
-            "http_method",  # HTTP方法
-            "http_status",  # HTTP状态码
-            "sql_query",  # SQL查询
-            "structured_data",  # 结构化数据
-            "custom_marker",  # 自定义标记
-            "performance_metric",  # 性能指标
-            "username",  # 用户名
-            "hex_value",  # 十六进制值
-            "number",  # 数字
-        ]
-
-    def get_pattern_order(self):
-        """
-        获取语法高亮模式的处理顺序
-
-        Returns:
-            List[str]: 模式名称的列表，表示处理顺序
-        """
-        return self._pattern_order

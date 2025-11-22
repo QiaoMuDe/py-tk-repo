@@ -295,34 +295,3 @@ class LuaHandler(LanguageHandler):
             "goto": {"foreground": "#FF7700"},  # 橙色用于goto
             "vararg": {"foreground": "#FF7700"},  # 橙色用于变长参数
         }
-
-        # 模式优先级顺序
-        self._pattern_order = [
-            "comment",
-            "multiline_comment",
-            "string",
-            "multiline_string",
-            "number",
-            "hex_number",
-            "boolean",
-            "nil",
-            "function_def",
-            "function_call",
-            "property_access",
-            "table_def",
-            "local_var",
-            "global_var",
-            "operator",
-            "label",
-            "goto",
-            "vararg",
-        ]
-
-    def get_pattern_order(self):
-        """
-        获取正则表达式模式的应用顺序
-
-        Returns:
-            List[str]: 模式优先级顺序列表
-        """
-        return self._pattern_order

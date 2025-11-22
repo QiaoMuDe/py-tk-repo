@@ -246,36 +246,6 @@ class BatHandler(LanguageHandler):
             "function_call": r"\bcall\s+:[a-zA-Z_][a-zA-Z0-9_]*",
         }
 
-        # 定义语法高亮模式的处理顺序
-        # 优先级从上到下依次降低
-        self._pattern_order = [
-            # 最高优先级：注释 - 优先匹配整行注释
-            "comments",
-            # 高优先级：字符串 - 确保字符串内的内容不被其他规则匹配
-            "strings",
-            # 高优先级：标签 - 以冒号开头的行标签
-            "labels",
-            # 高优先级：变量 - 包括%变量%和!变量!格式
-            "variables",
-            "environment_vars",
-            # 中优先级：命令相关 - 包括关键字、内置命令和函数调用
-            "keywords",
-            "builtins",
-            "function_call",
-            # 中优先级：表达式 - 条件和循环表达式
-            "conditional",
-            "loop",
-            # 中优先级：操作符 - 包括命令参数、重定向和管道
-            "command_args",
-            "redirection",
-            "pipe",
-            "operators",
-            # 低优先级：路径 - 文件和目录路径
-            "paths",
-            # 最低优先级：数字 - 确保不会错误匹配其他语法元素
-            "numbers",
-        ]
-
         # 标签样式 - 使用适合Bat脚本的配色方案，仅修改颜色
         self._tag_styles = {
             # 关键字 - 深蓝色
@@ -343,12 +313,3 @@ class BatHandler(LanguageHandler):
                 "foreground": "#8B4513",
             },
         }
-
-    def get_pattern_order(self):
-        """
-        获取语法高亮模式的处理顺序
-
-        Returns:
-            list: 包含正则表达式模式名称的列表，按照优先级排序
-        """
-        return self._pattern_order

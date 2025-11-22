@@ -104,43 +104,6 @@ class MarkdownHandler(LanguageHandler):
             "autolinks": r"<(https?://[^>]+)>",
         }
 
-        # 模式处理顺序 - 定义高亮优先级，确保正确的嵌套处理
-        self._pattern_order = [
-            # 优先处理块级元素
-            "frontmatter",  # 前置元数据
-            # "code_blocks",  # 代码块
-            "math_blocks",  # 数学公式块
-            "mermaid",  # Mermaid图表
-            "comments",  # HTML注释
-            # 然后处理行级元素
-            "headers",  # 标题
-            "horizontal_rules",  # 水平线
-            "quotes",  # 引用块
-            "table_separators",  # 表格分隔符
-            "tables",  # 表格
-            "task_lists",  # 任务列表
-            "unordered_lists",  # 无序列表
-            "ordered_lists",  # 有序列表
-            "definition_lists",  # 定义列表
-            "footnotes",  # 脚注定义
-            "link_definitions",  # 引用式链接定义
-            # 最后处理内联元素
-            "footnote_refs",  # 脚注引用
-            "inline_code",  # 行内代码
-            "inline_math",  # 行内数学公式
-            "images",  # 图片
-            "links",  # 链接
-            "reference_links",  # 引用式链接
-            "autolinks",  # 自动链接
-            "bold",  # 粗体
-            # "italic",  # 斜体
-            "strikethrough",  # 删除线
-            "highlight",  # 强调
-            "superscript",  # 上标
-            "subscript",  # 下标
-            "html_tags",  # HTML标签
-        ]
-
         # 标签样式 - 仅使用前景色方案，避免与查找界面标签冲突
         self._tag_styles = {
             # 前置元数据 - 深灰色文字
@@ -264,12 +227,3 @@ class MarkdownHandler(LanguageHandler):
                 "foreground": "#0969DA",
             },
         }
-
-    def get_pattern_order(self) -> List[str]:
-        """
-        获取语法高亮的模式处理顺序
-
-        Returns:
-            List[str]: 模式处理顺序的列表
-        """
-        return self._pattern_order

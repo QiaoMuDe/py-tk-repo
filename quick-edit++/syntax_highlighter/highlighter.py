@@ -18,7 +18,6 @@ import os
 from config.config_manager import config_manager
 
 # 导入语言处理器
-from .handlers import LanguageHandler
 from .handlers.python_handler import PythonHandler
 from .handlers.json_handler import JSONHandler
 from .handlers.ini_toml_handler import IniTomlHandler
@@ -40,7 +39,6 @@ from .handlers.gitignore_handler import GitIgnoreHandler
 from .handlers.log_handler import LogHandler
 from .handlers.lua_handler import LuaHandler
 from .handlers.java_handler import JavaHandler
-from .handlers.rust_handler import RustHandler
 from .handlers.php_handler import PHPHandler
 from .handlers.csv_handler import CSVHandler
 from .handlers.vim_handler import VimHandler
@@ -207,11 +205,6 @@ class SyntaxHighlighter:
         java_handler = JavaHandler()
         for ext in java_handler.get_file_extensions():
             self.register_language(ext, java_handler)
-
-        # 注册Rust处理器
-        rust_handler = RustHandler()
-        for ext in rust_handler.get_file_extensions():
-            self.register_language(ext, rust_handler)
 
         # 注册PHP处理器
         php_handler = PHPHandler()

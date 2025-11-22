@@ -127,28 +127,3 @@ class MakefileHandler(LanguageHandler):
             "special_target": {"foreground": "#C586C0"},  # 紫色用于特殊目标
             "pattern": {"foreground": "#569CD6"},  # 蓝色用于模式规则
         }
-
-        # 模式优先级顺序
-        self._pattern_order = [
-            "comment",
-            "string",
-            "number",
-            "target",
-            "phony",
-            "assignment",
-            "variable",
-            "autovar",
-            "function",
-            "command",
-            "special_target",
-            "pattern",
-        ]
-
-    def get_pattern_order(self):
-        """
-        获取正则表达式模式的应用顺序
-
-        Returns:
-            List[str]: 模式优先级顺序列表
-        """
-        return self._pattern_order
