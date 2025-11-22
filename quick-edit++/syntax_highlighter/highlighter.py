@@ -584,31 +584,46 @@ class SyntaxHighlighter:
         # 收集所有标签位置, 用于批量应用
         tag_ranges = {}
 
-        # 对每种模式进行匹配和高亮
-        for tag_name, compiled_pattern in compiled_patterns.items():
+        # 收集已高亮的区域，用于后续模式检查
+        highlighted_ranges = []
+
+        # 按照处理器定义的顺序处理模式
+        for tag_name in handler.get_pattern_order():
+            if tag_name not in compiled_patterns:
+                continue
+
+            compiled_pattern = compiled_patterns[tag_name]
             full_tag_name = f"syntax_{tag_name}"
             tag_ranges[full_tag_name] = []
 
             # 使用预编译的正则表达式查找所有匹配项
             try:
-                # 如果是预编译的正则表达式对象
-                if hasattr(compiled_pattern, "finditer"):
-                    for match in compiled_pattern.finditer(text_content):
-                        # 优化的位置计算: 一次计算开始和结束位置
-                        start_pos, end_pos = self._get_text_position_range(
-                            start_index, match.start(), match.end()
-                        )
-                        tag_ranges[full_tag_name].append((start_pos, end_pos))
-                else:
-                    # 如果是原始字符串模式 (编译失败的情况)
-                    for match in re.finditer(
-                        compiled_pattern, text_content, re.MULTILINE
-                    ):
-                        # 优化的位置计算: 一次计算开始和结束位置
-                        start_pos, end_pos = self._get_text_position_range(
-                            start_index, match.start(), match.end()
-                        )
-                        tag_ranges[full_tag_name].append((start_pos, end_pos))
+                for match in compiled_pattern.finditer(text_content):
+                    # 计算匹配的位置
+                    start_pos, end_pos = self._get_text_position_range(
+                        start_index, match.start(), match.end()
+                    )
+
+                    # 检查是否与任何已高亮的区域重叠
+                    start_offset = match.start()
+                    end_offset = match.end()
+
+                    overlaps = False
+                    for hl_start, hl_end in highlighted_ranges:
+                        if not (end_offset <= hl_start or start_offset >= hl_end):
+                            overlaps = True
+                            break
+
+                    # 如果重叠，则跳过此匹配
+                    if overlaps:
+                        continue
+
+                    # 添加到高亮范围
+                    tag_ranges[full_tag_name].append((start_pos, end_pos))
+
+                    # 记录此区域以供后续检查
+                    highlighted_ranges.append((start_offset, end_offset))
+
             except Exception as e:
                 # 如果匹配过程中出错, 跳过该模式
                 logger.error(f"正则匹配 '{tag_name}' 时出错: {str(e)}")

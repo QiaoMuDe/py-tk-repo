@@ -77,6 +77,27 @@ class DockerfileHandler(LanguageHandler):
             "shell_option": r"(--shell=)",
         }
 
+        # 定义语法高亮模式的处理顺序
+        # 优先级从上到下依次降低
+        self._pattern_order = [
+            # 最高优先级：注释 - 优先匹配整行注释
+            "comment",
+            # 高优先级：字符串 - 确保字符串内的内容不被其他规则匹配
+            "string",
+            # 高优先级：指令 - Dockerfile的核心关键字指令
+            "instruction",
+            # 中优先级：特殊指令选项 - 健康检查和Shell选项
+            "health_option",
+            "shell_option",
+            # 中优先级：配置和变量 - 配置类指令的键值对和环境变量
+            "key_value_pairs",
+            "variable",
+            # 中优先级：镜像名称 - FROM指令后的镜像引用
+            "image",
+            # 最低优先级：数字 - 确保不会错误匹配其他语法元素
+            "number",
+        ]
+
         # 标签样式 - 使用更鲜明的配色方案，适合浅色模式
         self._tag_styles = {
             "comment": {"foreground": "#008000"},  # 深绿色用于注释
@@ -91,3 +112,12 @@ class DockerfileHandler(LanguageHandler):
             "health_option": {"foreground": "#800000"},  # 深红色用于选项
             "shell_option": {"foreground": "#800000"},  # 深红色用于选项
         }
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            list: 包含正则表达式模式名称的列表，按照优先级排序
+        """
+        return self._pattern_order

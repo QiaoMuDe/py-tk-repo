@@ -264,3 +264,12 @@ class MarkdownHandler(LanguageHandler):
                 "foreground": "#0969DA",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取语法高亮的模式处理顺序
+
+        Returns:
+            List[str]: 模式处理顺序的列表
+        """
+        return self._pattern_order

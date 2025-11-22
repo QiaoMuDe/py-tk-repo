@@ -268,3 +268,28 @@ class PowerShellHandler(LanguageHandler):
                 "foreground": "#FF8C00",
             },
         }
+
+        # 设置模式匹配顺序
+        self._pattern_order = [
+            "block_comments",
+            "comments",
+            "strings",
+            "numbers",
+            "variables",
+            "types",
+            "keywords",
+            "builtins",
+            "functions",
+            "parameters",
+            "paths",
+            "operators",
+        ]
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取语法高亮的模式匹配顺序
+
+        Returns:
+            List[str]: 模式匹配顺序的列表
+        """
+        return self._pattern_order

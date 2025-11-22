@@ -10,6 +10,7 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Any
 import re
+from loguru import logger
 
 
 class LanguageHandler(ABC):
@@ -55,9 +56,9 @@ class LanguageHandler(ABC):
             try:
                 self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
             except re.error as e:
-                print(f"警告: 正则表达式 '{name}' 编译失败: {e}")
-                # 如果编译失败，使用原始模式
-                self._compiled_patterns[name] = pattern
+                logger.warning(f"正则表达式 '{name}' 编译失败: {e}")
+                # 如果编译失败，跳过该模式，不添加到编译后的模式字典中
+                # 这样可以避免后续使用无效的正则表达式
 
         # 标记为已编译
         self.is_compiled = True
@@ -105,6 +106,16 @@ class LanguageHandler(ABC):
             Dict[str, Dict[str, Any]]: 标签名到样式属性的映射
         """
         return self._tag_styles
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取模式处理顺序列表
+
+        Returns:
+            List[str]: 模式处理顺序列表
+        """
+        # 默认返回_regex_patterns的键列表，子类可以重写此方法
+        return list(self._regex_patterns.keys())
 
     @classmethod
     def get_file_extensions(cls) -> List[str]:

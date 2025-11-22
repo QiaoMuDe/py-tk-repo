@@ -34,6 +34,24 @@ class CSSHandler(LanguageHandler):
 
     def _setup_language(self):
         """设置CSS语言的语法规则"""
+        # 定义语法高亮模式的处理顺序
+        self._pattern_order = [
+            "comments",  # 注释应优先处理
+            "strings",  # 字符串必须最先处理，避免被其他模式错误匹配
+            "urls",  # URL包含字符串，需要在字符串之后处理
+            "selectors",  # 选择器应优先于属性处理
+            "pseudo_classes",  # 伪类和伪元素与选择器相关
+            "at_rules",  # @规则如@import, @media等
+            "media_queries",  # 特殊的@media规则
+            "keywords",  # CSS属性
+            "colors",  # 颜色值应优先于普通值处理
+            "numbers",  # 数字
+            "units",  # 单位
+            "values",  # 普通属性值
+            "functions",  # 函数如calc(), var()等
+            "important",  # !important标记
+        ]
+
         # CSS关键字
         self._keywords = [
             # 布局属性
@@ -325,3 +343,12 @@ class CSSHandler(LanguageHandler):
                 "foreground": "#696969",
             },
         }
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            List[str]: 模式名称的列表，按处理优先级排序
+        """
+        return self._pattern_order

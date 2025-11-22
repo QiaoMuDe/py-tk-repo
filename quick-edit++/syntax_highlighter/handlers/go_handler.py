@@ -149,6 +149,48 @@ class GoHandler(LanguageHandler):
             "crypto",
         ]
 
+        # 定义语法高亮模式的处理顺序
+        # 优先级从上到下依次降低
+        self._pattern_order = [
+            # 最高优先级：注释 - 优先匹配注释
+            "comments",
+            # 高优先级：字符串和数字 - 确保这些基本元素优先匹配
+            "strings",
+            "numbers",
+            # 高优先级：格式化动词 - fmt包格式化字符串中的动词
+            "format_verbs",
+            # 中高优先级：关键字 - 语言关键词
+            "keywords",
+            # 中优先级：结构体定义和字段 - 包括标签和接收者
+            "struct_definitions",
+            "struct_fields",
+            "tags",
+            # 中优先级：接口定义和方法 - 接口相关语法
+            "interface_definitions",
+            "interface_methods",
+            # 中优先级：类型定义和断言 - 类型相关语法
+            "type_definitions",
+            "type_parameters",
+            "type_assertions",
+            # 中优先级：特殊语句 - 特定的语句结构
+            "imports",
+            "constants",
+            "variables",
+            "select_statements",
+            "defer_statements",
+            # 中低优先级：函数和方法 - 函数定义和调用
+            "functions",
+            "method_calls",
+            "goroutines",
+            "generic_instantiation",
+            # 中低优先级：包和内置函数 - 包名和内置函数
+            "packages",
+            "builtins",
+            # 最低优先级：操作符 - 运算符和分隔符
+            "channel_ops",
+            "operators",
+        ]
+
         # 正则表达式模式 - 优化匹配性能和准确性
         self._regex_patterns = {
             # 注释 - 单行和多行注释，优化匹配，避免贪婪匹配
@@ -312,3 +354,12 @@ class GoHandler(LanguageHandler):
                 "foreground": "#0000FF",  # 深蓝色
             },
         }
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            list: 包含正则表达式模式名称的列表，按照优先级排序
+        """
+        return self._pattern_order

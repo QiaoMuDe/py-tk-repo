@@ -104,3 +104,24 @@ class IniTomlHandler(LanguageHandler):
                 "foreground": "#000000",
             },
         }
+
+        # 语法高亮模式的处理顺序
+        self._pattern_order = [
+            "comments",  # 注释
+            "strings",  # 字符串
+            "sections",  # 章节
+            "dates",  # 日期时间
+            "booleans",  # 布尔值
+            "numbers",  # 数字
+            "keys",  # 键名
+            "punctuation",  # 标点符号
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            List[str]: 模式名称的列表，表示处理顺序
+        """
+        return self._pattern_order

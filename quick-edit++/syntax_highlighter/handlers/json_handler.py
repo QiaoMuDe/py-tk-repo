@@ -76,3 +76,21 @@ class JSONHandler(LanguageHandler):
                 "foreground": "#00AA00",
             },
         }
+
+        # 语法高亮模式的处理顺序
+        self._pattern_order = [
+            "comments",  # 注释
+            "keywords",  # 关键字
+            "strings",  # 字符串
+            "numbers",  # 数字
+            "punctuation",  # 标点符号
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            List[str]: 模式名称的列表，表示处理顺序
+        """
+        return self._pattern_order

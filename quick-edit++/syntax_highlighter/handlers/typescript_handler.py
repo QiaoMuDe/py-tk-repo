@@ -296,3 +296,43 @@ class TypeScriptHandler(LanguageHandler):
                 "foreground": "#008B8B",
             },
         }
+
+        # 正则表达式模式顺序 - 控制语法高亮的优先级
+        self._pattern_order = [
+            # 注释 - 最高优先级
+            "comments",
+            # 字符串和模板变量
+            "strings",
+            "template_variables",
+            # 正则表达式
+            "regex",
+            # 数字
+            "numbers",
+            # TSX标签
+            "tsx_tags",
+            # 装饰器
+            "decorators",
+            # 泛型
+            "generics",
+            # 关键字
+            "keywords",
+            # 内置对象和函数
+            "builtins",
+            # 类型注解
+            "type_annotations",
+            # 函数定义
+            "functions",
+            # 变量
+            "variables",
+            # 操作符
+            "operators",
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮的模式匹配顺序
+
+        Returns:
+            List[str]: 模式匹配的优先级顺序列表
+        """
+        return self._pattern_order

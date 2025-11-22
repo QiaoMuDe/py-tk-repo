@@ -612,3 +612,26 @@ class SQLHandler(LanguageHandler):
                 "foreground": "#FF8C00",
             },
         }
+
+        # 模式处理顺序
+        self._pattern_order = [
+            "comments",
+            "strings",
+            "numbers",
+            "placeholders",
+            "variables",
+            "identifiers",
+            "keywords",
+            "data_types",
+            "functions",
+            "operators",
+        ]
+
+    def get_pattern_order(self) -> List[str]:
+        """
+        获取语法高亮的模式匹配顺序
+
+        Returns:
+            List[str]: 模式匹配顺序的列表
+        """
+        return self._pattern_order

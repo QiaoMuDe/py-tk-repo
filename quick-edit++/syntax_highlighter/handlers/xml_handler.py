@@ -120,3 +120,27 @@ class XMLHandler(LanguageHandler):
                 "foreground": "#000000",
             },
         }
+
+        # 语法高亮模式优先级顺序
+        self._pattern_order = [
+            "comments",
+            "cdata",
+            "doctype",
+            "processing_instructions",
+            "strings",
+            "attribute_values",
+            "entities",
+            "namespaces",
+            "attributes",
+            "tags",
+            "text_content",
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的优先级顺序
+
+        Returns:
+            List[str]: 模式名称列表，表示语法高亮的处理顺序
+        """
+        return self._pattern_order

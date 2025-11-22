@@ -952,3 +952,35 @@ class VimHandler(LanguageHandler):
                 "foreground": "#8B0000",
             },
         }
+
+        # 语法高亮模式优先级顺序
+        self._pattern_order = [
+            "comments",
+            "single_strings",
+            "numbers",
+            "booleans",
+            "keywords",
+            "functions",
+            "autocmds",
+            "maps",
+            "highlights",
+            "colorschemes",
+            "variables",
+            "key_value_pairs",
+            "special_chars",
+            "paths",
+            "patterns",
+            "line_ranges",
+            "registers",
+            "marks",
+            "special_keys",
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的优先级顺序
+
+        Returns:
+            List[str]: 模式名称列表，表示语法高亮的处理顺序
+        """
+        return self._pattern_order

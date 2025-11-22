@@ -193,7 +193,7 @@ class JavaScriptHandler(LanguageHandler):
             "decorators": r"@[a-zA-Z_$][a-zA-Z0-9_$]*",
         }
 
-        # 标签样式 - 使用适合JavaScript的配色方案
+        # 标签样式 - 使用适合JavaScript语言的配色方案
         self._tag_styles = {
             # 关键字 - 深蓝色
             "keywords": {
@@ -244,3 +244,28 @@ class JavaScriptHandler(LanguageHandler):
                 "foreground": "#FF8C00",
             },
         }
+
+        # 语法高亮模式的处理顺序
+        self._pattern_order = [
+            "comments",  # 注释（单行和多行）
+            "strings",  # 字符串（包括单引号、双引号、模板字符串）
+            "numbers",  # 数字（包括整数、浮点数、科学计数法、二进制、八进制、十六进制）
+            "regex",  # 正则表达式字面量
+            "keywords",  # 关键字
+            "builtins",  # 内置对象和函数
+            "functions",  # 函数定义
+            "variables",  # 变量
+            "template_variables",  # 模板字符串变量
+            "operators",  # 操作符
+            "jsx_tags",  # JSX标签
+            "decorators",  # 装饰器
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            List[str]: 模式名称的列表，表示处理顺序
+        """
+        return self._pattern_order

@@ -64,6 +64,28 @@ class CSVHandler(LanguageHandler):
             "empty_fields": r'(?:^|,|;|\t|\|)(?:""|\'\')(?=,|;|\t|\||$)|(?:^|,|;|\t|\|)(?=,|;|\t|\||$)',
         }
 
+        # 定义语法高亮模式的处理顺序
+        # 优先级从上到下依次降低
+        self._pattern_order = [
+            # 最高优先级：引号字段 - 优先匹配被引号包围的字段，避免内部内容被其他规则匹配
+            "quoted_fields",
+            # 高优先级：空字段 - 连续分隔符或引号内的空内容
+            "empty_fields",
+            # 高优先级：特殊值 - URL和邮箱需要特殊处理
+            "url",
+            "email",
+            # 中优先级：格式识别 - 日期时间和布尔值
+            "datetime",
+            "boolean_values",
+            # 中优先级：数字字段 - 纯数字值
+            "number_fields",
+            # 低优先级：分隔符 - 各类分隔符应该在最后处理
+            "comma_separators",
+            "semicolon_separators",
+            "tab_separators",
+            "pipe_separators",
+        ]
+
         # 标签样式 - 使用适合CSV的配色方案
         self._tag_styles = {
             # 引号字段 - 深绿色
@@ -112,3 +134,12 @@ class CSVHandler(LanguageHandler):
                 "foreground": "#A9A9A9",
             },
         }
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            list: 包含正则表达式模式名称的列表，按照优先级排序
+        """
+        return self._pattern_order

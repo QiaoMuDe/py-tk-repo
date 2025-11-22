@@ -552,20 +552,7 @@ class RustHandler(LanguageHandler):
             "ChildStdout",
             "ChildStderr",
             "JoinHandle",
-            "ThreadId",
-            "ThreadId",
             "LocalKey",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
-            "ThreadId",
             "ThreadId",
         ]
 
@@ -735,3 +722,63 @@ class RustHandler(LanguageHandler):
             "ref_operator": {"foreground": "#D4D4D4"},  # 浅灰色用于引用操作符
             "deref_operator": {"foreground": "#D4D4D4"},  # 浅灰色用于解引用操作符
         }
+
+        # 正则表达式模式顺序 - 控制语法高亮的优先级
+        self._pattern_order = [
+            # 注释 - 最高优先级
+            "comment",
+            "multiline_comment",
+            "doc_comment",
+            # 字符串和字符
+            "string",
+            "raw_string",
+            "char",
+            "byte_string",
+            "raw_byte_string",
+            "byte",
+            # 数字和布尔值
+            "number",
+            "binary_number",
+            "octal_number",
+            "hex_number",
+            "boolean",
+            # 特殊语法元素
+            "lifetime",
+            "attribute",
+            "macro_call",
+            "pattern_match",
+            # 定义和声明
+            "struct_def",
+            "enum_def",
+            "union_def",
+            "trait_def",
+            "fn_def",
+            # 表达式和语句
+            "method_call",
+            "field_access",
+            "mod_use",
+            "let_binding",
+            "type_annotation",
+            "generic",
+            "closure",
+            # 代码块
+            "async_block",
+            "unsafe_block",
+            "loop_block",
+            "if_block",
+            # 操作符和符号
+            "operator",
+            "match_operator",
+            "range_operator",
+            "ref_operator",
+            "deref_operator",
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮的模式匹配顺序
+
+        Returns:
+            List[str]: 模式匹配的优先级顺序列表
+        """
+        return self._pattern_order

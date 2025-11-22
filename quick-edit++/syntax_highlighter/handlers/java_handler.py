@@ -500,3 +500,39 @@ class JavaHandler(LanguageHandler):
             "lambda": {"foreground": "#FF7700"},  # 橙色用于Lambda表达式
             "method_ref": {"foreground": "#FF7700"},  # 橙色用于方法引用
         }
+
+        # 语法高亮模式的处理顺序
+        self._pattern_order = [
+            "comment",  # 单行注释
+            "multiline_comment",  # 多行注释
+            "javadoc_comment",  # JavaDoc注释
+            "string",  # 字符串
+            "char",  # 字符
+            "number",  # 数字
+            "hex_number",  # 十六进制数字
+            "binary_number",  # 二进制数字
+            "octal_number",  # 八进制数字
+            "boolean",  # 布尔值
+            "null",  # null值
+            "annotation",  # 注解
+            "package_decl",  # 包声明
+            "import_decl",  # 导入声明
+            "class_def",  # 类定义
+            "method_def",  # 方法定义
+            "variable_decl",  # 变量声明
+            "generic",  # 泛型
+            "lambda",  # Lambda表达式
+            "method_ref",  # 方法引用
+            "method_call",  # 方法调用
+            "property_access",  # 属性访问
+            "operator",  # 操作符
+        ]
+
+    def get_pattern_order(self):
+        """
+        获取语法高亮模式的处理顺序
+
+        Returns:
+            List[str]: 模式名称的列表，表示处理顺序
+        """
+        return self._pattern_order
