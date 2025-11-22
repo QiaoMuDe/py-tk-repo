@@ -92,7 +92,7 @@ class SyntaxHighlighter:
         )  # 从配置获取防抖延迟时间 (毫秒)
         
         # 不需要重叠检查的语言处理器列表
-        self.no_overlap_languages = {"markdown", "html", "xml"}  # 支持嵌套格式的语言
+        self.no_overlap_languages = {"markdown", "html", "xml", "css", "auto"}  # 支持嵌套格式的语言
 
         # 注册默认语言处理器
         self._register_default_handlers()
