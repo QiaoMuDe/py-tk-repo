@@ -39,6 +39,8 @@ class PythonHandler(LanguageHandler):
         self._pattern_order = [
             "strings",  # 字符串放在第一位，确保优先匹配
             "comments",  # 注释放在第二位
+            "variable_keys",  # 等号左边的键名
+            "dict_keys",  # 冒号左边的键名
             "keywords",  # 关键字
             "builtins",  # 内置函数
             "numbers",  # 数字
@@ -177,6 +179,10 @@ class PythonHandler(LanguageHandler):
             "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()",
             # 装饰器 - @开头的行
             "decorators": r"@\s*[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*",
+            # 等号左边的键名 - 变量赋值，支持对象属性和索引访问
+            "variable_keys": r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\[[^\]]+\])*)\s*(?==)",
+            # 冒号左边的键名 - 字典键，支持嵌套属性
+            "dict_keys": r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*(?=:)",
             # 操作符
             "operators": r"(\+|\-|\*|\/|\/\/|%|\*\*|=|==|!=|<|>|<=|>=|<>)",
         }
@@ -208,6 +214,14 @@ class PythonHandler(LanguageHandler):
             # 装饰器 - 棕色
             "decorators": {
                 "foreground": "#8B4513",
+            },
+            # 等号左边的键名 - 深青色
+            "variable_keys": {
+                "foreground": "#008B8B",
+            },
+            # 冒号左边的键名 - 深紫色
+            "dict_keys": {
+                "foreground": "#8B008B",
             },
             # 操作符 - 黑色
             "operators": {
