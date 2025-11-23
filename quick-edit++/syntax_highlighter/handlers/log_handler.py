@@ -43,11 +43,11 @@ class LogHandler(LanguageHandler):
             "timestamp",  # 时间戳
             "log_level",  # 日志级别
             "thread_id",  # 线程ID/进程ID
+            "url",  # URL
             "class_name",  # 类名/模块名
             "method_name",  # 方法名
             "file_location",  # 文件名和行号
             "ip_address",  # IP地址
-            "url",  # URL
             "exception_type",  # 异常/错误类型
             "stack_trace",  # 堆栈跟踪
             "structured_data",  # JSON/XML内容
@@ -165,14 +165,14 @@ class LogHandler(LanguageHandler):
             "thread_id": r"\[(\d+)\]|\[Thread-\d+\]|\[pool-\d+-thread-\d+\]|\[TID:\d+\]|\[PID:\d+\]|\[0x[0-9a-fA-F]+\]",
             # 类名/模块名 - 通常包含点号，如com.example.ClassName，增强匹配
             "class_name": r"(?m)(?:[a-zA-Z_][a-zA-Z0-9_]*\.)+[A-Z][a-zA-Z0-9_]*|[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)+",
-            # 方法名 - 通常在类名后，如Class.method()，增强匹配
-            "method_name": r"[a-zA-Z_][a-zA-Z0-9_]*\s*\(",
+            # 方法名 - 通常在类名后，如Class.method()，增强匹配，但不包括括号
+            "method_name": r"[a-zA-Z_][a-zA-Z0-9_]*(?=\s*\()",
             # 文件名和行号 - 如 (File.java:123) 或 [file.py:456]，增强匹配
             "file_location": r"\([^)]+\.\w+:\d+\)|\[[^]]+\.\w+:\d+\]|(?:\w+\.py:\d+|\w+\.java:\d+|\w+\.cpp:\d+|\w+\.c:\d+)",
             # IP地址 - IPv4和IPv6，增强匹配
             "ip_address": r"\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|\[([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\]|(?:[0-9a-fA-F]{1,4}:){1,7}:|(?:[0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}",
             # URL/URI，增强匹配
-            "url": r"https?://[^\s/$.?#].[^\s]*|ftp://[^\s]*|file://[^\s]*",
+            "url": r"[a-zA-Z]+://[^\s]+",
             # 异常/错误类型 - 通常以Exception或Error结尾，增强匹配
             "exception_type": r"\b\w*(?:Exception|Error|Throwable|Fault|Failure)\b",
             # 堆栈跟踪 - 通常包含"at"和类名，增强匹配
@@ -214,7 +214,7 @@ class LogHandler(LanguageHandler):
             "method_name": {"foreground": "#F39C12"},  # 橙色用于方法名
             "file_location": {"foreground": "#27AE60"},  # 绿色用于文件位置
             "ip_address": {"foreground": "#8E44AD"},  # 深紫色用于IP地址
-            "url": {"foreground": "#2980B9"},  # 深蓝色用于URL
+            "url": {"foreground": "#2980B9", "underline": True},  # 深蓝色用于URL
             "exception_type": {"foreground": "#C0392B"},  # 深红色用于异常类型
             "stack_trace": {"foreground": "#7F8C8D"},  # 灰色用于堆栈跟踪
             "structured_data": {"foreground": "#16A085"},  # 深青色用于结构化数据

@@ -97,7 +97,6 @@ class SyntaxHighlighter:
             "html",
             "xml",
             "css",
-            "auto",
         }  # 支持嵌套格式的语言
 
         # 注册默认语言处理器
