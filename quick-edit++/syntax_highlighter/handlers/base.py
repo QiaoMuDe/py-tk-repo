@@ -55,10 +55,23 @@ class LanguageHandler(ABC):
         for name, pattern in self._regex_patterns.items():
             try:
                 self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
+                logger.debug(f"正则表达式 '{name}' 编译成功")
             except re.error as e:
-                logger.warning(f"正则表达式 '{name}' 编译失败: {e}")
+                logger.warning(f"正则表达式 '{name}' 编译失败: {e}, 模式: {pattern}")
                 # 如果编译失败，跳过该模式，不添加到编译后的模式字典中
                 # 这样可以避免后续使用无效的正则表达式
+                # 记录详细错误信息以便调试
+                logger.debug(
+                    f"失败的正则表达式详情: 名称={name}, 模式={pattern}, 错误={e}"
+                )
+            except Exception as e:
+                # 捕获其他可能的异常，防止程序崩溃
+                logger.error(
+                    f"编译正则表达式 '{name}' 时发生意外错误: {e}, 模式: {pattern}"
+                )
+                logger.debug(
+                    f"意外错误详情: 名称={name}, 模式={pattern}, 错误类型={type(e).__name__}"
+                )
 
         # 标记为已编译
         self.is_compiled = True

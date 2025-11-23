@@ -581,9 +581,16 @@ class SyntaxHighlighter:
                         ):
                             tag_ranges[full_tag_name].append((start_pos, end_pos))
 
+            except re.error as e:
+                # 正则表达式匹配错误，记录并跳过
+                logger.error(f"正则匹配 '{tag_name}' 时发生错误: {str(e)}")
+                continue
             except Exception as e:
-                # 如果匹配过程中出错, 跳过该模式
-                logger.error(f"正则匹配 '{tag_name}' 时出错: {str(e)}")
+                # 其他匹配过程中出错, 跳过该模式
+                logger.error(f"正则匹配 '{tag_name}' 时发生意外错误: {str(e)}")
+                logger.debug(
+                    f"意外错误详情: 标签名={tag_name}, 错误类型={type(e).__name__}"
+                )
                 continue
 
         # 批量应用所有标签, 减少API调用

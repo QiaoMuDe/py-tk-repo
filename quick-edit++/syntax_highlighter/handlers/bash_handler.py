@@ -239,7 +239,7 @@ class BashHandler(LanguageHandler):
             # 数组索引 - ${array[index]}
             "array_index": r"\$\{[a-zA-Z_][a-zA-Z0-9_]*\[[^\]]+\]\}",
             # 参数扩展 - ${param#word}, ${param%word}等
-            "parameter_expansion": r"\$\{[a-zA-Z_][a-zA-Z0-9_]*[#%:=+\-\?\*@!]\}",
+            "parameter_expansion": r"\$\{[a-zA-Z_][a-zA-Z0-9_]*[#%:=+\-?*@!]\}",
         }
 
         # 标签样式 - 使用适合Bash的配色方案，仅修改颜色
