@@ -28,6 +28,8 @@ importlib_resources==6.4.5
 iniconfig==2.3.0
 iso8601==2.1.0
 jsonpath-ng==1.6.1
+fasteners==0.19
+filetype==1.2.0
 loguru==0.7.3
 lz4==4.4.4
 m3u8==3.6.0

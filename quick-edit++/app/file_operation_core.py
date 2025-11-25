@@ -3,7 +3,7 @@
 """
 
 import os
-import sys
+import filetype
 import codecs
 import chardet
 import threading
@@ -15,31 +15,58 @@ class FileOperationCore:
 
     def is_binary_file(self, file_path=None, sample_data=None, sample_size=4096):
         """
-        检测文件是否为二进制文件
+        检测文件是否为二进制文件（简化版）
 
-        原理：结合多种启发式方法判断，减少对包含少量乱码的文本文件的误判
+        原理: 优先使用filetype库检测魔数, 然后使用chardet检测文本编码, 最后使用简单的启发式方法
 
         Args:
-            file_path: 文件路径（如果提供了sample_data，则忽略此参数）
+            file_path: 文件路径 (如果提供了sample_data, 则忽略此参数)
             sample_data: 已读取的文件样本数据（字节类型）
             sample_size: 用于检测的样本大小（字节）
 
         Returns:
-            bool: 如果是二进制文件返回True，否则返回False
+            bool: 如果是二进制文件返回True, 否则返回False
         """
         try:
-            # 如果提供了样本数据，直接使用
+            # 第一步：使用filetype库检测魔数（仅当提供了文件路径时）
+            if file_path is not None and os.path.exists(file_path):
+                try:
+                    kind = filetype.guess(file_path)
+                    if kind is not None:
+                        # filetype能够识别的文件类型都是二进制文件
+                        return True
+                except ImportError:
+                    # 如果filetype库不可用，继续使用其他方法
+                    pass
+                except Exception:
+                    # filetype检测出错，继续使用其他方法
+                    pass
+
+            # 第二步：获取样本数据
             if sample_data is not None:
                 sample = sample_data
-            else:
-                # 否则从文件中读取样本
+            elif file_path is not None:
+                # 从文件中读取样本
                 with open(file_path, "rb") as file:
                     sample = file.read(sample_size)
+            else:
+                # 既没有提供样本数据也没有提供文件路径，无法判断
+                return False
 
             # 如果文件为空，不视为二进制文件
             if not sample:
                 return False
 
+            # 第三步：使用chardet检测编码置信度
+            try:
+                result = chardet.detect(sample)
+                if result and result.get("confidence", 0) > 0.8:
+                    # 高置信度编码检测，判定为文本文件
+                    return False
+            except Exception:
+                pass
+
+            # 第四步：增强的启发式检测（结合多种方法）
             # 方法1: 检查NULL字节 (二进制文件通常包含大量NULL字节)
             if b"\x00" in sample:
                 # 如果NULL字节数量很少，可能是文本文件中的乱码
@@ -85,8 +112,7 @@ class FileOperationCore:
             return control_char_ratio > 0.05  # 最后使用一个较低的阈值
 
         except Exception:
-            # 如果读取文件出错，先尝试从错误类型判断
-            # 大多数情况下保持保守判断
+            # 如果检测出错，保守判断为二进制文件
             return True
 
     def detect_file_encoding_and_line_ending(self, file_path=None, sample_data=None):
@@ -187,13 +213,15 @@ class FileOperationCore:
                 sample_data = file.read(4096)
 
             # 检测是否为二进制文件
-            if self.is_binary_file(sample_data=sample_data):
+            is_binary = self.is_binary_file(sample_data=sample_data)
+
+            # 如果是二进制文件，返回错误
+            if is_binary:
                 result["title"] = "无法打开二进制文件"
                 result["message"] = (
-                    "QuickEdit++ 是一个文本编辑器，不支持打开二进制文件。\n\n"
-                    f"建议：\n"
-                    f"• 使用十六进制编辑器查看此文件\n"
-                    f"• 或使用支持二进制文件的专业编辑器"
+                    f"检测到二进制文件: {os.path.basename(file_path)}\n\n"
+                    f"QuickEdit++ 是文本编辑器，不支持编辑二进制文件。\n"
+                    f"请使用专门的二进制文件编辑器打开此文件。"
                 )
                 return result
 
@@ -223,6 +251,7 @@ class FileOperationCore:
                 "encoding": encoding,  # 文件编码
                 "line_ending": line_ending,  # 文件换行符格式
                 "file_size": file_size,  # 文件大小（字节）
+                "is_binary": is_binary,  # 是否为二进制文件
             }
             result["title"] = "文件读取成功"
             result["message"] = f"成功读取文件: {os.path.basename(file_path)}"
