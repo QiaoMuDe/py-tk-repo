@@ -68,17 +68,28 @@ def create_encoding_submenu(parent_menu, root, show_common_only=False, font_tupl
         # 按字母顺序排序
         encodings_sorted = sorted(encodings, key=lambda x: x.upper())
 
-        # 为了避免菜单过长，将编码分成几组
-        group_size = 20  # 每组20个编码
-        for i in range(0, len(encodings_sorted), group_size):
-            group_name = f"{encodings_sorted[i]} - {encodings_sorted[min(i+group_size-1, len(encodings_sorted)-1)]}"
+        # 按首字母分组编码
+        encoding_groups = {}
+        for enc in encodings_sorted:
+            # 获取首字母
+            first_char = enc[0].upper() if enc else "OTHER"
+
+            # 将编码添加到对应首字母的组中
+            if first_char not in encoding_groups:
+                encoding_groups[first_char] = []
+            encoding_groups[first_char].append(enc)
+
+        # 为每个首字母创建子菜单
+        for first_char in sorted(encoding_groups.keys()):
+            group_encodings = encoding_groups[first_char]
+            group_name = f"{first_char} ({len(group_encodings)}个)"
             group_menu = tk.Menu(more_encodings_menu, tearoff=0, font=font_tuple)
             more_encodings_menu.add_cascade(
                 label=group_name, menu=group_menu, font=font_tuple
             )
 
-            for j in range(i, min(i + group_size, len(encodings_sorted))):
-                enc = encodings_sorted[j]
+            # 添加该组的所有编码
+            for enc in group_encodings:
                 group_menu.add_command(
                     label=enc,
                     command=lambda e=enc: set_file_encoding(e, root),
