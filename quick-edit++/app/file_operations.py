@@ -593,9 +593,12 @@ class FileOperations:
                     encoding = data["encoding"]
                     line_ending = data["line_ending"]
 
-                    # 更新编辑器内容
+                    # 插入编辑器内容
                     self.root.text_area.delete("1.0", tk.END)
                     self.root.text_area.insert("1.0", content)
+
+                    # 调用清除方法, 清除刚才插入的撤销栈
+                    self.root.clear_memory()
 
                     # 保存当前文件路径到编辑器实例
                     self.root.current_file_path = file_path
