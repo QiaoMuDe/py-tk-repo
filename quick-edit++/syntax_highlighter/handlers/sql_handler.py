@@ -617,8 +617,8 @@ class SQLHandler(LanguageHandler):
             "strings": r"'(?:[^']|'')*'|\"(?:[^\"\\]|\\.)*\"",
             # 数字 - 包括整数、浮点数、科学计数法
             "numbers": r"\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b",
-            # 函数 - 函数名后的括号
-            "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()",
+            # 函数 - 函数名后紧跟括号，中间无空格，只匹配函数名部分
+            "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b(?=\()",
             # 表名和列名 - 使用反引号、方括号或双引号括起来的标识符
             "identifiers": r"(`[^`]*`|\[[^\]]*\]|\"[^\"]*\")",
             # 操作符 - 现在只有特殊字符操作符，直接转义
@@ -629,8 +629,8 @@ class SQLHandler(LanguageHandler):
                 for op in operators
             )
             + ")",
-            # 变量 - @开头或:开头的变量
-            "variables": r"@[a-zA-Z_][a-zA-Z0-9_]*|:[a-zA-Z_][a-zA-Z0-9_]*",
+            # 变量 - @开头、:开头或#开头的变量/临时表
+            "variables": r"@[a-zA-Z_][a-zA-Z0-9_]*|:[a-zA-Z_][a-zA-Z0-9_]*|#[a-zA-Z_][a-zA-Z0-9_]*",
             # 占位符 - ?或:1格式
             "placeholders": r"\?|:\d+",
         }
@@ -683,9 +683,9 @@ class SQLHandler(LanguageHandler):
             "operators": {
                 "foreground": "#666666",
             },
-            # 变量 - 深紫色
+            # 变量/临时表 - 棕色
             "variables": {
-                "foreground": "#663366",
+                "foreground": "#8B4513",
             },
             # 占位符 - 橙色
             "placeholders": {
