@@ -83,6 +83,8 @@ class SQLHandler(LanguageHandler):
             # 其他关键字
             "FROM",
             "WHERE",
+            "AND",
+            "OR",
             "GROUP",
             "BY",
             "HAVING",
@@ -555,6 +557,36 @@ class SQLHandler(LanguageHandler):
             "MEDIUMINT",
         ]
 
+        # SQL操作符
+        operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            # 比较操作符
+            "=",
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            "<>",
+            "<=>",
+            # 逻辑操作符
+            "||",
+            "&&",
+            "|",
+            "&",
+            "!",
+            # 括号
+            "(",
+            ")",
+            # SQL关键字操作符 - 注意：AND/OR/NOT/IN/EXISTS/BETWEEN/LIKE/IS等已移至关键字列表中
+        ]
+
         # 正则表达式模式
         self._regex_patterns = {
             # 关键字 - 使用单词边界确保匹配完整单词，并添加忽略大小写标志
@@ -575,8 +607,14 @@ class SQLHandler(LanguageHandler):
             "functions": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()",
             # 表名和列名 - 使用反引号、方括号或双引号括起来的标识符
             "identifiers": r"(`[^`]*`|\[[^\]]*\]|\"[^\"]*\")",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|=|==|!=|<|>|<=|>=|<>|<=>|\|\||&&|\||&|!|\(|\)|\bAND\b|\bOR\b|\bNOT\b|\bIN\b|\bEXISTS\b|\bBETWEEN\b|\bLIKE\b|\bIS\b)",
+            # 操作符 - 现在只有特殊字符操作符，直接转义
+            "operators": "("
+            + "|".join(
+                # 所有剩余操作符都是特殊字符，都需要转义
+                re.escape(op)
+                for op in operators
+            )
+            + ")",
             # 变量 - @开头或:开头的变量
             "variables": r"@[a-zA-Z_][a-zA-Z0-9_]*|:[a-zA-Z_][a-zA-Z0-9_]*",
             # 占位符 - ?或:1格式
@@ -627,9 +665,9 @@ class SQLHandler(LanguageHandler):
             "identifiers": {
                 "foreground": "#008B8B",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 变量 - 深紫色
             "variables": {
