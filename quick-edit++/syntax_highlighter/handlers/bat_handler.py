@@ -121,6 +121,29 @@ class BatHandler(LanguageHandler):
             "verify",
         ]
 
+        # 操作符 - Windows批处理脚本中的各种操作符
+        self._operators = [
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "=",
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            "||",
+            "&&",
+            "|",
+            "&",
+            "!",
+            "(",
+            ")",
+        ]
+
         # 内置命令
         builtins = [
             # 文件系统操作
@@ -256,8 +279,10 @@ class BatHandler(LanguageHandler):
             "variables": r"%[a-zA-Z_][a-zA-Z0-9_]*%|%%[a-zA-Z]|%\d+|%[*]|%~[dpnxsfta$1-9]+|![a-zA-Z_][a-zA-Z0-9_]*!",
             # 标签 - :开头，增强匹配
             "labels": r"^[ \t]*:[a-zA-Z_][a-zA-Z0-9_]*",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|=|==|!=|<|>|<=|>=|\|\||&&|\||&|!|\(|\))",
+            # 操作符 - 使用属性数组并转义展开
+            "operators": r"("
+            + "|".join(re.escape(op) for op in self._operators)
+            + r")",
             # 路径 - 以\开头或包含\的字符串，增强匹配
             "paths": r"(\\[a-zA-Z0-9_\-\.\\]+|[a-zA-Z]:\\[a-zA-Z0-9_\-\.\\]*|[a-zA-Z0-9_\-\.\\]+\\[a-zA-Z0-9_\-\.\\]*)",
             # 新增：环境变量 - 以%开头和结尾
@@ -306,9 +331,9 @@ class BatHandler(LanguageHandler):
             "labels": {
                 "foreground": "#008B8B",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 路径 - 深绿色
             "paths": {

@@ -110,6 +110,68 @@ class JavaScriptHandler(LanguageHandler):
             "debugger",
         ]
 
+        # JavaScript操作符 - 按类型分类组织
+        self._operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "**",
+            # 比较操作符
+            "==",
+            "===",
+            "!=",
+            "!==",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            # 逻辑操作符
+            "&&",
+            "||",
+            "!",
+            # 位操作符
+            "&",
+            "|",
+            "^",
+            "~",
+            "<<",
+            ">>",
+            ">>>",
+            # 赋值操作符
+            "=",
+            "+=",
+            "-=",
+            "*=",
+            "/=",
+            "%=",
+            "**=",
+            "&=",
+            "|=",
+            "^=",
+            "<<=",
+            ">>=",
+            ">>>=",
+            # 自增自减操作符
+            "++",
+            "--",
+            # 三元操作符
+            "?",
+            ":",
+            # 分隔符
+            "(",
+            ")",
+            "{",
+            "}",
+            "[",
+            "]",
+            ".",
+            ",",
+            ";",
+        ]
+
         # JavaScript内置对象和函数
         builtins = [
             # 全局对象
@@ -200,8 +262,10 @@ class JavaScriptHandler(LanguageHandler):
             "functions": r"\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?=\s*\()|\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(?:function|\([^)]*\)\s*=>)|\b(?:function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)|class\s+([a-zA-Z_$][a-zA-Z0-9_$]*))",
             # 变量 - 变量名
             "variables": r"\b[a-zA-Z_$][a-zA-Z0-9_$]*\b",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|\*\*|=|==|===|!=|!==|<|>|<=|>=|\+\+|\-\-|<<|>>|>>>|&|\||\^|!|&&|\|\||\?|:|\(|\)|\{|\}|\[|\]|\.|,|;)",
+            # 操作符 - 使用属性数组并转义展开
+            "operators": r"("
+            + "|".join(re.escape(op) for op in self._operators)
+            + r")",
             # 模板字符串变量 - ${variable}
             "template_variables": r"\$\{[^}]*\}",
             # JSX标签 - 如果是JSX文件
@@ -244,9 +308,9 @@ class JavaScriptHandler(LanguageHandler):
             "variables": {
                 "foreground": "#000000",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 模板字符串变量 - 深青色
             "template_variables": {

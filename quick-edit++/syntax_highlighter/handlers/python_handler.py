@@ -91,6 +91,27 @@ class PythonHandler(LanguageHandler):
             "await",
         ]
 
+        # Python操作符
+        self._operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "//",
+            "%",
+            "**",
+            # 比较操作符
+            "=",
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            "<>",
+        ]
+
         # 内置函数和类型
         builtins = [
             "abs",
@@ -183,8 +204,10 @@ class PythonHandler(LanguageHandler):
             "variable_keys": r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\[[^\]]+\])*)\s*(?==)",
             # 冒号左边的键名 - 字典键，支持嵌套属性
             "dict_keys": r"\b([a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)\s*(?=:)",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|\/\/|%|\*\*|=|==|!=|<|>|<=|>=|<>)",
+            # 操作符 - 使用转义后的操作符数组
+            "operators": r"("
+            + "|".join(re.escape(op) for op in self._operators)
+            + r")",
         }
 
         # 标签样式 - 使用适合Python的配色方案
@@ -223,9 +246,9 @@ class PythonHandler(LanguageHandler):
             "dict_keys": {
                 "foreground": "#8B008B",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
         }
 

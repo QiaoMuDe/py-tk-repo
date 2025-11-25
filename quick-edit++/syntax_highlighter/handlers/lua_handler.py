@@ -247,6 +247,45 @@ class LuaHandler(LanguageHandler):
             "coroutine.yield",
         ]
 
+        # Lua操作符 - 按类型分类组织
+        self._operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "^",
+            "#",
+            # 比较操作符
+            "==",
+            "~=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            # 逻辑操作符
+            "and",
+            "or",
+            "not",
+            # 连接操作符
+            "..",
+            # 赋值操作符
+            "=",
+            # 分隔符
+            "(",
+            ")",
+            "{",
+            "}",
+            "[",
+            "]",
+            ";",
+            ",",
+            # 其他操作符
+            ":",
+            ".",
+        ]
+
         # 正则表达式模式
         self._regex_patterns = {
             # 注释
@@ -277,8 +316,8 @@ class LuaHandler(LanguageHandler):
             "local_var": r"\blocal\s+[a-zA-Z_][a-zA-Z0-9_]*\b",
             # 全局变量
             "global_var": r"\b[a-zA-Z_][a-zA-Z0-9_]*\b",
-            # 操作符
-            "operator": r"[+\-*/%^#=<>~&|]+",
+            # 操作符 - 使用属性数组并转义展开
+            "operator": r"(" + "|".join(re.escape(op) for op in self._operators) + r")",
             # 标签和goto
             "label": r"::[a-zA-Z_][a-zA-Z0-9_]*::",
             "goto": r"\bgoto\s+[a-zA-Z_][a-zA-Z0-9_]*\b",
@@ -286,32 +325,32 @@ class LuaHandler(LanguageHandler):
             "vararg": r"\.\.\.",
         }
 
-        # 标签样式 - 使用适合Lua脚本的配色方案
+        # 标签样式 - 使用适合Lua脚本的深色配色方案
         self._tag_styles = {
             "comment": {
-                "foreground": "#6A9955",
-            },  # 绿色斜体用于单行注释
+                "foreground": "#008000",
+            },  # 深绿色用于单行注释
             "multiline_comment": {
-                "foreground": "#6A9955",
-            },  # 绿色斜体用于多行注释
-            "string": {"foreground": "#CE9178"},  # 橙色用于字符串
-            "multiline_string": {"foreground": "#CE9178"},  # 橙色用于多行字符串
-            "number": {"foreground": "#B5CEA8"},  # 浅绿色用于数字
-            "hex_number": {"foreground": "#B5CEA8"},  # 浅绿色用于十六进制数字
-            "boolean": {"foreground": "#569CD6"},  # 蓝色用于布尔值
-            "nil": {"foreground": "#569CD6"},  # 蓝色用于nil值
+                "foreground": "#008000",
+            },  # 深绿色用于多行注释
+            "string": {"foreground": "#A31515"},  # 深红色用于字符串
+            "multiline_string": {"foreground": "#A31515"},  # 深红色用于多行字符串
+            "number": {"foreground": "#098658"},  # 深绿色用于数字
+            "hex_number": {"foreground": "#098658"},  # 深绿色用于十六进制数字
+            "boolean": {"foreground": "#0000FF"},  # 纯蓝色用于布尔值
+            "nil": {"foreground": "#0000FF"},  # 纯蓝色用于nil值
             "function_def": {
-                "foreground": "#DCDCAA",
-            },  # 浅黄色粗体用于函数定义
-            "function_call": {"foreground": "#DCDCAA"},  # 浅黄色用于函数调用
-            "property_access": {"foreground": "#9CDCFE"},  # 浅蓝色用于属性访问
-            "table_def": {"foreground": "#D4D4D4"},  # 浅灰色用于表定义
-            "local_var": {"foreground": "#C586C0"},  # 紫色用于局部变量
-            "global_var": {"foreground": "#9CDCFE"},  # 浅蓝色用于全局变量
-            "operator": {"foreground": "#D4D4D4"},  # 浅灰色用于操作符
-            "label": {"foreground": "#FF7700"},  # 橙色用于标签
-            "goto": {"foreground": "#FF7700"},  # 橙色用于goto
-            "vararg": {"foreground": "#FF7700"},  # 橙色用于变长参数
+                "foreground": "#795E26",
+            },  # 深棕色用于函数定义
+            "function_call": {"foreground": "#795E26"},  # 深棕色用于函数调用
+            "property_access": {"foreground": "#001080"},  # 深蓝色用于属性访问
+            "table_def": {"foreground": "#333333"},  # 深灰色用于表定义
+            "local_var": {"foreground": "#800080"},  # 深紫色用于局部变量
+            "global_var": {"foreground": "#001080"},  # 深蓝色用于全局变量
+            "operator": {"foreground": "#808080"},  # 灰色用于操作符
+            "label": {"foreground": "#CC6600"},  # 深橙色用于标签
+            "goto": {"foreground": "#CC6600"},  # 深橙色用于goto
+            "vararg": {"foreground": "#CC6600"},  # 深橙色用于变长参数
         }
 
     def get_pattern_order(self) -> List[str]:

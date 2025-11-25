@@ -81,8 +81,10 @@ class DockerfileHandler(LanguageHandler):
         self._regex_patterns = {
             # 注释 (以#开头的行)
             "comment": r"(?m)^\s*#.*$",
-            # Dockerfile指令 (大写字母开头，后跟空格)
-            "instruction": r"(?m)^\s*(FROM|MAINTAINER|RUN|CMD|LABEL|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD|STOPSIGNAL|HEALTHCHECK|SHELL)\b",
+            # Dockerfile指令 - 使用属性数组并转义展开
+            "instruction": r"(?m)^\s*("
+            + "|".join(re.escape(k) for k in self._keywords)
+            + r")\b",
             # 字符串 (双引号或单引号包围)
             "string": r"([\"'])(?:(?=(\\?))\2.)*?\1",
             # 数字

@@ -133,6 +133,48 @@ class TypeScriptHandler(LanguageHandler):
             "override",
         ]
 
+        # TypeScript操作符
+        self._operators = [
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            "**",  # 算术运算符
+            "=",
+            "==",
+            "===",
+            "!=",
+            "!==",  # 比较运算符
+            "<",
+            ">",
+            "<=",
+            ">=",  # 比较运算符
+            "++",
+            "--",  # 增量/减量运算符
+            "<<",
+            ">>",
+            ">>>",  # 位运算符
+            "&",
+            "|",
+            "^",
+            "!",
+            "~",  # 位运算符和逻辑运算符
+            "&&",
+            "||",  # 逻辑运算符
+            "?",
+            ":",  # 三元运算符
+            "(",
+            ")",
+            "{",
+            "}",
+            "[",
+            "]",  # 括号
+            ".",
+            ",",
+            ";",  # 分隔符
+        ]
+
         # TypeScript内置类型和对象
         builtins = [
             # JavaScript内置对象
@@ -241,8 +283,10 @@ class TypeScriptHandler(LanguageHandler):
             "functions": r"\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*(?=\s*\()|\b([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*(?:function|\([^)]*\)\s*=>)|\b(?:function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)|class\s+([a-zA-Z_$][a-zA-Z0-9_$]*)|interface\s+([a-zA-Z_$][a-zA-Z0-9_$]*)|type\s+([a-zA-Z_$][a-zA-Z0-9_$]*))",
             # 变量 - 变量名
             "variables": r"\b[a-zA-Z_$][a-zA-Z0-9_$]*\b",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|\*\*|=|==|===|!=|!==|<|>|<=|>=|\+\+|\-\-|<<|>>|>>>|&|\||\^|!|&&|\|\||\?|:|\(|\)|\{|\}|\[|\]|\.|,|;)",
+            # 操作符 - 使用数组并转义展开
+            "operators": r"("
+            + "|".join(re.escape(op) for op in self._operators)
+            + r")",
             # 模板字符串变量 - ${variable}
             "template_variables": r"\$\{[^}]*\}",
             # TSX标签 - 如果是TSX文件
@@ -289,9 +333,9 @@ class TypeScriptHandler(LanguageHandler):
             "variables": {
                 "foreground": "#000000",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 模板字符串变量 - 深青色
             "template_variables": {

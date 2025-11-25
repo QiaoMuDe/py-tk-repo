@@ -720,7 +720,7 @@ def set_file_encoding(encoding, app_instance=None):
         app_instance._update_status_bar()
 
     # 显示通知
-    root.status_bar.show_notification(f"文件编码已更改为: {encoding}", 500)
+    app_instance.status_bar.show_notification(f"文件编码已更改为: {encoding}", 500)
 
 
 def set_file_line_ending(line_ending, app_instance=None):

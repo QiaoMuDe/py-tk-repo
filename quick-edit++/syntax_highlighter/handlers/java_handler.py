@@ -59,6 +59,7 @@ class JavaHandler(LanguageHandler):
             "octal_number",  # 八进制数字
             "boolean",  # 布尔值
             "null",  # null值
+            "builtin",  # 内置类和方法
             "annotation",  # 注解
             "package_decl",  # 包声明
             "import_decl",  # 导入声明
@@ -136,6 +137,82 @@ class JavaHandler(LanguageHandler):
             "true",
             "false",
             "null",
+        ]
+
+        # Java操作符 - 按类型分类组织
+        self._operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            # 比较操作符
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            # 逻辑操作符
+            "&&",
+            "||",
+            "!",
+            # 位操作符
+            "&",
+            "|",
+            "^",
+            "~",
+            "<<",
+            ">>",
+            ">>>",
+            # 赋值操作符
+            "=",
+            "+=",
+            "-=",
+            "*=",
+            "/=",
+            "%=",
+            "&=",
+            "|=",
+            "^=",
+            "<<=",
+            ">>=",
+            ">>>=",
+            # 三元操作符
+            "?",
+            ":",
+            # 其他操作符
+            "++",
+            "--",
+            "instanceof",
+        ]
+
+        # Java访问修饰符
+        self._access_modifiers = [
+            "public",
+            "private",
+            "protected",
+        ]
+
+        # Java非访问修饰符
+        self._non_access_modifiers = [
+            "abstract",
+            "final",
+            "static",
+            "synchronized",
+            "native",
+            "strictfp",
+            "transient",
+            "volatile",
+        ]
+
+        # Java类/接口/枚举类型
+        self._class_types = [
+            "class",
+            "interface",
+            "enum",
+            "record",
         ]
 
         # Java内置类和方法
@@ -468,12 +545,24 @@ class JavaHandler(LanguageHandler):
             "boolean": r"\b(true|false)\b",
             # null值
             "null": r"\bnull\b",
-            # 类定义
-            "class_def": r"\b(?:public|private|protected)?\s*(?:abstract|final|static)?\s*(?:class|interface|enum|record)\s+[a-zA-Z_][a-zA-Z0-9_]*",
-            # 方法定义
-            "method_def": r"\b(?:public|private|protected)?\s*(?:abstract|final|static|synchronized|native)?\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\([^)]*\)\s*(?:throws\s+[a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*)?",
-            # 方法调用
-            "method_call": r"\b[a-zA-Z_][a-zA-Z0-9_]*\s*\(",
+            # 内置类和方法 - 使用属性数组并转义展开
+            "builtin": r"\b(" + "|".join(re.escape(b) for b in self._builtins) + r")\b",
+            # 类定义 - 使用属性数组并转义展开
+            "class_def": r"\b(?:"
+            + "|".join(re.escape(mod) for mod in self._access_modifiers)
+            + r")?\s*(?:"
+            + "|".join(re.escape(mod) for mod in self._non_access_modifiers)
+            + r")?\s*(?:"
+            + "|".join(re.escape(cls) for cls in self._class_types)
+            + r")\s+[a-zA-Z_][a-zA-Z0-9_]*",
+            # 方法定义 - 只匹配方法名部分，不包括括号
+            "method_def": r"\b(?:"
+            + "|".join(re.escape(mod) for mod in self._access_modifiers)
+            + r")?\s*(?:"
+            + "|".join(re.escape(mod) for mod in self._non_access_modifiers)
+            + r")?\s*(?:[a-zA-Z_][a-zA-Z0-9_]*\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\s*\()",
+            # 方法调用 - 只匹配方法名部分，不包括括号
+            "method_call": r"\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\s*\()",
             # 属性访问
             "property_access": r"[a-zA-Z_][a-zA-Z0-9_]*\s*\.\s*[a-zA-Z_][a-zA-Z0-9_]*",
             # 变量声明
@@ -484,8 +573,8 @@ class JavaHandler(LanguageHandler):
             "package_decl": r"\bpackage\s+[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*",
             # 导入声明
             "import_decl": r"\bimport\s+(?:static\s+)?[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*(?:\.\*)?",
-            # 操作符
-            "operator": r"[+\-*/%=<>!&|^~?:]+",
+            # 操作符 - 使用属性数组并转义展开
+            "operator": r"(" + "|".join(re.escape(op) for op in self._operators) + r")",
             # 泛型
             "generic": r"<[a-zA-Z_][a-zA-Z0-9_]*(?:\s*,\s*[a-zA-Z_][a-zA-Z0-9_]*)*(?:\s+extends\s+[a-zA-Z_][a-zA-Z0-9_]*(?:\.[a-zA-Z_][a-zA-Z0-9_]*)*)?>",
             # Lambda表达式
@@ -494,39 +583,40 @@ class JavaHandler(LanguageHandler):
             "method_ref": r"[a-zA-Z_][a-zA-Z0-9_]*::[a-zA-Z_][a-zA-Z0-9_]*",
         }
 
-        # 标签样式 - 使用适合Java语言的配色方案
+        # 标签样式 - 使用更鲜明、更深邃的颜色方案以提高可读性
         self._tag_styles = {
             "comment": {
-                "foreground": "#6A9955",
-            },  # 绿色用于单行注释
+                "foreground": "#008000",
+            },  # 深绿色用于单行注释
             "multiline_comment": {
-                "foreground": "#6A9955",
-            },  # 绿色用于多行注释
+                "foreground": "#008000",
+            },  # 深绿色用于多行注释
             "javadoc_comment": {
-                "foreground": "#6A9955",
-            },  # 绿色用于JavaDoc注释
-            "string": {"foreground": "#CE9178"},  # 橙色用于字符串
-            "char": {"foreground": "#CE9178"},  # 橙色用于字符
-            "number": {"foreground": "#B5CEA8"},  # 浅绿色用于数字
-            "hex_number": {"foreground": "#B5CEA8"},  # 浅绿色用于十六进制数字
-            "binary_number": {"foreground": "#B5CEA8"},  # 浅绿色用于二进制数字
-            "octal_number": {"foreground": "#B5CEA8"},  # 浅绿色用于八进制数字
-            "boolean": {"foreground": "#569CD6"},  # 蓝色用于布尔值
-            "null": {"foreground": "#569CD6"},  # 蓝色用于null值
+                "foreground": "#008000",
+            },  # 深绿色用于JavaDoc注释
+            "string": {"foreground": "#A31515"},  # 深红色用于字符串
+            "char": {"foreground": "#A31515"},  # 深红色用于字符
+            "number": {"foreground": "#098658"},  # 深绿色用于数字
+            "hex_number": {"foreground": "#098658"},  # 深绿色用于十六进制数字
+            "binary_number": {"foreground": "#098658"},  # 深绿色用于二进制数字
+            "octal_number": {"foreground": "#098658"},  # 深绿色用于八进制数字
+            "boolean": {"foreground": "#0000FF"},  # 纯蓝色用于布尔值
+            "null": {"foreground": "#0000FF"},  # 纯蓝色用于null值
+            "builtin": {"foreground": "#008080"},  # 深青色用于内置类和方法
             "class_def": {
-                "foreground": "#569CD6",
-            },  # 蓝色用于类定义
+                "foreground": "#0000FF",
+            },  # 纯蓝色用于类定义
             "method_def": {
-                "foreground": "#DCDCAA",
-            },  # 浅黄色用于方法定义
-            "method_call": {"foreground": "#DCDCAA"},  # 浅黄色用于方法调用
-            "property_access": {"foreground": "#9CDCFE"},  # 浅蓝色用于属性访问
-            "variable_decl": {"foreground": "#C586C0"},  # 紫色用于变量声明
-            "annotation": {"foreground": "#C586C0"},  # 紫色用于注解
-            "package_decl": {"foreground": "#C586C0"},  # 紫色用于包声明
-            "import_decl": {"foreground": "#C586C0"},  # 紫色用于导入声明
-            "operator": {"foreground": "#D4D4D4"},  # 浅灰色用于操作符
-            "generic": {"foreground": "#4EC9B0"},  # 青色用于泛型
-            "lambda": {"foreground": "#FF7700"},  # 橙色用于Lambda表达式
-            "method_ref": {"foreground": "#FF7700"},  # 橙色用于方法引用
+                "foreground": "#795E26",
+            },  # 深棕色用于方法定义
+            "method_call": {"foreground": "#795E26"},  # 深棕色用于方法调用
+            "property_access": {"foreground": "#001080"},  # 深蓝色用于属性访问
+            "variable_decl": {"foreground": "#800080"},  # 深紫色用于变量声明
+            "annotation": {"foreground": "#800080"},  # 深紫色用于注解
+            "package_decl": {"foreground": "#800080"},  # 深紫色用于包声明
+            "import_decl": {"foreground": "#800080"},  # 深紫色用于导入声明
+            "operator": {"foreground": "#000000"},  # 黑色用于操作符
+            "generic": {"foreground": "#008080"},  # 深青色用于泛型
+            "lambda": {"foreground": "#FF4500"},  # 深橙色用于Lambda表达式
+            "method_ref": {"foreground": "#FF4500"},  # 深橙色用于方法引用
         }

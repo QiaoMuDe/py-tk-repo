@@ -102,6 +102,64 @@ class PowerShellHandler(LanguageHandler):
             "sequence",
         ]
 
+        # PowerShell操作符
+        self._operators = [
+            # 算术操作符
+            "+",
+            "-",
+            "*",
+            "/",
+            "%",
+            # 赋值和比较操作符
+            "=",
+            "==",
+            "!=",
+            "<",
+            ">",
+            "<=",
+            ">=",
+            # PowerShell比较操作符
+            "-eq",
+            "-ne",
+            "-lt",
+            "-le",
+            "-gt",
+            "-ge",
+            "-like",
+            "-notlike",
+            "-match",
+            "-notmatch",
+            # 字符串操作符
+            "-replace",
+            "-creplace",
+            # 包含操作符
+            "-contains",
+            "-notcontains",
+            "-in",
+            "-notin",
+            # 逻辑操作符
+            "-and",
+            "-or",
+            "-not",
+            # 位操作符
+            "-band",
+            "-bor",
+            "-bxor",
+            "-bnot",
+            # 格式化操作符
+            "-f",
+            # 移位操作符
+            "-shl",
+            "-shr",
+            # 类型操作符
+            "-is",
+            "-isnot",
+            "-as",
+            # 其他操作符
+            "-join",
+            "-split",
+        ]
+
         # 内置命令和函数
         builtins = [
             # 常用命令
@@ -225,8 +283,10 @@ class PowerShellHandler(LanguageHandler):
             "types": r"\[[a-zA-Z_][a-zA-Z0-9_.\[\]]*\]",
             # 函数定义 - function关键字或函数名后的括号
             "functions": r"\b([a-zA-Z_][a-zA-Z0-9_-]*)\s*(?=\()|\bfunction\s+([a-zA-Z_][a-zA-Z0-9_-]*)",
-            # 操作符
-            "operators": r"(\+|\-|\*|\/|%|=|==|!=|<|>|<=|>=|\-eq|\-ne|\-lt|\-le|\-gt|\-ge|\-like|\-notlike|\-match|\-notmatch|\-replace|\-contains|\-notcontains|\-in|\-notin|\-and|\-or|\-not|\-band|\-bor|\-bxor|\-bnot|\-f|\-shl|\-shr|\-is|\-isnot|\-as|\-join|\-split|\-replace|\-creplace)",
+            # 操作符 - 使用转义后的操作符数组
+            "operators": r"("
+            + "|".join(re.escape(op) for op in self._operators)
+            + r")",
             # 路径 - 以/开头或包含/的字符串
             "paths": r"(\\[a-zA-Z0-9_\-\.\\]+|[a-zA-Z]:\\[a-zA-Z0-9_\-\.\\]*|[a-zA-Z0-9_\-\.\\]+\\[a-zA-Z0-9_\-\.\\]*|/[a-zA-Z0-9_\-\.\/]+)",
             # 参数 - -开头的参数
@@ -271,9 +331,9 @@ class PowerShellHandler(LanguageHandler):
             "functions": {
                 "foreground": "#4B0082",
             },
-            # 操作符 - 黑色
+            # 操作符 - 灰色
             "operators": {
-                "foreground": "#000000",
+                "foreground": "#808080",
             },
             # 路径 - 深绿色
             "paths": {

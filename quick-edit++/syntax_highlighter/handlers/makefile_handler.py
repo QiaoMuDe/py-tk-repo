@@ -125,20 +125,20 @@ class MakefileHandler(LanguageHandler):
             "pattern": r"(?m)^[a-zA-Z0-9_.%*-]+\s*:",
         }
 
-        # 标签样式 - 使用简洁的配色方案
+        # 标签样式 - 使用深色配色方案
         self._tag_styles = {
-            "comment": {"foreground": "#6A9955"},  # 绿色用于注释
-            "target": {"foreground": "#569CD6"},  # 蓝色用于目标
-            "phony": {"foreground": "#C586C0"},  # 紫色用于伪目标声明
-            "assignment": {"foreground": "#4EC9B0"},  # 青色用于变量赋值
-            "variable": {"foreground": "#9CDCFE"},  # 浅蓝色用于变量引用
-            "autovar": {"foreground": "#DCDCAA"},  # 浅黄色用于自动变量
-            "function": {"foreground": "#C586C0"},  # 紫色用于函数调用
-            "command": {"foreground": "#D4D4D4"},  # 浅灰色用于命令行
-            "string": {"foreground": "#CE9178"},  # 橙色用于字符串
-            "number": {"foreground": "#B5CEA8"},  # 浅绿色用于数字
-            "special_target": {"foreground": "#C586C0"},  # 紫色用于特殊目标
-            "pattern": {"foreground": "#569CD6"},  # 蓝色用于模式规则
+            "comment": {"foreground": "#008000"},  # 深绿色用于注释
+            "target": {"foreground": "#0000FF"},  # 纯蓝色用于目标
+            "phony": {"foreground": "#800080"},  # 深紫色用于伪目标声明
+            "assignment": {"foreground": "#008080"},  # 深青色用于变量赋值
+            "variable": {"foreground": "#001080"},  # 深蓝色用于变量引用
+            "autovar": {"foreground": "#795E26"},  # 深棕色用于自动变量
+            "function": {"foreground": "#800080"},  # 深紫色用于函数调用
+            "command": {"foreground": "#333333"},  # 深灰色用于命令行
+            "string": {"foreground": "#A31515"},  # 深红色用于字符串
+            "number": {"foreground": "#098658"},  # 深绿色用于数字
+            "special_target": {"foreground": "#800080"},  # 深紫色用于特殊目标
+            "pattern": {"foreground": "#0000FF"},  # 纯蓝色用于模式规则
         }
 
     def get_pattern_order(self) -> List[str]:
