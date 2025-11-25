@@ -700,6 +700,40 @@ class FileOperations:
             logger.error(f"打开配置文件时出错: {str(e)}")
             messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
 
+    def open_log_file(self):
+        """打开日志文件并加载到编辑器"""
+        try:
+            # 获取日志文件路径
+            log_dir = self.config_manager.get("logging.log_dir")
+            log_file = self.config_manager.get("logging.log_file", "app.log")
+            log_path = os.path.join(log_dir, log_file)
+
+            # 检查日志目录和文件是否存在
+            if not os.path.exists(log_dir):
+                messagebox.showinfo(
+                    "提示", "日志目录不存在, 将在首次记录日志时自动创建"
+                )
+                return
+
+            if not os.path.exists(log_path):
+                messagebox.showinfo(
+                    "提示", "日志文件不存在, 将在首次记录日志时自动创建"
+                )
+                return
+
+            # 使用通用文件打开方法打开日志文件
+            self._open_file(
+                file_path=log_path,
+                check_save=True,
+                check_backup=True,
+            )
+        except (ImportError, AttributeError) as e:
+            logger.error(f"配置管理器导入失败: {str(e)}")
+            messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
+        except Exception as e:
+            logger.error(f"打开日志文件时出错: {str(e)}")
+            messagebox.showerror("错误", f"打开日志文件时出错: {str(e)}")
+
     def save_file_copy(self):
         """
         保存当前文件的副本

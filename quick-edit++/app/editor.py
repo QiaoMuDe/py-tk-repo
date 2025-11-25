@@ -223,6 +223,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind(
             "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
         )  # 查看配置
+        self.bind(
+            "<Control-Shift-L>", lambda e: self.file_ops.open_log_file()
+        )  # 打开日志文件
         self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
 
         # 帮助快捷键
@@ -242,7 +245,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 语法高亮快捷键
         self.bind(
-            "<Control-Shift-L>",
+            "<Control-l>",
             lambda e: toggle_syntax_highlight(self, switch_state=True),
         )  # 切换语法高亮
 

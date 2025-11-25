@@ -510,7 +510,7 @@ def create_menu(root):
         label="启用语法高亮",
         command=lambda: toggle_syntax_highlight(root, switch_state=False),
         variable=root.syntax_highlight_var,
-        accelerator="Ctrl+Shift+L",
+        accelerator="Ctrl+L",
     )
 
     # 创建语法高亮模式子菜单
@@ -659,6 +659,11 @@ def create_menu(root):
         label="查看配置",
         command=lambda: root.file_ops.open_config_file(),
         accelerator="Ctrl+Shift+C",
+    )
+    settings_menu.add_command(
+        label="查看日志",
+        command=lambda: root.file_ops.open_log_file(),
+        accelerator="Ctrl+Shift+L",
     )
     settings_menu.add_command(
         label="重置设置",
