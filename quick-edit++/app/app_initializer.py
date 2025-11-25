@@ -374,13 +374,13 @@ class AppInitializer:
             colorize=False,  # 是否使用颜色
             backtrace=True,  # 是否显示回溯信息
             diagnose=False,  # 是否启用诊断信息
-            enqueue=True,  # 是否异步写入日志
-            catch=False,  # 是否捕获异常
+            enqueue=False,  # 改为同步写入日志，避免GIL问题
+            catch=True,  # 捕获异常，防止日志记录导致程序崩溃
             rotation=rotation_size,  # 日志文件旋转大小
             retention=retention_time,  # 日志文件保留时间
             compression="tar.gz",  # 日志文件压缩格式
             delay=True,  # 是否延迟初始化日志记录器
-            watch=True,  # 是否监控日志文件
+            watch=True,  # 关闭文件监控，减少资源占用
             encoding="utf-8",  # 日志文件编码
         )
         logger.info("logger initialized successfully!")
