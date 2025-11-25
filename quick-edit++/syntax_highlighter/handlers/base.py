@@ -52,10 +52,18 @@ class LanguageHandler(ABC):
         if self.is_compiled:
             return
 
+        # 获取正则表达式标志（如果子类定义了）
+        regex_flags = getattr(self, "_regex_flags", {})
+
         for name, pattern in self._regex_patterns.items():
             try:
-                self._compiled_patterns[name] = re.compile(pattern, re.MULTILINE)
-                logger.debug(f"正则表达式 '{name}' 编译成功")
+                # 获取该模式的标志，默认为0（无特殊标志）
+                flags = regex_flags.get(name, 0)
+                self._compiled_patterns[name] = re.compile(
+                    pattern, flags | re.MULTILINE
+                )
+                logger.debug(f"正则表达式 '{name}' 编译成功，标志: {flags}")
+
             except re.error as e:
                 logger.warning(f"正则表达式 '{name}' 编译失败: {e}, 模式: {pattern}")
                 # 如果编译失败，跳过该模式，不添加到编译后的模式字典中
@@ -67,7 +75,7 @@ class LanguageHandler(ABC):
             except Exception as e:
                 # 捕获其他可能的异常，防止程序崩溃
                 logger.error(
-                    f"编译正则表达式 '{name}' 时发生意外错误: {e}, 模式: {pattern}"
+                    f"编译正则表达式 '{name}' 时发生意外错误: {e}, 模式={pattern}"
                 )
                 logger.debug(
                     f"意外错误详情: 名称={name}, 模式={pattern}, 错误类型={type(e).__name__}"

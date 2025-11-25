@@ -557,11 +557,11 @@ class SQLHandler(LanguageHandler):
 
         # 正则表达式模式
         self._regex_patterns = {
-            # 关键字 - 使用单词边界确保匹配完整单词
+            # 关键字 - 使用单词边界确保匹配完整单词，并添加忽略大小写标志
             "keywords": r"\b("
             + "|".join(re.escape(k) for k in self._keywords)
             + r")\b",
-            # 数据类型
+            # 数据类型 - 使用单词边界确保匹配完整单词，并添加忽略大小写标志
             "data_types": r"\b("
             + "|".join(re.escape(dt) for dt in data_types)
             + r")\b",
@@ -581,6 +581,20 @@ class SQLHandler(LanguageHandler):
             "variables": r"@[a-zA-Z_][a-zA-Z0-9_]*|:[a-zA-Z_][a-zA-Z0-9_]*",
             # 占位符 - ?或:1格式
             "placeholders": r"\?|:\d+",
+        }
+
+        # 正则表达式编译标志 - 关键字和数据类型使用忽略大小写
+        self._regex_flags = {
+            "keywords": re.IGNORECASE,
+            "data_types": re.IGNORECASE,
+            "comments": 0,
+            "strings": 0,
+            "numbers": 0,
+            "functions": 0,
+            "identifiers": 0,
+            "operators": re.IGNORECASE,  # 操作符也忽略大小写，如AND/OR/NOT等
+            "variables": 0,
+            "placeholders": 0,
         }
 
         # 标签样式 - 使用适合SQL的配色方案
