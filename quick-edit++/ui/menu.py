@@ -162,6 +162,11 @@ def create_menu(root):
     # 创建最近打开文件子菜单
     # 创建打开文件的回调函数
     def on_open_recent_file(file_path):
+        # 检查是否为只读模式
+        if root.is_read_only:
+            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
+            return
+
         # 使用现有的文件打开功能
         root.file_ops._open_file(
             file_path=file_path, check_save=True, check_backup=True
@@ -176,6 +181,13 @@ def create_menu(root):
     # 创建重新载入文件子菜单
     # 创建重新载入文件的回调函数
     def on_reopen_file(file_path, encoding):
+        # 检查是否为只读模式
+        if root.is_read_only:
+            messagebox.showinfo(
+                "提示", "当前为只读模式，请先关闭只读模式后再重新载入文件"
+            )
+            return
+
         # 使用现有的文件重新打开功能
         root.file_ops._open_file(
             file_path=file_path, encoding=encoding, check_save=True

@@ -99,6 +99,18 @@ class AutoSaveManager:
         """
         # 检查文件是否已修改
         if self.app.is_modified():
+            # 检查是否为只读模式
+            if self.app.is_read_only:
+                # 文件处于只读模式，跳过自动保存并记录日志
+                logger.debug(
+                    f"文件处于只读模式，跳过自动保存: {self.app.current_file_path}"
+                )
+                # 更新状态栏显示只读模式下的自动保存状态
+                self.app.status_bar.show_auto_save_status(saved=False, read_only=True)
+                # 更新上次自动保存时间，以重置计时器
+                self.last_auto_save_time = time.time()
+                return
+
             # 执行保存操作
             file_path = self.app.current_file_path
             try:
@@ -108,6 +120,7 @@ class AutoSaveManager:
                 # 更新状态栏的自动保存信息，显示具体的保存时间
                 self.app.status_bar.show_auto_save_status(saved=True)
                 logger.info(f"自动保存成功: {file_path}")
+
             except Exception as e:
                 logger.error(f"自动保存失败: {file_path}, 错误: {str(e)}")
                 self.app.status_bar.show_notification(f"自动保存失败: {str(e)}")

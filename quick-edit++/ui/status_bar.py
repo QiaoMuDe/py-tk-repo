@@ -205,7 +205,7 @@ class StatusBar(ctk.CTkFrame):
         # 设置为蓝色字体表示倒计时
         self.center_label.configure(text=text, text_color="#0066CC")
 
-    def show_auto_save_status(self, saved=False):
+    def show_auto_save_status(self, saved=False, read_only=False):
         """
         显示自动保存的日常状态或保存成功状态
 
@@ -213,6 +213,9 @@ class StatusBar(ctk.CTkFrame):
             saved (bool): 是否刚刚执行了保存操作，默认为False
                            - True: 显示自动保存成功信息
                            - False: 显示日常状态信息
+            read_only (bool): 是否为只读模式，默认为False
+                            - True: 显示只读模式下的自动保存状态
+                            - False: 正常模式
         """
         # 获取自动保存设置
         auto_save_enabled = self.app.auto_save_manager.auto_save_enabled
@@ -222,6 +225,12 @@ class StatusBar(ctk.CTkFrame):
             text = f"自动保存: 已禁用"
             # 设置为黑色字体
             self.center_label.configure(text=text, text_color="#000000")
+
+        elif read_only:
+            # 只读模式下的自动保存状态
+            text = f"自动保存: 只读模式，已跳过 (间隔{auto_save_interval}秒)"
+            # 设置为橙色字体表示只读模式
+            self.center_label.configure(text=text, text_color="#FF8C00")
 
         elif saved:
             # 刚刚执行了保存操作，显示保存成功信息

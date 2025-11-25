@@ -678,6 +678,13 @@ class FileOperations:
     def open_config_file(self):
         """打开配置文件并加载到编辑器"""
         try:
+            # 检查是否为只读模式
+            if self.root.is_read_only:
+                messagebox.showinfo(
+                    "提示", "当前为只读模式，请先关闭只读模式后再打开配置文件"
+                )
+                return
+
             # 检查配置文件是否存在
             if not os.path.exists(CONFIG_PATH):
                 messagebox.showinfo(
@@ -701,6 +708,13 @@ class FileOperations:
     def open_log_file(self):
         """打开日志文件并加载到编辑器"""
         try:
+            # 检查是否为只读模式
+            if self.root.is_read_only:
+                messagebox.showinfo(
+                    "提示", "当前为只读模式，请先关闭只读模式后再打开日志文件"
+                )
+                return
+
             # 获取日志文件路径
             log_dir = self.config_manager.get("logging.log_dir")
             log_file = self.config_manager.get("logging.log_file", "app.log")
@@ -749,6 +763,15 @@ class FileOperations:
         if not self.root.current_file_path:
             messagebox.showinfo("提示", "没有打开的文件，无法创建副本")
             return False
+
+        # 检查是否为只读模式
+        if self.root.is_read_only:
+            result = messagebox.askyesno(
+                "只读模式",
+                "当前文件处于只读模式，是否仍要创建副本？\n\n创建副本不会修改原文件。",
+            )
+            if not result:
+                return False
 
         # 如果文件已修改，先保存当前文件
         if self.root.is_modified():
