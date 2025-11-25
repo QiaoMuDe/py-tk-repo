@@ -39,11 +39,11 @@ class SQLHandler(LanguageHandler):
         self._pattern_order = [
             "strings",  # 字符串放在第一位，确保优先匹配
             "comments",  # 注释放在第二位
+            "identifiers",  # 标识符
             "keywords",  # 关键字
             "data_types",  # 数据类型
             "numbers",  # 数字
             "functions",  # 函数
-            "identifiers",  # 标识符
             "operators",  # 操作符
             "variables",  # 变量
             "placeholders",  # 占位符
@@ -51,13 +51,13 @@ class SQLHandler(LanguageHandler):
 
         # SQL关键字
         self._keywords = [
-            # DDL关键字
+            # DDL关键字 - 数据定义语言
             "CREATE",
             "ALTER",
             "DROP",
             "TRUNCATE",
             "RENAME",
-            # DML关键字
+            # DML关键字 - 数据操作语言
             "INSERT",
             "UPDATE",
             "DELETE",
@@ -65,10 +65,10 @@ class SQLHandler(LanguageHandler):
             "CALL",
             "EXPLAIN",
             "LOCK",
-            # DQL关键字
+            # DQL关键字 - 数据查询语言
             "SELECT",
             "WITH",
-            # DCL关键字
+            # DCL关键字 - 数据控制语言
             "GRANT",
             "REVOKE",
             "COMMIT",
@@ -76,15 +76,13 @@ class SQLHandler(LanguageHandler):
             "SAVEPOINT",
             "SET",
             "TRANSACTION",
-            # TCL关键字
+            # TCL关键字 - 事务控制语言
             "START",
             "BEGIN",
             "END",
-            # 其他关键字
+            # 查询子句关键字
             "FROM",
             "WHERE",
-            "AND",
-            "OR",
             "GROUP",
             "BY",
             "HAVING",
@@ -92,16 +90,11 @@ class SQLHandler(LanguageHandler):
             "LIMIT",
             "OFFSET",
             "UNION",
-            "UNION",
             "ALL",
             "INTERSECT",
             "MINUS",
             "EXCEPT",
-            "INTO",
-            "VALUES",
-            "AS",
-            "ON",
-            "USING",
+            # 连接关键字
             "JOIN",
             "INNER",
             "OUTER",
@@ -110,6 +103,9 @@ class SQLHandler(LanguageHandler):
             "FULL",
             "CROSS",
             "NATURAL",
+            "ON",
+            "USING",
+            # 条件表达式关键字
             "CASE",
             "WHEN",
             "THEN",
@@ -119,7 +115,6 @@ class SQLHandler(LanguageHandler):
             "IN",
             "ANY",
             "SOME",
-            "ALL",
             "BETWEEN",
             "LIKE",
             "IS",
@@ -127,16 +122,24 @@ class SQLHandler(LanguageHandler):
             "TRUE",
             "FALSE",
             "UNKNOWN",
-            "DISTINCT",
-            "UNIQUE",
-            "PRIMARY",
-            "KEY",
-            "FOREIGN",
-            "REFERENCES",
-            "CHECK",
-            "DEFAULT",
-            "CONSTRAINT",
-            "INDEX",
+            "IS NULL",
+            "IS NOT NULL",
+            "NOT IN",
+            "NOT LIKE",
+            "ILIKE",
+            "NOT ILIKE",
+            "NOT BETWEEN",
+            # 模式匹配关键字
+            "SIMILAR",
+            "TO",
+            "REGEXP",
+            "RLIKE",
+            # 范围和包含关键字
+            "OVERLAPS",
+            "CONTAINS",
+            "CONTAINED",
+            "BY",
+            # 数据库对象关键字
             "TABLE",
             "VIEW",
             "SEQUENCE",
@@ -146,6 +149,20 @@ class SQLHandler(LanguageHandler):
             "PACKAGE",
             "TYPE",
             "BODY",
+            "INDEX",
+            "SYNONYM",
+            "MATERIALIZED",
+            # 约束关键字
+            "PRIMARY",
+            "KEY",
+            "FOREIGN",
+            "REFERENCES",
+            "CHECK",
+            "DEFAULT",
+            "CONSTRAINT",
+            "UNIQUE",
+            "DISTINCT",
+            # 流程控制关键字
             "DECLARE",
             "CURSOR",
             "FOR",
@@ -157,10 +174,12 @@ class SQLHandler(LanguageHandler):
             "CONTINUE",
             "BREAK",
             "GOTO",
+            # 执行关键字
             "EXEC",
             "EXECUTE",
             "PERFORM",
             "DO",
+            # 数据库管理关键字
             "ANALYZE",
             "OPTIMIZE",
             "REPAIR",
@@ -175,6 +194,7 @@ class SQLHandler(LanguageHandler):
             "PRIVILEGES",
             "OWNER",
             "TABLESPACE",
+            # 会话和系统关键字
             "TEMPORARY",
             "TEMP",
             "LOCAL",
@@ -182,12 +202,12 @@ class SQLHandler(LanguageHandler):
             "SESSION",
             "SYSTEM",
             "PUBLIC",
-            "SYNONYM",
-            "MATERIALIZED",
+            # 存储和缓存关键字
             "LOG",
             "NOLOGGING",
             "CACHE",
             "NOCACHE",
+            # 表空间和存储参数关键字
             "INITIAL",
             "NEXT",
             "MINEXTENTS",
@@ -199,20 +219,18 @@ class SQLHandler(LanguageHandler):
             "BUFFER_POOL",
             "KEEP",
             "RECYCLE",
-            "DEFAULT",
-            "TABLESPACE",
             "SEGMENT",
             "EXTENT",
             "BLOCK",
+            # 行和标识符关键字
             "ROW",
             "ROWID",
             "ROWNUM",
             "LEVEL",
             "PRIOR",
             "CONNECT",
+            # 日期和时间关键字
             "SYSDATE",
-            "USER",
-            "UID",
             "CURRENT_DATE",
             "CURRENT_TIME",
             "CURRENT_TIMESTAMP",
@@ -228,6 +246,7 @@ class SQLHandler(LanguageHandler):
             "HOUR",
             "MINUTE",
             "SECOND",
+            # 数学函数关键字
             "EXTRACT",
             "ADD_MONTHS",
             "MONTHS_BETWEEN",
@@ -258,6 +277,7 @@ class SQLHandler(LanguageHandler):
             "TANH",
             "DEGREES",
             "RADIANS",
+            # 转换函数关键字
             "BIN",
             "OCT",
             "HEX",
@@ -284,6 +304,7 @@ class SQLHandler(LanguageHandler):
             "REGEXP_REPLACE",
             "REGEXP_SUBSTR",
             "REGEXP_LIKE",
+            # 类型转换关键字
             "TO_CHAR",
             "TO_DATE",
             "TO_NUMBER",
@@ -295,6 +316,7 @@ class SQLHandler(LanguageHandler):
             "NUMTOYMINTERVAL",
             "CAST",
             "CONVERT",
+            # 条件函数关键字
             "DECODE",
             "NVL",
             "NVL2",
@@ -302,6 +324,7 @@ class SQLHandler(LanguageHandler):
             "COALESCE",
             "GREATEST",
             "LEAST",
+            # 系统和环境函数关键字
             "USERENV",
             "SYS_CONTEXT",
             "SYS_GUID",
@@ -309,86 +332,83 @@ class SQLHandler(LanguageHandler):
             "USER",
             "VSIZE",
             "DUMP",
+            # 二进制转换关键字
             "RAWTOHEX",
             "HEXTORAW",
             "CHARTOROWID",
             "ROWIDTOCHAR",
+            # 集合关键字
             "MULTISET",
             "CARDINALITY",
             "COLLECT",
             "SET",
             "POWERMULTISET",
             "POWERMULTISET_BY",
-            "CAST",
+            # 对象类型关键字
             "TREAT",
             "VALUE",
             "REF",
             "DEREF",
-            "IS",
-            "OF",
-            "TYPE",
             "INSTANCE",
             "MEMBER",
             "STATIC",
             "FINAL",
             "INSTANTIABLE",
             "OVERRIDING",
+            # 函数特性关键字
             "NOT",
             "DETERMINISTIC",
             "PARALLEL_ENABLE",
             "PIPELINED",
             "AGGREGATE",
-            "USING",
+            "RESULT_CACHE",
+            # 权限和安全关键字
             "AUTHID",
             "CURRENT_USER",
             "DEFINER",
-            "RESULT_CACHE",
-            "DETERMINISTIC",
-            "PIPELINED",
-            "PARALLEL_ENABLE",
+            # 窗口函数关键字
+            "OVER",
+            "WINDOW",
+            "ROWS",
+            "RANGE",
+            "UNBOUNDED",
+            "PRECEDING",
+            "FOLLOWING",
+            "CURRENT",
+            "FIRST",
+            "LAST",
+            # 分区关键字
+            "PARTITION",
+            # 其他关键字
+            "INTO",
+            "VALUES",
+            "AS",
             "ACCESSIBLE",
-            "BY",
             "CASCADE",
             "COLUMN",
             "COLUMNS",
-            "CONSTRAINT",
-            "CURRENT",
-            "CURRENT_USER",
             "DEFERRABLE",
             "DEFERRED",
             "DEPTH",
-            "DESCRIBE",
             "DOMAIN",
             "EACH",
             "ENCODING",
-            "EXCEPT",
             "EXCLUDE",
             "EXCLUDING",
-            "FIRST",
-            "FOLLOWING",
             "FORCE",
-            "GLOBAL",
             "GRANTED",
-            "GROUPS",
-            "HAVING",
             "HIERARCHY",
             "HOLD",
             "INCLUDE",
             "INCLUDING",
             "INHERIT",
             "INPUT",
-            "INTERSECT",
-            "KEY",
             "LANGUAGE",
-            "LAST",
-            "LEVEL",
-            "LOCAL",
             "LOCATION",
             "MAP",
             "MATCHED",
             "NAME",
             "NAMES",
-            "NEXT",
             "NO",
             "NOCYCLE",
             "NOMAXVALUE",
@@ -396,7 +416,6 @@ class SQLHandler(LanguageHandler):
             "NONE",
             "NOWAIT",
             "OBJECT",
-            "OF",
             "OFF",
             "OID",
             "OPERATOR",
@@ -404,45 +423,26 @@ class SQLHandler(LanguageHandler):
             "OPTIONS",
             "ORDERING",
             "OTHERS",
-            "OVER",
-            "OWNER",
-            "PARTITION",
             "PASSWORD",
-            "PRECEDING",
-            "PRIVILEGES",
             "READ",
             "RECURSIVE",
-            "REF",
             "REFERENCING",
-            "RENAME",
             "REPEATABLE",
-            "REPLACE",
             "RESET",
             "RESTART",
             "RESTRICT",
             "RETURNING",
-            "ROLE",
             "ROLLUP",
-            "ROW",
-            "ROWS",
             "RULE",
-            "SAVEPOINT",
-            "SCHEMA",
             "SCHEMAS",
             "SEARCH",
-            "SECOND",
             "SECURITY",
-            "SEQUENCE",
             "SEQUENCES",
-            "SESSION",
-            "SET",
             "SETS",
             "SHARE",
             "SIMILAR",
             "SKIP",
             "SNAPSHOT",
-            "SOME",
-            "START",
             "STATEMENT",
             "STATISTICS",
             "STDIN",
@@ -451,74 +451,61 @@ class SQLHandler(LanguageHandler):
             "STRICT",
             "STRUCTURE",
             "SUBSTRING",
-            "SYSTEM",
-            "TABLE",
-            "TABLES",
-            "TABLESPACE",
-            "TEMP",
             "TEMPLATE",
-            "TEMPORARY",
-            "THEN",
-            "TIME",
-            "TIMESTAMP",
-            "TO",
             "TRAILING",
-            "TRANSACTION",
-            "TREAT",
-            "TRIGGER",
-            "TRUNCATE",
-            "TYPE",
             "UNDER",
-            "UNBOUNDED",
             "UNENCRYPTED",
-            "UNIQUE",
             "UNTIL",
-            "UPDATE",
             "USAGE",
-            "USER",
-            "USING",
             "VALID",
             "VALIDATOR",
-            "VALUE",
-            "VALUES",
             "VARYING",
-            "VIEW",
-            "WHEN",
-            "WHERE",
-            "WINDOW",
-            "WITH",
             "WITHOUT",
             "WORK",
             "WRAPPER",
             "WRITE",
             "ZONE",
+            "AND",
+            "OR",
         ]
 
         # 数据类型
         data_types = [
+            # 数值类型
             "INTEGER",
             "INT",
             "SMALLINT",
             "BIGINT",
+            "TINYINT",
+            "MEDIUMINT",
             "DECIMAL",
             "NUMERIC",
             "REAL",
             "DOUBLE",
             "PRECISION",
             "FLOAT",
+            "MONEY",
+            "SMALLMONEY",
+            # 字符串类型
             "CHARACTER",
             "CHAR",
             "VARCHAR",
             "VARCHAR2",
             "NVARCHAR",
             "NVARCHAR2",
+            "TEXT",
+            "LONG",
             "CLOB",
             "NCLOB",
+            # 二进制类型
             "BLOB",
             "BFILE",
             "RAW",
-            "LONG",
             "LONG RAW",
+            "BYTEA",
+            "VARBIT",
+            "BIT VARYING",
+            # 日期和时间类型
             "DATE",
             "TIME",
             "TIMESTAMP",
@@ -529,16 +516,18 @@ class SQLHandler(LanguageHandler):
             "HOUR",
             "MINUTE",
             "SECOND",
+            # 布尔和位类型
             "BOOLEAN",
             "BIT",
-            "BIT VARYING",
-            "VARBIT",
-            "TEXT",
-            "BYTEA",
+            # 唯一标识类型
             "UUID",
+            "SERIAL",
+            "BIGSERIAL",
+            # JSON和XML类型
             "JSON",
             "JSONB",
             "XML",
+            # 几何类型
             "GEOMETRY",
             "POINT",
             "LINESTRING",
@@ -547,14 +536,9 @@ class SQLHandler(LanguageHandler):
             "MULTILINESTRING",
             "MULTIPOLYGON",
             "GEOMETRYCOLLECTION",
+            # 枚举和集合类型
             "ENUM",
             "SET",
-            "SERIAL",
-            "BIGSERIAL",
-            "MONEY",
-            "SMALLMONEY",
-            "TINYINT",
-            "MEDIUMINT",
         ]
 
         # SQL操作符
@@ -565,6 +549,7 @@ class SQLHandler(LanguageHandler):
             "*",
             "/",
             "%",
+            "**",
             # 比较操作符
             "=",
             "==",
@@ -575,24 +560,53 @@ class SQLHandler(LanguageHandler):
             ">=",
             "<>",
             "<=>",
-            # 逻辑操作符
+            # 位操作符
             "||",
             "&&",
             "|",
             "&",
             "!",
-            # 括号
+            "^",
+            "<<",
+            ">>",
+            "~",
+            # 数组操作符
+            "@>",
+            "<@",
+            # JSON操作符
+            "->",
+            "->>",
+            "#>",
+            "#>>",
+            "?",
+            "?&",
+            "?|",
+            # 其他操作符
+            "::",
+            ":=",
+            "=>",
+            "::=",
+            # 括号和分隔符
             "(",
             ")",
-            # SQL关键字操作符 - 注意：AND/OR/NOT/IN/EXISTS/BETWEEN/LIKE/IS等已移至关键字列表中
+            "[",
+            "]",
+            "{",
+            "}",
+            ",",
+            ";",
+            ".",
         ]
 
         # 正则表达式模式
         self._regex_patterns = {
             # 关键字 - 使用单词边界确保匹配完整单词，并添加忽略大小写标志
-            "keywords": r"\b("
-            + "|".join(re.escape(k) for k in self._keywords)
-            + r")\b",
+            # 按长度降序排序，确保长关键字优先匹配，避免短关键字"截胡"
+            "keywords": r"(?<![a-zA-Z0-9_])("
+            + "|".join(
+                re.escape(k) for k in sorted(self._keywords, key=len, reverse=True)
+            )
+            + r")(?![a-zA-Z0-9_])",
             # 数据类型 - 使用单词边界确保匹配完整单词，并添加忽略大小写标志
             "data_types": r"\b("
             + "|".join(re.escape(dt) for dt in data_types)
@@ -635,47 +649,47 @@ class SQLHandler(LanguageHandler):
             "placeholders": 0,
         }
 
-        # 标签样式 - 使用适合SQL的配色方案
+        # 标签样式 - 使用适度的配色方案
         self._tag_styles = {
-            # 关键字 - 深蓝色
+            # 关键字 - 橙色
             "keywords": {
-                "foreground": "#000080",
+                "foreground": "#FF7F00",
             },
             # 数据类型 - 蓝色
             "data_types": {
-                "foreground": "#0000FF",
+                "foreground": "#0066CC",
             },
             # 注释 - 绿色
             "comments": {
-                "foreground": "#00AA00",
+                "foreground": "#008000",
             },
-            # 字符串 - 棕色
+            # 字符串 - 红色
             "strings": {
-                "foreground": "#8B4513",
+                "foreground": "#CC0000",
             },
             # 数字 - 深红色
             "numbers": {
-                "foreground": "#8B0000",
+                "foreground": "#990000",
             },
-            # 函数 - 紫色
+            # 函数 - 品红色
             "functions": {
-                "foreground": "#800080",
+                "foreground": "#FF1493",
             },
-            # 标识符 - 深青色
+            # 标识符 - 青色
             "identifiers": {
                 "foreground": "#008B8B",
             },
-            # 操作符 - 灰色
+            # 操作符 - 深灰色
             "operators": {
-                "foreground": "#808080",
+                "foreground": "#666666",
             },
             # 变量 - 深紫色
             "variables": {
-                "foreground": "#4B0082",
+                "foreground": "#663366",
             },
-            # 占位符 - 深橙色
+            # 占位符 - 橙色
             "placeholders": {
-                "foreground": "#FF8C00",
+                "foreground": "#CC6600",
             },
         }
 
