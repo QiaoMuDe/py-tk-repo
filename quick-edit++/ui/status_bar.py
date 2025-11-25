@@ -11,9 +11,7 @@ from tkinter import messagebox
 from config.config_manager import config_manager
 import time
 import datetime
-import sys
-import os
-from ui.menu import create_encoding_submenu, set_file_encoding
+from ui.menu import create_encoding_submenu
 from config.config_manager import config_manager
 from ui.menu import set_file_line_ending
 from ui.document_stats_dialog import show_document_stats_dialog
@@ -255,11 +253,7 @@ class StatusBar(ctk.CTkFrame):
         language_name = None  # 语言名称
 
         # 检查应用程序是否有语法高亮器并且打开文件
-        if (
-            self.app.syntax_highlighter
-            and self.app.current_file_path
-            and self.app.syntax_highlighter.highlight_enabled
-        ):
+        if self.app.current_file_path and self.app.syntax_highlighter.highlight_enabled:
             # 获取语言名称
             language_name = self.app.syntax_highlighter.get_language_name()
 

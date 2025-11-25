@@ -3,9 +3,7 @@
 """
 
 import codecs
-import gc
 import os
-import sys
 import time
 import tkinter as tk
 import locale
@@ -13,7 +11,6 @@ from tkinter import filedialog, messagebox
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
-from ui.file_properties_dialog import update_file_properties_menu_state
 import shutil
 from config.config_manager import CONFIG_PATH
 from loguru import logger
@@ -194,9 +191,10 @@ class FileOperations:
 
         # 实际的保存逻辑操作
         try:
-            # 获取当前编码和换行符设置
+            # 获取当前编码
             encoding = self.root.current_encoding
-            # 优先使用编辑器的当前换行符设置, 如果没有则使用配置中的默认换行符
+
+            # 获取当前换行符类型
             line_ending = self.root.current_line_ending
 
             # 使用核心类转换换行符格式
