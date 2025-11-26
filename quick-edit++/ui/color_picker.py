@@ -11,6 +11,7 @@ from tkinter import colorchooser
 import customtkinter as ctk
 from config.config_manager import config_manager
 from loguru import logger
+from ui.notification import NotificationManager
 
 
 class HexColorPicker(ctk.CTkToplevel):
@@ -47,7 +48,7 @@ class HexColorPicker(ctk.CTkToplevel):
         # 获取组件字体配置
         font_config = config_manager.get_font_config("components")
         self.font_family = font_config.get("font", "Microsoft YaHei UI")
-        self.font_size = font_config.get("font_size", 13)
+        self.font_size = 15
 
         # 创建UI组件
         self._create_widgets()
@@ -131,6 +132,8 @@ class HexColorPicker(ctk.CTkToplevel):
             text="打开系统颜色选择器",
             font=(self.font_family, self.font_size),
             command=self._open_system_color_picker,
+            fg_color=("#4A90E2", "#3A7BC8"),  # 蓝色系，表示系统功能
+            hover_color=("#3A7BC8", "#2E6BA6"),
         )
         system_button.pack(pady=10)
 
@@ -252,6 +255,8 @@ class HexColorPicker(ctk.CTkToplevel):
             width=50,
             font=(self.font_family, self.font_size - 1),
             command=self._copy_to_clipboard,
+            fg_color="blue",
+            hover_color="darkblue",
         )
         copy_button.pack(side="left")
 
@@ -266,6 +271,8 @@ class HexColorPicker(ctk.CTkToplevel):
             text="确定",
             font=(self.font_family, self.font_size, "bold"),
             command=self._on_ok,
+            fg_color=("#5CB85C", "#4CAE4C"),  # 绿色系，表示确认操作
+            hover_color=("#4CAE4C", "#40A540"),
         )
         ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
 
@@ -275,6 +282,8 @@ class HexColorPicker(ctk.CTkToplevel):
             text="取消",
             font=(self.font_family, self.font_size, "bold"),
             command=self._on_cancel,
+            fg_color=("#D9534F", "#C9302C"),  # 红色系，表示取消操作
+            hover_color=("#C9302C", "#AC2925"),
         )
         cancel_button.pack(side="right", fill="x", expand=True)
 
@@ -331,6 +340,11 @@ class HexColorPicker(ctk.CTkToplevel):
             self.clipboard_clear()
             self.clipboard_append(self.selected_color)
             self.update()
+
+            # 显示复制成功通知
+            NotificationManager.show_success(
+                self, "复制成功", f"颜色代码 {self.selected_color} 已复制到剪贴板"
+            )
         except Exception as e:
             logger.error(f"复制到剪贴板失败: {e}")
 

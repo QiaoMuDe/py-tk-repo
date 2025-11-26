@@ -15,6 +15,7 @@ import datetime
 import uuid
 import base64
 from ui.color_picker import show_color_picker
+from ui.rgb_color_picker import show_rgb_color_picker
 from loguru import logger
 
 
@@ -2145,6 +2146,13 @@ func (s *StructName) IsValid() bool {
 
     def insert_hex_color_picker(self):
         """插入HEX颜色代码选择器"""
+        # 检查是否为只读模式
+        if self.is_read_only:
+            messagebox.showinfo(
+                "提示", "当前为只读模式，请先关闭只读模式后再插入颜色代码"
+            )
+            return
+
         # 显示颜色选择器对话框
         color_code = show_color_picker(self)
 
@@ -2154,168 +2162,16 @@ func (s *StructName) IsValid() bool {
 
     def insert_rgb_color_picker(self):
         """插入RGB颜色代码选择器"""
-        # 获取组件字体配置
-        font_config = config_manager.get_font_config("components")
-        font_family = font_config.get("font", "Microsoft YaHei UI")
-        font_size = 15
-        font_weight = "bold"
+        # 检查是否为只读模式
+        if self.is_read_only:
+            messagebox.showinfo(
+                "提示", "当前为只读模式，请先关闭只读模式后再插入颜色代码"
+            )
+            return
 
-        # 创建自定义对话框窗口
-        dialog = ctk.CTkToplevel(self)
-        dialog.title("RGB颜色代码选择器")
-        dialog.geometry("400x500")
-        dialog.resizable(False, False)
-
-        # 设置窗口模态
-        dialog.transient(self)
-        dialog.grab_set()
-
-        # 创建主框架
-        main_frame = ctk.CTkFrame(dialog)
-        main_frame.pack(padx=20, pady=20, fill="both", expand=True)
-
-        # 标题标签
-        title_label = ctk.CTkLabel(
-            main_frame, text="选择颜色", font=(font_family, font_size, font_weight)
-        )
-        title_label.pack(pady=(0, 10))
-
-        # 颜色预览框架
-        preview_frame = ctk.CTkFrame(main_frame)
-        preview_frame.pack(fill="x", pady=(0, 10))
-
-        # 颜色预览标签
-        preview_label = ctk.CTkLabel(
-            preview_frame,
-            text="颜色预览",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        preview_label.pack(side="left", padx=(10, 20))
-
-        # 颜色预览框
-        color_preview = ctk.CTkLabel(preview_frame, text="", width=100, height=30)
-        color_preview.pack(side="left", padx=(0, 10))
-        color_preview.configure(fg_color="#000000")
-
-        # RGB代码显示标签
-        rgb_label = ctk.CTkLabel(
-            preview_frame, text="rgb(0, 0, 0)", font=(font_family, font_size - 2)
-        )
-        rgb_label.pack(side="left")
-
-        # RGB滑块框架
-        slider_frame = ctk.CTkFrame(main_frame)
-        slider_frame.pack(fill="both", expand=True, pady=(0, 10))
-
-        # 红色滑块
-        red_label = ctk.CTkLabel(
-            slider_frame,
-            text="红色 (R):",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        red_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
-
-        red_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
-        red_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
-        red_slider.set(0)
-
-        red_value_label = ctk.CTkLabel(
-            slider_frame, text="0", font=(font_family, font_size - 2)
-        )
-        red_value_label.pack(anchor="e", padx=(0, 10))
-
-        # 绿色滑块
-        green_label = ctk.CTkLabel(
-            slider_frame,
-            text="绿色 (G):",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        green_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
-
-        green_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
-        green_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
-        green_slider.set(0)
-
-        green_value_label = ctk.CTkLabel(
-            slider_frame, text="0", font=(font_family, font_size - 2)
-        )
-        green_value_label.pack(anchor="e", padx=(0, 10))
-
-        # 蓝色滑块
-        blue_label = ctk.CTkLabel(
-            slider_frame,
-            text="蓝色 (B):",
-            font=(font_family, font_size - 2, font_weight),
-        )
-        blue_label.pack(anchor="w", padx=(10, 0), pady=(10, 0))
-
-        blue_slider = ctk.CTkSlider(slider_frame, from_=0, to=255, number_of_steps=255)
-        blue_slider.pack(fill="x", padx=(10, 10), pady=(0, 5))
-        blue_slider.set(0)
-
-        blue_value_label = ctk.CTkLabel(
-            slider_frame, text="0", font=(font_family, font_size - 2)
-        )
-        blue_value_label.pack(anchor="e", padx=(0, 10))
-
-        def update_color():
-            """更新颜色预览和RGB代码"""
-            r = int(red_slider.get())
-            g = int(green_slider.get())
-            b = int(blue_slider.get())
-
-            # 更新值标签
-            red_value_label.configure(text=str(r))
-            green_value_label.configure(text=str(g))
-            blue_value_label.configure(text=str(b))
-
-            # 转换为HEX
-            hex_color = f"#{r:02x}{g:02x}{b:02x}"
-
-            # 更新预览
-            color_preview.configure(fg_color=hex_color)
-
-            # 更新RGB代码
-            rgb_label.configure(text=f"rgb({r}, {g}, {b})")
-
-        # 绑定滑块事件
-        red_slider.configure(command=lambda v: update_color())
-        green_slider.configure(command=lambda v: update_color())
-        blue_slider.configure(command=lambda v: update_color())
-
-        # 按钮框架
-        button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x")
-
-        def on_ok():
-            """确认按钮处理函数"""
-            rgb_code = rgb_label.cget("text")
+        def on_color_selected(rgb_code):
+            """颜色选择后的回调函数"""
             self.insert_color_code("RGB颜色代码", rgb_code)
-            dialog.destroy()
 
-        def on_cancel():
-            """取消按钮处理函数"""
-            dialog.destroy()
-
-        # 创建按钮
-        ok_button = ctk.CTkButton(
-            button_frame,
-            text="确定",
-            font=(font_family, font_size, font_weight),
-            command=on_ok,
-        )
-        ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
-
-        cancel_button = ctk.CTkButton(
-            button_frame,
-            text="取消",
-            font=(font_family, font_size, font_weight),
-            command=on_cancel,
-        )
-        cancel_button.pack(side="right", fill="x", expand=True)
-
-        # 居中显示对话框
-        dialog.update_idletasks()
-        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
-        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
-        dialog.geometry(f"+{x}+{y}")
+        # 显示RGB颜色选择器
+        show_rgb_color_picker(self, on_color_selected)

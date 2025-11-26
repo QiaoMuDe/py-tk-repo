@@ -2297,26 +2297,25 @@ class SelectionOperations:
             try:
                 # 解析TOML内容
                 data = toml.loads(selected_text)
-                
+
                 # 重新格式化TOML
                 formatted_toml = toml.dumps(data)
-                
+
                 # 后处理：移除数组末尾的多余逗号
-                formatted_toml = re.sub(r',(\s*])', r'\1', formatted_toml)
-                
+                formatted_toml = re.sub(r",(\s*])", r"\1", formatted_toml)
+
                 # 后处理：确保键值对周围有适当的空格
-                formatted_toml = re.sub(r'(\w+)\s*=\s*', r'\1 = ', formatted_toml)
-                
+                formatted_toml = re.sub(r"(\w+)\s*=\s*", r"\1 = ", formatted_toml)
+
                 # 后处理：确保数组元素之间有适当的空格
-                formatted_toml = re.sub(r'\[\s*([^\]]+?)\s*\]', 
-                                       lambda m: '[' + re.sub(r',\s*', ', ', m.group(1)) + ']', 
-                                       formatted_toml)
-                
-            except Exception as e:
-                messagebox.showerror(
-                    "TOML解析错误", 
-                    f"无效的TOML格式: {str(e)}"
+                formatted_toml = re.sub(
+                    r"\[\s*([^\]]+?)\s*\]",
+                    lambda m: "[" + re.sub(r",\s*", ", ", m.group(1)) + "]",
+                    formatted_toml,
                 )
+
+            except Exception as e:
+                messagebox.showerror("TOML解析错误", f"无效的TOML格式: {str(e)}")
                 return
 
             # 替换选中文本
@@ -2330,7 +2329,7 @@ class SelectionOperations:
     def url_encode(self):
         """
         对选中文本进行URL编码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行URL编码
         """
         # 检查是否可以进行编辑操作
@@ -2343,7 +2342,9 @@ class SelectionOperations:
             start_index, end_index = self.get_selection_range()
 
             # 对选中文本进行URL编码
-            encoded_text = quote(selected_text, safe='')  # safe=''表示对所有特殊字符进行编码
+            encoded_text = quote(
+                selected_text, safe=""
+            )  # safe=''表示对所有特殊字符进行编码
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
@@ -2356,7 +2357,7 @@ class SelectionOperations:
     def url_decode(self):
         """
         对选中文本进行URL解码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行URL解码
         """
         # 检查是否可以进行编辑操作
@@ -2382,7 +2383,7 @@ class SelectionOperations:
     def html_entity_encode(self):
         """
         对选中文本进行HTML实体编码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行HTML实体编码
         """
         # 检查是否可以进行编辑操作
@@ -2408,7 +2409,7 @@ class SelectionOperations:
     def html_entity_decode(self):
         """
         对选中文本进行HTML实体解码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行HTML实体解码
         """
         # 检查是否可以进行编辑操作
@@ -2434,7 +2435,7 @@ class SelectionOperations:
     def unicode_escape_encode(self):
         """
         对选中文本进行Unicode转义序列编码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行Unicode转义序列编码
         """
         # 检查是否可以进行编辑操作
@@ -2447,7 +2448,7 @@ class SelectionOperations:
             start_index, end_index = self.get_selection_range()
 
             # 对选中文本进行Unicode转义序列编码
-            encoded_text = selected_text.encode('unicode-escape').decode('utf-8')
+            encoded_text = selected_text.encode("unicode-escape").decode("utf-8")
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
@@ -2460,7 +2461,7 @@ class SelectionOperations:
     def unicode_escape_decode(self):
         """
         对选中文本进行Unicode转义序列解码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行Unicode转义序列解码
         """
         # 检查是否可以进行编辑操作
@@ -2473,7 +2474,7 @@ class SelectionOperations:
             start_index, end_index = self.get_selection_range()
 
             # 对选中文本进行Unicode转义序列解码
-            decoded_text = selected_text.encode('utf-8').decode('unicode-escape')
+            decoded_text = selected_text.encode("utf-8").decode("unicode-escape")
 
             # 替换选中文本
             self.text_area.delete(start_index, end_index)
@@ -2486,7 +2487,7 @@ class SelectionOperations:
     def jwt_decode(self):
         """
         对选中文本进行JWT解码
-        
+
         检查是否有选中文本和是否为只读模式, 然后对选中文本进行JWT解码
         """
         # 检查是否可以进行编辑操作
@@ -2501,30 +2502,30 @@ class SelectionOperations:
             # 尝试解码JWT
             try:
                 # 分割JWT令牌
-                parts = selected_text.split('.')
+                parts = selected_text.split(".")
                 if len(parts) != 3:
                     messagebox.showerror(
-                        "JWT格式错误", 
-                        "无效的JWT格式，JWT应包含三个部分：头部.载荷.签名"
+                        "JWT格式错误",
+                        "无效的JWT格式，JWT应包含三个部分：头部.载荷.签名",
                     )
                     return
 
                 # 解码头部和载荷（不验证签名）
-            
+
                 # 解码头部
                 header_data = parts[0]
                 # 添加必要的填充
-                header_data += '=' * (4 - len(header_data) % 4)
-                header_json = base64.b64decode(header_data).decode('utf-8')
+                header_data += "=" * (4 - len(header_data) % 4)
+                header_json = base64.b64decode(header_data).decode("utf-8")
                 header = json.loads(header_json)
-                
+
                 # 解码载荷
                 payload_data = parts[1]
                 # 添加必要的填充
-                payload_data += '=' * (4 - len(payload_data) % 4)
-                payload_json = base64.b64decode(payload_data).decode('utf-8')
+                payload_data += "=" * (4 - len(payload_data) % 4)
+                payload_json = base64.b64decode(payload_data).decode("utf-8")
                 payload = json.loads(payload_json)
-                
+
                 # 格式化输出
                 decoded_text = f"""JWT解码结果：
 
@@ -2537,12 +2538,9 @@ class SelectionOperations:
 签名 (Signature):
 {parts[2]}
 """
-                
+
             except Exception as e:
-                messagebox.showerror(
-                    "JWT解码错误", 
-                    f"解码JWT时出错: {str(e)}"
-                )
+                messagebox.showerror("JWT解码错误", f"解码JWT时出错: {str(e)}")
                 return
 
             # 替换选中文本

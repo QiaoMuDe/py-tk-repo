@@ -13,8 +13,13 @@ from ui.document_stats_dialog import show_document_stats_dialog
 from ui.find_replace_dialog import show_find_replace_dialog
 from ui.recent_files_menu import RecentFilesMenu
 from ui.reopen_file_menu import ReopenFileMenu
-from ui.color_picker import show_color_picker
+from ui.selected_text_submenu import (
+    create_formatting_submenu,
+    create_encoding_decoding_submenu,
+)
 from ui.file_properties_dialog import show_file_properties_dialog
+from ui.color_picker import show_color_picker
+from ui.rgb_color_picker import show_rgb_color_picker
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
 from tkinter import messagebox
@@ -696,6 +701,34 @@ def create_menu(root):
 
     # 将设置菜单添加到主菜单
     main_menu.add_cascade(label="设置", menu=settings_menu)
+
+    # 创建工具菜单
+    tools_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
+
+    # 创建格式化子菜单
+    create_formatting_submenu(tools_menu, root, menu_font_tuple)
+
+    # 创建编码解码子菜单
+    create_encoding_decoding_submenu(tools_menu, root, menu_font_tuple)
+
+    # 添加分隔符
+    tools_menu.add_separator()
+
+    # 添加颜色选择器选项
+    tools_menu.add_command(
+        label="HEX颜色选择器",
+        command=lambda: show_color_picker(root),
+        font=menu_font_tuple,
+    )
+
+    tools_menu.add_command(
+        label="RGB颜色选择器",
+        command=lambda: show_rgb_color_picker(root, callback=lambda color: None),
+        font=menu_font_tuple,
+    )
+
+    # 将工具菜单添加到主菜单
+    main_menu.add_cascade(label="工具", menu=tools_menu)
 
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)

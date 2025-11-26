@@ -8,6 +8,165 @@ import tkinter as tk
 """
 
 
+def create_formatting_submenu(parent_menu, root, menu_font_tuple):
+    """
+    创建格式化子菜单
+
+    Args:
+        parent_menu: 父菜单对象
+        root: 根对象，包含各种格式化方法
+        menu_font_tuple: 菜单字体元组
+
+    Returns:
+        格式化子菜单对象
+    """
+    # 创建格式化子菜单
+    formatting_submenu = tk.Menu(parent_menu, tearoff=0, font=menu_font_tuple)
+    parent_menu.add_cascade(label="格式化", menu=formatting_submenu)
+
+    # 创建JSON子菜单
+    json_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="JSON", menu=json_submenu)
+
+    # 添加JSON菜单项
+    json_submenu.add_command(label="格式化JSON", command=lambda: root.format_json())
+    json_submenu.add_command(label="压缩JSON", command=lambda: root.compress_json())
+
+    # 创建CSV格式化子菜单
+    csv_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="CSV", menu=csv_submenu)
+    csv_submenu.add_command(
+        label="格式化CSV", command=lambda: root.format_csv(compress=False)
+    )
+    csv_submenu.add_command(
+        label="压缩CSV", command=lambda: root.format_csv(compress=True)
+    )
+
+    # 创建SQL格式化子菜单
+    sql_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="SQL", menu=sql_submenu)
+
+    # 添加SQL菜单项
+    sql_submenu.add_command(label="关键字大写", command=lambda: root.format_sql_upper())
+    sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())
+    sql_submenu.add_command(label="格式化SQL", command=lambda: root.format_sql())
+    sql_submenu.add_command(label="压缩SQL", command=lambda: root.compress_sql())
+
+    # 创建HTML格式化子菜单
+    html_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="HTML", menu=html_submenu)
+
+    # 添加HTML菜单项
+    html_submenu.add_command(label="格式化HTML", command=lambda: root.format_html())
+    html_submenu.add_command(label="压缩HTML", command=lambda: root.compress_html())
+
+    # 创建CSS格式化子菜单
+    css_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="CSS", menu=css_submenu)
+
+    # 添加CSS菜单项
+    css_submenu.add_command(label="格式化CSS", command=lambda: root.format_css())
+    css_submenu.add_command(label="压缩CSS", command=lambda: root.compress_css())
+
+    # 创建JavaScript格式化子菜单
+    js_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="JavaScript", menu=js_submenu)
+
+    # 添加JavaScript菜单项
+    js_submenu.add_command(
+        label="格式化JavaScript", command=lambda: root.format_javascript()
+    )
+    js_submenu.add_command(
+        label="压缩JavaScript", command=lambda: root.compress_javascript()
+    )
+
+    # 添加分隔符
+    formatting_submenu.add_separator()
+
+    # 添加其他格式化菜单项
+    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
+    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
+    formatting_submenu.add_command(
+        label="格式化TOML", command=lambda: root.format_toml()
+    )
+    formatting_submenu.add_command(
+        label="格式化Python", command=lambda: root.format_python()
+    )
+    formatting_submenu.add_command(
+        label="格式化YAML", command=lambda: root.format_yaml()
+    )
+
+    return formatting_submenu
+
+
+def create_encoding_decoding_submenu(parent_menu, root, menu_font_tuple):
+    """
+    创建编码解码子菜单
+
+    Args:
+        parent_menu: 父菜单对象
+        root: 根对象，包含各种编码解码方法
+        menu_font_tuple: 菜单字体元组
+
+    Returns:
+        编码解码子菜单对象
+    """
+    # 创建编码解码子菜单
+    encoding_decoding_submenu = tk.Menu(parent_menu, tearoff=0, font=menu_font_tuple)
+    parent_menu.add_cascade(label="编码解码", menu=encoding_decoding_submenu)
+
+    # 添加编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="Base64编码", command=lambda: root.base64_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="Base64解码", command=lambda: root.base64_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+
+    # 添加URL编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="URL编码", command=lambda: root.url_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="URL解码", command=lambda: root.url_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+
+    # 添加HTML实体编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="HTML实体编码", command=lambda: root.html_entity_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="HTML实体解码", command=lambda: root.html_entity_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+
+    # 添加Unicode转义序列处理菜单项
+    encoding_decoding_submenu.add_command(
+        label="Unicode转义序列编码", command=lambda: root.unicode_escape_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="Unicode转义序列解码", command=lambda: root.unicode_escape_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+
+    # 添加JWT解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="JWT解码", command=lambda: root.jwt_decode()
+    )
+
+    return encoding_decoding_submenu
+
+
 def create_selected_text_submenu(
     selected_text_submenu, root, menu_font_tuple, return_instance=False
 ):
@@ -229,79 +388,7 @@ def create_selected_text_submenu(
     reverse_submenu.add_command(label="行反转", command=lambda: root.reverse_lines())
 
     # 创建格式化子菜单
-    formatting_submenu = tk.Menu(selected_text_submenu, tearoff=0, font=menu_font_tuple)
-    selected_text_submenu.add_cascade(label="格式化", menu=formatting_submenu)
-
-    # 创建JSON子菜单
-    json_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="JSON", menu=json_submenu)
-
-    # 添加JSON菜单项
-    json_submenu.add_command(label="格式化JSON", command=lambda: root.format_json())
-    json_submenu.add_command(label="压缩JSON", command=lambda: root.compress_json())
-
-    # 创建CSV格式化子菜单
-    csv_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="CSV", menu=csv_submenu)
-    csv_submenu.add_command(
-        label="格式化CSV", command=lambda: root.format_csv(compress=False)
-    )
-    csv_submenu.add_command(
-        label="压缩CSV", command=lambda: root.format_csv(compress=True)
-    )
-
-    # 创建SQL格式化子菜单
-    sql_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="SQL", menu=sql_submenu)
-
-    # 添加SQL菜单项
-    sql_submenu.add_command(label="关键字大写", command=lambda: root.format_sql_upper())
-    sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())
-    sql_submenu.add_command(label="格式化SQL", command=lambda: root.format_sql())
-    sql_submenu.add_command(label="压缩SQL", command=lambda: root.compress_sql())
-
-    # 创建HTML格式化子菜单
-    html_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="HTML", menu=html_submenu)
-
-    # 添加HTML菜单项
-    html_submenu.add_command(label="格式化HTML", command=lambda: root.format_html())
-    html_submenu.add_command(label="压缩HTML", command=lambda: root.compress_html())
-
-    # 创建CSS格式化子菜单
-    css_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="CSS", menu=css_submenu)
-
-    # 添加CSS菜单项
-    css_submenu.add_command(label="格式化CSS", command=lambda: root.format_css())
-    css_submenu.add_command(label="压缩CSS", command=lambda: root.compress_css())
-
-    # 创建JavaScript格式化子菜单
-    js_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
-    formatting_submenu.add_cascade(label="JavaScript", menu=js_submenu)
-
-    # 添加JavaScript菜单项
-    js_submenu.add_command(
-        label="格式化JavaScript", command=lambda: root.format_javascript()
-    )
-    js_submenu.add_command(
-        label="压缩JavaScript", command=lambda: root.compress_javascript()
-    )
-
-    # 添加分隔符
-    formatting_submenu.add_separator()
-
-    # 添加其他格式化菜单项
-    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
-
-    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
-    formatting_submenu.add_command(label="格式化TOML", command=lambda: root.format_toml())
-    formatting_submenu.add_command(
-        label="格式化Python", command=lambda: root.format_python()
-    )
-    formatting_submenu.add_command(
-        label="格式化YAML", command=lambda: root.format_yaml()
-    )
+    create_formatting_submenu(selected_text_submenu, root, menu_font_tuple)
 
     # 创建注释处理子菜单
     comment_processing_submenu = tk.Menu(
@@ -319,59 +406,7 @@ def create_selected_text_submenu(
     )
 
     # 创建编码解码子菜单
-    encoding_decoding_submenu = tk.Menu(
-        selected_text_submenu, tearoff=0, font=menu_font_tuple
-    )
-    selected_text_submenu.add_cascade(label="编码解码", menu=encoding_decoding_submenu)
-
-    # 添加编码解码菜单项
-    encoding_decoding_submenu.add_command(
-        label="Base64编码", command=lambda: root.base64_encode()
-    )
-    encoding_decoding_submenu.add_command(
-        label="Base64解码", command=lambda: root.base64_decode()
-    )
-    
-    # 添加分隔符
-    encoding_decoding_submenu.add_separator()
-    
-    # 添加URL编码解码菜单项
-    encoding_decoding_submenu.add_command(
-        label="URL编码", command=lambda: root.url_encode()
-    )
-    encoding_decoding_submenu.add_command(
-        label="URL解码", command=lambda: root.url_decode()
-    )
-
-    # 添加分隔符
-    encoding_decoding_submenu.add_separator()
-    
-    # 添加HTML实体编码解码菜单项
-    encoding_decoding_submenu.add_command(
-        label="HTML实体编码", command=lambda: root.html_entity_encode()
-    )
-    encoding_decoding_submenu.add_command(
-        label="HTML实体解码", command=lambda: root.html_entity_decode()
-    )
-
-    # 添加分隔符
-    encoding_decoding_submenu.add_separator()
-    
-    # 添加Unicode转义序列处理菜单项
-    encoding_decoding_submenu.add_command(
-        label="Unicode转义序列编码", command=lambda: root.unicode_escape_encode()
-    )
-    encoding_decoding_submenu.add_command(
-        label="Unicode转义序列解码", command=lambda: root.unicode_escape_decode()
-    )
-
-    # 添加分隔符
-    encoding_decoding_submenu.add_separator()
-    
-    # 添加JWT解码菜单项
-    encoding_decoding_submenu.add_command(
-        label="JWT解码", command=lambda: root.jwt_decode()
-    )
+    create_encoding_decoding_submenu(selected_text_submenu, root, menu_font_tuple)
 
     # 根据参数选择返回菜单项
     if return_instance:
