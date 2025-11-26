@@ -240,9 +240,6 @@ def create_selected_text_submenu(
     json_submenu.add_command(label="格式化JSON", command=lambda: root.format_json())
     json_submenu.add_command(label="压缩JSON", command=lambda: root.compress_json())
 
-    # 添加其他格式化菜单项
-    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
-
     # 创建CSV格式化子菜单
     csv_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
     formatting_submenu.add_cascade(label="CSV", menu=csv_submenu)
@@ -251,14 +248,6 @@ def create_selected_text_submenu(
     )
     csv_submenu.add_command(
         label="压缩CSV", command=lambda: root.format_csv(compress=True)
-    )
-
-    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
-    formatting_submenu.add_command(
-        label="格式化Python", command=lambda: root.format_python()
-    )
-    formatting_submenu.add_command(
-        label="格式化YAML", command=lambda: root.format_yaml()
     )
 
     # 创建SQL格式化子菜单
@@ -270,6 +259,17 @@ def create_selected_text_submenu(
     sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())
     sql_submenu.add_command(label="格式化SQL", command=lambda: root.format_sql())
     sql_submenu.add_command(label="压缩SQL", command=lambda: root.compress_sql())
+    
+    # 添加其他格式化菜单项
+    formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
+    
+    formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
+    formatting_submenu.add_command(
+        label="格式化Python", command=lambda: root.format_python()
+    )
+    formatting_submenu.add_command(
+        label="格式化YAML", command=lambda: root.format_yaml()
+    )
 
     # 创建注释处理子菜单
     comment_processing_submenu = tk.Menu(

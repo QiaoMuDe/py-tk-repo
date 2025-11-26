@@ -899,7 +899,10 @@ def set_theme_mode(mode, root=None):
     root.after(120, lambda: root.line_number_canvas.update_theme())
 
     # 显示通知
-    root.status_bar.show_notification(f"主题模式已切换为: {mode_name}", 500)
+    messagebox.showinfo(
+        "提示",
+        f"主题模式已切换为: {mode_name}",
+    )
 
 
 def set_color_theme(theme, root=None):
@@ -922,8 +925,9 @@ def set_color_theme(theme, root=None):
     theme_name = theme_text.get(theme, theme)
 
     # 显示通知
-    root.status_bar.show_notification(
-        f"颜色主题已切换为: {theme_name}, 请重启应用以生效", 1000
+    messagebox.showinfo(
+        "提示",
+        f"颜色主题已切换为: {theme_name}, 请重启应用以生效",
     )
 
 
@@ -954,16 +958,14 @@ def toggle_auto_wrap(root, switch_state=True):
     config_manager.save_config()
 
     # 直接设置文本框的自动换行属性
-    if hasattr(root, "text_area"):
-        # 设置文本框的自动换行属性
-        wrap_mode = "word" if new_state else "none"
-        root.text_area.configure(wrap=wrap_mode)
-
-        # 滚动条的显示/隐藏将由app_initializer中的自动检查机制处理
-
-        # 显示通知
-        status_text = "已启用" if new_state else "已禁用"
-        root.status_bar.show_notification(f"自动换行{status_text}", 500)
+    wrap_mode = "word" if new_state else "none"
+    root.text_area.configure(wrap=wrap_mode)
+    
+    # 滚动条的显示/隐藏将由app_initializer中的自动检查机制处理
+    # 显示通知
+    status_text = "已启用" if new_state else "已禁用"
+    root.status_bar.show_notification(f"自动换行{status_text}", 500)
+        
 
 
 def toggle_auto_save(root):
