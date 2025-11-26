@@ -20,6 +20,7 @@ import re
 import jsbeautifier
 import bs4
 import cssutils
+import toml
 
 
 class SelectionOperations:
@@ -2279,3 +2280,47 @@ class SelectionOperations:
         except Exception as e:
             logger.error(f"压缩JavaScript时出错: {str(e)}")
             messagebox.showerror("错误", f"压缩JavaScript时出错: {str(e)}")
+
+    def format_toml(self):
+        """
+        格式化TOML文件，使其结构更清晰、易读
+        """
+        if not self._check_editable_selection("格式化TOML"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 解析TOML内容
+                data = toml.loads(selected_text)
+                
+                # 重新格式化TOML
+                formatted_toml = toml.dumps(data)
+                
+                # 后处理：移除数组末尾的多余逗号
+                formatted_toml = re.sub(r',(\s*])', r'\1', formatted_toml)
+                
+                # 后处理：确保键值对周围有适当的空格
+                formatted_toml = re.sub(r'(\w+)\s*=\s*', r'\1 = ', formatted_toml)
+                
+                # 后处理：确保数组元素之间有适当的空格
+                formatted_toml = re.sub(r'\[\s*([^\]]+?)\s*\]', 
+                                       lambda m: '[' + re.sub(r',\s*', ', ', m.group(1)) + ']', 
+                                       formatted_toml)
+                
+            except Exception as e:
+                messagebox.showerror(
+                    "TOML解析错误", 
+                    f"无效的TOML格式: {str(e)}"
+                )
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_toml)
+
+        except Exception as e:
+            logger.error(f"格式化TOML时出错: {str(e)}")
+            messagebox.showerror("错误", f"格式化TOML时出错: {str(e)}")

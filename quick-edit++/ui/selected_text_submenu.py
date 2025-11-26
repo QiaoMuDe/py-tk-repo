@@ -292,6 +292,7 @@ def create_selected_text_submenu(
     formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
 
     formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
+    formatting_submenu.add_command(label="格式化TOML", command=lambda: root.format_toml())
     formatting_submenu.add_command(
         label="格式化Python", command=lambda: root.format_python()
     )
