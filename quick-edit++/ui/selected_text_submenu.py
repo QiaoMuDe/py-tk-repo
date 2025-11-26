@@ -288,6 +288,9 @@ def create_selected_text_submenu(
         label="压缩JavaScript", command=lambda: root.compress_javascript()
     )
 
+    # 添加分隔符
+    formatting_submenu.add_separator()
+
     # 添加其他格式化菜单项
     formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
 
@@ -327,6 +330,47 @@ def create_selected_text_submenu(
     )
     encoding_decoding_submenu.add_command(
         label="Base64解码", command=lambda: root.base64_decode()
+    )
+    
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+    
+    # 添加URL编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="URL编码", command=lambda: root.url_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="URL解码", command=lambda: root.url_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+    
+    # 添加HTML实体编码解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="HTML实体编码", command=lambda: root.html_entity_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="HTML实体解码", command=lambda: root.html_entity_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+    
+    # 添加Unicode转义序列处理菜单项
+    encoding_decoding_submenu.add_command(
+        label="Unicode转义序列编码", command=lambda: root.unicode_escape_encode()
+    )
+    encoding_decoding_submenu.add_command(
+        label="Unicode转义序列解码", command=lambda: root.unicode_escape_decode()
+    )
+
+    # 添加分隔符
+    encoding_decoding_submenu.add_separator()
+    
+    # 添加JWT解码菜单项
+    encoding_decoding_submenu.add_command(
+        label="JWT解码", command=lambda: root.jwt_decode()
     )
 
     # 根据参数选择返回菜单项

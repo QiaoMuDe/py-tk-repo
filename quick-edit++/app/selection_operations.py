@@ -8,7 +8,6 @@
 
 import tkinter as tk
 from tkinter import messagebox
-import customtkinter as ctk
 import base64
 import json
 import xml.dom.minidom as minidom
@@ -21,6 +20,9 @@ import jsbeautifier
 import bs4
 import cssutils
 import toml
+import html
+from urllib.parse import unquote
+from urllib.parse import quote
 
 
 class SelectionOperations:
@@ -2324,3 +2326,229 @@ class SelectionOperations:
         except Exception as e:
             logger.error(f"格式化TOML时出错: {str(e)}")
             messagebox.showerror("错误", f"格式化TOML时出错: {str(e)}")
+
+    def url_encode(self):
+        """
+        对选中文本进行URL编码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行URL编码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("URL编码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行URL编码
+            encoded_text = quote(selected_text, safe='')  # safe=''表示对所有特殊字符进行编码
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, encoded_text)
+
+        except Exception as e:
+            logger.error(f"URL编码时出错: {str(e)}")
+            messagebox.showerror("错误", f"URL编码时出错: {str(e)}")
+
+    def url_decode(self):
+        """
+        对选中文本进行URL解码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行URL解码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("URL解码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行URL解码
+            decoded_text = unquote(selected_text)
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, decoded_text)
+
+        except Exception as e:
+            logger.error(f"URL解码时出错: {str(e)}")
+            messagebox.showerror("错误", f"URL解码时出错: {str(e)}")
+
+    def html_entity_encode(self):
+        """
+        对选中文本进行HTML实体编码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行HTML实体编码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("HTML实体编码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行HTML实体编码
+            encoded_text = html.escape(selected_text)
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, encoded_text)
+
+        except Exception as e:
+            logger.error(f"HTML实体编码时出错: {str(e)}")
+            messagebox.showerror("错误", f"HTML实体编码时出错: {str(e)}")
+
+    def html_entity_decode(self):
+        """
+        对选中文本进行HTML实体解码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行HTML实体解码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("HTML实体解码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行HTML实体解码
+            decoded_text = html.unescape(selected_text)
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, decoded_text)
+
+        except Exception as e:
+            logger.error(f"HTML实体解码时出错: {str(e)}")
+            messagebox.showerror("错误", f"HTML实体解码时出错: {str(e)}")
+
+    def unicode_escape_encode(self):
+        """
+        对选中文本进行Unicode转义序列编码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行Unicode转义序列编码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("Unicode转义序列编码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行Unicode转义序列编码
+            encoded_text = selected_text.encode('unicode-escape').decode('utf-8')
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, encoded_text)
+
+        except Exception as e:
+            logger.error(f"Unicode转义序列编码时出错: {str(e)}")
+            messagebox.showerror("错误", f"Unicode转义序列编码时出错: {str(e)}")
+
+    def unicode_escape_decode(self):
+        """
+        对选中文本进行Unicode转义序列解码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行Unicode转义序列解码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("Unicode转义序列解码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 对选中文本进行Unicode转义序列解码
+            decoded_text = selected_text.encode('utf-8').decode('unicode-escape')
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, decoded_text)
+
+        except Exception as e:
+            logger.error(f"Unicode转义序列解码时出错: {str(e)}")
+            messagebox.showerror("错误", f"Unicode转义序列解码时出错: {str(e)}")
+
+    def jwt_decode(self):
+        """
+        对选中文本进行JWT解码
+        
+        检查是否有选中文本和是否为只读模式, 然后对选中文本进行JWT解码
+        """
+        # 检查是否可以进行编辑操作
+        if not self._check_editable_selection("JWT解码"):
+            return
+
+        try:
+            # 获取选中文本和范围
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            # 尝试解码JWT
+            try:
+                # 分割JWT令牌
+                parts = selected_text.split('.')
+                if len(parts) != 3:
+                    messagebox.showerror(
+                        "JWT格式错误", 
+                        "无效的JWT格式，JWT应包含三个部分：头部.载荷.签名"
+                    )
+                    return
+
+                # 解码头部和载荷（不验证签名）
+            
+                # 解码头部
+                header_data = parts[0]
+                # 添加必要的填充
+                header_data += '=' * (4 - len(header_data) % 4)
+                header_json = base64.b64decode(header_data).decode('utf-8')
+                header = json.loads(header_json)
+                
+                # 解码载荷
+                payload_data = parts[1]
+                # 添加必要的填充
+                payload_data += '=' * (4 - len(payload_data) % 4)
+                payload_json = base64.b64decode(payload_data).decode('utf-8')
+                payload = json.loads(payload_json)
+                
+                # 格式化输出
+                decoded_text = f"""JWT解码结果：
+
+头部 (Header):
+{json.dumps(header, indent=2, ensure_ascii=False)}
+
+载荷 (Payload):
+{json.dumps(payload, indent=2, ensure_ascii=False)}
+
+签名 (Signature):
+{parts[2]}
+"""
+                
+            except Exception as e:
+                messagebox.showerror(
+                    "JWT解码错误", 
+                    f"解码JWT时出错: {str(e)}"
+                )
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, decoded_text)
+
+        except Exception as e:
+            logger.error(f"JWT解码时出错: {str(e)}")
+            messagebox.showerror("错误", f"JWT解码时出错: {str(e)}")
