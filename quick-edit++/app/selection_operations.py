@@ -16,6 +16,10 @@ import black
 from ruamel.yaml import YAML
 import sqlparse
 from loguru import logger
+import re
+import jsbeautifier
+import bs4
+import cssutils
 
 
 class SelectionOperations:
@@ -2252,3 +2256,233 @@ class SelectionOperations:
         except Exception as e:
             logger.error(f"压缩SQL时出错: {str(e)}")
             messagebox.showerror("错误", f"压缩SQL时出错: {str(e)}")
+
+    def format_html(self):
+        """
+        格式化HTML代码，使其更易读
+        """
+        if not self._check_editable_selection("格式化HTML"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用BeautifulSoup解析HTML
+                soup = bs4.BeautifulSoup(selected_text, "html.parser")
+
+                # 格式化HTML，使用缩进
+                formatted_html = soup.prettify()
+
+            except Exception as e:
+                messagebox.showerror("HTML解析错误", f"无效的HTML格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_html)
+
+        except Exception as e:
+            logger.error(f"格式化HTML时出错: {str(e)}")
+            messagebox.showerror("错误", f"格式化HTML时出错: {str(e)}")
+
+    def compress_html(self):
+        """
+        压缩HTML代码，移除不必要的空白字符
+        """
+        if not self._check_editable_selection("压缩HTML"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用BeautifulSoup解析HTML
+                soup = bs4.BeautifulSoup(selected_text, "html.parser")
+
+                # 获取压缩后的HTML（不保留格式）
+                compressed_html = str(soup)
+
+                # 进一步压缩：移除多余的空白字符
+                compressed_html = re.sub(r">\s+<", "><", compressed_html)
+                compressed_html = re.sub(r"\s+", " ", compressed_html)
+
+            except Exception as e:
+                messagebox.showerror("HTML解析错误", f"无效的HTML格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, compressed_html)
+
+        except Exception as e:
+            logger.error(f"压缩HTML时出错: {str(e)}")
+            messagebox.showerror("错误", f"压缩HTML时出错: {str(e)}")
+
+    def format_css(self):
+        """
+        格式化CSS代码，使其更易读
+        """
+        if not self._check_editable_selection("格式化CSS"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用cssutils解析CSS
+                parser = cssutils.CSSParser()
+                sheet = parser.parseString(selected_text)
+
+                # 格式化CSS
+                formatted_css = (
+                    sheet.cssText.decode("utf-8")
+                    if isinstance(sheet.cssText, bytes)
+                    else sheet.cssText
+                )
+
+            except Exception as e:
+                messagebox.showerror("CSS解析错误", f"无效的CSS格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_css)
+
+        except Exception as e:
+            logger.error(f"格式化CSS时出错: {str(e)}")
+            messagebox.showerror("错误", f"格式化CSS时出错: {str(e)}")
+
+    def compress_css(self):
+        """
+        压缩CSS代码，移除不必要的空白字符和注释
+        """
+        if not self._check_editable_selection("压缩CSS"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用cssutils解析CSS
+                parser = cssutils.CSSParser()
+                sheet = parser.parseString(selected_text)
+
+                # 压缩CSS
+                compressed_css = (
+                    sheet.cssText.decode("utf-8")
+                    if isinstance(sheet.cssText, bytes)
+                    else sheet.cssText
+                )
+
+                # 进一步压缩：移除多余的空白字符和注释
+                compressed_css = re.sub(
+                    r"/\*.*?\*/", "", compressed_css, flags=re.DOTALL
+                )  # 移除注释
+                compressed_css = re.sub(r"\s+", " ", compressed_css)  # 移除多余空白
+                compressed_css = re.sub(r";\s*}", "}", compressed_css)  # 移除最后的分号
+                compressed_css = re.sub(r"{\s*", "{", compressed_css)  # 移除{后的空白
+                compressed_css = re.sub(r";\s*", ";", compressed_css)  # 标准化分号
+                compressed_css = compressed_css.strip()
+
+            except Exception as e:
+                messagebox.showerror("CSS解析错误", f"无效的CSS格式: {str(e)}")
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, compressed_css)
+
+        except Exception as e:
+            logger.error(f"压缩CSS时出错: {str(e)}")
+            messagebox.showerror("错误", f"压缩CSS时出错: {str(e)}")
+
+    def format_javascript(self):
+        """
+        格式化JavaScript代码，使其更易读
+        """
+        if not self._check_editable_selection("格式化JavaScript"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用jsbeautifier格式化JavaScript
+                options = jsbeautifier.default_options()
+                options.indent_size = 2  # 缩进2个空格
+                options.space_in_paren = True  # 在括号内添加空格
+                options.preserve_newlines = True  # 保留换行符
+                options.jslint_happy = True  # 兼容jslint
+                formatted_js = jsbeautifier.beautify(selected_text, options)
+
+            except Exception as e:
+                messagebox.showerror(
+                    "JavaScript解析错误", f"无效的JavaScript格式: {str(e)}"
+                )
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, formatted_js)
+
+        except Exception as e:
+            logger.error(f"格式化JavaScript时出错: {str(e)}")
+            messagebox.showerror("错误", f"格式化JavaScript时出错: {str(e)}")
+
+    def compress_javascript(self):
+        """
+        压缩JavaScript代码，移除不必要的空白字符和注释
+        """
+        if not self._check_editable_selection("压缩JavaScript"):
+            return
+
+        try:
+            selected_text = self.get_selected_text()
+            start_index, end_index = self.get_selection_range()
+
+            try:
+                # 使用jsbeautifier压缩JavaScript
+                options = jsbeautifier.default_options()
+                options.indent_size = 0
+                options.preserve_newlines = False
+                options.jslint_happy = True
+                compressed_js = jsbeautifier.beautify(selected_text, options)
+
+                # 进一步压缩：移除多余的空格、换行和注释
+                # 移除单行注释
+                compressed_js = re.sub(r"//.*", "", compressed_js)
+                # 移除多行注释
+                compressed_js = re.sub(r"/\*.*?\*/", "", compressed_js, flags=re.DOTALL)
+                # 移除多余的空格和换行
+                compressed_js = re.sub(r"\s+", " ", compressed_js)
+                # 移除不必要的空格
+                compressed_js = re.sub(r"\s*([{}();,=])\s*", r"\1", compressed_js)
+                # 移除函数参数周围的空格
+                compressed_js = re.sub(r"(\w)\s+\(", r"\1(", compressed_js)
+                # 移除操作符周围的空格
+                compressed_js = re.sub(r"([=+\-*/])\s+", r"\1", compressed_js)
+                compressed_js = re.sub(r"\s+([=+\-*/])", r"\1", compressed_js)
+                # 移除字符串前后的空格
+                compressed_js = re.sub(r'(["\'])\s+', r"\1", compressed_js)
+                compressed_js = re.sub(r'\s+(["\'])', r"\1", compressed_js)
+                compressed_js = compressed_js.strip()
+
+            except Exception as e:
+                messagebox.showerror(
+                    "JavaScript解析错误", f"无效的JavaScript格式: {str(e)}"
+                )
+                return
+
+            # 替换选中文本
+            self.text_area.delete(start_index, end_index)
+            self.text_area.insert(start_index, compressed_js)
+
+        except Exception as e:
+            logger.error(f"压缩JavaScript时出错: {str(e)}")
+            messagebox.showerror("错误", f"压缩JavaScript时出错: {str(e)}")

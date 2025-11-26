@@ -960,12 +960,11 @@ def toggle_auto_wrap(root, switch_state=True):
     # 直接设置文本框的自动换行属性
     wrap_mode = "word" if new_state else "none"
     root.text_area.configure(wrap=wrap_mode)
-    
+
     # 滚动条的显示/隐藏将由app_initializer中的自动检查机制处理
     # 显示通知
     status_text = "已启用" if new_state else "已禁用"
     root.status_bar.show_notification(f"自动换行{status_text}", 500)
-        
 
 
 def toggle_auto_save(root):

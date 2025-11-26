@@ -259,10 +259,38 @@ def create_selected_text_submenu(
     sql_submenu.add_command(label="关键字小写", command=lambda: root.format_sql_lower())
     sql_submenu.add_command(label="格式化SQL", command=lambda: root.format_sql())
     sql_submenu.add_command(label="压缩SQL", command=lambda: root.compress_sql())
-    
+
+    # 创建HTML格式化子菜单
+    html_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="HTML", menu=html_submenu)
+
+    # 添加HTML菜单项
+    html_submenu.add_command(label="格式化HTML", command=lambda: root.format_html())
+    html_submenu.add_command(label="压缩HTML", command=lambda: root.compress_html())
+
+    # 创建CSS格式化子菜单
+    css_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="CSS", menu=css_submenu)
+
+    # 添加CSS菜单项
+    css_submenu.add_command(label="格式化CSS", command=lambda: root.format_css())
+    css_submenu.add_command(label="压缩CSS", command=lambda: root.compress_css())
+
+    # 创建JavaScript格式化子菜单
+    js_submenu = tk.Menu(formatting_submenu, tearoff=0, font=menu_font_tuple)
+    formatting_submenu.add_cascade(label="JavaScript", menu=js_submenu)
+
+    # 添加JavaScript菜单项
+    js_submenu.add_command(
+        label="格式化JavaScript", command=lambda: root.format_javascript()
+    )
+    js_submenu.add_command(
+        label="压缩JavaScript", command=lambda: root.compress_javascript()
+    )
+
     # 添加其他格式化菜单项
     formatting_submenu.add_command(label="格式化XML", command=lambda: root.format_xml())
-    
+
     formatting_submenu.add_command(label="格式化INI", command=lambda: root.format_ini())
     formatting_submenu.add_command(
         label="格式化Python", command=lambda: root.format_python()
