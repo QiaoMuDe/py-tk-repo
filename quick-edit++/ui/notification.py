@@ -14,6 +14,10 @@
     Notification.show_warning("警告", "磁盘空间不足")
     Notification.show_info("提示", "新版本已发布")
 
+    # 在模态窗口中显示通知, 用于在模态窗口中被阻塞时显示通知
+    Notification.set_next_parent(self)
+    Notification.show_success("成功", "操作已完成")
+
     # 自定义通知位置和持续时间
     Notification.show(
         "自定义通知",
@@ -187,18 +191,16 @@ class Notification:
         cls._max_notifications = max_count
 
     @classmethod
-    def set_temporary_parent(cls, parent_window):
+    def set_next_parent(cls, parent_window):
         """
         设置下一个通知的父窗口引用 (用于模态对话框场景)
-        
+
         注意：此设置只对下一个创建的通知有效，使用后会自动清除
 
         Args:
             parent_window: 父窗口对象, 通常为模态对话框
         """
         cls._next_parent_window = parent_window
-
-
 
     @classmethod
     def show(
@@ -360,7 +362,7 @@ class Notification:
         self.fade_out_job = None  # 存储淡出任务的ID
         self.auto_hide_job = None  # 存储自动隐藏任务的ID
         self.is_pinned = False  # 通知是否被固定
-        
+
         # 存储当前通知的父窗口引用
         self._parent_window = Notification._next_parent_window
         # 使用后立即清除类级别的父窗口引用，确保只对下一个通知有效

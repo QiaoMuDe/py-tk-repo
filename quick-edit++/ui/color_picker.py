@@ -342,8 +342,8 @@ class HexColorPicker(ctk.CTkToplevel):
             self.clipboard_append(self.selected_color)
             self.update()
 
-            # 设置临时父窗口引用
-            self.parent.nm.set_temporary_parent(self)
+            # 设置临时父窗口引用，确保通知可以正确显示在模态对话框中
+            self.parent.nm.set_next_parent(self)
 
             # 显示复制成功通知
             self.parent.nm.show_success(
