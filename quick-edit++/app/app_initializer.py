@@ -20,7 +20,7 @@ from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
 from loguru import logger
 import os
-from ui.notification import NotificationManager
+from ui.notification import Notification, NotificationType, NotificationPosition
 
 
 class AppInitializer:
@@ -387,8 +387,8 @@ class AppInitializer:
         logger.info(f"log file path: {log_path}")
         logger.info(f"config directory: {APP_CONFIG_DIR}")
 
-        # 初始化通知管理器
-        self.app.nm = NotificationManager()
+        # 初始化通知组件，设置为编辑器的属性
+        self.app.nm = Notification
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""

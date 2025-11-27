@@ -111,6 +111,10 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def _on_closing(self):
         """窗口关闭事件处理"""
+        # 关闭所有通知
+        if hasattr(self, 'nm'):
+            self.nm.close_all()
+            
         # 取消自动保存任务 (如果有)
         self.auto_save_manager.stop_auto_save()
 
