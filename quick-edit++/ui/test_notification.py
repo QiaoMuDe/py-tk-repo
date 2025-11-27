@@ -173,19 +173,19 @@ class NotificationTestApp:
 
     def show_success_notification(self):
         """显示成功通知"""
-        NotificationManager.show_success(self.root, "操作成功", "文件保存成功！")
+        NotificationManager.show_success(self, "操作成功", "文件保存成功！")
 
     def show_error_notification(self):
         """显示错误通知"""
-        NotificationManager.show_error(self.root, "操作失败", "无法连接到服务器！")
+        NotificationManager.show_error(self, "操作失败", "无法连接到服务器！")
 
     def show_warning_notification(self):
         """显示警告通知"""
-        NotificationManager.show_warning(self.root, "注意", "文件已存在，将被覆盖！")
+        NotificationManager.show_warning(self, "注意", "文件已存在，将被覆盖！")
 
     def show_info_notification(self):
         """显示信息通知"""
-        NotificationManager.show_info(self.root, "提示", "新版本可用，请更新软件！")
+        NotificationManager.show_info(self, "提示", "新版本可用，请更新软件！")
 
     def start_auto_test(self):
         """开始自动测试"""
