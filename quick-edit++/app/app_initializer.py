@@ -388,7 +388,7 @@ class AppInitializer:
         logger.info(f"config directory: {APP_CONFIG_DIR}")
 
         # 初始化通知管理器
-        self.app.nm = NotificationManager(self.app)
+        # self.app.nm = NotificationManager()
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""

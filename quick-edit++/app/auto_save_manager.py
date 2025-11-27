@@ -115,11 +115,11 @@ class AutoSaveManager:
             file_path = self.app.current_file_path
             try:
                 # 传递is_auto_save=True，表示这是自动保存
-                self.app.file_ops._save_file(is_auto_save=True)  
-                
+                self.app.file_ops._save_file(is_auto_save=True)
+
                 # 更新上次自动保存时间
                 self.last_auto_save_time = time.time()
-                
+
                 # 更新状态栏的自动保存信息，显示具体的保存时间
                 self.app.status_bar.show_auto_save_status(saved=True)
                 logger.info(f"自动保存成功: {file_path}")

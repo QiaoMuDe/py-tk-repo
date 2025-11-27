@@ -311,7 +311,7 @@ class Notification:
         if self.auto_hide_job is not None:
             self.notification.after_cancel(self.auto_hide_job)
             self.auto_hide_job = None
-            
+
         print("鼠标进入通知区域")
 
     def _on_leave(self, event):
@@ -321,7 +321,7 @@ class Notification:
         self.auto_hide_job = self.notification.after(
             self.LEAVE_HIDE_DELAY, self._start_fade_out
         )
-        
+
         print("鼠标离开通知区域")
 
     def _fade_in(self, step=0):
@@ -353,7 +353,7 @@ class Notification:
         else:
             # 完全透明后销毁窗口
             self.notification.destroy()
-            
+
             # 通知管理器当前通知已销毁
             if self.manager is not None:
                 self.manager.current_notification = None
@@ -362,7 +362,7 @@ class Notification:
         """立即关闭通知"""
         if self.notification.winfo_exists():
             self.notification.destroy()
-            
+
             # 通知管理器当前通知已销毁
             if self.manager is not None:
                 self.manager.current_notification = None
@@ -416,16 +416,21 @@ class NotificationManager:
         # 检查是否有有效的父窗口
         if effective_parent is None:
             raise ValueError("未提供父窗口引用，请在初始化时提供或在调用方法时传递")
-        
+
         # 如果已有通知存在，先关闭它
         if self.current_notification is not None:
             self.current_notification.close()
 
         # 创建新通知，并传入管理器引用
         self.current_notification = Notification(
-            effective_parent, title, message, notification_type, duration, self.position, self
+            effective_parent,
+            title,
+            message,
+            notification_type,
+            duration,
+            self.position,
+            self,
         )
-        
 
     def show_success(self, title, message, duration=3000, parent=None):
         """显示成功通知"""
@@ -450,5 +455,3 @@ class NotificationManager:
         return self.show_notification(
             title, message, NotificationType.INFO, duration, parent
         )
-
-

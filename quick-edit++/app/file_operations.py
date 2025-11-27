@@ -252,7 +252,8 @@ class FileOperations:
             # 显示保存通知 - 仅在非自动保存时显示
             # self.root.status_bar.show_notification(f"文件已保存")
             if not is_auto_save:
-                self.root.nm.show_success("提示", "文件已保存")
+                # self.root.nm.show_success("提示", "文件已保存")
+                self.root.status_bar.show_notification(f"文件已保存")
 
             # 更新窗口标题
             self.root._update_window_title()
@@ -930,5 +931,3 @@ class FileOperations:
             return True  # 出错, 不打开任何文件
 
         return False
-
-
