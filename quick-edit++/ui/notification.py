@@ -4,6 +4,42 @@
 """
 通知组件模块
 提供各种通知样式的UI组件, 包括成功通知、错误通知、警告通知等
+
+基本使用方法:
+    from ui.notification import Notification, NotificationType, NotificationPosition
+
+    # 显示不同类型的通知
+    Notification.show_success("成功", "操作已完成")
+    Notification.show_error("错误", "操作失败, 请重试")
+    Notification.show_warning("警告", "磁盘空间不足")
+    Notification.show_info("提示", "新版本已发布")
+
+    # 自定义通知位置和持续时间
+    Notification.show(
+        "自定义通知",
+        "这是一个自定义的通知",
+        NotificationType.INFO,
+        duration=6000,
+        position=NotificationPosition.TOP_LEFT
+    )
+
+    # 全局配置
+    Notification.set_default_position(NotificationPosition.TOP_RIGHT)
+    Notification.set_default_duration(4000)
+    Notification.set_max_notifications(5)
+
+    # 关闭所有通知
+    Notification.close_all()
+
+功能特点:
+    - 支持四种通知类型: 成功、错误、警告、信息
+    - 支持六种显示位置: 左上、右上、左下、右下、上方居中、屏幕居中
+    - 支持自定义持续时间和最大同时显示数量
+    - 支持固定通知 (不会自动消失)
+    - 支持复制通知内容
+    - 支持淡入淡出动画效果
+    - 自动调整位置避免重叠
+    - DPI感知, 适配高分辨率屏幕
 """
 
 import customtkinter as ctk
@@ -13,7 +49,6 @@ import os
 # Windows API 导入
 if sys.platform == "win32":
     import ctypes
-    from ctypes import wintypes
 
 
 def get_screen_size():
@@ -21,7 +56,7 @@ def get_screen_size():
     获取DPI感知的真实屏幕尺寸
 
     Returns:
-        tuple: (屏幕宽度, 屏幕高度)，如果获取失败则返回默认值(1920, 1080)
+        tuple: (屏幕宽度, 屏幕高度), 如果获取失败则返回默认值(1920, 1080)
     """
     # 非Windows系统直接返回默认值
     if sys.platform != "win32":
@@ -31,7 +66,7 @@ def get_screen_size():
         # 定义Windows API常量和结构
         user32 = ctypes.windll.user32
 
-        # 设置进程为DPI感知，获取真实物理分辨率
+        # 设置进程为DPI感知, 获取真实物理分辨率
         if hasattr(user32, "SetProcessDPIAware"):
             user32.SetProcessDPIAware()
 
@@ -48,7 +83,7 @@ def get_screen_size():
             return 1920, 1080  # 默认值
 
     except Exception as e:
-        # 如果获取失败，返回默认值
+        # 如果获取失败, 返回默认值
         print(f"获取屏幕尺寸失败: {e}")
         return 1920, 1080  # 默认值
 
@@ -72,24 +107,37 @@ class NotificationPosition:
     TOP_CENTER = "top_center"  # 屏幕上方居中显示
     CENTER = "center"  # 屏幕居中显示
 
+    @classmethod
+    def get_all_positions(cls):
+        """获取所有可用的通知位置"""
+        return [
+            cls.TOP_LEFT,
+            cls.TOP_RIGHT,
+            cls.BOTTOM_LEFT,
+            cls.BOTTOM_RIGHT,
+            cls.TOP_CENTER,
+            cls.CENTER,
+        ]
+
 
 class Notification:
     """通知类 - 负责创建和管理通知窗口"""
 
     # 类变量 - 全局配置
     _default_position = NotificationPosition.BOTTOM_RIGHT  # 默认位置
-    _default_duration = 3000  # 默认持续时间（毫秒）
+    _default_duration = 3000  # 默认持续时间 (毫秒)
     _max_notifications = 3  # 最大同时显示的通知数量
-    _notification_spacing = 10  # 通知之间的间距（像素）
+    _notification_spacing = 10  # 通知之间的间距 (像素)
 
     # 类变量 - 当前活动通知
     _active_notifications = []  # 活动通知列表
-    _notification_counter = 0  # 通知计数器，用于生成唯一ID
+    _notification_counter = 0  # 通知计数器, 用于生成唯一ID
 
     # 通知组件字体大小配置
     ICON_FONT_SIZE = 25  # 图标字体大小
     TITLE_FONT_SIZE = 18  # 标题字体大小
     MESSAGE_FONT_SIZE = 15  # 消息字体大小
+    BUTTON_FONT_SIZE = 12  # 按钮字体大小
 
     # 通知窗口配置
     DEFAULT_WIDTH = 320  # 默认宽度
@@ -111,7 +159,7 @@ class Notification:
         设置默认通知位置
 
         Args:
-            position: 通知位置，使用NotificationPosition枚举值
+            position: 通知位置, 使用NotificationPosition枚举值
         """
         cls._default_position = position
 
@@ -121,7 +169,7 @@ class Notification:
         设置默认通知持续时间
 
         Args:
-            duration: 持续时间（毫秒）
+            duration: 持续时间 (毫秒)
         """
         cls._default_duration = duration
 
@@ -150,16 +198,18 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            notification_type: 通知类型，默认为信息通知
-            duration: 通知显示持续时间（毫秒），默认使用类默认值
-            position: 通知位置，默认使用类默认值
+            notification_type: 通知类型, 默认为信息通知
+            duration: 通知显示持续时间 (毫秒) , 默认使用类默认值
+            position: 通知位置, 默认使用类默认值
 
         Returns:
             Notification: 创建的通知对象
         """
-        # 使用默认值（如果未提供）
+        # 消息持续时间
         if duration is None:
             duration = cls._default_duration
+
+        # 消息位置
         if position is None:
             position = cls._default_position
 
@@ -179,7 +229,7 @@ class Notification:
         try:
             notification._set_notification_geometry()
         except Exception as e:
-            # 如果设置位置失败，从列表中移除并销毁通知
+            # 如果设置位置失败, 从列表中移除并销毁通知
             if notification in cls._active_notifications:
                 cls._active_notifications.remove(notification)
             notification._destroy_notification()
@@ -196,8 +246,8 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            duration: 通知显示持续时间（毫秒），默认使用类默认值
-            position: 通知位置，默认使用类默认值
+            duration: 通知显示持续时间 (毫秒) , 默认使用类默认值
+            position: 通知位置, 默认使用类默认值
 
         Returns:
             Notification: 创建的通知对象
@@ -212,8 +262,8 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            duration: 通知显示持续时间（毫秒），默认使用类默认值
-            position: 通知位置，默认使用类默认值
+            duration: 通知显示持续时间 (毫秒) , 默认使用类默认值
+            position: 通知位置, 默认使用类默认值
 
         Returns:
             Notification: 创建的通知对象
@@ -228,8 +278,8 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            duration: 通知显示持续时间（毫秒），默认使用类默认值
-            position: 通知位置，默认使用类默认值
+            duration: 通知显示持续时间 (毫秒) , 默认使用类默认值
+            position: 通知位置, 默认使用类默认值
 
         Returns:
             Notification: 创建的通知对象
@@ -244,8 +294,8 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            duration: 通知显示持续时间（毫秒），默认使用类默认值
-            position: 通知位置，默认使用类默认值
+            duration: 通知显示持续时间 (毫秒) , 默认使用类默认值
+            position: 通知位置, 默认使用类默认值
 
         Returns:
             Notification: 创建的通知对象
@@ -274,9 +324,9 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            notification_type: 通知类型，默认为成功通知
-            duration: 通知显示持续时间（毫秒），默认为3秒
-            position: 通知位置，默认为屏幕右下角显示
+            notification_type: 通知类型, 默认为成功通知
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
+            position: 通知位置, 默认为屏幕右下角显示
         """
         # 生成唯一ID
         Notification._notification_counter += 1
@@ -292,6 +342,7 @@ class Notification:
         # 状态变量
         self.fade_out_job = None  # 存储淡出任务的ID
         self.auto_hide_job = None  # 存储自动隐藏任务的ID
+        self.is_pinned = False  # 通知是否被固定
 
         # 计算通知窗口大小 - 在创建内容前计算
         self._calculate_notification_size()
@@ -336,29 +387,36 @@ class Notification:
         except ValueError:
             notification_index = 0
 
+        # 确保position是字符串, 避免属性访问错误
+        position_str = (
+            str(self.position)
+            if self.position is not None
+            else NotificationPosition.BOTTOM_RIGHT
+        )
+
         # 根据位置设置计算坐标
-        if self.position == NotificationPosition.TOP_LEFT:
+        if position_str == NotificationPosition.TOP_LEFT:
             # 左上角
             x = 20
             y = 20 + notification_index * (
                 self.notification_height + self._notification_spacing
             )
 
-        elif self.position == NotificationPosition.TOP_RIGHT:
+        elif position_str == NotificationPosition.TOP_RIGHT:
             # 右上角
             x = screen_width - self.notification_width - 350
             y = 20 + notification_index * (
                 self.notification_height + self._notification_spacing
             )
 
-        elif self.position == NotificationPosition.TOP_CENTER:
+        elif position_str == NotificationPosition.TOP_CENTER:
             # 上方居中
             x = screen_width // 2 - 200
             y = 20 + notification_index * (
                 self.notification_height + self._notification_spacing
             )
 
-        elif self.position == NotificationPosition.BOTTOM_LEFT:
+        elif position_str == NotificationPosition.BOTTOM_LEFT:
             # 左下角
             x = 20
             y = (
@@ -369,7 +427,7 @@ class Notification:
                 * (self.notification_height + self._notification_spacing)
             )
 
-        elif self.position == NotificationPosition.BOTTOM_RIGHT:
+        elif position_str == NotificationPosition.BOTTOM_RIGHT:
             # 右下角
             x = screen_width - self.notification_width - 350
             y = (
@@ -380,7 +438,7 @@ class Notification:
                 * (self.notification_height + self._notification_spacing)
             )
 
-        elif self.position == NotificationPosition.CENTER:
+        elif position_str == NotificationPosition.CENTER:
             # 屏幕居中
             x = screen_width // 2 - 200
             y = screen_height // 2 - notification_index * (
@@ -478,6 +536,38 @@ class Notification:
         )
         title_label.pack(side="left")
 
+        # 复制按钮 - 添加到标题栏右侧
+        self.copy_button = ctk.CTkButton(
+            header_frame,
+            text="复制",
+            width=45,
+            height=25,
+            corner_radius=5,
+            fg_color="transparent",
+            #  hover_color="transparent",
+            hover=False,
+            text_color=("#757575", "#b0b0b0"),
+            font=(self.font_family, self.BUTTON_FONT_SIZE, "bold"),
+            command=self._copy_notification_content,
+        )
+        self.copy_button.pack(side="right", padx=(5, 0))
+
+        # 固定按钮 - 添加到标题栏右侧, 在复制按钮左侧
+        self.pin_button = ctk.CTkButton(
+            header_frame,
+            text="固定",
+            width=45,
+            height=25,
+            corner_radius=5,
+            fg_color="transparent",
+            # hover_color="transparent",
+            hover=False,
+            text_color=("#757575", "#b0b0b0"),
+            font=(self.font_family, self.BUTTON_FONT_SIZE, "bold"),
+            command=self._toggle_pin_notification,
+        )
+        self.pin_button.pack(side="right", padx=(5, 0))
+
         # 消息标签 - 设置为可滚动文本区域以处理长消息
         msg_frame = ctk.CTkFrame(right_content_frame, fg_color="transparent")
         msg_frame.pack(fill="both", expand=True, pady=(5, 0))
@@ -552,10 +642,11 @@ class Notification:
             self.notification.attributes("-alpha", step / self.FADE_STEPS)
             self.notification.after(self.FADE_DELAY, lambda: self._fade_in(step + 1))
         else:
-            # 淡入完成后, 等待指定时间后淡出
-            self.auto_hide_job = self.notification.after(
-                self.duration, self._start_fade_out
-            )
+            # 淡入完成后, 只有在通知未被固定时才等待指定时间后淡出
+            if not self.is_pinned:
+                self.auto_hide_job = self.notification.after(
+                    self.duration, self._start_fade_out
+                )
 
     def _start_fade_out(self):
         """开始淡出的函数"""
@@ -599,20 +690,94 @@ class Notification:
         # 销毁窗口
         try:
             if hasattr(self, "notification") and self.notification.winfo_exists():
-                # 移除窗口属性，避免回调函数访问已销毁的窗口
+                # 先移除窗口属性, 避免回调函数访问已销毁的窗口
                 self.notification.overrideredirect(False)
                 self.notification.attributes("-topmost", False)
+
+                # 如果有复制按钮, 先销毁它
+                if hasattr(self, "copy_button"):
+                    try:
+                        self.copy_button.destroy()
+                    except:
+                        pass
+
+                # 如果有固定按钮, 先销毁它
+                if hasattr(self, "pin_button"):
+                    try:
+                        self.pin_button.destroy()
+                    except:
+                        pass
+
+                # 销毁通知窗口
                 self.notification.destroy()
         except:
-            # 窗口可能已经被销毁，忽略错误
+            # 窗口可能已经被销毁, 忽略错误
             pass
 
     def close(self):
         """立即关闭通知"""
         self._destroy_notification()
 
+    def _toggle_pin_notification(self):
+        """切换通知固定状态"""
+        self.is_pinned = not self.is_pinned
 
-# 使用示例：
-#   Notification.show_success("成功", "操作已完成")
-#   Notification.show_error("错误", "操作失败")
-#   Notification.close_all()
+        if self.is_pinned:
+            # 取消自动隐藏计时器
+            if self.auto_hide_job:
+                self.notification.after_cancel(self.auto_hide_job)
+                self.auto_hide_job = None
+
+            # 更新按钮样式为固定状态 (红色背景)
+            self.pin_button.configure(
+                fg_color=("#f44336", "#d32f2f"),
+                text_color=("#ffffff", "#ffffff"),
+                text="取消固定",
+            )
+        else:
+            # 重新启动自动隐藏计时器
+            self.auto_hide_job = self.notification.after(
+                self.duration, self._start_fade_out
+            )
+
+            # 恢复按钮样式为未固定状态
+            self.pin_button.configure(
+                fg_color="transparent", text_color=("#757575", "#b0b0b0"), text="固定"
+            )
+
+    def _copy_notification_content(self):
+        """复制通知内容到剪贴板"""
+        try:
+            # 只复制消息内容, 不包含标题
+            message_content = self.message
+            self.notification.clipboard_clear()
+            self.notification.clipboard_append(message_content)
+
+            # 显示复制成功的反馈
+            self._show_copy_feedback()
+        except Exception as e:
+            print(f"复制失败: {e}")
+
+    def _show_copy_feedback(self):
+        """显示复制成功的反馈"""
+        # 临时更改按钮文本为"✓"并改变背景色为绿色表示复制成功
+        if hasattr(self, "copy_button"):
+            original_text = self.copy_button.cget("text")
+            original_fg_color = self.copy_button.cget("fg_color")
+            original_text_color = self.copy_button.cget("text_color")
+
+            self.copy_button.configure(
+                text="✓",
+                fg_color=("#4caf50", "#2e7d32"),
+                text_color=("#ffffff", "#ffffff"),
+            )
+
+            # 800毫秒后恢复原样式
+            self.notification.after(
+                800,
+                lambda: self.copy_button.configure(
+                    text=original_text,
+                    fg_color=original_fg_color,
+                    text_color=original_text_color,
+                ),
+            )
