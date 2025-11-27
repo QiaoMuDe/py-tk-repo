@@ -329,54 +329,64 @@ class Notification:
 
 class NotificationManager:
     """通知管理器, 负责创建和管理通知"""
+    
+    def __init__(self, parent=None):
+        """
+        初始化通知管理器
+        
+        Args:
+            parent: 默认父窗口引用，如果未提供则在调用通知方法时必须提供
+        """
+        self.parent = parent
 
-    @staticmethod
     def show_notification(
-        parent,
+        self,
         title,
         message,
         notification_type=NotificationType.SUCCESS,
         duration=3000,
+        parent=None,
     ):
         """
         显示浮动通知
 
         Args:
-            parent: 父窗口
             title: 通知标题
             message: 通知消息内容
             notification_type: 通知类型, 默认为成功通知
             duration: 通知显示持续时间 (毫秒) , 默认为3秒
+            parent: 父窗口，如果未提供则使用初始化时的父窗口
 
         Returns:
             Notification: 创建的通知对象
+            
+        Raises:
+            ValueError: 如果没有提供父窗口引用
         """
-        return Notification(parent, title, message, notification_type, duration)
+        # 优先使用传递的父窗口, 否则使用初始化时的父窗口
+        if parent is not None:
+            effective_parent = parent
+        else:
+            effective_parent = self.parent
+        
+        # 检查是否有有效的父窗口
+        if effective_parent is None:
+            raise ValueError("未提供父窗口引用，请在初始化时提供或在调用方法时传递")
+            
+        return Notification(effective_parent, title, message, notification_type, duration)
 
-    @staticmethod
-    def show_success(parent, title, message, duration=3000):
+    def show_success(self, title, message, duration=3000, parent=None):
         """显示成功通知"""
-        return NotificationManager.show_notification(
-            parent, title, message, NotificationType.SUCCESS, duration
-        )
+        return self.show_notification(title, message, NotificationType.SUCCESS, duration, parent)
 
-    @staticmethod
-    def show_error(parent, title, message, duration=3000):
+    def show_error(self, title, message, duration=3000, parent=None):
         """显示错误通知"""
-        return NotificationManager.show_notification(
-            parent, title, message, NotificationType.ERROR, duration
-        )
+        return self.show_notification(title, message, NotificationType.ERROR, duration, parent)
 
-    @staticmethod
-    def show_warning(parent, title, message, duration=3000):
+    def show_warning(self, title, message, duration=3000, parent=None):
         """显示警告通知"""
-        return NotificationManager.show_notification(
-            parent, title, message, NotificationType.WARNING, duration
-        )
+        return self.show_notification(title, message, NotificationType.WARNING, duration, parent)
 
-    @staticmethod
-    def show_info(parent, title, message, duration=3000):
+    def show_info(self, title, message, duration=3000, parent=None):
         """显示信息通知"""
-        return NotificationManager.show_notification(
-            parent, title, message, NotificationType.INFO, duration
-        )
+        return self.show_notification(title, message, NotificationType.INFO, duration, parent)

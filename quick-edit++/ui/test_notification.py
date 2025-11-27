@@ -38,6 +38,9 @@ class NotificationTestApp:
         self.root.title("通知组件测试")
         self.root.geometry("600x500")
 
+        # 创建通知管理器实例，传入主窗口作为父窗口
+        self.notification_manager = NotificationManager(self.root)
+
         # 创建界面
         self.create_widgets()
 
@@ -173,19 +176,19 @@ class NotificationTestApp:
 
     def show_success_notification(self):
         """显示成功通知"""
-        NotificationManager.show_success(self, "操作成功", "文件保存成功！")
+        self.notification_manager.show_success("操作成功", "文件保存成功！")
 
     def show_error_notification(self):
         """显示错误通知"""
-        NotificationManager.show_error(self, "操作失败", "无法连接到服务器！")
+        self.notification_manager.show_error("操作失败", "无法连接到服务器！")
 
     def show_warning_notification(self):
         """显示警告通知"""
-        NotificationManager.show_warning(self, "注意", "文件已存在，将被覆盖！")
+        self.notification_manager.show_warning("注意", "文件已存在，将被覆盖！")
 
     def show_info_notification(self):
         """显示信息通知"""
-        NotificationManager.show_info(self, "提示", "新版本可用，请更新软件！")
+        self.notification_manager.show_info("提示", "新版本可用，请更新软件！")
 
     def start_auto_test(self):
         """开始自动测试"""
@@ -225,8 +228,7 @@ class NotificationTestApp:
             self.current_type_label.configure(text=f"当前通知类型: {type_name}")
 
             # 显示通知
-            NotificationManager.show_notification(
-                self.root,
+            self.notification_manager.show_notification(
                 title,
                 message,
                 notification_type,
@@ -249,3 +251,5 @@ class NotificationTestApp:
 if __name__ == "__main__":
     app = NotificationTestApp()
     app.run()
+
+
