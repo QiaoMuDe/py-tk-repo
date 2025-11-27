@@ -21,9 +21,9 @@ class RGBColorPicker:
             parent: 父窗口
             callback: 选择颜色后的回调函数，接收RGB代码作为参数
         """
-        self.parent = parent # 保存父窗口引用
-        self.callback = callback # 保存回调函数引用
-        self.dialog = None # 初始化对话框引用为None
+        self.parent = parent  # 保存父窗口引用
+        self.callback = callback  # 保存回调函数引用
+        self.dialog = None  # 初始化对话框引用为None
 
         # 获取组件字体配置
         font_config = config_manager.get_font_config("components")

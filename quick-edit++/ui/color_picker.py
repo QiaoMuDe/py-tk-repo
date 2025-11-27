@@ -30,7 +30,7 @@ class HexColorPicker(ctk.CTkToplevel):
             title: 对话框标题
         """
         super().__init__(parent)
-        
+
         # 保存父窗口引用
         self.parent = parent
 

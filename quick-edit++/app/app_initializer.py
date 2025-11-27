@@ -386,7 +386,7 @@ class AppInitializer:
         logger.info("logger initialized successfully!")
         logger.info(f"log file path: {log_path}")
         logger.info(f"config directory: {APP_CONFIG_DIR}")
-        
+
         # 初始化通知管理器
         self.app.nm = NotificationManager(self.app)
 

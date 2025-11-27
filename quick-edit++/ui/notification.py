@@ -18,6 +18,13 @@ class NotificationType:
     INFO = "info"
 
 
+class NotificationPosition:
+    """通知位置枚举"""
+
+    TOP_CENTER = "top_center"  # 窗口上方居中显示 (现有方式)
+    CENTER = "center"  # 居中显示
+
+
 class Notification:
     """单个通知类, 负责创建和管理一个通知窗口"""
 
@@ -38,8 +45,8 @@ class Notification:
 
     # 动画配置
     FADE_STEPS = 10  # 淡入淡出步数
-    FADE_DELAY = 30  # 淡入淡出延迟 (毫秒) 
-    LEAVE_HIDE_DELAY = 500  # 鼠标离开后的隐藏延迟时间 (毫秒) 
+    FADE_DELAY = 30  # 淡入淡出延迟 (毫秒)
+    LEAVE_HIDE_DELAY = 500  # 鼠标离开后的隐藏延迟时间 (毫秒)
 
     def __init__(
         self,
@@ -48,6 +55,7 @@ class Notification:
         message,
         notification_type=NotificationType.SUCCESS,
         duration=3000,
+        position=NotificationPosition.TOP_CENTER,
     ):
         """
         初始化通知
@@ -58,12 +66,14 @@ class Notification:
             message: 通知消息内容
             notification_type: 通知类型, 默认为成功通知
             duration: 通知显示持续时间 (毫秒) , 默认为3秒
+            position: 通知位置, 默认为窗口上方居中显示
         """
         self.parent = parent
         self.title = title
         self.message = message
         self.notification_type = notification_type
         self.duration = duration
+        self.position = position
         self.font_family = "Microsoft YaHei UI"
 
         # 状态变量
@@ -97,6 +107,7 @@ class Notification:
         parent_x = self.parent.winfo_x()
         parent_y = self.parent.winfo_y()
         parent_width = self.parent.winfo_width()
+        parent_height = self.parent.winfo_height()
 
         # 根据消息长度动态计算通知窗口大小
         estimated_lines = max(1, len(self.message) // self.CHAR_PER_LINE)
@@ -108,16 +119,31 @@ class Notification:
 
         # 计算父窗口的中心点
         parent_center_x = parent_x + parent_width // 2
+        parent_center_y = parent_y + parent_height // 2
 
-        # 计算通知窗口的x坐标 (使其在父窗口上水平居中) 
-        x = parent_center_x - notification_width // 2
+        # 根据通知位置计算x, y坐标
+        if self.position == NotificationPosition.TOP_CENTER:
+            # 窗口上方居中显示 (现有方式)
+            x = parent_center_x - notification_width // 2
+            y = parent_y - notification_height - 20
 
-        # 计算通知窗口的y坐标 (在父窗口上方, 留出20像素的间距) 
-        y = parent_y - notification_height - 20
+            # 如果通知窗口会超出屏幕顶部, 则显示在父窗口内部顶部
+            if y < 0:
+                y = 20  # 距离屏幕顶部20像素
 
-        # 如果通知窗口会超出屏幕顶部, 则显示在父窗口内部顶部
-        if y < 0:
-            y = 20  # 距离屏幕顶部20像素
+        elif self.position == NotificationPosition.CENTER:
+            # 居中显示
+            x = parent_center_x - notification_width // 2
+            y = parent_center_y - notification_height // 2
+
+        else:
+            # 默认窗口顶部居中显示
+            x = parent_center_x - notification_width // 2
+            y = parent_y - notification_height - 20
+
+            # 如果通知窗口会超出屏幕顶部, 则显示在父窗口内部顶部
+            if y < 0:
+                y = 20  # 距离屏幕顶部20像素
 
         # 确保通知窗口不会超出屏幕左右边界
         screen_width = self.parent.winfo_screenwidth()
@@ -286,7 +312,7 @@ class Notification:
     def _on_leave(self, event):
         """鼠标离开通知区域事件"""
         self.is_hovering = False
-        # 设置鼠标离开后的自动隐藏任务 (500毫秒后) 
+        # 设置鼠标离开后的自动隐藏任务 (500毫秒后)
         self.auto_hide_job = self.notification.after(
             self.LEAVE_HIDE_DELAY, self._start_fade_out
         )
@@ -329,15 +355,17 @@ class Notification:
 
 class NotificationManager:
     """通知管理器, 负责创建和管理通知"""
-    
-    def __init__(self, parent=None):
+
+    def __init__(self, parent=None, position=NotificationPosition.TOP_CENTER):
         """
         初始化通知管理器
-        
+
         Args:
             parent: 默认父窗口引用，如果未提供则在调用通知方法时必须提供
+            position: 默认通知位置，默认为窗口居中显示
         """
         self.parent = parent
+        self.position = position
 
     def show_notification(
         self,
@@ -359,7 +387,7 @@ class NotificationManager:
 
         Returns:
             Notification: 创建的通知对象
-            
+
         Raises:
             ValueError: 如果没有提供父窗口引用
         """
@@ -368,25 +396,35 @@ class NotificationManager:
             effective_parent = parent
         else:
             effective_parent = self.parent
-        
+
         # 检查是否有有效的父窗口
         if effective_parent is None:
             raise ValueError("未提供父窗口引用，请在初始化时提供或在调用方法时传递")
-            
-        return Notification(effective_parent, title, message, notification_type, duration)
+
+        return Notification(
+            effective_parent, title, message, notification_type, duration, self.position
+        )
 
     def show_success(self, title, message, duration=3000, parent=None):
         """显示成功通知"""
-        return self.show_notification(title, message, NotificationType.SUCCESS, duration, parent)
+        return self.show_notification(
+            title, message, NotificationType.SUCCESS, duration, parent
+        )
 
     def show_error(self, title, message, duration=3000, parent=None):
         """显示错误通知"""
-        return self.show_notification(title, message, NotificationType.ERROR, duration, parent)
+        return self.show_notification(
+            title, message, NotificationType.ERROR, duration, parent
+        )
 
     def show_warning(self, title, message, duration=3000, parent=None):
         """显示警告通知"""
-        return self.show_notification(title, message, NotificationType.WARNING, duration, parent)
+        return self.show_notification(
+            title, message, NotificationType.WARNING, duration, parent
+        )
 
     def show_info(self, title, message, duration=3000, parent=None):
         """显示信息通知"""
-        return self.show_notification(title, message, NotificationType.INFO, duration, parent)
+        return self.show_notification(
+            title, message, NotificationType.INFO, duration, parent
+        )
