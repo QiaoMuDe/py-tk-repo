@@ -115,7 +115,7 @@ class FileOperations:
         # 添加.txt扩展名
         return f"{prefix}.txt"
 
-    def _save_file(self, file_path=None, force_save_as=False):
+    def _save_file(self, file_path=None, force_save_as=False, is_auto_save=False):
         """
         统一的文件保存方法, 整合保存和另存为功能
 
@@ -128,6 +128,7 @@ class FileOperations:
         Args:
             file_path (str, optional): 要保存的文件路径。如果为None且当前有文件路径, 则使用当前路径
             force_save_as (bool): 是否强制执行另存为操作, 即使已有文件路径
+            is_auto_save (bool): 是否是自动保存操作, 自动保存时不显示"文件已保存"通知
 
         Returns:
             bool: 保存是否成功
@@ -139,7 +140,6 @@ class FileOperations:
             - 如果文件未修改且不是强制另存为, 会提示"文件未修改, 无需保存"
         """
         # 获取文本框内容 (只获取一次)
-        # 使用rstrip("\n")而不是strip(), 因为我们需要保留文件开头的空格和制表符
         content = self.root.text_area.get("1.0", tk.END).rstrip("\n")
 
         # 检查是否有文件路径
@@ -249,8 +249,10 @@ class FileOperations:
                 # 如果获取位置失败, 使用默认值
                 self.root.status_bar.set_status_info(status="就绪")
 
-            # 显示保存通知
-            self.root.status_bar.show_notification(f"文件已保存")
+            # 显示保存通知 - 仅在非自动保存时显示
+            # self.root.status_bar.show_notification(f"文件已保存")
+            if not is_auto_save:
+                self.root.nm.show_success("提示", "文件已保存")
 
             # 更新窗口标题
             self.root._update_window_title()
@@ -928,3 +930,5 @@ class FileOperations:
             return True  # 出错, 不打开任何文件
 
         return False
+
+

@@ -114,9 +114,12 @@ class AutoSaveManager:
             # 执行保存操作
             file_path = self.app.current_file_path
             try:
-                self.app.save_file()
+                # 传递is_auto_save=True，表示这是自动保存
+                self.app.file_ops._save_file(is_auto_save=True)  
+                
                 # 更新上次自动保存时间
                 self.last_auto_save_time = time.time()
+                
                 # 更新状态栏的自动保存信息，显示具体的保存时间
                 self.app.status_bar.show_auto_save_status(saved=True)
                 logger.info(f"自动保存成功: {file_path}")
@@ -183,7 +186,8 @@ class AutoSaveManager:
 
             # 开启的时候立即保存一次(如果文件已修改)
             if self.app.current_file_path and self.app.is_modified():
-                self.app.save_file()
+                # 调用内部的保存方法
+                self._auto_save()
                 logger.info(f"启用自动保存时立即保存文件: {self.app.current_file_path}")
 
         else:
