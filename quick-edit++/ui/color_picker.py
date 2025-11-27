@@ -343,12 +343,12 @@ class HexColorPicker(ctk.CTkToplevel):
             self.update()
 
             # 显示复制成功通知
-            # self.parent.nm.show_success(
-            #    title="复制成功", message=f"已复制颜色代码 {self.selected_color} 到剪贴板",parent=self
-            # )
-            self.parent.status_bar.show_notification(
-                f"已复制颜色代码 {self.selected_color} 到剪贴板"
+            self.parent.nm.show_success(
+               title="复制成功", message=f"已复制颜色代码 {self.selected_color} 到剪贴板",
             )
+            # self.parent.status_bar.show_notification(
+            #     f"已复制颜色代码 {self.selected_color} 到剪贴板"
+            # )
 
         except Exception as e:
             logger.error(f"复制到剪贴板失败: {e}")

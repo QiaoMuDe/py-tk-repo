@@ -65,8 +65,10 @@ class NotificationType:
 class NotificationPosition:
     """通知位置枚举"""
 
-    TOP_CENTER = "top_center"  # 窗口上方居中显示 (现有方式)
-    CENTER = "center"  # 居中显示
+    TOP_CENTER = "top_center"  # 屏幕上方居中显示
+    TOP_RIGHT = "top_right"    # 屏幕右上角显示
+    BOTTOM_RIGHT = "bottom_right"  # 屏幕右下角显示
+    CENTER = "center"  # 屏幕居中显示
 
 
 class Notification:
@@ -90,31 +92,27 @@ class Notification:
     # 动画配置
     FADE_STEPS = 10  # 淡入淡出步数
     FADE_DELAY = 30  # 淡入淡出延迟 (毫秒)
-    LEAVE_HIDE_DELAY = 500  # 鼠标离开后的隐藏延迟时间 (毫秒)
 
     def __init__(
         self,
-        parent,
         title,
         message,
         notification_type=NotificationType.SUCCESS,
         duration=3000,
-        position=NotificationPosition.TOP_CENTER,
+        position=NotificationPosition.BOTTOM_RIGHT,
         manager=None,
     ):
         """
         初始化通知
 
         Args:
-            parent: 父窗口
             title: 通知标题
             message: 通知消息内容
             notification_type: 通知类型, 默认为成功通知
             duration: 通知显示持续时间 (毫秒) , 默认为3秒
-            position: 通知位置, 默认为窗口上方居中显示
+            position: 通知位置, 默认为屏幕右上角显示
             manager: 通知管理器引用, 用于通知销毁时回调
         """
-        self.parent = parent
         self.title = title
         self.message = message
         self.notification_type = notification_type
@@ -124,12 +122,11 @@ class Notification:
         self.manager = manager  # 保存管理器引用
 
         # 状态变量
-        self.is_hovering = False  # 标记鼠标是否悬停在通知上
         self.fade_out_job = None  # 存储淡出任务的ID
         self.auto_hide_job = None  # 存储自动隐藏任务的ID
 
-        # 创建通知窗口
-        self.notification = ctk.CTkToplevel(parent)
+        # 创建通知窗口 - 不再依赖父窗口
+        self.notification = ctk.CTkToplevel()
         self.notification.title("")
         self.notification.resizable(False, False)
 
@@ -149,12 +146,8 @@ class Notification:
 
     def _set_notification_geometry(self):
         """设置通知窗口的位置和大小"""
-        # 获取父窗口位置和尺寸
-        self.parent.update_idletasks()
-        parent_x = self.parent.winfo_x()
-        parent_y = self.parent.winfo_y()
-        parent_width = self.parent.winfo_width()
-        parent_height = self.parent.winfo_height()
+        # 获取屏幕尺寸
+        screen_width, screen_height = get_screen_size()
 
         # 根据消息长度动态计算通知窗口大小
         estimated_lines = max(1, len(self.message) // self.CHAR_PER_LINE)
@@ -164,40 +157,42 @@ class Notification:
         )
         notification_width = self.DEFAULT_WIDTH
 
-        # 计算父窗口的中心点
-        parent_center_x = parent_x + parent_width // 2
-        parent_center_y = parent_y + parent_height // 2
-
         # 根据通知位置计算x, y坐标
         if self.position == NotificationPosition.TOP_CENTER:
-            # 窗口上方居中显示 (现有方式)
-            x = parent_center_x - notification_width // 2
-            y = parent_y - notification_height - 20
+            # 屏幕上方居中显示
+            x = (screen_width - notification_width) // 2
+            y = 50  # 距离屏幕顶部50像素
 
-            # 如果通知窗口会超出屏幕顶部, 则显示在父窗口内部顶部
-            if y < 0:
-                y = 20  # 距离屏幕顶部20像素
+        elif self.position == NotificationPosition.TOP_RIGHT:
+            # 屏幕右上角显示
+            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
+            y = 50  # 距离屏幕顶部50像素
+
+        elif self.position == NotificationPosition.BOTTOM_RIGHT:
+            # 屏幕右下角显示
+            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
+            y = screen_height - notification_height - 50  # 距离屏幕底部50像素
 
         elif self.position == NotificationPosition.CENTER:
-            # 居中显示
-            x = parent_center_x - notification_width // 2
-            y = parent_center_y - notification_height // 2
+            # 屏幕居中显示
+            x = (screen_width - notification_width) // 2
+            y = (screen_height - notification_height) // 2
 
         else:
-            # 默认窗口顶部居中显示
-            x = parent_center_x - notification_width // 2
-            y = parent_y - notification_height - 20
+            # 默认屏幕右下角显示
+            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
+            y = screen_height - notification_height - 50  # 距离屏幕底部50像素
 
-            # 如果通知窗口会超出屏幕顶部, 则显示在父窗口内部顶部
-            if y < 0:
-                y = 20  # 距离屏幕顶部20像素
-
-        # 确保通知窗口不会超出屏幕左右边界
-        screen_width = self.parent.winfo_screenwidth()
+        # 确保通知窗口不会超出屏幕边界
         if x < 10:
             x = 10
         elif x + notification_width > screen_width - 10:
             x = screen_width - notification_width - 10
+
+        if y < 10:
+            y = 10
+        elif y + notification_height > screen_height - 10:
+            y = screen_height - notification_height - 10
 
         # 设置窗口位置和大小
         self.notification.geometry(
@@ -292,10 +287,6 @@ class Notification:
         self.msg_text.insert("0.0", self.message)
         self.msg_text.configure(state="disabled")
 
-        # 绑定鼠标事件
-        self.msg_text.bind("<Enter>", self._on_enter)  # 鼠标进入消息区域时触发
-        self.msg_text.bind("<Leave>", self._on_leave)  # 鼠标离开消息区域时触发
-
     def _get_notification_colors(self):
         """
         根据通知类型获取颜色配置
@@ -344,30 +335,6 @@ class Notification:
                 "message": ("#424242", "#e0e0e0"),
             }
 
-    def _on_enter(self, event):
-        """鼠标进入通知区域事件"""
-        self.is_hovering = True
-        # 如果有正在进行的淡出任务, 取消它
-        if self.fade_out_job is not None:
-            self.notification.after_cancel(self.fade_out_job)
-            self.fade_out_job = None
-        # 如果有正在进行的自动隐藏任务, 取消它
-        if self.auto_hide_job is not None:
-            self.notification.after_cancel(self.auto_hide_job)
-            self.auto_hide_job = None
-
-        print("鼠标进入通知区域")
-
-    def _on_leave(self, event):
-        """鼠标离开通知区域事件"""
-        self.is_hovering = False
-        # 设置鼠标离开后的自动隐藏任务 (500毫秒后)
-        self.auto_hide_job = self.notification.after(
-            self.LEAVE_HIDE_DELAY, self._start_fade_out
-        )
-
-        print("鼠标离开通知区域")
-
     def _fade_in(self, step=0):
         """淡入效果"""
         if step <= self.FADE_STEPS:
@@ -381,8 +348,7 @@ class Notification:
 
     def _start_fade_out(self):
         """开始淡出的函数"""
-        if not self.is_hovering:  # 只有在鼠标不悬停时才开始淡出
-            self._fade_out()
+        self._fade_out()
 
     def _fade_out(self, step=None):
         """淡出效果"""
@@ -415,16 +381,14 @@ class Notification:
 class NotificationManager:
     """通知管理器, 负责创建和管理通知"""
 
-    def __init__(self, parent=None, position=NotificationPosition.TOP_CENTER):
+    def __init__(self, position=NotificationPosition.BOTTOM_RIGHT):
         """
         初始化通知管理器
 
         Args:
-            parent: 默认父窗口引用，如果未提供则在调用通知方法时必须提供
-            position: 默认通知位置，默认为窗口居中显示
+            position: 默认通知位置，默认为屏幕右下角显示
         """
-        self.parent = parent
-        self.position = position
+        self.position = position # 默认通知位置
         self.current_notification = None  # 当前显示的通知对象
 
     def show_notification(
@@ -433,7 +397,6 @@ class NotificationManager:
         message,
         notification_type=NotificationType.SUCCESS,
         duration=3000,
-        parent=None,
     ):
         """
         显示浮动通知
@@ -443,31 +406,16 @@ class NotificationManager:
             message: 通知消息内容
             notification_type: 通知类型, 默认为成功通知
             duration: 通知显示持续时间 (毫秒) , 默认为3秒
-            parent: 父窗口，如果未提供则使用初始化时的父窗口
 
         Returns:
             Notification: 创建的通知对象
-
-        Raises:
-            ValueError: 如果没有提供父窗口引用
         """
-        # 优先使用传递的父窗口, 否则使用初始化时的父窗口
-        if parent is not None:
-            effective_parent = parent
-        else:
-            effective_parent = self.parent
-
-        # 检查是否有有效的父窗口
-        if effective_parent is None:
-            raise ValueError("未提供父窗口引用，请在初始化时提供或在调用方法时传递")
-
         # 如果已有通知存在，先关闭它
         if self.current_notification is not None:
             self.current_notification.close()
 
         # 创建新通知，并传入管理器引用
         self.current_notification = Notification(
-            effective_parent,
             title,
             message,
             notification_type,
@@ -476,26 +424,26 @@ class NotificationManager:
             self,
         )
 
-    def show_success(self, title, message, duration=3000, parent=None):
+    def show_success(self, title, message, duration=3000):
         """显示成功通知"""
         return self.show_notification(
-            title, message, NotificationType.SUCCESS, duration, parent
+            title, message, NotificationType.SUCCESS, duration
         )
 
-    def show_error(self, title, message, duration=3000, parent=None):
+    def show_error(self, title, message, duration=3000):
         """显示错误通知"""
         return self.show_notification(
-            title, message, NotificationType.ERROR, duration, parent
+            title, message, NotificationType.ERROR, duration
         )
 
-    def show_warning(self, title, message, duration=3000, parent=None):
+    def show_warning(self, title, message, duration=3000):
         """显示警告通知"""
         return self.show_notification(
-            title, message, NotificationType.WARNING, duration, parent
+            title, message, NotificationType.WARNING, duration
         )
 
-    def show_info(self, title, message, duration=3000, parent=None):
+    def show_info(self, title, message, duration=3000):
         """显示信息通知"""
         return self.show_notification(
-            title, message, NotificationType.INFO, duration, parent
+            title, message, NotificationType.INFO, duration
         )
