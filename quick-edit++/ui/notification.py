@@ -3,11 +3,10 @@
 
 """
 通知组件模块
-提供各种通知样式的UI组件，包括成功通知、错误通知、警告通知等
+提供各种通知样式的UI组件, 包括成功通知、错误通知、警告通知等
 """
 
 import customtkinter as ctk
-from config.config_manager import config_manager
 
 
 class NotificationType:
@@ -20,7 +19,7 @@ class NotificationType:
 
 
 class NotificationManager:
-    """通知管理器，负责显示各种类型的通知"""
+    """通知管理器, 负责显示各种类型的通知"""
 
     # 通知组件字体大小配置
     ICON_FONT_SIZE = 25  # 图标字体大小
@@ -29,9 +28,8 @@ class NotificationManager:
 
     @staticmethod
     def show_notification(
-        parent,
-        title,
-        message,
+        title="",
+        message="",
         notification_type=NotificationType.SUCCESS,
         duration=3000,
     ):
@@ -39,14 +37,13 @@ class NotificationManager:
         显示浮动通知
 
         Args:
-            parent: 父窗口
             title: 通知标题
             message: 通知消息内容
-            notification_type: 通知类型，默认为成功通知
-            duration: 通知显示持续时间（毫秒），默认为3秒
+            notification_type: 通知类型, 默认为成功通知
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
         """
         # 创建通知窗口
-        notification = ctk.CTkToplevel(parent)
+        notification = ctk.CTkToplevel()
         notification.title("")
         notification.geometry("320x100")
         notification.resizable(False, False)
@@ -55,31 +52,20 @@ class NotificationManager:
         notification.overrideredirect(True)  # 移除窗口边框
         notification.attributes("-topmost", True)  # 始终置顶
 
-        # 获取父窗口位置
-        parent.update_idletasks()
-        parent_x = parent.winfo_x()
-        parent_y = parent.winfo_y()
-        parent_width = parent.winfo_width()
-
-        # 计算通知窗口位置（在父窗口上方居中）
+        # 计算通知窗口位置 (在屏幕上方居中) 
+        screen_width = notification.winfo_screenwidth()
+        screen_height = notification.winfo_screenheight()
+        
         notification_width = 320
         notification_height = 100
-        x = parent_x + (parent_width // 2) - (notification_width // 2)
-        y = parent_y - notification_height - 20  # 在父窗口上方20像素处
-
-        # 确保通知窗口不会超出屏幕
-        screen_width = parent.winfo_screenwidth()
-        if x < 0:
-            x = 10
-        elif x + notification_width > screen_width:
-            x = screen_width - notification_width - 10
+        x = (screen_width // 2) - (notification_width // 2)
+        y = 50  # 距离屏幕顶部50像素
 
         # 设置窗口位置
         notification.geometry(f"{notification_width}x{notification_height}+{x}+{y}")
 
-        # 创建通知内容
-        font_config = config_manager.get_font_config("components")
-        font_family = font_config.get("font", "Microsoft YaHei UI")
+        # 创建通知内容框架
+        font_family = "Microsoft YaHei UI"
 
         # 根据通知类型获取颜色配置
         colors = NotificationManager._get_notification_colors(notification_type)
@@ -137,29 +123,44 @@ class NotificationManager:
         )
         msg_label.pack(anchor="w", pady=(5, 0))
 
-        # 设置窗口初始透明度为0（完全透明）
+        # 设置窗口初始透明度为0 (完全透明) 
         notification.attributes("-alpha", 0)
 
-        # 淡入效果
-        def fade_in(step=0):
-            if step <= 10:
-                notification.attributes("-alpha", step / 10)
-                notification.after(30, lambda: fade_in(step + 1))
-            else:
-                # 淡入完成后，等待指定时间后淡出
-                notification.after(duration, fade_out)
-
-        # 淡出效果
-        def fade_out(step=10):
-            if step > 0:
-                notification.attributes("-alpha", step / 10)
-                notification.after(30, lambda: fade_out(step - 1))
-            else:
-                # 完全透明后销毁窗口
-                notification.destroy()
-
         # 开始淡入动画
-        fade_in()
+        NotificationManager._fade_in(notification, duration)
+
+    @staticmethod
+    def _fade_in(notification, duration, step=0):
+        """
+        淡入动画效果
+
+        Args:
+            notification: 通知窗口对象
+            duration: 通知显示持续时间 (毫秒) 
+            step: 当前淡入步骤
+        """
+        if step <= 10:
+            notification.attributes("-alpha", step / 10)
+            notification.after(30, lambda: NotificationManager._fade_in(notification, duration, step + 1))
+        else:
+            # 淡入完成后, 等待指定时间后淡出
+            notification.after(duration, lambda: NotificationManager._fade_out(notification))
+
+    @staticmethod
+    def _fade_out(notification, step=10):
+        """
+        淡出动画效果
+
+        Args:
+            notification: 通知窗口对象
+            step: 当前淡出步骤
+        """
+        if step > 0:
+            notification.attributes("-alpha", step / 10)
+            notification.after(30, lambda: NotificationManager._fade_out(notification, step - 1))
+        else:
+            # 完全透明后销毁窗口
+            notification.destroy()
 
     @staticmethod
     def _get_notification_colors(notification_type):
@@ -214,29 +215,49 @@ class NotificationManager:
             }
 
     @staticmethod
-    def show_success(parent, title, message, duration=3000):
-        """显示成功通知"""
-        NotificationManager.show_notification(
-            parent, title, message, NotificationType.SUCCESS, duration
-        )
+    def show_success(title="成功", message="操作成功完成", duration=3000):
+        """
+        显示成功通知
+
+        Args:
+            title: 通知标题, 默认为"成功"
+            message: 通知消息内容, 默认为"操作成功完成"
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
+        """
+        NotificationManager.show_notification(title, message, NotificationType.SUCCESS, duration)
 
     @staticmethod
-    def show_error(parent, title, message, duration=3000):
-        """显示错误通知"""
-        NotificationManager.show_notification(
-            parent, title, message, NotificationType.ERROR, duration
-        )
+    def show_error(title="错误", message="操作发生错误", duration=3000):
+        """
+        显示错误通知
+
+        Args:
+            title: 通知标题, 默认为"错误"
+            message: 通知消息内容, 默认为"操作发生错误"
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
+        """
+        NotificationManager.show_notification(title, message, NotificationType.ERROR, duration)
 
     @staticmethod
-    def show_warning(parent, title, message, duration=3000):
-        """显示警告通知"""
-        NotificationManager.show_notification(
-            parent, title, message, NotificationType.WARNING, duration
-        )
+    def show_warning(title="警告", message="请注意潜在问题", duration=3000):
+        """
+        显示警告通知
+
+        Args:
+            title: 通知标题, 默认为"警告"
+            message: 通知消息内容, 默认为"请注意潜在问题"
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
+        """
+        NotificationManager.show_notification(title, message, NotificationType.WARNING, duration)
 
     @staticmethod
-    def show_info(parent, title, message, duration=3000):
-        """显示信息通知"""
-        NotificationManager.show_notification(
-            parent, title, message, NotificationType.INFO, duration
-        )
+    def show_info(title="信息", message="请查看此信息", duration=3000):
+        """
+        显示信息通知
+
+        Args:
+            title: 通知标题, 默认为"信息"
+            message: 通知消息内容, 默认为"请查看此信息"
+            duration: 通知显示持续时间 (毫秒) , 默认为3秒
+        """
+        NotificationManager.show_notification(title, message, NotificationType.INFO, duration)

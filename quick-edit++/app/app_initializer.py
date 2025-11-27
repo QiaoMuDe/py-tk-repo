@@ -16,11 +16,11 @@ from .file_operations import FileOperations
 from .file_watcher import FileWatcher
 from syntax_highlighter import SyntaxHighlighter
 from ui.line_number_canvas import LineNumberCanvas
-from ui.file_properties_dialog import update_file_properties_menu_state
 from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
 from loguru import logger
 import os
+from ui.notification import NotificationManager
 
 
 class AppInitializer:
@@ -386,6 +386,9 @@ class AppInitializer:
         logger.info("logger initialized successfully!")
         logger.info(f"log file path: {log_path}")
         logger.info(f"config directory: {APP_CONFIG_DIR}")
+        
+        # 初始化通知管理器
+        self.app.nm = NotificationManager()
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""

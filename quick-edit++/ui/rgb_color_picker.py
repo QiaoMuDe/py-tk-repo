@@ -8,7 +8,6 @@ RGB颜色选择器组件
 
 import customtkinter as ctk
 from config.config_manager import config_manager
-from ui.notification import NotificationManager
 
 
 class RGBColorPicker:
@@ -22,9 +21,9 @@ class RGBColorPicker:
             parent: 父窗口
             callback: 选择颜色后的回调函数，接收RGB代码作为参数
         """
-        self.parent = parent
-        self.callback = callback
-        self.dialog = None
+        self.parent = parent # 保存父窗口引用
+        self.callback = callback # 保存回调函数引用
+        self.dialog = None # 初始化对话框引用为None
 
         # 获取组件字体配置
         font_config = config_manager.get_font_config("components")
@@ -233,8 +232,8 @@ class RGBColorPicker:
         self.dialog.clipboard_clear()
         self.dialog.clipboard_append(rgb_code)
 
-        # 使用通知组件显示复制成功提示
-        NotificationManager.show_success(self.dialog, "已复制到剪贴板", rgb_code)
+        # 使用父窗口的通知组件显示复制成功提示
+        self.parent.nm.show_success("已复制到剪贴板", rgb_code)
 
 
 def show_rgb_color_picker(parent, callback):
