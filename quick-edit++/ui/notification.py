@@ -19,34 +19,34 @@ if sys.platform == "win32":
 def get_screen_size():
     """
     获取DPI感知的真实屏幕尺寸
-    
+
     Returns:
         tuple: (屏幕宽度, 屏幕高度)，如果获取失败则返回默认值(1920, 1080)
     """
     # 非Windows系统直接返回默认值
     if sys.platform != "win32":
         return 1920, 1080
-    
+
     try:
         # 定义Windows API常量和结构
         user32 = ctypes.windll.user32
-        
+
         # 设置进程为DPI感知，获取真实物理分辨率
-        if hasattr(user32, 'SetProcessDPIAware'):
+        if hasattr(user32, "SetProcessDPIAware"):
             user32.SetProcessDPIAware()
-        
+
         # 使用GetSystemMetrics获取屏幕尺寸
         # SM_CXSCREEN = 0 (屏幕宽度)
         # SM_CYSCREEN = 1 (屏幕高度)
         screen_width = user32.GetSystemMetrics(0)
         screen_height = user32.GetSystemMetrics(1)
-        
+
         # 验证获取的值是否合理
         if screen_width > 0 and screen_height > 0:
             return screen_width, screen_height
         else:
             return 1920, 1080  # 默认值
-            
+
     except Exception as e:
         # 如果获取失败，返回默认值
         print(f"获取屏幕尺寸失败: {e}")
@@ -65,14 +65,26 @@ class NotificationType:
 class NotificationPosition:
     """通知位置枚举"""
 
-    TOP_CENTER = "top_center"  # 屏幕上方居中显示
-    TOP_RIGHT = "top_right"    # 屏幕右上角显示
+    TOP_LEFT = "top_left"  # 屏幕左上角显示
+    TOP_RIGHT = "top_right"  # 屏幕右上角显示
+    BOTTOM_LEFT = "bottom_left"  # 屏幕左下角显示
     BOTTOM_RIGHT = "bottom_right"  # 屏幕右下角显示
+    TOP_CENTER = "top_center"  # 屏幕上方居中显示
     CENTER = "center"  # 屏幕居中显示
 
 
 class Notification:
-    """单个通知类, 负责创建和管理一个通知窗口"""
+    """通知类 - 负责创建和管理通知窗口"""
+
+    # 类变量 - 全局配置
+    _default_position = NotificationPosition.BOTTOM_RIGHT  # 默认位置
+    _default_duration = 3000  # 默认持续时间（毫秒）
+    _max_notifications = 3  # 最大同时显示的通知数量
+    _notification_spacing = 10  # 通知之间的间距（像素）
+
+    # 类变量 - 当前活动通知
+    _active_notifications = []  # 活动通知列表
+    _notification_counter = 0  # 通知计数器，用于生成唯一ID
 
     # 通知组件字体大小配置
     ICON_FONT_SIZE = 25  # 图标字体大小
@@ -93,6 +105,161 @@ class Notification:
     FADE_STEPS = 10  # 淡入淡出步数
     FADE_DELAY = 30  # 淡入淡出延迟 (毫秒)
 
+    @classmethod
+    def set_default_position(cls, position):
+        """
+        设置默认通知位置
+
+        Args:
+            position: 通知位置，使用NotificationPosition枚举值
+        """
+        cls._default_position = position
+
+    @classmethod
+    def set_default_duration(cls, duration):
+        """
+        设置默认通知持续时间
+
+        Args:
+            duration: 持续时间（毫秒）
+        """
+        cls._default_duration = duration
+
+    @classmethod
+    def set_max_notifications(cls, max_count):
+        """
+        设置最大同时显示的通知数量
+
+        Args:
+            max_count: 最大通知数量
+        """
+        cls._max_notifications = max_count
+
+    @classmethod
+    def show(
+        cls,
+        title,
+        message,
+        notification_type=NotificationType.INFO,
+        duration=None,
+        position=None,
+    ):
+        """
+        显示通知
+
+        Args:
+            title: 通知标题
+            message: 通知消息内容
+            notification_type: 通知类型，默认为信息通知
+            duration: 通知显示持续时间（毫秒），默认使用类默认值
+            position: 通知位置，默认使用类默认值
+
+        Returns:
+            Notification: 创建的通知对象
+        """
+        # 使用默认值（如果未提供）
+        if duration is None:
+            duration = cls._default_duration
+        if position is None:
+            position = cls._default_position
+
+        # 检查是否超过最大通知数量
+        if len(cls._active_notifications) >= cls._max_notifications:
+            # 关闭最早的通知
+            oldest_notification = cls._active_notifications[0]
+            oldest_notification.close()
+
+        # 创建新通知
+        notification = cls(title, message, notification_type, duration, position)
+
+        # 添加到活动通知列表
+        cls._active_notifications.append(notification)
+
+        # 设置通知位置 - 确保在添加到列表后再设置位置
+        try:
+            notification._set_notification_geometry()
+        except Exception as e:
+            # 如果设置位置失败，从列表中移除并销毁通知
+            if notification in cls._active_notifications:
+                cls._active_notifications.remove(notification)
+            notification._destroy_notification()
+            print(f"设置通知位置失败: {e}")
+            return None
+
+        return notification
+
+    @classmethod
+    def show_success(cls, title, message, duration=None, position=None):
+        """
+        显示成功通知
+
+        Args:
+            title: 通知标题
+            message: 通知消息内容
+            duration: 通知显示持续时间（毫秒），默认使用类默认值
+            position: 通知位置，默认使用类默认值
+
+        Returns:
+            Notification: 创建的通知对象
+        """
+        return cls.show(title, message, NotificationType.SUCCESS, duration, position)
+
+    @classmethod
+    def show_error(cls, title, message, duration=None, position=None):
+        """
+        显示错误通知
+
+        Args:
+            title: 通知标题
+            message: 通知消息内容
+            duration: 通知显示持续时间（毫秒），默认使用类默认值
+            position: 通知位置，默认使用类默认值
+
+        Returns:
+            Notification: 创建的通知对象
+        """
+        return cls.show(title, message, NotificationType.ERROR, duration, position)
+
+    @classmethod
+    def show_warning(cls, title, message, duration=None, position=None):
+        """
+        显示警告通知
+
+        Args:
+            title: 通知标题
+            message: 通知消息内容
+            duration: 通知显示持续时间（毫秒），默认使用类默认值
+            position: 通知位置，默认使用类默认值
+
+        Returns:
+            Notification: 创建的通知对象
+        """
+        return cls.show(title, message, NotificationType.WARNING, duration, position)
+
+    @classmethod
+    def show_info(cls, title, message, duration=None, position=None):
+        """
+        显示信息通知
+
+        Args:
+            title: 通知标题
+            message: 通知消息内容
+            duration: 通知显示持续时间（毫秒），默认使用类默认值
+            position: 通知位置，默认使用类默认值
+
+        Returns:
+            Notification: 创建的通知对象
+        """
+        return cls.show(title, message, NotificationType.INFO, duration, position)
+
+    @classmethod
+    def close_all(cls):
+        """关闭所有活动通知"""
+        # 创建列表副本以避免在迭代时修改列表
+        notifications = cls._active_notifications.copy()
+        for notification in notifications:
+            notification.close()
+
     def __init__(
         self,
         title,
@@ -100,7 +267,6 @@ class Notification:
         notification_type=NotificationType.SUCCESS,
         duration=3000,
         position=NotificationPosition.BOTTOM_RIGHT,
-        manager=None,
     ):
         """
         初始化通知
@@ -108,26 +274,31 @@ class Notification:
         Args:
             title: 通知标题
             message: 通知消息内容
-            notification_type: 通知类型, 默认为成功通知
-            duration: 通知显示持续时间 (毫秒) , 默认为3秒
-            position: 通知位置, 默认为屏幕右上角显示
-            manager: 通知管理器引用, 用于通知销毁时回调
+            notification_type: 通知类型，默认为成功通知
+            duration: 通知显示持续时间（毫秒），默认为3秒
+            position: 通知位置，默认为屏幕右下角显示
         """
+        # 生成唯一ID
+        Notification._notification_counter += 1
+        self.notification_id = Notification._notification_counter
+
         self.title = title
         self.message = message
         self.notification_type = notification_type
         self.duration = duration
         self.position = position
         self.font_family = "Microsoft YaHei UI"
-        self.manager = manager  # 保存管理器引用
 
         # 状态变量
         self.fade_out_job = None  # 存储淡出任务的ID
         self.auto_hide_job = None  # 存储自动隐藏任务的ID
 
+        # 计算通知窗口大小 - 在创建内容前计算
+        self._calculate_notification_size()
+
         # 创建通知窗口 - 不再依赖父窗口
         self.notification = ctk.CTkToplevel()
-        self.notification.title("")
+        self.notification.title(f"Notification_{self.notification_id}")  # 设置唯一标题
         self.notification.resizable(False, False)
 
         # 设置窗口属性
@@ -135,73 +306,113 @@ class Notification:
         self.notification.attributes("-topmost", True)  # 始终置顶
         self.notification.attributes("-transparentcolor", self.notification["bg"])
 
-        # 设置通知窗口位置和大小
-        self._set_notification_geometry()
-
         # 创建通知内容
         self._create_notification_content()
 
         # 开始淡入动画
         self._fade_in()
 
-    def _set_notification_geometry(self):
-        """设置通知窗口的位置和大小"""
-        # 获取屏幕尺寸
-        screen_width, screen_height = get_screen_size()
-
+    def _calculate_notification_size(self):
+        """计算通知窗口的大小"""
         # 根据消息长度动态计算通知窗口大小
         estimated_lines = max(1, len(self.message) // self.CHAR_PER_LINE)
-        notification_height = max(
+        self.notification_height = max(
             self.MIN_HEIGHT,
             min(self.MAX_HEIGHT, self.MIN_HEIGHT + estimated_lines * self.LINE_HEIGHT),
         )
-        notification_width = self.DEFAULT_WIDTH
+        self.notification_width = self.DEFAULT_WIDTH
 
-        # 根据通知位置计算x, y坐标
-        if self.position == NotificationPosition.TOP_CENTER:
-            # 屏幕上方居中显示
-            x = (screen_width - notification_width) // 2
-            y = 50  # 距离屏幕顶部50像素
+    def _set_notification_geometry(self):
+        """设置通知窗口的位置和大小"""
+        # 计算通知窗口大小
+        self._calculate_notification_size()
+
+        # 使用提供的函数获取屏幕尺寸
+        screen_width, screen_height = get_screen_size()
+
+        # 获取当前通知在活动列表中的索引
+        try:
+            notification_index = self._active_notifications.index(self)
+        except ValueError:
+            notification_index = 0
+
+        # 根据位置设置计算坐标
+        if self.position == NotificationPosition.TOP_LEFT:
+            # 左上角
+            x = 20
+            y = 20 + notification_index * (
+                self.notification_height + self._notification_spacing
+            )
 
         elif self.position == NotificationPosition.TOP_RIGHT:
-            # 屏幕右上角显示
-            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
-            y = 50  # 距离屏幕顶部50像素
+            # 右上角
+            x = screen_width - self.notification_width - 350
+            y = 20 + notification_index * (
+                self.notification_height + self._notification_spacing
+            )
+
+        elif self.position == NotificationPosition.TOP_CENTER:
+            # 上方居中
+            x = screen_width // 2 - 200
+            y = 20 + notification_index * (
+                self.notification_height + self._notification_spacing
+            )
+
+        elif self.position == NotificationPosition.BOTTOM_LEFT:
+            # 左下角
+            x = 20
+            y = (
+                screen_height
+                - self.notification_height
+                - 300
+                - notification_index
+                * (self.notification_height + self._notification_spacing)
+            )
 
         elif self.position == NotificationPosition.BOTTOM_RIGHT:
-            # 屏幕右下角显示
-            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
-            y = screen_height - notification_height - 50  # 距离屏幕底部50像素
+            # 右下角
+            x = screen_width - self.notification_width - 350
+            y = (
+                screen_height
+                - self.notification_height
+                - 300
+                - notification_index
+                * (self.notification_height + self._notification_spacing)
+            )
 
         elif self.position == NotificationPosition.CENTER:
-            # 屏幕居中显示
-            x = (screen_width - notification_width) // 2
-            y = (screen_height - notification_height) // 2
+            # 屏幕居中
+            x = screen_width // 2 - 200
+            y = screen_height // 2 - notification_index * (
+                self.notification_height + self._notification_spacing
+            )
 
-        else:
-            # 默认屏幕右下角显示
-            x = screen_width - notification_width - 20  # 距离屏幕右边20像素
-            y = screen_height - notification_height - 50  # 距离屏幕底部50像素
+        else:  # 默认为BOTTOM_RIGHT
+            # 默认右下角
+            x = screen_width - self.notification_width - 350
+            y = (
+                screen_height
+                - self.notification_height
+                - 300
+                - notification_index
+                * (self.notification_height + self._notification_spacing)
+            )
 
         # 确保通知窗口不会超出屏幕边界
         if x < 10:
             x = 10
-        elif x + notification_width > screen_width - 10:
-            x = screen_width - notification_width - 10
+        elif x + self.notification_width > screen_width - 10:
+            x = screen_width - self.notification_width - 10
 
         if y < 10:
             y = 10
-        elif y + notification_height > screen_height - 10:
-            y = screen_height - notification_height - 10
+        elif y + self.notification_height > screen_height - 10:
+            y = screen_height - self.notification_height - 10
 
         # 设置窗口位置和大小
         self.notification.geometry(
-            f"{notification_width}x{notification_height}+{x}+{y}"
+            f"{self.notification_width}x{self.notification_height}+{x}+{y}"
         )
-
-        # 保存尺寸供其他方法使用
-        self.notification_width = notification_width
-        self.notification_height = notification_height
 
     def _create_notification_content(self):
         """创建通知内容"""
@@ -362,88 +573,46 @@ class Notification:
             )
         else:
             # 完全透明后销毁窗口
-            self.notification.destroy()
+            self._destroy_notification()
 
-            # 通知管理器当前通知已销毁
-            if self.manager is not None:
-                self.manager.current_notification = None
+    def _destroy_notification(self):
+        """销毁通知窗口并从活动列表中移除"""
+        # 从活动通知列表中移除
+        if self in self._active_notifications:
+            self._active_notifications.remove(self)
+
+        # 取消所有待处理的回调
+        if hasattr(self, "auto_hide_job") and self.auto_hide_job:
+            try:
+                self.notification.after_cancel(self.auto_hide_job)
+            except:
+                pass
+            self.auto_hide_job = None
+
+        if hasattr(self, "fade_out_job") and self.fade_out_job:
+            try:
+                self.notification.after_cancel(self.fade_out_job)
+            except:
+                pass
+            self.fade_out_job = None
+
+        # 销毁窗口
+        try:
+            if hasattr(self, "notification") and self.notification.winfo_exists():
+                # 移除窗口属性，避免回调函数访问已销毁的窗口
+                self.notification.overrideredirect(False)
+                self.notification.attributes("-topmost", False)
+                self.notification.destroy()
+        except:
+            # 窗口可能已经被销毁，忽略错误
+            pass
 
     def close(self):
         """立即关闭通知"""
-        if self.notification.winfo_exists():
-            self.notification.destroy()
-
-            # 通知管理器当前通知已销毁
-            if self.manager is not None:
-                self.manager.current_notification = None
+        self._destroy_notification()
 
 
-class NotificationManager:
-    """通知管理器, 负责创建和管理通知"""
-
-    def __init__(self, position=NotificationPosition.BOTTOM_RIGHT):
-        """
-        初始化通知管理器
-
-        Args:
-            position: 默认通知位置，默认为屏幕右下角显示
-        """
-        self.position = position # 默认通知位置
-        self.current_notification = None  # 当前显示的通知对象
-
-    def show_notification(
-        self,
-        title,
-        message,
-        notification_type=NotificationType.SUCCESS,
-        duration=3000,
-    ):
-        """
-        显示浮动通知
-
-        Args:
-            title: 通知标题
-            message: 通知消息内容
-            notification_type: 通知类型, 默认为成功通知
-            duration: 通知显示持续时间 (毫秒) , 默认为3秒
-
-        Returns:
-            Notification: 创建的通知对象
-        """
-        # 如果已有通知存在，先关闭它
-        if self.current_notification is not None:
-            self.current_notification.close()
-
-        # 创建新通知，并传入管理器引用
-        self.current_notification = Notification(
-            title,
-            message,
-            notification_type,
-            duration,
-            self.position,
-            self,
-        )
-
-    def show_success(self, title, message, duration=3000):
-        """显示成功通知"""
-        return self.show_notification(
-            title, message, NotificationType.SUCCESS, duration
-        )
-
-    def show_error(self, title, message, duration=3000):
-        """显示错误通知"""
-        return self.show_notification(
-            title, message, NotificationType.ERROR, duration
-        )
-
-    def show_warning(self, title, message, duration=3000):
-        """显示警告通知"""
-        return self.show_notification(
-            title, message, NotificationType.WARNING, duration
-        )
-
-    def show_info(self, title, message, duration=3000):
-        """显示信息通知"""
-        return self.show_notification(
-            title, message, NotificationType.INFO, duration
-        )
+# 使用示例：
+#   Notification.show_success("成功", "操作已完成")
+#   Notification.show_error("错误", "操作失败")
+#   Notification.close_all()
