@@ -133,8 +133,8 @@ class Notification:
     _active_notifications = []  # 活动通知列表
     _notification_counter = 0  # 通知计数器, 用于生成唯一ID
 
-    # 类变量 - 临时父窗口引用 (用于模态对话框场景)
-    _temporary_parent = None  # 临时父窗口引用
+    # 类变量 - 下一个通知的父窗口引用 (用于模态对话框场景)
+    _next_parent_window = None  # 下一个通知的父窗口引用
 
     # 通知组件字体大小配置
     ICON_FONT_SIZE = 25  # 图标字体大小
@@ -189,17 +189,16 @@ class Notification:
     @classmethod
     def set_temporary_parent(cls, parent_window):
         """
-        设置临时父窗口引用 (用于模态对话框场景)
+        设置下一个通知的父窗口引用 (用于模态对话框场景)
+        
+        注意：此设置只对下一个创建的通知有效，使用后会自动清除
 
         Args:
             parent_window: 父窗口对象, 通常为模态对话框
         """
-        cls._temporary_parent = parent_window
+        cls._next_parent_window = parent_window
 
-    @classmethod
-    def clear_temporary_parent(cls):
-        """清除临时父窗口引用"""
-        cls._temporary_parent = None
+
 
     @classmethod
     def show(
@@ -361,14 +360,19 @@ class Notification:
         self.fade_out_job = None  # 存储淡出任务的ID
         self.auto_hide_job = None  # 存储自动隐藏任务的ID
         self.is_pinned = False  # 通知是否被固定
+        
+        # 存储当前通知的父窗口引用
+        self._parent_window = Notification._next_parent_window
+        # 使用后立即清除类级别的父窗口引用，确保只对下一个通知有效
+        Notification._next_parent_window = None
 
         # 计算通知窗口大小 - 在创建内容前计算
         self._calculate_notification_size()
 
-        # 创建通知窗口 - 检查是否有临时父窗口
+        # 创建通知窗口 - 检查是否有父窗口
         parent = None
-        if Notification._temporary_parent:
-            parent = Notification._temporary_parent
+        if self._parent_window:
+            parent = self._parent_window
 
         self.notification = ctk.CTkToplevel(parent)
         self.notification.title(f"Notification_{self.notification_id}")  # 设置唯一标题
@@ -379,9 +383,9 @@ class Notification:
         self.notification.attributes("-topmost", True)  # 始终置顶
         self.notification.attributes("-transparentcolor", self.notification["bg"])
 
-        # 如果有临时父窗口, 设置通知为临时父窗口的子窗口
-        if Notification._temporary_parent:
-            self.notification.transient(Notification._temporary_parent)
+        # 如果有父窗口, 设置通知为父窗口的子窗口
+        if self._parent_window:
+            self.notification.transient(self._parent_window)
 
         # 创建通知内容
         self._create_notification_content()
@@ -694,10 +698,6 @@ class Notification:
 
     def _destroy_notification(self):
         """销毁通知窗口并从活动列表中移除"""
-        # 清除临时父窗口引用
-        if Notification._temporary_parent:
-            Notification.clear_temporary_parent()
-
         # 从活动通知列表中移除
         if self in self._active_notifications:
             self._active_notifications.remove(self)
