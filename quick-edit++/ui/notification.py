@@ -7,6 +7,50 @@
 """
 
 import customtkinter as ctk
+import sys
+import os
+
+# Windows API 导入
+if sys.platform == "win32":
+    import ctypes
+    from ctypes import wintypes
+
+
+def get_screen_size():
+    """
+    获取DPI感知的真实屏幕尺寸
+    
+    Returns:
+        tuple: (屏幕宽度, 屏幕高度)，如果获取失败则返回默认值(1920, 1080)
+    """
+    # 非Windows系统直接返回默认值
+    if sys.platform != "win32":
+        return 1920, 1080
+    
+    try:
+        # 定义Windows API常量和结构
+        user32 = ctypes.windll.user32
+        
+        # 设置进程为DPI感知，获取真实物理分辨率
+        if hasattr(user32, 'SetProcessDPIAware'):
+            user32.SetProcessDPIAware()
+        
+        # 使用GetSystemMetrics获取屏幕尺寸
+        # SM_CXSCREEN = 0 (屏幕宽度)
+        # SM_CYSCREEN = 1 (屏幕高度)
+        screen_width = user32.GetSystemMetrics(0)
+        screen_height = user32.GetSystemMetrics(1)
+        
+        # 验证获取的值是否合理
+        if screen_width > 0 and screen_height > 0:
+            return screen_width, screen_height
+        else:
+            return 1920, 1080  # 默认值
+            
+    except Exception as e:
+        # 如果获取失败，返回默认值
+        print(f"获取屏幕尺寸失败: {e}")
+        return 1920, 1080  # 默认值
 
 
 class NotificationType:
