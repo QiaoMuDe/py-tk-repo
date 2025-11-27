@@ -56,6 +56,7 @@ class Notification:
         notification_type=NotificationType.SUCCESS,
         duration=3000,
         position=NotificationPosition.TOP_CENTER,
+        manager=None,
     ):
         """
         初始化通知
@@ -67,6 +68,7 @@ class Notification:
             notification_type: 通知类型, 默认为成功通知
             duration: 通知显示持续时间 (毫秒) , 默认为3秒
             position: 通知位置, 默认为窗口上方居中显示
+            manager: 通知管理器引用, 用于通知销毁时回调
         """
         self.parent = parent
         self.title = title
@@ -75,6 +77,7 @@ class Notification:
         self.duration = duration
         self.position = position
         self.font_family = "Microsoft YaHei UI"
+        self.manager = manager  # 保存管理器引用
 
         # 状态变量
         self.is_hovering = False  # 标记鼠标是否悬停在通知上
@@ -308,6 +311,8 @@ class Notification:
         if self.auto_hide_job is not None:
             self.notification.after_cancel(self.auto_hide_job)
             self.auto_hide_job = None
+            
+        print("鼠标进入通知区域")
 
     def _on_leave(self, event):
         """鼠标离开通知区域事件"""
@@ -316,6 +321,8 @@ class Notification:
         self.auto_hide_job = self.notification.after(
             self.LEAVE_HIDE_DELAY, self._start_fade_out
         )
+        
+        print("鼠标离开通知区域")
 
     def _fade_in(self, step=0):
         """淡入效果"""
@@ -346,11 +353,19 @@ class Notification:
         else:
             # 完全透明后销毁窗口
             self.notification.destroy()
+            
+            # 通知管理器当前通知已销毁
+            if self.manager is not None:
+                self.manager.current_notification = None
 
     def close(self):
         """立即关闭通知"""
         if self.notification.winfo_exists():
             self.notification.destroy()
+            
+            # 通知管理器当前通知已销毁
+            if self.manager is not None:
+                self.manager.current_notification = None
 
 
 class NotificationManager:
@@ -366,6 +381,7 @@ class NotificationManager:
         """
         self.parent = parent
         self.position = position
+        self.current_notification = None  # 当前显示的通知对象
 
     def show_notification(
         self,
@@ -400,10 +416,16 @@ class NotificationManager:
         # 检查是否有有效的父窗口
         if effective_parent is None:
             raise ValueError("未提供父窗口引用，请在初始化时提供或在调用方法时传递")
+        
+        # 如果已有通知存在，先关闭它
+        if self.current_notification is not None:
+            self.current_notification.close()
 
-        return Notification(
-            effective_parent, title, message, notification_type, duration, self.position
+        # 创建新通知，并传入管理器引用
+        self.current_notification = Notification(
+            effective_parent, title, message, notification_type, duration, self.position, self
         )
+        
 
     def show_success(self, title, message, duration=3000, parent=None):
         """显示成功通知"""
@@ -428,3 +450,5 @@ class NotificationManager:
         return self.show_notification(
             title, message, NotificationType.INFO, duration, parent
         )
+
+
