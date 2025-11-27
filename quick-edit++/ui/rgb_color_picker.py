@@ -233,7 +233,7 @@ class RGBColorPicker:
         self.dialog.clipboard_append(rgb_code)
 
         # 使用父窗口的通知组件显示复制成功提示
-        self.parent.nm.show_success("已复制到剪贴板", rgb_code)
+        self.parent.nm.show_success(self.dialog, "复制成功", f"已复制颜色代码 {rgb_code} 到剪贴板")
 
 
 def show_rgb_color_picker(parent, callback):

@@ -345,7 +345,7 @@ class HexColorPicker(ctk.CTkToplevel):
 
             # 显示复制成功通知
             self.parent.nm.show_success(
-                "复制成功", f"颜色代码 {self.selected_color} 已复制到剪贴板"
+                self,"复制成功", f"已复制颜色代码 {self.selected_color} 到剪贴板"
             )
         except Exception as e:
             logger.error(f"复制到剪贴板失败: {e}")
