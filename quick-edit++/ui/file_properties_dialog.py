@@ -40,7 +40,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
 
         # 居中显示窗口
         self.width = 700  # 宽度
-        self.height = 600  # 高度
+        self.height = 650  # 高度
         self.parent.center_window(self, self.width, self.height)
 
         # 设置窗口非可调整大小
@@ -67,13 +67,16 @@ class FilePropertiesDialog(ctk.CTkToplevel):
 
     def _create_widgets(self):
         """创建界面组件"""
-        # 主框架
-        main_frame = ctk.CTkFrame(self)
-        main_frame.pack(fill="both", expand=True, padx=20, pady=15)
+        # 主框架 - 增加圆角效果并添加内边距
+        main_frame = ctk.CTkFrame(self, corner_radius=20)
+        main_frame.pack(fill="both", expand=True, padx=15, pady=15)
+        
+        # 获取主框架背景色
+        main_bg_color = main_frame.cget("fg_color")
 
-        # 文件路径框架
-        path_frame = ctk.CTkFrame(main_frame)
-        path_frame.pack(fill="x", pady=(0, 10))
+        # 文件路径框架 - 使用与主框架相同的背景色，添加圆角效果
+        path_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
+        path_frame.pack(fill="x", pady=(10, 10), padx=10)
 
         path_label = ctk.CTkLabel(
             path_frame,
@@ -91,9 +94,13 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         )
         self.path_value.pack(anchor="w", padx=10, pady=(0, 10))
 
-        # 基本属性框架
-        basic_frame = ctk.CTkFrame(main_frame)
-        basic_frame.pack(fill="x", pady=(0, 10))
+        # 添加分割线
+        separator1 = ctk.CTkFrame(main_frame, height=1)
+        separator1.pack(fill="x", padx=15, pady=(0, 10))
+
+        # 基本属性框架 - 使用与主框架相同的背景色，添加圆角效果
+        basic_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
+        basic_frame.pack(fill="x", pady=(0, 10), padx=10)
 
         basic_label = ctk.CTkLabel(
             basic_frame,
@@ -105,7 +112,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         basic_label.pack(anchor="w", padx=10, pady=(10, 5))
 
         # 文件名
-        name_frame = ctk.CTkFrame(basic_frame)
+        name_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
         name_frame.pack(fill="x", padx=10, pady=(0, 5))
         name_label = ctk.CTkLabel(
             name_frame,
@@ -125,7 +132,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.name_value.pack(side="left")
 
         # 文件类型
-        type_frame = ctk.CTkFrame(basic_frame)
+        type_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
         type_frame.pack(fill="x", padx=10, pady=(0, 5))
         type_label = ctk.CTkLabel(
             type_frame,
@@ -142,7 +149,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.type_value.pack(side="left")
 
         # 文件大小
-        size_frame = ctk.CTkFrame(basic_frame)
+        size_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
         size_frame.pack(fill="x", padx=10, pady=(0, 5))
         size_label = ctk.CTkLabel(
             size_frame,
@@ -158,9 +165,13 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         )
         self.size_value.pack(side="left")
 
-        # 时间属性框架
-        time_frame = ctk.CTkFrame(main_frame)
-        time_frame.pack(fill="x", pady=(0, 10))
+        # 添加分割线
+        separator2 = ctk.CTkFrame(main_frame, height=1)
+        separator2.pack(fill="x", padx=15, pady=(0, 10))
+
+        # 时间属性框架 - 使用与主框架相同的背景色，添加圆角效果
+        time_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
+        time_frame.pack(fill="x", pady=(0, 10), padx=10)
 
         time_label = ctk.CTkLabel(
             time_frame,
@@ -172,7 +183,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         time_label.pack(anchor="w", padx=10, pady=(10, 5))
 
         # 创建时间
-        created_frame = ctk.CTkFrame(time_frame)
+        created_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
         created_frame.pack(fill="x", padx=10, pady=(0, 5))
         created_label = ctk.CTkLabel(
             created_frame,
@@ -189,7 +200,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.created_value.pack(side="left")
 
         # 修改时间
-        modified_frame = ctk.CTkFrame(time_frame)
+        modified_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
         modified_frame.pack(fill="x", padx=10, pady=(0, 5))
         modified_label = ctk.CTkLabel(
             modified_frame,
@@ -206,7 +217,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.modified_value.pack(side="left")
 
         # 访问时间
-        accessed_frame = ctk.CTkFrame(time_frame)
+        accessed_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
         accessed_frame.pack(fill="x", padx=10, pady=(0, 10))
         accessed_label = ctk.CTkLabel(
             accessed_frame,
@@ -222,9 +233,13 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         )
         self.accessed_value.pack(side="left")
 
-        # 其他属性框架
-        other_frame = ctk.CTkFrame(main_frame)
-        other_frame.pack(fill="x", pady=(0, 10))
+        # 添加分割线
+        separator3 = ctk.CTkFrame(main_frame, height=1)
+        separator3.pack(fill="x", padx=15, pady=(0, 10))
+
+        # 其他属性框架 - 使用与主框架相同的背景色，添加圆角效果
+        other_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
+        other_frame.pack(fill="x", pady=(0, 10), padx=10)
 
         other_label = ctk.CTkLabel(
             other_frame,
@@ -236,7 +251,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         other_label.pack(anchor="w", padx=10, pady=(10, 5))
 
         # 只读属性
-        readonly_frame = ctk.CTkFrame(other_frame)
+        readonly_frame = ctk.CTkFrame(other_frame, fg_color="transparent", corner_radius=5)
         readonly_frame.pack(fill="x", padx=10, pady=(0, 5))
         readonly_label = ctk.CTkLabel(
             readonly_frame,
@@ -253,7 +268,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.readonly_value.pack(side="left")
 
         # 隐藏属性
-        hidden_frame = ctk.CTkFrame(other_frame)
+        hidden_frame = ctk.CTkFrame(other_frame, fg_color="transparent", corner_radius=5)
         hidden_frame.pack(fill="x", padx=10, pady=(0, 10))
         hidden_label = ctk.CTkLabel(
             hidden_frame,
@@ -269,9 +284,13 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         )
         self.hidden_value.pack(side="left")
 
-        # 按钮框架
-        button_frame = ctk.CTkFrame(main_frame)
-        button_frame.pack(fill="x", pady=(5, 0))
+        # 添加分割线
+        separator4 = ctk.CTkFrame(main_frame, height=1)
+        separator4.pack(fill="x", padx=15, pady=(0, 10))
+
+        # 按钮框架 - 使用与主框架相同的背景色，添加圆角效果
+        button_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
+        button_frame.pack(fill="x", pady=(0, 0), padx=10)
 
         # 提示标签
         hint_label = ctk.CTkLabel(
