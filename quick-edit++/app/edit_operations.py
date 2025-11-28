@@ -1670,6 +1670,9 @@ func (s *StructName) IsValid() bool {
         dialog.transient(self)
         dialog.grab_set()
 
+        # 先隐藏窗口
+        dialog.withdraw()
+
         # 创建输入框和按钮在同一行
         input_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         input_frame.pack(padx=10, pady=10, fill="both", expand=True)
@@ -1685,7 +1688,6 @@ func (s *StructName) IsValid() bool {
             input_frame, font=(font_family, font_size, font_weight), width=100
         )
         entry.pack(side="left", padx=(0, 10))
-        entry.focus_set()
 
         def on_ok():
             """确认按钮处理函数"""
@@ -1737,8 +1739,20 @@ func (s *StructName) IsValid() bool {
         # 绑定ESC键
         dialog.bind("<Escape>", lambda e: on_cancel())
 
-        # 在对话框完全显示后设置焦点
-        dialog.after(100, entry.focus_set)
+        # 延迟200毫秒后显示窗口并设置焦点
+        dialog.after(200, lambda: self._show_goto_dialog(dialog, entry))
+
+    def _show_goto_dialog(self, dialog, entry):
+        """
+        显示转到行对话框并设置焦点
+
+        Args:
+            dialog: 对话框窗口
+            entry: 输入框控件
+        """
+        dialog.deiconify()
+        dialog.lift()  # 将窗口提升到最前面
+        entry.focus_set()
 
     def insert_special_character(self, char_type, char_value):
         """

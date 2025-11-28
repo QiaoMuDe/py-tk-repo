@@ -33,14 +33,14 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.font_family = config_manager.get("components.font", "Microsoft YaHei UI")
         self.font_size = config_manager.get("components.font_size", 13)
         self.font_bold = config_manager.get("components.font_bold", False)
-        self.title_font_size = self.font_size + 1  # 标题字体稍大一些
+        self.title_font_size = self.font_size + 3  # 标题字体稍大一些
 
         # 设置窗口属性
         self.title("文件属性")
 
         # 居中显示窗口
         self.width = 700  # 宽度
-        self.height = 650  # 高度
+        self.height = 700  # 高度
         self.parent.center_window(self, self.width, self.height)
 
         # 设置窗口非可调整大小
@@ -59,238 +59,332 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         # 绑定ESC键关闭窗口
         self.bind("<Escape>", lambda e: self.destroy())
 
+        # 先隐藏窗口
+        self.withdraw()
+
         # 创建界面
         self._create_widgets()
 
         # 加载文件属性
         self._load_file_properties()
 
+        # 延迟200毫秒后显示窗口
+        self.after(200, self._show_dialog)
+
+    def _show_dialog(self):
+        """显示对话框"""
+        self.deiconify()
+        self.lift()  # 将窗口提升到最前面
+
     def _create_widgets(self):
         """创建界面组件"""
         # 主框架 - 增加圆角效果并添加内边距
         main_frame = ctk.CTkFrame(self, corner_radius=20)
         main_frame.pack(fill="both", expand=True, padx=15, pady=15)
-        
-        # 获取主框架背景色
-        main_bg_color = main_frame.cget("fg_color")
 
-        # 文件路径框架 - 使用与主框架相同的背景色，添加圆角效果
-        path_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
-        path_frame.pack(fill="x", pady=(10, 10), padx=10)
+        # 获取主题颜色
+        if ctk.get_appearance_mode() == "Dark":
+            card_color = ("gray20", "gray25")
+            border_color = ("gray30", "gray35")
+        else:
+            card_color = ("gray95", "gray90")
+            border_color = ("gray85", "gray80")
+
+        # 文件路径卡片
+        path_card = ctk.CTkFrame(
+            main_frame,
+            fg_color=card_color,
+            border_color=border_color,
+            border_width=1,
+            corner_radius=12,
+        )
+        path_card.pack(fill="x", pady=(10, 15), padx=10)
 
         path_label = ctk.CTkLabel(
-            path_frame,
-            text="文件路径:",
+            path_card,
+            text="文件路径",
             font=ctk.CTkFont(
                 size=self.title_font_size, weight="bold", family=self.font_family
             ),
+            text_color=("#1f538d", "#5c86b5"),  # 蓝色标题
         )
-        path_label.pack(anchor="w", padx=10, pady=(10, 5))
+        path_label.pack(anchor="w", padx=15, pady=(15, 8))
 
         self.path_value = ctk.CTkLabel(
-            path_frame,
+            path_card,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            wraplength=600,  # 设置文本换行宽度
         )
-        self.path_value.pack(anchor="w", padx=10, pady=(0, 10))
+        self.path_value.pack(anchor="w", padx=15, pady=(0, 15))
 
-        # 添加分割线
-        separator1 = ctk.CTkFrame(main_frame, height=1)
-        separator1.pack(fill="x", padx=15, pady=(0, 10))
-
-        # 基本属性框架 - 使用与主框架相同的背景色，添加圆角效果
-        basic_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
-        basic_frame.pack(fill="x", pady=(0, 10), padx=10)
+        # 基本属性卡片
+        basic_card = ctk.CTkFrame(
+            main_frame,
+            fg_color=card_color,
+            border_color=border_color,
+            border_width=1,
+            corner_radius=12,
+        )
+        basic_card.pack(fill="x", pady=(0, 15), padx=10)
 
         basic_label = ctk.CTkLabel(
-            basic_frame,
+            basic_card,
             text="基本属性",
             font=ctk.CTkFont(
                 size=self.title_font_size, weight="bold", family=self.font_family
             ),
+            text_color=("#1f538d", "#5c86b5"),  # 蓝色标题
         )
-        basic_label.pack(anchor="w", padx=10, pady=(10, 5))
+        basic_label.pack(anchor="w", padx=15, pady=(15, 10))
 
-        # 文件名
-        name_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
-        name_frame.pack(fill="x", padx=10, pady=(0, 5))
+        # 基本属性内容框架
+        basic_content = ctk.CTkFrame(basic_card, fg_color="transparent")
+        basic_content.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 创建两列布局
+        left_column = ctk.CTkFrame(basic_content, fg_color="transparent")
+        left_column.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        right_column = ctk.CTkFrame(basic_content, fg_color="transparent")
+        right_column.pack(side="right", fill="both", expand=True)
+
+        # 文件名 (左列)
+        name_frame = ctk.CTkFrame(left_column, fg_color="transparent")
+        name_frame.pack(fill="x", pady=(0, 10))
         name_label = ctk.CTkLabel(
             name_frame,
             text="文件名:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        name_label.pack(side="left", padx=(0, 10))
-        self.name_value = ctk.CTkLabel(name_frame, text="")
-        name_value_frame = ctk.CTkFrame(name_frame, fg_color="transparent")
-        name_value_frame.pack(side="left", fill="x", expand=True)
+        name_label.pack(anchor="w")
         self.name_value = ctk.CTkLabel(
-            name_value_frame,
+            name_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.name_value.pack(side="left")
+        self.name_value.pack(anchor="w", fill="x")
 
-        # 文件类型
-        type_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
-        type_frame.pack(fill="x", padx=10, pady=(0, 5))
+        # 文件类型 (左列)
+        type_frame = ctk.CTkFrame(left_column, fg_color="transparent")
+        type_frame.pack(fill="x", pady=(0, 10))
         type_label = ctk.CTkLabel(
             type_frame,
-            text="文件类型:",
+            text="文件扩展名:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        type_label.pack(side="left", padx=(0, 10))
+        type_label.pack(anchor="w")
         self.type_value = ctk.CTkLabel(
             type_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.type_value.pack(side="left")
+        self.type_value.pack(anchor="w", fill="x")
 
-        # 文件大小
-        size_frame = ctk.CTkFrame(basic_frame, fg_color="transparent", corner_radius=5)
-        size_frame.pack(fill="x", padx=10, pady=(0, 5))
+        # 文件大小 (右列)
+        size_frame = ctk.CTkFrame(right_column, fg_color="transparent")
+        size_frame.pack(fill="x", pady=(0, 10))
         size_label = ctk.CTkLabel(
             size_frame,
             text="文件大小:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        size_label.pack(side="left", padx=(0, 10))
+        size_label.pack(anchor="w")
         self.size_value = ctk.CTkLabel(
             size_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.size_value.pack(side="left")
+        self.size_value.pack(anchor="w", fill="x")
 
-        # 添加分割线
-        separator2 = ctk.CTkFrame(main_frame, height=1)
-        separator2.pack(fill="x", padx=15, pady=(0, 10))
-
-        # 时间属性框架 - 使用与主框架相同的背景色，添加圆角效果
-        time_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
-        time_frame.pack(fill="x", pady=(0, 10), padx=10)
+        # 时间属性卡片
+        time_card = ctk.CTkFrame(
+            main_frame,
+            fg_color=card_color,
+            border_color=border_color,
+            border_width=1,
+            corner_radius=12,
+        )
+        time_card.pack(fill="x", pady=(0, 15), padx=10)
 
         time_label = ctk.CTkLabel(
-            time_frame,
+            time_card,
             text="时间属性",
             font=ctk.CTkFont(
                 size=self.title_font_size, weight="bold", family=self.font_family
             ),
+            text_color=("#1f538d", "#5c86b5"),  # 蓝色标题
         )
-        time_label.pack(anchor="w", padx=10, pady=(10, 5))
+        time_label.pack(anchor="w", padx=15, pady=(15, 10))
+
+        # 时间属性内容框架
+        time_content = ctk.CTkFrame(time_card, fg_color="transparent")
+        time_content.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 创建三列布局
+        created_column = ctk.CTkFrame(time_content, fg_color="transparent")
+        created_column.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        modified_column = ctk.CTkFrame(time_content, fg_color="transparent")
+        modified_column.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        accessed_column = ctk.CTkFrame(time_content, fg_color="transparent")
+        accessed_column.pack(side="right", fill="both", expand=True)
 
         # 创建时间
-        created_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
-        created_frame.pack(fill="x", padx=10, pady=(0, 5))
+        created_frame = ctk.CTkFrame(created_column, fg_color="transparent")
+        created_frame.pack(fill="x")
         created_label = ctk.CTkLabel(
             created_frame,
             text="创建时间:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        created_label.pack(side="left", padx=(0, 10))
+        created_label.pack(anchor="w")
         self.created_value = ctk.CTkLabel(
             created_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.created_value.pack(side="left")
+        self.created_value.pack(anchor="w", fill="x")
 
         # 修改时间
-        modified_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
-        modified_frame.pack(fill="x", padx=10, pady=(0, 5))
+        modified_frame = ctk.CTkFrame(modified_column, fg_color="transparent")
+        modified_frame.pack(fill="x")
         modified_label = ctk.CTkLabel(
             modified_frame,
             text="修改时间:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        modified_label.pack(side="left", padx=(0, 10))
+        modified_label.pack(anchor="w")
         self.modified_value = ctk.CTkLabel(
             modified_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.modified_value.pack(side="left")
+        self.modified_value.pack(anchor="w", fill="x")
 
         # 访问时间
-        accessed_frame = ctk.CTkFrame(time_frame, fg_color="transparent", corner_radius=5)
-        accessed_frame.pack(fill="x", padx=10, pady=(0, 10))
+        accessed_frame = ctk.CTkFrame(accessed_column, fg_color="transparent")
+        accessed_frame.pack(fill="x")
         accessed_label = ctk.CTkLabel(
             accessed_frame,
             text="访问时间:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        accessed_label.pack(side="left", padx=(0, 10))
+        accessed_label.pack(anchor="w")
         self.accessed_value = ctk.CTkLabel(
             accessed_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.accessed_value.pack(side="left")
+        self.accessed_value.pack(anchor="w", fill="x")
 
-        # 添加分割线
-        separator3 = ctk.CTkFrame(main_frame, height=1)
-        separator3.pack(fill="x", padx=15, pady=(0, 10))
-
-        # 其他属性框架 - 使用与主框架相同的背景色，添加圆角效果
-        other_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
-        other_frame.pack(fill="x", pady=(0, 10), padx=10)
+        # 其他属性卡片
+        other_card = ctk.CTkFrame(
+            main_frame,
+            fg_color=card_color,
+            border_color=border_color,
+            border_width=1,
+            corner_radius=12,
+        )
+        other_card.pack(fill="x", pady=(0, 15), padx=10)
 
         other_label = ctk.CTkLabel(
-            other_frame,
+            other_card,
             text="其他属性",
             font=ctk.CTkFont(
                 size=self.title_font_size, weight="bold", family=self.font_family
             ),
+            text_color=("#1f538d", "#5c86b5"),  # 蓝色标题
         )
-        other_label.pack(anchor="w", padx=10, pady=(10, 5))
+        other_label.pack(anchor="w", padx=15, pady=(15, 10))
+
+        # 其他属性内容框架
+        other_content = ctk.CTkFrame(other_card, fg_color="transparent")
+        other_content.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 创建两列布局
+        readonly_column = ctk.CTkFrame(other_content, fg_color="transparent")
+        readonly_column.pack(side="left", fill="both", expand=True, padx=(0, 10))
+
+        hidden_column = ctk.CTkFrame(other_content, fg_color="transparent")
+        hidden_column.pack(side="right", fill="both", expand=True)
 
         # 只读属性
-        readonly_frame = ctk.CTkFrame(other_frame, fg_color="transparent", corner_radius=5)
-        readonly_frame.pack(fill="x", padx=10, pady=(0, 5))
+        readonly_frame = ctk.CTkFrame(readonly_column, fg_color="transparent")
+        readonly_frame.pack(fill="x")
         readonly_label = ctk.CTkLabel(
             readonly_frame,
             text="只读属性:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        readonly_label.pack(side="left", padx=(0, 10))
+        readonly_label.pack(anchor="w")
         self.readonly_value = ctk.CTkLabel(
             readonly_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.readonly_value.pack(side="left")
+        self.readonly_value.pack(anchor="w", fill="x")
 
         # 隐藏属性
-        hidden_frame = ctk.CTkFrame(other_frame, fg_color="transparent", corner_radius=5)
-        hidden_frame.pack(fill="x", padx=10, pady=(0, 10))
+        hidden_frame = ctk.CTkFrame(hidden_column, fg_color="transparent")
+        hidden_frame.pack(fill="x")
         hidden_label = ctk.CTkLabel(
             hidden_frame,
             text="隐藏属性:",
             width=100,
-            font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            font=ctk.CTkFont(
+                size=self.font_size, weight="bold", family=self.font_family
+            ),
+            anchor="w",
         )
-        hidden_label.pack(side="left", padx=(0, 10))
+        hidden_label.pack(anchor="w")
         self.hidden_value = ctk.CTkLabel(
             hidden_frame,
             text="",
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
+            anchor="w",
         )
-        self.hidden_value.pack(side="left")
+        self.hidden_value.pack(anchor="w", fill="x")
 
-        # 添加分割线
-        separator4 = ctk.CTkFrame(main_frame, height=1)
-        separator4.pack(fill="x", padx=15, pady=(0, 10))
-
-        # 按钮框架 - 使用与主框架相同的背景色，添加圆角效果
-        button_frame = ctk.CTkFrame(main_frame, fg_color=main_bg_color, corner_radius=15)
-        button_frame.pack(fill="x", pady=(0, 0), padx=10)
+        # 按钮区域
+        button_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        button_frame.pack(fill="x", pady=(5, 10), padx=10)
 
         # 提示标签
         hint_label = ctk.CTkLabel(
@@ -299,7 +393,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(size=self.font_size - 1, family=self.font_family),
             text_color=("gray50", "gray60"),
         )
-        hint_label.pack(side="left", padx=10, pady=5)
+        hint_label.pack(side="left", padx=15, pady=5)
 
         # 关闭按钮
         close_button = ctk.CTkButton(
@@ -308,7 +402,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
             command=self.destroy,
             font=ctk.CTkFont(size=self.font_size, family=self.font_family),
         )
-        close_button.pack(side="right", padx=10, pady=5)
+        close_button.pack(side="right", padx=15, pady=5)
 
     def _load_file_properties(self):
         """加载文件属性"""
