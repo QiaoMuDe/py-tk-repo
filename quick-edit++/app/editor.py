@@ -174,6 +174,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             "<Control-e>", lambda e: self.open_containing_folder()
         )  # 打开文件所在目录
         self.bind("<Control-r>", lambda e: self.toggle_read_only())  # 切换只读模式
+        self.bind("<Control-m>", lambda e: self.rename_file())  # 重命名文件
 
         # 绑定编辑操作快捷键
         # self.bind("<Control-z>", lambda e: self.undo())  # 撤销
@@ -927,6 +928,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 直接调用文件操作处理器的保存副本方法
         return self.file_ops.save_file_copy()
 
+    def rename_file(self):
+        """重命名当前文件"""
+        # 直接调用文件操作处理器的重命名方法
+        return self.file_ops.rename_file()
+
     def close_file(self):
         """关闭当前文件"""
         # 检查是否为只读模式
@@ -1088,7 +1094,17 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 except Exception as e:
                     # 如果通过索引更新失败，打印错误信息
                     logger.error(
-                        f"Error updating save copy menu state at index {self.save_copy_menu_index}: {e}"
+                        f"更新“保存副本”菜单状态时出错（索引 {self.save_copy_menu_index}）: {e}"
+                    )
+
+            # 更新重命名菜单状态
+            if self.rename_menu_index is not None:
+                try:
+                    self.file_menu.entryconfig(self.rename_menu_index, state=state)
+                except Exception as e:
+                    # 如果通过索引更新失败，打印错误信息
+                    logger.error(
+                        f"更新“重命名”菜单状态时出错（索引 {self.rename_menu_index}）: {e}"
                     )
 
     # 书签功能方法

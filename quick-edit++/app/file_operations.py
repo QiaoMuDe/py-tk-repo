@@ -12,6 +12,7 @@ from tkinter import filedialog, messagebox
 from config.config_manager import config_manager
 from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
+from ui.rename_dialog import show_rename_dialog
 import shutil
 from config.config_manager import CONFIG_PATH
 from loguru import logger
@@ -471,7 +472,9 @@ class FileOperations:
             self.root.nm.show_error(message=f"处理备份文件时出错: {str(e)}")
 
     def close_file(self):
-        """关闭当前文件, 重置窗口和状态栏状态"""
+        """
+        关闭当前文件, 重置窗口和状态栏状态
+        """
         # 检查是否需要保存当前文件
         if not self.check_save_before_close():
             return False  # 用户取消了操作
@@ -512,6 +515,30 @@ class FileOperations:
             self._handle_backup_on_close(file_saved=False)
             return True
 
+        else:  # 用户选择取消
+            return False
+
+    def check_save_before_rename(self):
+        """
+        在重命名文件前检查是否需要保存
+
+        Returns:
+            bool: 如果可以继续重命名操作返回True, 如果用户取消则返回False
+        """
+        # 如果文件未修改, 直接返回True
+        if not self.root.is_modified():
+            return True
+
+        # 如果文件已修改, 提示用户
+        result = messagebox.askyesnocancel(
+            "文件已修改",
+            "文件已被修改，是否保存后再重命名？\n\n点击'是'保存并重命名\n点击'否'直接重命名(不保存修改)\n点击'取消'放弃重命名",
+        )
+
+        if result is True:  # 用户选择保存
+            return self.save_file()
+        elif result is False:  # 用户选择不保存
+            return True
         else:  # 用户选择取消
             return False
 
@@ -937,6 +964,68 @@ class FileOperations:
             logger.error(f"创建文件副本时出错: {str(e)}")
             # messagebox.showerror("错误", f"创建文件副本时出错: {str(e)}")
             self.root.nm.show_error(message=f"创建文件副本时出错: {str(e)}")
+            return False
+
+    def rename_file(self):
+        """
+        重命名当前打开的文件
+
+        此方法执行以下操作:
+        1. 检查是否有当前文件
+        2. 检查是否为只读模式
+        3. 检查文件是否被修改
+        4. 显示重命名对话框
+        5. 执行文件系统重命名操作
+        6. 更新应用程序中的文件路径引用
+
+        Returns:
+            bool: 重命名是否成功
+        """
+        # 检查是否为只读模式
+        if self.root.is_read_only:
+            self.root.nm.show_info(message="当前为只读模式，无法重命名文件")
+            return False
+
+        # 检查是否有当前文件路径（新文件未保存的情况）
+        if not self.root.current_file_path or self.root.is_new_file:
+            # 对于新文件，直接提示另存为
+            self.root.nm.show_warning(
+                title="无法重命名", message="请先保存文件后再进行重命名操作"
+            )
+            return False
+
+        # 检查文件是否被修改，并处理保存逻辑
+        if not self.check_save_before_rename():
+            return False
+
+        # 显示重命名对话框
+        new_name = show_rename_dialog(self.root, self.root.current_file_path)
+        if not new_name:
+            return False  # 用户取消
+
+        # 获取当前文件路径和目录
+        current_path = self.root.current_file_path
+        directory = os.path.dirname(current_path)  # 获取当前文件所在目录
+        new_path = os.path.join(directory, new_name)  # 构建新的文件路径
+
+        try:
+            # 重置编辑器状态
+            self._reset_editor_state()
+
+            # 执行文件系统重命名
+            os.rename(current_path, new_path)
+
+            # 直接调用_open_file方法打开重命名后的文件
+            return self._open_file(file_path=new_path)
+
+        except Exception as e:
+            logger.error(
+                f"重命名文件失败: {current_path} -> {new_path}, 错误: {str(e)}"
+            )
+            self.root.nm.show_error(
+                title="重命名失败", message=f"重命名文件时出错: {str(e)}"
+            )
+
             return False
 
     def _check_backup_recovery(self, file_path):

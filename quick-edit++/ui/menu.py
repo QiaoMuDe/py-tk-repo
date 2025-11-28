@@ -147,6 +147,10 @@ def create_menu(root):
         label="保存", command=lambda: root.save_file(), accelerator="Ctrl+S"
     )
     file_menu.add_command(
+        label="重命名", command=lambda: root.rename_file(), accelerator="Ctrl+M"
+    )
+    root.rename_menu_index = file_menu.index(tk.END)  # 保存重命名菜单项索引
+    file_menu.add_command(
         label="另存为", command=lambda: root.save_file_as(), accelerator="Ctrl+Shift+S"
     )
     file_menu.add_command(

@@ -210,6 +210,9 @@ class AppInitializer:
         # 创建保存副本菜单项索引，用于更新菜单项状态
         self.app.save_copy_menu_index = None
 
+        # 创建重命名菜单项索引，用于更新菜单项状态
+        self.app.rename_menu_index = None
+
     def init_window_layout(self):
         """初始化窗口布局配置"""
         # 配置主窗口的网格布局
