@@ -629,8 +629,8 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         """初始化用户界面"""
         # 设置窗口属性
         self.title("文档统计信息")
-        self.width = 700 # 宽度
-        self.height = 600 # 高度
+        self.width = 700  # 宽度
+        self.height = 600  # 高度
         self.resizable(True, True)
 
         # 设置窗口模态

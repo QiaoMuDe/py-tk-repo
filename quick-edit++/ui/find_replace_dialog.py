@@ -118,8 +118,8 @@ class FindReplaceDialog:
     def _create_widgets(self):
         """创建对话框UI组件"""
         # 设置对话框为更现代的尺寸
-        self.width = 550
-        self.height = 390
+        self.width = 600
+        self.height = 420
         self.parent.center_window(self.dialog, self.width, self.height)
 
         # 主框架 - 铺满整个窗口背景，统一颜色
@@ -146,17 +146,19 @@ class FindReplaceDialog:
         input_frame.pack(fill="x", padx=15, pady=(0, 15))
 
         # 查找输入区域
-        find_container = ctk.CTkFrame(input_frame, fg_color="transparent")
-        find_container.pack(fill="x", pady=(0, 10))
+        find_container = ctk.CTkFrame(
+            input_frame, fg_color=input_frame.cget("fg_color"), corner_radius=10
+        )
+        find_container.pack(fill="x", pady=(0, 10), padx=5)
 
         find_label = ctk.CTkLabel(
             find_container,
             text="查找内容:",
-            font=(self.font_family, self.font_size - 2, "bold"),
+            font=(self.font_family, self.font_size, "bold"),
             width=70,
             anchor="w",
         )
-        find_label.pack(side="left", padx=(0, 10))
+        find_label.pack(side="left", padx=(10, 10), pady=8)
 
         self.find_entry = ctk.CTkEntry(
             find_container,
@@ -164,20 +166,22 @@ class FindReplaceDialog:
             height=32,
             placeholder_text="输入要查找的文本...",
         )
-        self.find_entry.pack(side="left", fill="x", expand=True)
+        self.find_entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=8)
 
         # 替换输入区域
-        replace_container = ctk.CTkFrame(input_frame, fg_color="transparent")
-        replace_container.pack(fill="x")
+        replace_container = ctk.CTkFrame(
+            input_frame, fg_color=input_frame.cget("fg_color"), corner_radius=10
+        )
+        replace_container.pack(fill="x", padx=5)
 
         replace_label = ctk.CTkLabel(
             replace_container,
             text="替换为:",
-            font=(self.font_family, self.font_size - 2, "bold"),
+            font=(self.font_family, self.font_size, "bold"),
             width=70,
             anchor="w",
         )
-        replace_label.pack(side="left", padx=(0, 10))
+        replace_label.pack(side="left", padx=(10, 10), pady=8)
 
         self.replace_entry = ctk.CTkEntry(
             replace_container,
@@ -185,7 +189,9 @@ class FindReplaceDialog:
             height=32,
             placeholder_text="输入替换的文本...",
         )
-        self.replace_entry.pack(side="left", fill="x", expand=True)
+        self.replace_entry.pack(
+            side="left", fill="x", expand=True, padx=(0, 10), pady=8
+        )
 
         # 选项区域 - 使用更现代的开关式设计
         options_frame = ctk.CTkFrame(main_frame)
@@ -194,7 +200,7 @@ class FindReplaceDialog:
         options_label = ctk.CTkLabel(
             options_frame,
             text="搜索选项",
-            font=(self.font_family, self.font_size - 1, "bold"),
+            font=(self.font_family, self.font_size, "bold"),
         )
         options_label.pack(anchor="w", padx=10, pady=(10, 5))
 

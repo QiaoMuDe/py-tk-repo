@@ -36,8 +36,8 @@ class RenameDialog(ctk.CTkToplevel):
         self.grab_set()
 
         # 居中显示
-        width = 700 # 窗口宽度
-        height = 380 # 窗口高度
+        width = 700  # 窗口宽度
+        height = 380  # 窗口高度
         self.master.center_window(self, width, height)
 
         # 保存当前文件路径

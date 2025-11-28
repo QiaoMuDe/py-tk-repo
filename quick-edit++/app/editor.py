@@ -122,40 +122,40 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
     def center_window(self, window, width=None, height=None):
         """
         将指定窗口居中显示的通用方法
-        
+
         Args:
             window: 需要居中的窗口对象（可以是Toplevel、CTkToplevel等）
             width: 窗口宽度，如果为None则使用窗口当前宽度
             height: 窗口高度，如果为None则使用窗口当前高度
-            
+
         Returns:
             tuple: (x坐标, y坐标) 窗口应该设置的左上角坐标
         """
         try:
             # 获取屏幕尺寸
             screen_width, screen_height = self.get_screen_size()
-            
+
             # 如果未指定宽度或高度，尝试从窗口获取当前尺寸
             if width is None or height is None:
                 width, height = window.winfo_width(), window.winfo_height()
-            
+
             # 获取窗口尺寸
             window_width = width
             window_height = height
-                
+
             # 计算居中位置
-            x = (screen_width // 2) - window_width 
-            y = (screen_height // 2) - window_height 
-            
+            x = (screen_width // 2) - window_width
+            y = (screen_height // 2) - window_height
+
             # 确保窗口不会超出屏幕边界
             x = max(0, min(x, screen_width - window_width))
             y = max(0, min(y, screen_height - window_height))
-            
+
             # 设置窗口位置
             window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-            
+
             return (x, y)
-            
+
         except Exception as e:
             logger.error(f"窗口居中失败: {e}")
             self.nm.show_error(message=f"窗口居中失败: {e}")

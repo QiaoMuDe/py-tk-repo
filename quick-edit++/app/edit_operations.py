@@ -1681,7 +1681,9 @@ func (s *StructName) IsValid() bool {
         label.pack(side="left", padx=(0, 10))
 
         # 输入框
-        entry = ctk.CTkEntry(input_frame, font=(font_family, font_size, font_weight), width=100)
+        entry = ctk.CTkEntry(
+            input_frame, font=(font_family, font_size, font_weight), width=100
+        )
         entry.pack(side="left", padx=(0, 10))
         entry.focus_set()
 
@@ -1698,7 +1700,7 @@ func (s *StructName) IsValid() bool {
                 self.status_bar.show_notification(f"已跳转到第 {line_num} 行", 500)
                 # 关闭对话框
                 dialog.destroy()
-                
+
             except ValueError:
                 # 使用状态栏显示错误消息
                 self.nm.show_error(message=f"无效的行号: {entry.get()}")
@@ -1714,7 +1716,7 @@ func (s *StructName) IsValid() bool {
             font=(font_family, font_size, font_weight),
             command=on_ok,
             width=60,
-            height=28
+            height=28,
         )
         ok_button.pack(side="left", padx=(0, 5))
 
@@ -1725,7 +1727,7 @@ func (s *StructName) IsValid() bool {
             font=(font_family, font_size, font_weight),
             command=on_cancel,
             width=60,
-            height=28
+            height=28,
         )
         cancel_button.pack(side="left")
 
@@ -1734,7 +1736,7 @@ func (s *StructName) IsValid() bool {
 
         # 绑定ESC键
         dialog.bind("<Escape>", lambda e: on_cancel())
-        
+
         # 在对话框完全显示后设置焦点
         dialog.after(100, entry.focus_set)
 

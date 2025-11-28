@@ -369,6 +369,7 @@ class HexColorPicker(ctk.CTkToplevel):
         self.result = None
         self.destroy()
 
+
 def show_color_picker(parent, initial_color="#000000"):
     """
     显示颜色选择器对话框并返回选择的颜色
