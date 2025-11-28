@@ -346,8 +346,8 @@ class HexColorPicker(ctk.CTkToplevel):
             self.parent.nm.set_next_parent(self)
 
             # 显示复制成功通知
-            self.parent.nm.show_success(
-                title="复制成功",
+            self.parent.nm.show_info(
+                title="提示",
                 message=f"已复制颜色代码 {self.selected_color} 到剪贴板",
             )
             # self.parent.status_bar.show_notification(

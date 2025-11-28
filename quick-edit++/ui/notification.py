@@ -191,7 +191,7 @@ class Notification:
         cls._max_notifications = max_count
 
     @classmethod
-    def set_next_parent(cls, parent_window):
+    def set_next_parent(cls, parent_window=None):
         """
         设置下一个通知的父窗口引用 (用于模态对话框场景)
 
@@ -200,13 +200,21 @@ class Notification:
         Args:
             parent_window: 父窗口对象, 通常为模态对话框
         """
+        if parent_window is None:
+            print("warn: 提供的父窗口对象为空")
+            return
+        
+        if parent_window and (not isinstance(parent_window, ctk.CTkToplevel) and not isinstance(parent_window, ctk.CTk)):
+            print("warn: 提供的父窗口对象不是 CTkToplevel 类型或 CTk 类型")
+            return
+        
         cls._next_parent_window = parent_window
 
     @classmethod
     def show(
         cls,
-        title,
-        message,
+        title="提示",
+        message="",
         notification_type=NotificationType.INFO,
         duration=None,
         position=None,
@@ -258,7 +266,7 @@ class Notification:
         return notification
 
     @classmethod
-    def show_success(cls, title, message, duration=None, position=None):
+    def show_success(cls, title="成功", message="", duration=None, position=None):
         """
         显示成功通知
 
@@ -274,7 +282,7 @@ class Notification:
         return cls.show(title, message, NotificationType.SUCCESS, duration, position)
 
     @classmethod
-    def show_error(cls, title, message, duration=None, position=None):
+    def show_error(cls, title="错误", message="", duration=None, position=None):
         """
         显示错误通知
 
@@ -290,7 +298,7 @@ class Notification:
         return cls.show(title, message, NotificationType.ERROR, duration, position)
 
     @classmethod
-    def show_warning(cls, title, message, duration=None, position=None):
+    def show_warning(cls, title="警告", message="", duration=None, position=None):
         """
         显示警告通知
 
@@ -306,7 +314,7 @@ class Notification:
         return cls.show(title, message, NotificationType.WARNING, duration, position)
 
     @classmethod
-    def show_info(cls, title, message, duration=None, position=None):
+    def show_info(cls, title="提示", message="", duration=None, position=None):
         """
         显示信息通知
 
