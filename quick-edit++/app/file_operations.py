@@ -3,6 +3,7 @@
 """
 
 import codecs
+from email import message
 import os
 import time
 import tkinter as tk
@@ -66,15 +67,25 @@ class FileOperations:
             # 使用copy2保留元数据
             try:
                 shutil.copy2(file_path, backup_path)
-                self.root.status_bar.show_notification("已创建副本备份")
+                # self.root.status_bar.show_notification("已创建副本备份")
+                self.root.nm.show_success(title="备份成功", message="已创建副本备份")
+
             except (IOError, OSError, PermissionError) as e:
-                messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
+                # messagebox.showerror("备份错误", f"创建副本备份失败: {str(e)}")
+                self.root.nm.show_error(
+                    title="备份错误", message=f"创建副本备份失败: {str(e)}"
+                )
+
             except Exception as e:
-                messagebox.showerror("备份错误", f"创建备份时发生未知错误: {str(e)}")
+                # messagebox.showerror("备份错误", f"创建备份时发生未知错误: {str(e)}")
+                self.root.nm.show_error(
+                    title="备份错误", message=f"创建备份时发生未知错误: {str(e)}"
+                )
 
         except Exception as e:
             logger.error(f"创建备份时出错: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("备份错误", f"备份处理失败: {str(e)}")
+            # messagebox.showerror("备份错误", f"备份处理失败: {str(e)}")
+            self.root.nm.show_error(title="备份错误", message=f"备份处理失败: {str(e)}")
 
     def _generate_default_filename(self, content_prefix):
         """
@@ -148,12 +159,14 @@ class FileOperations:
         # 情况1: 没有打开文件且文本框没有内容
         if not has_current_path and not content:
             info_text = "没有内容可另存为" if force_save_as else "没有内容可保存"
-            messagebox.showinfo("提示", info_text)
+            # messagebox.showinfo("提示", info_text)
+            self.root.nm.show_info(message=info_text)
             return False
 
         # 情况2: 已经打开文件, 检查是否修改 (除非是强制另存为)
         if has_current_path and not self.root.is_modified() and not force_save_as:
-            messagebox.showinfo("提示", "文件未修改, 无需保存")
+            # messagebox.showinfo("提示", "文件未修改, 无需保存")
+            self.root.nm.show_info(message="文件未修改, 无需保存")
             return True
 
         # 确定最终保存路径
@@ -206,15 +219,26 @@ class FileOperations:
                     f.write(content)
             except (IOError, OSError, PermissionError) as e:
                 logger.error(f"无法写入文件: {final_path}, 错误信息: {str(e)}")
-                messagebox.showerror("保存错误", f"无法写入文件: {str(e)}")
+                # messagebox.showerror("保存错误", f"无法写入文件: {str(e)}")
+                self.root.nm.show_error(
+                    title="保存错误", message=f"无法写入文件: {str(e)}"
+                )
                 return False
+
             except UnicodeEncodeError as e:
                 logger.error(f"编码错误: {final_path}, 错误信息: {str(e)}")
-                messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
+                # messagebox.showerror("编码错误", f"文件编码错误: {str(e)}")
+                self.root.nm.show_error(
+                    title="编码错误", message=f"文件编码错误: {str(e)}"
+                )
                 return False
+
             except Exception as e:
                 logger.error(f"保存文件时出错: {final_path}, 错误信息: {str(e)}")
-                messagebox.showerror("保存错误", f"保存文件时发生未知错误: {str(e)}")
+                # messagebox.showerror("保存错误", f"保存文件时发生未知错误: {str(e)}")
+                self.root.nm.show_error(
+                    title="保存错误", message=f"保存文件时发生未知错误: {str(e)}"
+                )
                 return False
 
             # 文件保存成功后, 更新文件监听器缓存, 防止程序的保存被误当成修改
@@ -250,9 +274,8 @@ class FileOperations:
                 self.root.status_bar.set_status_info(status="就绪")
 
             # 显示保存通知 - 仅在非自动保存时显示
-            # self.root.status_bar.show_notification(f"文件已保存")
             if not is_auto_save:
-                self.root.nm.show_success("提示", "文件已保存")
+                self.root.nm.show_info(message="文件已保存")
                 # self.root.status_bar.show_notification(f"文件已保存")
 
             # 更新窗口标题
@@ -272,7 +295,8 @@ class FileOperations:
 
         except Exception as e:
             logger.error(f"保存文件时出错: {final_path}, 错误信息: {str(e)}")
-            messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+            # messagebox.showerror("错误", f"保存文件时出错: {str(e)}")
+            self.root.nm.show_error(message=f"保存文件时出错: {str(e)}")
             return False
 
     def _new_file_helper(self, filename="新文件"):
@@ -303,7 +327,8 @@ class FileOperations:
 
         # 如果拖拽了多个文件, 直接提示并返回
         if len(files) > 1:
-            messagebox.showinfo("提示", "只支持打开单个文件, 请一次只拖拽一个文件")
+            # messagebox.showinfo("提示", "只支持打开单个文件, 请一次只拖拽一个文件")
+            self.root.nm.show_info(message="只支持打开单个文件, 请一次只拖拽一个文件")
             return
 
         # 解码文件路径
@@ -324,8 +349,12 @@ class FileOperations:
         if os.path.exists(file_path):
             # 检查是否是目录
             if os.path.isdir(file_path):
-                messagebox.showwarning(
-                    "不支持的操作", f"无法打开目录: {os.path.basename(file_path)}"
+                # messagebox.showwarning(
+                #     "不支持的操作", f"无法打开目录: {os.path.basename(file_path)}"
+                # )
+                self.root.nm.show_warning(
+                    title="不支持的操作",
+                    message=f"无法打开目录: {os.path.basename(file_path)}",
                 )
                 return
 
@@ -333,9 +362,14 @@ class FileOperations:
             self.root.after(10, lambda: self._process_dropped_file(file_path))
         else:
             # 路径不存在, 提示用户
-            messagebox.showwarning(
-                "文件不存在", f"无法打开文件: {os.path.basename(file_path)}"
+            # messagebox.showwarning(
+            #     "文件不存在", f"无法打开文件: {os.path.basename(file_path)}"
+            # )
+            self.root.nm.show_warning(
+                title="文件不存在",
+                message=f"无法打开文件: {os.path.basename(file_path)}",
             )
+            return
 
     def _process_dropped_file(self, file_path):
         """
@@ -353,7 +387,8 @@ class FileOperations:
             self._open_file(check_save=True, check_backup=True, file_path=file_path)
         except Exception as e:
             logger.error(f"处理拖拽文件时出错: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("错误", f"处理拖拽文件时出错: {e}")
+            # messagebox.showerror("错误", f"处理拖拽文件时出错: {e}")
+            self.root.nm.show_error(message=f"处理拖拽文件时出错: {e}")
 
     def _reset_editor_state(self):
         """重置编辑器状态, 包括清空内容、重置文件属性和更新状态栏"""
@@ -421,14 +456,19 @@ class FileOperations:
             if file_saved:
                 # 文件已保存, 删除备份文件
                 os.remove(backup_path)
-                self.root.status_bar.show_notification("已删除备份文件")
+                # self.root.status_bar.show_notification("已删除备份文件")
+                self.root.nm.show_info(message="已删除备份文件")
+
             else:
                 # 文件未保存, 保留备份文件作为未保存内容的备份
-                self.root.status_bar.show_notification("已保留备份文件")
+                # self.root.status_bar.show_notification("已保留备份文件")
+                self.root.nm.show_info(message="已保留备份文件")
+
         except Exception as e:
             # 删除或处理备份文件出错, 仅记录错误不影响关闭流程
             logger.error(f"处理备份文件时出错: {backup_path}, 错误信息: {str(e)}")
-            self.root.status_bar.show_notification(f"处理备份文件时出错: {str(e)}")
+            # self.root.status_bar.show_notification(f"处理备份文件时出错: {str(e)}")
+            self.root.nm.show_error(message=f"处理备份文件时出错: {str(e)}")
 
     def close_file(self):
         """关闭当前文件, 重置窗口和状态栏状态"""
@@ -523,12 +563,14 @@ class FileOperations:
         # 验证文件路径有效性
         if not os.path.exists(file_path):
             logger.error(f"文件不存在: {file_path}")
-            messagebox.showerror("错误", f"文件不存在: {file_path}")
+            # messagebox.showerror("错误", f"文件不存在: {file_path}")
+            self.root.nm.show_error(message=f"文件不存在: {file_path}")
             return False
 
         if not os.path.isfile(file_path):
             logger.error(f"指定路径不是文件: {file_path}")
-            messagebox.showerror("错误", f"指定路径不是文件: {file_path}")
+            # messagebox.showerror("错误", f"指定路径不是文件: {file_path}")
+            self.root.nm.show_error(message=f"指定路径不是文件: {file_path}")
             return False
 
         # 重置编辑器状态
@@ -580,6 +622,7 @@ class FileOperations:
 
             # 在状态栏显示正在读取文件的提示
             self.root.status_bar.show_notification("正在读取文件...", 500)
+            # self.root.nm.show_info(message="正在读取文件...", duration=1000)
 
             # 使用核心类同步读取文件
             result = self.file_core.read_file_sync(file_path, max_file_size, encoding)
@@ -614,8 +657,11 @@ class FileOperations:
                     self.root.update_char_count()
 
                     # 更新状态栏
-                    self.root.status_bar.show_notification(
-                        f"已打开: {os.path.basename(file_path)}", 500
+                    # self.root.status_bar.show_notification(
+                    #     f"已打开: {os.path.basename(file_path)}", 500
+                    # )
+                    self.root.nm.show_info(
+                        message=f"已打开: {os.path.basename(file_path)}"
                     )
 
                     # 更新窗口标题
@@ -647,7 +693,8 @@ class FileOperations:
 
                 except Exception as e:
                     logger.error(f"处理文件内容时出错: {file_path}, 错误信息: {str(e)}")
-                    messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
+                    # messagebox.showerror("错误", f"处理文件内容时出错: {str(e)}")
+                    self.root.nm.show_error(message=f"处理文件内容时出错: {str(e)}")
                     return False
             else:
                 # 读取失败
@@ -655,27 +702,47 @@ class FileOperations:
                     f"读取文件时出错: {file_path}, 错误信息: {result['message']}"
                 )
                 messagebox.showerror(result["title"], result["message"])
+                # self.root.nm.show_error(title=result["title"], message=result["message"])
                 return False
 
         except (IOError, OSError, PermissionError) as e:
             logger.error(f"启动文件读取时出错: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("文件访问错误", f"启动文件读取时出错: {str(e)}")
+            # messagebox.showerror("文件访问错误", f"启动文件读取时出错: {str(e)}")
+            self.root.nm.show_error(
+                title="文件访问错误", message=f"启动文件读取时出错: {str(e)}"
+            )
             return False
+
         except UnicodeDecodeError as e:
             logger.error(f"启动文件读取时编码错误: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("编码错误", f"启动文件读取时编码错误: {str(e)}")
+            # messagebox.showerror("编码错误", f"启动文件读取时编码错误: {str(e)}")
+            self.root.nm.show_error(
+                title="编码错误", message=f"启动文件读取时编码错误: {str(e)}"
+            )
             return False
+
         except MemoryError as e:
             logger.error(f"启动文件读取时内存不足: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("内存错误", f"启动文件读取时内存不足: {str(e)}")
+            # messagebox.showerror("内存错误", f"启动文件读取时内存不足: {str(e)}")
+            self.root.nm.show_error(
+                title="内存错误", message=f"启动文件读取时内存不足: {str(e)}"
+            )
             return False
+
         except ValueError as e:
             logger.error(f"启动文件读取时参数无效: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("参数错误", f"启动文件读取时参数无效: {str(e)}")
+            # messagebox.showerror("参数错误", f"启动文件读取时参数无效: {str(e)}")
+            self.root.nm.show_error(
+                title="参数错误", message=f"启动文件读取时参数无效: {str(e)}"
+            )
             return False
+
         except Exception as e:
             logger.error(f"启动文件读取时出错: {file_path}, 错误信息: {str(e)}")
-            messagebox.showerror("错误", f"启动文件读取时出错: {str(e)}")
+            # messagebox.showerror("错误", f"启动文件读取时出错: {str(e)}")
+            self.root.nm.show_error(
+                title="错误", message=f"启动文件读取时出错: {str(e)}"
+            )
             return False
 
     def open_config_file(self):
@@ -683,15 +750,21 @@ class FileOperations:
         try:
             # 检查是否为只读模式
             if self.root.is_read_only:
-                messagebox.showinfo(
-                    "提示", "当前为只读模式，请先关闭只读模式后再打开配置文件"
+                # messagebox.showinfo(
+                #     "提示", "当前为只读模式，请先关闭只读模式后再打开配置文件"
+                # )
+                self.root.nm.show_info(
+                    message="当前为只读模式，请先关闭只读模式后再打开配置文件"
                 )
                 return
 
             # 检查配置文件是否存在
             if not os.path.exists(CONFIG_PATH):
-                messagebox.showinfo(
-                    "提示", "配置文件不存在, 将在首次修改设置时自动创建"
+                # messagebox.showinfo(
+                #     "提示", "配置文件不存在, 将在首次修改设置时自动创建"
+                # )
+                self.root.nm.show_info(
+                    message="配置文件不存在, 将在首次修改设置时自动创建"
                 )
                 return
 
@@ -703,18 +776,28 @@ class FileOperations:
             )
         except (ImportError, AttributeError) as e:
             logger.error(f"配置管理器导入失败: {str(e)}")
-            messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
+            # messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
+            self.root.nm.show_error(
+                title="配置错误", message=f"配置管理器导入失败: {str(e)}"
+            )
+
         except Exception as e:
             logger.error(f"打开配置文件时出错: {str(e)}")
-            messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
+            # messagebox.showerror("错误", f"打开配置文件时出错: {str(e)}")
+            self.root.nm.show_error(
+                title="错误", message=f"打开配置文件时出错: {str(e)}"
+            )
 
     def open_log_file(self):
         """打开日志文件并加载到编辑器"""
         try:
             # 检查是否为只读模式
             if self.root.is_read_only:
-                messagebox.showinfo(
-                    "提示", "当前为只读模式，请先关闭只读模式后再打开日志文件"
+                # messagebox.showinfo(
+                #     "提示", "当前为只读模式，请先关闭只读模式后再打开日志文件"
+                # )
+                self.root.nm.show_info(
+                    message="当前为只读模式，请先关闭只读模式后再打开日志文件"
                 )
                 return
 
@@ -725,14 +808,20 @@ class FileOperations:
 
             # 检查日志目录和文件是否存在
             if not os.path.exists(log_dir):
-                messagebox.showinfo(
-                    "提示", "日志目录不存在, 将在首次记录日志时自动创建"
+                # messagebox.showinfo(
+                #     "提示", "日志目录不存在, 将在首次记录日志时自动创建"
+                # )
+                self.root.nm.show_info(
+                    message="日志目录不存在, 将在首次记录日志时自动创建"
                 )
                 return
 
             if not os.path.exists(log_path):
-                messagebox.showinfo(
-                    "提示", "日志文件不存在, 将在首次记录日志时自动创建"
+                # messagebox.showinfo(
+                #     "提示", "日志文件不存在, 将在首次记录日志时自动创建"
+                # )
+                self.root.nm.show_info(
+                    message="日志文件不存在, 将在首次记录日志时自动创建"
                 )
                 return
 
@@ -744,10 +833,17 @@ class FileOperations:
             )
         except (ImportError, AttributeError) as e:
             logger.error(f"配置管理器导入失败: {str(e)}")
-            messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
+            # messagebox.showerror("配置错误", f"配置管理器导入失败: {str(e)}")
+            self.root.nm.show_error(
+                title="配置错误", message=f"配置管理器导入失败: {str(e)}"
+            )
+
         except Exception as e:
             logger.error(f"打开日志文件时出错: {str(e)}")
-            messagebox.showerror("错误", f"打开日志文件时出错: {str(e)}")
+            # messagebox.showerror("错误", f"打开日志文件时出错: {str(e)}")
+            self.root.nm.show_error(
+                title="错误", message=f"打开日志文件时出错: {str(e)}"
+            )
 
     def save_file_copy(self):
         """
@@ -764,7 +860,8 @@ class FileOperations:
         """
         # 检查是否有打开的文件
         if not self.root.current_file_path:
-            messagebox.showinfo("提示", "没有打开的文件，无法创建副本")
+            # messagebox.showinfo("提示", "没有打开的文件，无法创建副本")
+            self.root.nm.show_info(message="没有打开的文件，无法创建副本")
             return False
 
         # 检查是否为只读模式
@@ -812,6 +909,10 @@ class FileOperations:
                 logger.debug(
                     f"文件名过长，已截断: {name_without_ext} -> {truncated_name}"
                 )
+                # 记录截断日志
+                self.root.nm.show_warning(
+                    message=f"文件名过长，已截断: {name_without_ext} -> {truncated_name}"
+                )
                 name_without_ext = truncated_name
 
             # 构建副本文件名: 文件名_时间戳_副本.扩展名
@@ -822,14 +923,16 @@ class FileOperations:
             shutil.copy2(original_path, copy_path)
 
             # 显示成功消息
-            self.root.status_bar.show_notification(
-                f"已创建文件副本:\n{copy_filename}", 1500
-            )
+            # self.root.status_bar.show_notification(
+            #     f"已创建文件副本:\n{copy_filename}", 1500
+            # )
+            self.root.nm.show_info(message=f"已创建文件副本:\n{copy_filename}")
             return True
 
         except Exception as e:
             logger.error(f"创建文件副本时出错: {str(e)}")
-            messagebox.showerror("错误", f"创建文件副本时出错: {str(e)}")
+            # messagebox.showerror("错误", f"创建文件副本时出错: {str(e)}")
+            self.root.nm.show_error(message=f"创建文件副本时出错: {str(e)}")
             return False
 
     def _check_backup_recovery(self, file_path):
@@ -901,8 +1004,10 @@ class FileOperations:
                     os.remove(backup_path)
                     self._open_file(file_path)
                     return True  # 已处理, 无需继续打开原文件
+
                 except Exception as e:
-                    messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
+                    # messagebox.showerror("错误", f"删除备份文件失败: {str(e)}")
+                    self.root.nm.show_error(message=f"删除备份文件失败: {str(e)}")
                     return True  # 出错, 不打开任何文件
 
             elif choice == BackupActions.OPEN_BACKUP_RENAME:
@@ -916,7 +1021,8 @@ class FileOperations:
                     self._open_file(file_path)
                     return True  # 已处理, 无需继续打开原文件
                 except Exception as e:
-                    messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
+                    # messagebox.showerror("错误", f"重命名备份文件失败: {str(e)}")
+                    self.root.nm.show_error(message=f"重命名备份文件失败: {str(e)}")
                     return True  # 出错, 不打开任何文件
 
             elif choice == BackupActions.OPEN_BACKUP:
@@ -927,7 +1033,8 @@ class FileOperations:
 
         except Exception as e:
             logger.error(f"处理备份文件时出错: {str(e)}")
-            messagebox.showerror("错误", f"处理备份文件时出错: {str(e)}")
+            # messagebox.showerror("错误", f"处理备份文件时出错: {str(e)}")
+            self.root.nm.show_error(message=f"处理备份文件时出错: {str(e)}")
             return True  # 出错, 不打开任何文件
 
         return False

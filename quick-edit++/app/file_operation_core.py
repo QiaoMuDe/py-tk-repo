@@ -220,8 +220,10 @@ class FileOperationCore:
                 result["title"] = "无法打开二进制文件"
                 result["message"] = (
                     f"检测到二进制文件: {os.path.basename(file_path)}\n\n"
-                    f"QuickEdit++ 是文本编辑器，不支持编辑二进制文件。\n"
-                    f"请使用专门的二进制文件编辑器打开此文件。"
+                    f"QuickEdit++ 是专为文本文件设计的编辑器，不支持编辑二进制文件。\n\n"
+                    f"建议：\n"
+                    f"• 使用专业的二进制/十六进制编辑器（如 HxD、WinHex）\n"
+                    f"• 或使用对应文件类型的专用软件打开此文件"
                 )
                 return result
 

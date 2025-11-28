@@ -48,7 +48,6 @@
 
 import customtkinter as ctk
 import sys
-import os
 
 # Windows API 导入
 if sys.platform == "win32":
@@ -131,7 +130,7 @@ class Notification:
     _default_position = NotificationPosition.BOTTOM_RIGHT  # 默认位置
     _default_duration = 3000  # 默认持续时间 (毫秒)
     _max_notifications = 3  # 最大同时显示的通知数量
-    _notification_spacing = 10  # 通知之间的间距 (像素)
+    _notification_spacing = 30  # 通知之间的间距 (像素)
 
     # 类变量 - 当前活动通知
     _active_notifications = []  # 活动通知列表
@@ -155,6 +154,13 @@ class Notification:
     CORNER_RADIUS = 15  # 圆角半径
     BORDER_WIDTH = 2  # 边框宽度
     INDICATOR_WIDTH = 5  # 指示条宽度
+
+    # 动态宽度计算配置
+    MIN_NOTIFICATION_WIDTH = 200  # 最小通知宽度
+    MIN_DYNAMIC_WIDTH = 280  # 动态宽度最小值
+    TITLE_CHAR_WIDTH = 30  # 标题字符宽度估算
+    MESSAGE_CHAR_WIDTH = 10  # 消息字符宽度估算
+    UI_ELEMENTS_WIDTH = 145  # UI元素宽度（按钮和图标）
 
     # 动画配置
     FADE_STEPS = 10  # 淡入淡出步数
@@ -203,11 +209,14 @@ class Notification:
         if parent_window is None:
             print("warn: 提供的父窗口对象为空")
             return
-        
-        if parent_window and (not isinstance(parent_window, ctk.CTkToplevel) and not isinstance(parent_window, ctk.CTk)):
+
+        if parent_window and (
+            not isinstance(parent_window, ctk.CTkToplevel)
+            and not isinstance(parent_window, ctk.CTk)
+        ):
             print("warn: 提供的父窗口对象不是 CTkToplevel 类型或 CTk 类型")
             return
-        
+
         cls._next_parent_window = parent_window
 
     @classmethod
@@ -411,7 +420,25 @@ class Notification:
             self.MIN_HEIGHT,
             min(self.MAX_HEIGHT, self.MIN_HEIGHT + estimated_lines * self.LINE_HEIGHT),
         )
-        self.notification_width = self.DEFAULT_WIDTH
+
+        # 动态计算通知宽度
+        # 计算标题和消息的预估宽度
+        title_width = len(self.title) * self.TITLE_CHAR_WIDTH  # 标题字符宽度估算
+        message_width = min(
+            len(self.message) * self.MESSAGE_CHAR_WIDTH,
+            self.CHAR_PER_LINE * self.MESSAGE_CHAR_WIDTH,
+        )  # 消息字符宽度估算，但不超过单行最大宽度
+
+        # 计算所需的最小宽度（标题、消息和UI元素的最大值）
+        min_required_width = max(title_width, message_width) + self.UI_ELEMENTS_WIDTH
+
+        # 设置通知宽度：在最小宽度和默认宽度之间选择，不超过最大宽度
+        self.notification_width = max(
+            self.MIN_NOTIFICATION_WIDTH,  # 最小宽度
+            min(
+                self.DEFAULT_WIDTH, max(min_required_width, self.MIN_DYNAMIC_WIDTH)
+            ),  # 不超过默认宽度，但至少最小动态宽度
+        )
 
     def _set_notification_geometry(self):
         """设置通知窗口的位置和大小"""
