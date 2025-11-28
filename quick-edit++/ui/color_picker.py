@@ -35,7 +35,6 @@ class HexColorPicker(ctk.CTkToplevel):
 
         # 设置对话框属性
         self.title(title)
-        self.geometry("500x600")
         self.resizable(False, False)
 
         # 设置窗口模态
@@ -58,7 +57,9 @@ class HexColorPicker(ctk.CTkToplevel):
         self._set_color(initial_color)
 
         # 居中显示对话框
-        self._center_dialog()
+        width = 500
+        height = 600
+        self.parent.center_window(self, width, height)
 
         # 绑定ESC键关闭对话框
         self.bind("<Escape>", lambda e: self._on_cancel())
@@ -367,14 +368,6 @@ class HexColorPicker(ctk.CTkToplevel):
         """取消按钮处理函数"""
         self.result = None
         self.destroy()
-
-    def _center_dialog(self):
-        """居中显示对话框"""
-        self.update_idletasks()
-        x = (self.winfo_screenwidth() // 2) - (self.winfo_width() // 2)
-        y = (self.winfo_screenheight() // 2) - (self.winfo_height() // 2)
-        self.geometry(f"+{x}+{y}")
-
 
 def show_color_picker(parent, initial_color="#000000"):
     """

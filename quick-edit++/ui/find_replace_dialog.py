@@ -5,6 +5,7 @@
 查找替换对话框模块
 """
 
+from turtle import width
 from loguru import logger
 import customtkinter as ctk
 from config.config_manager import ConfigManager
@@ -117,9 +118,9 @@ class FindReplaceDialog:
     def _create_widgets(self):
         """创建对话框UI组件"""
         # 设置对话框为更现代的尺寸
-        self.dialog.geometry(
-            f"550x390+{(self.dialog.winfo_screenwidth()//2)}+{(self.dialog.winfo_screenheight()//4)}"
-        )
+        self.width = 550
+        self.height = 390
+        self.parent.center_window(self.dialog, self.width, self.height)
 
         # 主框架 - 铺满整个窗口背景，统一颜色
         main_frame = ctk.CTkFrame(self.dialog, corner_radius=0)
@@ -427,14 +428,14 @@ class FindReplaceDialog:
         """
         message_box = ctk.CTkToplevel(self.dialog)
         message_box.title(title)
-        message_box.geometry("300x150")
         message_box.transient(self.dialog)
         message_box.grab_set()
 
         # 居中显示
-        message_box.geometry(
-            f"+{self.dialog.winfo_rootx() + 50}+{self.dialog.winfo_rooty() + 50}"
-        )
+        width = 300
+        height = 150
+        # 居中显示
+        self.parent.center_window(message_box, width, height)
 
         label = ctk.CTkLabel(
             message_box,

@@ -69,22 +69,34 @@ class SimpleBackupDialog:
         # 创建对话框窗口
         self.dialog = ctk.CTkToplevel(parent)
         self.dialog.title("发现备份文件")
-        self.dialog.geometry("700x700")
+        self.width = 700
+        self.height = 700
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+
+        # 先隐藏窗口，避免图标闪烁
+        self.dialog.withdraw()
 
         # 设置窗口关闭协议，点击x按钮时视为取消操作
         self.dialog.protocol("WM_DELETE_WINDOW", self._cancel)
 
         # 居中显示对话框
-        self._center_dialog()
+        self.parent.center_window(self.dialog, self.width, self.height)
 
         # 创建UI
         self._create_widgets()
 
+        # 延迟显示窗口，确保图标已设置
+        self.dialog.after(250, self._show_dialog)
+
         # 等待对话框关闭
         self.dialog.wait_window()
+
+    def _show_dialog(self):
+        """显示对话框，确保图标已设置"""
+        self.dialog.deiconify()
+        self.dialog.focus_force()
 
     def _get_mtime(self, file_path):
         """
@@ -125,13 +137,6 @@ class SimpleBackupDialog:
                 return f"{size_mb:.2f} MB" if size_mb % 1 else f"{int(size_mb)} MB"
         except Exception:
             return "未知大小"
-
-    def _center_dialog(self):
-        """将对话框居中显示"""
-        self.dialog.update_idletasks()
-        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
-        self.dialog.geometry(f"+{x}+{y}")
 
     def _create_widgets(self):
         """创建对话框组件"""

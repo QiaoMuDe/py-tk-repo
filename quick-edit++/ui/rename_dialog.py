@@ -26,7 +26,6 @@ class RenameDialog(ctk.CTkToplevel):
 
         # 设置对话框属性
         self.title("重命名文件")
-        self.geometry("480x190")
         self.resizable(False, False)
 
         # 字体配置
@@ -37,7 +36,9 @@ class RenameDialog(ctk.CTkToplevel):
         self.grab_set()
 
         # 居中显示
-        self._center_window()
+        width = 700 # 窗口宽度
+        height = 380 # 窗口高度
+        self.master.center_window(self, width, height)
 
         # 保存当前文件路径
         self.current_file_path = current_file_path
@@ -71,15 +72,6 @@ class RenameDialog(ctk.CTkToplevel):
         self.font_bold = ctk.CTkFont(
             family="Microsoft YaHei UI", size=15, weight="bold"
         )
-
-    def _center_window(self):
-        """将窗口居中显示"""
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        x = (self.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.winfo_screenheight() // 2) - (height // 2)
-        self.geometry(f"{width}x{height}+{x}+{y}")
 
     def _create_widgets(self):
         """创建对话框UI组件"""

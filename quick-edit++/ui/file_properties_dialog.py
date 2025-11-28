@@ -37,9 +37,13 @@ class FilePropertiesDialog(ctk.CTkToplevel):
 
         # 设置窗口属性
         self.title("文件属性")
-        self.geometry(
-            f"700x600+{self.winfo_screenwidth() // 3}+{self.winfo_screenheight() // 7}"
-        )
+        
+        # 居中显示窗口
+        self.width = 700 # 宽度
+        self.height = 600 # 高度
+        self.parent.center_window(self, self.width, self.height)
+        
+        # 设置窗口非可调整大小
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
@@ -268,6 +272,15 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         # 按钮框架
         button_frame = ctk.CTkFrame(main_frame)
         button_frame.pack(fill="x", pady=(5, 0))
+
+        # 提示标签
+        hint_label = ctk.CTkLabel(
+            button_frame,
+            text="提示: 文件属性信息仅供参考，实际属性可能因系统而异",
+            font=ctk.CTkFont(size=self.font_size-1, family=self.font_family),
+            text_color=("gray50", "gray60"),
+        )
+        hint_label.pack(side="left", padx=10, pady=5)
 
         # 关闭按钮
         close_button = ctk.CTkButton(

@@ -6,6 +6,7 @@
 该模块实现文本编辑的基本操作，包括撤销、重做、剪切、复制、粘贴、全选和清除等功能
 """
 
+from email import message
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
@@ -13,7 +14,6 @@ from config.config_manager import config_manager
 import os
 import datetime
 import uuid
-import base64
 from ui.color_picker import show_color_picker
 from ui.rgb_color_picker import show_rgb_color_picker
 from loguru import logger
@@ -1658,32 +1658,32 @@ func (s *StructName) IsValid() bool {
         font_size = 15
         font_weight = "bold"
 
-        # 创建自定义对话框窗口
+        # 创建自定义对话框窗口 - 恢复窗口边框
         dialog = ctk.CTkToplevel(self)
         dialog.title("转到行")
-        dialog.geometry("350x150")
+        width = 300
+        height = 80
+        self.center_window(dialog, width, height)
         dialog.resizable(False, False)
 
         # 设置窗口模态
         dialog.transient(self)
         dialog.grab_set()
 
-        # 创建输入框和标签
-        frame = ctk.CTkFrame(dialog)
-        frame.pack(padx=20, pady=20, fill="both", expand=True)
+        # 创建输入框和按钮在同一行
+        input_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        input_frame.pack(padx=10, pady=10, fill="both", expand=True)
 
+        # 标签
         label = ctk.CTkLabel(
-            frame, text="请输入行号:", font=(font_family, font_size, font_weight)
+            input_frame, text="行号:", font=(font_family, font_size, font_weight)
         )
-        label.pack(pady=(0, 10))
+        label.pack(side="left", padx=(0, 10))
 
-        entry = ctk.CTkEntry(frame, font=(font_family, font_size, font_weight))
-        entry.pack(pady=(0, 10), fill="x")
+        # 输入框
+        entry = ctk.CTkEntry(input_frame, font=(font_family, font_size, font_weight), width=100)
+        entry.pack(side="left", padx=(0, 10))
         entry.focus_set()
-
-        # 按钮框架
-        button_frame = ctk.CTkFrame(frame)
-        button_frame.pack(fill="x")
 
         def on_ok():
             """确认按钮处理函数"""
@@ -1694,63 +1694,47 @@ func (s *StructName) IsValid() bool {
                 self.text_area.see("insert")
                 # 更新状态栏
                 self.update_editor_display()
+                # 显示通知
+                self.status_bar.show_notification(f"已跳转到第 {line_num} 行", 500)
                 # 关闭对话框
                 dialog.destroy()
+                
             except ValueError:
-                # 显示错误消息
-                error_dialog = ctk.CTkToplevel(dialog)
-                error_dialog.title("错误")
-                error_dialog.geometry("250x100")
-                error_dialog.resizable(False, False)
-
-                error_label = ctk.CTkLabel(
-                    error_dialog,
-                    text="请输入有效的行号",
-                    font=(font_family, font_size, font_weight),
-                )
-                error_label.pack(pady=20)
-
-                ok_button = ctk.CTkButton(
-                    error_dialog,
-                    text="确定",
-                    font=(font_family, font_size, font_weight),
-                    command=error_dialog.destroy,
-                )
-                ok_button.pack(pady=10)
+                # 使用状态栏显示错误消息
+                self.nm.show_error(message=f"无效的行号: {entry.get()}")
 
         def on_cancel():
             """取消按钮处理函数"""
             dialog.destroy()
 
-        # 创建按钮
+        # 确定按钮
         ok_button = ctk.CTkButton(
-            button_frame,
+            input_frame,
             text="确定",
             font=(font_family, font_size, font_weight),
             command=on_ok,
+            width=60,
+            height=28
         )
-        ok_button.pack(side="left", padx=(0, 10), fill="x", expand=True)
+        ok_button.pack(side="left", padx=(0, 5))
 
+        # 取消按钮
         cancel_button = ctk.CTkButton(
-            button_frame,
+            input_frame,
             text="取消",
             font=(font_family, font_size, font_weight),
             command=on_cancel,
+            width=60,
+            height=28
         )
-        cancel_button.pack(side="right", fill="x", expand=True)
+        cancel_button.pack(side="left")
 
         # 绑定回车键
         entry.bind("<Return>", lambda e: on_ok())
 
         # 绑定ESC键
         dialog.bind("<Escape>", lambda e: on_cancel())
-
-        # 居中显示对话框
-        dialog.update_idletasks()
-        x = (dialog.winfo_screenwidth() // 2) - (dialog.winfo_width() // 2)
-        y = (dialog.winfo_screenheight() // 2) - (dialog.winfo_height() // 2)
-        dialog.geometry(f"+{x}+{y}")
-
+        
         # 在对话框完全显示后设置焦点
         dialog.after(100, entry.focus_set)
 

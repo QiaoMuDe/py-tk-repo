@@ -57,13 +57,11 @@ class AppInitializer:
         self.app.title("QuickEdit++")
 
         # 获取窗口大小配置
-        window_width = config_manager.get("app.window_width", 1200)
-        window_height = config_manager.get("app.window_height", 800)
+        window_width = config_manager.get("app.window_width", 1000)
+        window_height = config_manager.get("app.window_height", 700)
 
-        # 设置窗口大小, 相对居中显示
-        self.app.geometry(
-            f"{window_width}x{window_height}+{window_width//2}+{window_height//3}"
-        )
+        # 设置居中显示
+        self.app.center_window(self.app, window_width, window_height)
 
         # 设置最小窗口大小
         min_width = config_manager.get("app.min_width", 800)

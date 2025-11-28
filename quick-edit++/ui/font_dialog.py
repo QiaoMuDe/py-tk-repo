@@ -38,9 +38,12 @@ class FontDialog:
         self.text_widget = root.text_area
         self.dialog = ctk.CTkToplevel()
         self.dialog.title(title)
-        self.dialog.geometry(
-            f"850x500+{self.dialog.winfo_screenwidth()//4}+{self.dialog.winfo_screenheight()//4}"
-        )  # 设置固定大小
+        
+        # 居中显示
+        self.width = 850
+        self.height = 500
+        root.center_window(self.dialog, self.width, self.height)
+        
         self.dialog.resizable(False, False)  # 固定大小，不允许调整
         self.dialog.grab_set()  # 模态窗口
 
@@ -121,31 +124,28 @@ class FontDialog:
         self.dialog.grid_columnconfigure(0, weight=1)
         self.dialog.grid_rowconfigure(0, weight=1)
 
-        # 主框架：分为左右两部分
-        main_frame = ctk.CTkFrame(self.dialog)
+        # 主框架：分为左右两部分 - 使用更简洁的边框和背景
+        main_frame = ctk.CTkFrame(self.dialog, corner_radius=8, border_width=1)
         main_frame.grid(row=0, column=0, sticky="nsew", padx=10, pady=10)
         main_frame.grid_columnconfigure(0, weight=1)
         main_frame.grid_columnconfigure(1, weight=1)
         main_frame.grid_rowconfigure(0, weight=1)
 
-        # 左侧：字体设置区域
-        left_frame = ctk.CTkFrame(main_frame)
-        left_frame.grid(row=0, column=0, sticky="nsew", padx=5, pady=5)
+        # 左侧：字体设置区域 - 使用更小的边框和圆角
+        left_frame = ctk.CTkFrame(main_frame, corner_radius=6, fg_color="transparent")
+        left_frame.grid(row=0, column=0, sticky="nsew", padx=8, pady=8)
         left_frame.grid_columnconfigure(0, weight=1)
-        left_frame.grid_columnconfigure(1, weight=0)
-        left_frame.grid_rowconfigure(0, weight=0)
         left_frame.grid_rowconfigure(1, weight=0)
         left_frame.grid_rowconfigure(2, weight=1)
         left_frame.grid_rowconfigure(3, weight=0)
-        left_frame.grid_rowconfigure(4, weight=0)
 
         # 字体标题
         font_label = ctk.CTkLabel(left_frame, text="字体", font=title_font)
-        font_label.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        font_label.grid(row=0, column=0, sticky="w", padx=5, pady=(5, 2))
 
-        # 字体搜索区域
-        search_frame = ctk.CTkFrame(left_frame)
-        search_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=0)
+        # 字体搜索区域 - 使用更简洁的框架
+        search_frame = ctk.CTkFrame(left_frame, corner_radius=4, fg_color="transparent")
+        search_frame.grid(row=1, column=0, sticky="ew", padx=5, pady=(0, 5))
         search_frame.grid_columnconfigure(0, weight=1)
 
         self.search_var = tk.StringVar()
@@ -154,6 +154,7 @@ class FontDialog:
             textvariable=self.search_var,
             placeholder_text="搜索字体...",
             font=component_font,
+            corner_radius=4,
         )
         self.search_entry.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         self.search_entry.bind("<KeyRelease>", self._on_search)
@@ -164,8 +165,21 @@ class FontDialog:
             width=80,
             command=self._on_search,
             font=component_font,
+            corner_radius=4,
         )
-        self.search_button.grid(row=0, column=1, padx=5, pady=5)
+        self.search_button.grid(row=0, column=1, padx=(0, 5), pady=5)
+
+        # 字体列表容器 - 使用更简洁的框架
+        list_container = ctk.CTkFrame(left_frame, corner_radius=6, fg_color="transparent", border_width=1)
+        list_container.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
+        list_container.grid_columnconfigure(0, weight=1)
+        list_container.grid_rowconfigure(0, weight=1)
+
+        # 字体列表框架 - 将列表和滚动条放在同一个框架中
+        list_frame = ctk.CTkFrame(list_container, corner_radius=4, fg_color="transparent")
+        list_frame.grid(row=0, column=0, sticky="nsew", padx=3, pady=3)
+        list_frame.grid_columnconfigure(0, weight=1)
+        list_frame.grid_rowconfigure(0, weight=1)
 
         # 字体列表 - 使用tk.Listbox + CTkScrollbar
         # 创建tkinter兼容的字体元组
@@ -175,27 +189,30 @@ class FontDialog:
             "bold" if component_font_config.get("font_bold", False) else "normal",
         )
         self.font_listbox = tk.Listbox(
-            left_frame,
+            list_frame,
             exportselection=False,
             activestyle="none",
             selectmode="single",
             font=listbox_font,
+            borderwidth=0,
+            relief="flat",
+            highlightthickness=0,
         )
-        self.font_listbox.grid(row=2, column=0, sticky="nsew", padx=5, pady=5)
+        self.font_listbox.grid(row=0, column=0, sticky="nsew")
 
         # 滚动条 - 使用CTkScrollbar
         font_scrollbar = ctk.CTkScrollbar(
-            left_frame, orientation="vertical", command=self.font_listbox.yview
+            list_frame, orientation="vertical", command=self.font_listbox.yview, corner_radius=4
         )
-        font_scrollbar.grid(row=2, column=1, sticky="ns")
+        font_scrollbar.grid(row=0, column=1, sticky="ns")
         self.font_listbox.configure(yscrollcommand=font_scrollbar.set)
 
         # 绑定列表选择事件
         self.font_listbox.bind("<<ListboxSelect>>", self._on_font_select)
 
-        # 字体设置区域 - 重新设计
-        size_frame = ctk.CTkFrame(left_frame)
-        size_frame.grid(row=3, column=0, sticky="ew", padx=5, pady=5)
+        # 字体设置区域 - 重新设计，使用更简洁的框架
+        size_frame = ctk.CTkFrame(left_frame, corner_radius=4, fg_color="transparent")
+        size_frame.grid(row=3, column=0, sticky="ew", padx=5, pady=(5, 8))
 
         # 配置列权重，让布局更加灵活
         size_frame.grid_columnconfigure(0, weight=0)
@@ -210,12 +227,12 @@ class FontDialog:
             size_frame, text="字体设置 (大小范围: 8-72)", font=title_font
         )
         size_title_label.grid(
-            row=0, column=0, columnspan=6, sticky="ew", padx=10, pady=(8, 12)
+            row=0, column=0, columnspan=6, sticky="ew", padx=10, pady=(8, 8)
         )
 
         # 字体大小标签
         size_label = ctk.CTkLabel(size_frame, text="大小:", font=component_font)
-        size_label.grid(row=1, column=0, padx=(10, 10), pady=10, sticky="w")
+        size_label.grid(row=1, column=0, padx=(10, 10), pady=(5, 10), sticky="w")
 
         # 减小字体按钮
         self.size_decrease_btn = ctk.CTkButton(
@@ -225,8 +242,9 @@ class FontDialog:
             height=30,
             command=self._decrease_font_size,
             font=component_font,
+            corner_radius=4,
         )
-        self.size_decrease_btn.grid(row=1, column=1, padx=(0, 5), pady=10)
+        self.size_decrease_btn.grid(row=1, column=1, padx=(0, 5), pady=(5, 10))
 
         # 字体大小输入框
         self.size_var = tk.StringVar(value=str(self.temp_font["size"]))
@@ -237,8 +255,9 @@ class FontDialog:
             height=30,
             font=component_font,
             justify="center",
+            corner_radius=4,
         )
-        self.size_entry.grid(row=1, column=2, padx=(0, 5), pady=10)
+        self.size_entry.grid(row=1, column=2, padx=(0, 5), pady=(5, 10))
         self.size_entry.bind("<KeyRelease>", self._on_size_change)
 
         # 增大字体按钮
@@ -249,8 +268,9 @@ class FontDialog:
             height=30,
             command=self._increase_font_size,
             font=component_font,
+            corner_radius=4,
         )
-        self.size_increase_btn.grid(row=1, column=3, padx=(0, 10), pady=10)
+        self.size_increase_btn.grid(row=1, column=3, padx=(0, 10), pady=(5, 10))
 
         # 加粗选项 - 放在右侧并居中对齐
         self.bold_var = tk.BooleanVar(value=(self.temp_font["weight"] == "bold"))
@@ -260,20 +280,26 @@ class FontDialog:
             variable=self.bold_var,
             command=self._update_preview,
             font=component_font,
+            corner_radius=4,
         )
-        self.bold_checkbox.grid(row=1, column=5, padx=(0, 10), pady=10, sticky="e")
+        self.bold_checkbox.grid(row=1, column=5, padx=(0, 10), pady=(5, 10), sticky="e")
 
-        # 右侧：预览区域
-        right_frame = ctk.CTkFrame(main_frame)
-        right_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
+        # 右侧：预览区域 - 调整边距以显示完整圆角
+        right_frame = ctk.CTkFrame(main_frame, corner_radius=8, fg_color="transparent")
+        right_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 8), pady=8)
         right_frame.grid_columnconfigure(0, weight=1)
-        right_frame.grid_rowconfigure(0, weight=0)
         right_frame.grid_rowconfigure(1, weight=1)
         right_frame.grid_rowconfigure(2, weight=0)
 
         # 预览标签
         preview_label = ctk.CTkLabel(right_frame, text="字体预览", font=title_font)
-        preview_label.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        preview_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 5))
+
+        # 预览文本容器 - 调整边距以显示完整圆角
+        preview_container = ctk.CTkFrame(right_frame, corner_radius=6, fg_color="transparent")
+        preview_container.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
+        preview_container.grid_columnconfigure(0, weight=1)
+        preview_container.grid_rowconfigure(0, weight=1)
 
         # 使用临时字体作为预览文本框的字体
         preview_font = ctk.CTkFont(
@@ -283,8 +309,15 @@ class FontDialog:
         )
 
         # 使用CTkTextbox作为预览文本框
-        self.preview_text = ctk.CTkTextbox(right_frame, wrap="word", font=preview_font)
-        self.preview_text.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        self.preview_text = ctk.CTkTextbox(
+            preview_container, 
+            wrap="word", 
+            font=preview_font,
+            corner_radius=6,
+            border_width=1,
+            border_color="#343638",
+        )
+        self.preview_text.grid(row=0, column=0, sticky="nsew", padx=3, pady=3)
 
         # 插入预览文本
         self.preview_text.insert(
@@ -293,15 +326,14 @@ class FontDialog:
         )
         self.preview_text.configure(state="disabled")
 
-        # 按钮区域
-        button_frame = ctk.CTkFrame(right_frame)
-        button_frame.grid(row=2, column=0, sticky="ew", padx=5, pady=(5, 10))
+        # 按钮区域 - 调整边距以显示完整圆角
+        button_frame = ctk.CTkFrame(right_frame, corner_radius=6, fg_color="transparent")
+        button_frame.grid(row=2, column=0, sticky="ew", padx=8, pady=(0, 8))
         button_frame.grid_columnconfigure(0, weight=1)
-        button_frame.grid_columnconfigure(1, weight=1)
 
         # 按钮容器，用于居中按钮
-        button_container = ctk.CTkFrame(button_frame)
-        button_container.grid(row=0, column=0, columnspan=2, pady=10)
+        button_container = ctk.CTkFrame(button_frame, corner_radius=4, fg_color="transparent")
+        button_container.grid(row=0, column=0, pady=8)
 
         self.ok_button = ctk.CTkButton(
             button_container,
@@ -310,6 +342,7 @@ class FontDialog:
             font=component_font,
             width=100,
             height=32,
+            corner_radius=6,
         )
         self.ok_button.grid(row=0, column=0, padx=(10, 5), pady=5)
 
@@ -320,6 +353,7 @@ class FontDialog:
             font=component_font,
             width=100,
             height=32,
+            corner_radius=6,
         )
         self.cancel_button.grid(row=0, column=1, padx=(5, 10), pady=5)
 

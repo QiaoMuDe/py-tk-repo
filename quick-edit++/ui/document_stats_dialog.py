@@ -629,7 +629,8 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         """初始化用户界面"""
         # 设置窗口属性
         self.title("文档统计信息")
-        self.geometry("500x400")
+        self.width = 700 # 宽度
+        self.height = 600 # 高度
         self.resizable(True, True)
 
         # 设置窗口模态
@@ -753,7 +754,7 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         self.bind("<Escape>", self._on_escape)
 
         # 居中显示窗口
-        self._center_window()
+        self.parent.center_window(self, self.width, self.height)
 
     def _start_calculation(self):
         """开始统计计算（确保窗口已显示）"""
@@ -1445,15 +1446,6 @@ class DocumentStatsDialog(ctk.CTkToplevel):
 
     # 移除_create_code_stats_tab_async方法，因为已集成到基本统计中
 
-    def _center_window(self):
-        """居中显示窗口"""
-        self.update_idletasks()
-        width = self.winfo_width()
-        height = self.winfo_height()
-        x = width // 2
-        y = height // 6
-        self.geometry(f"{width}x{height}+{x}+{y}")
-
     def _toggle_fullscreen(self):
         """切换全屏模式"""
         # 获取当前状态
@@ -1471,10 +1463,8 @@ class DocumentStatsDialog(ctk.CTkToplevel):
             # 退出全屏
             self.attributes("-fullscreen", False)
             self.fullscreen_button.configure(text="全屏")
-            # 恢复原始窗口大小
-            self.geometry("500x400")
-            # 重新居中窗口
-            self._center_window()
+            # 居中显示窗口
+            self.parent.center_window(self, self.width, self.height)
 
     def _on_tab_double_click(self, event):
         """处理基本统计选项卡双击事件，切换全屏"""

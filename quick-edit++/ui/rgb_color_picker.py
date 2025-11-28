@@ -38,7 +38,8 @@ class RGBColorPicker:
         # 创建自定义对话框窗口
         self.dialog = ctk.CTkToplevel(self.parent)
         self.dialog.title("RGB颜色代码选择器")
-        self.dialog.geometry("400x500")
+        self.width = 400
+        self.height = 500
         self.dialog.resizable(False, False)
 
         # 设置窗口模态
@@ -189,10 +190,7 @@ class RGBColorPicker:
         button_frame.grid_columnconfigure(2, weight=1)
 
         # 居中显示对话框
-        self.dialog.update_idletasks()
-        x = (self.dialog.winfo_screenwidth() // 2) - (self.dialog.winfo_width() // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (self.dialog.winfo_height() // 2)
-        self.dialog.geometry(f"+{x}+{y}")
+        self.parent.center_window(self.dialog, self.width, self.height)
 
     def update_color(self):
         """更新颜色预览和RGB代码"""
