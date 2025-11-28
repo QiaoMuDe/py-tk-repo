@@ -588,8 +588,11 @@ class FontDialog:
 
         # 显示通知
         font_weight_text = "加粗" if self.temp_font["weight"] == "bold" else "常规"
-        self.root.status_bar.show_notification(
-            f"字体设置成功: {self.temp_font['family']} {self.temp_font['size']}pt {font_weight_text}"
+        # self.root.status_bar.show_notification(
+        #     f"字体设置成功: {self.temp_font['family']} {self.temp_font['size']}pt {font_weight_text}"
+        # )
+        self.root.nm.show_info(
+            message=f"字体设置成功: {self.temp_font['family']} {self.temp_font['size']}pt {font_weight_text}"
         )
 
         # 延迟关闭对话框，确保回调函数执行完毕

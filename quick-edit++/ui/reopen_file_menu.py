@@ -147,7 +147,8 @@ class ReopenFileMenu:
         """
         # 检查是否有当前打开的文件
         if not self.root.current_file_path:
-            messagebox.showinfo("提示", "没有当前打开的文件，无法重新载入。")
+            # messagebox.showinfo("提示", "没有当前打开的文件，无法重新载入。")
+            self.root.nm.show_info(message="没有当前打开的文件，无法重新载入。")
             return
 
         # 调用回调函数重新载入文件

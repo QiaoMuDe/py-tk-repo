@@ -236,7 +236,6 @@ class RGBColorPicker:
         self.parent.nm.set_next_parent(self.dialog)
         # 显示复制成功通知
         self.parent.nm.show_info(
-            title="提示",
             message=f"已复制颜色代码 {rgb_code} 到剪贴板",
         )
 

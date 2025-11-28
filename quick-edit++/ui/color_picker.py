@@ -334,6 +334,7 @@ class HexColorPicker(ctk.CTkToplevel):
                 self._set_color(color[1])
         except Exception as e:
             logger.error(f"打开系统颜色选择器失败: {e}")
+            self.parent.nm.show_error(message=f"打开系统颜色选择器失败: {e}")
 
     def _copy_to_clipboard(self):
         """复制当前颜色代码到剪贴板"""
@@ -347,7 +348,6 @@ class HexColorPicker(ctk.CTkToplevel):
 
             # 显示复制成功通知
             self.parent.nm.show_info(
-                title="提示",
                 message=f"已复制颜色代码 {self.selected_color} 到剪贴板",
             )
             # self.parent.status_bar.show_notification(
@@ -356,6 +356,7 @@ class HexColorPicker(ctk.CTkToplevel):
 
         except Exception as e:
             logger.error(f"复制到剪贴板失败: {e}")
+            self.parent.nm.show_error(message=f"复制到剪贴板失败: {e}")
 
     def _on_ok(self):
         """确定按钮处理函数"""

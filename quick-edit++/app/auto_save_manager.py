@@ -6,6 +6,7 @@
 负责处理应用程序的自动保存功能，包括定时保存、焦点离开保存等
 """
 
+from email import message
 import time
 import tkinter as tk
 from config.config_manager import config_manager
@@ -126,7 +127,8 @@ class AutoSaveManager:
 
             except Exception as e:
                 logger.error(f"自动保存失败: {file_path}, 错误: {str(e)}")
-                self.app.status_bar.show_notification(f"自动保存失败: {str(e)}")
+                # self.app.status_bar.show_notification(f"自动保存失败: {str(e)}")
+                self.app.nm.show_error(message=f"自动保存失败: {str(e)}")
         else:
             # 文件未修改，更新状态栏显示检查状态
             self.app.status_bar.show_auto_save_status(saved=False)
@@ -190,11 +192,17 @@ class AutoSaveManager:
                 self._auto_save()
                 logger.info(f"启用自动保存时立即保存文件: {self.app.current_file_path}")
 
+            # 启用自动保存调用通知
+            self.app.nm.show_info(message="自动保存已启用")
+
         else:
             # 禁用自动保存，取消自动保存任务
             self.stop_auto_save()
             # 禁用自动保存后，将上次的自动保存时间设置为0
             self.last_auto_save_time = 0
+
+            # 禁用自动保存调用通知
+            self.app.nm.show_info(message="自动保存已禁用")
 
         # 更新窗口标题
         self.app._update_window_title()
@@ -225,4 +233,5 @@ class AutoSaveManager:
             self.start_auto_save()
 
         # 显示通知
-        self.app.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")
+        # self.app.status_bar.show_notification(f"自动保存间隔已设置为: {interval}秒")
+        self.app.nm.show_info(message=f"自动保存间隔已设置为: {interval}秒")

@@ -70,12 +70,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             # 注册拖拽目标，使用编辑器的拖拽处理方法（包含只读模式检查）
             wd.hook_dropfiles(self, func=self.handle_drag_drop)
 
-        except ImportError:
-            logger.warning("未安装windnd库, 拖拽功能将不可用")
-            logger.warning("请使用以下命令安装: pip install windnd")
-            logger.error(f"拖拽功能初始化失败: {e}")
         except Exception as e:
             logger.error(f"拖拽功能初始化失败: {e}")
+            self.nm.show_error(message=f"拖拽功能初始化失败: {e}")
 
     def handle_drag_drop(self, files):
         """
@@ -86,7 +83,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("提示", "当前为只读模式，无法通过拖拽打开文件")
+            # messagebox.showinfo("提示", "当前为只读模式，无法通过拖拽打开文件")
+            self.nm.show_info(message="当前为只读模式，无法通过拖拽打开文件")
             return
 
         # 调用实际的拖拽处理方法
@@ -108,6 +106,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         except Exception as e:
             logger.error(f"内存清理过程中发生错误: {e}")
+            self.nm.show_error(message=f"内存清理过程中发生错误: {e}")
 
     def _on_closing(self):
         """窗口关闭事件处理"""
@@ -336,7 +335,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         # 检查是否为只读模式
         if self.is_read_only:
-            self.status_bar.show_notification("当前为只读模式, 无法进行缩进")
+            # self.status_bar.show_notification("当前为只读模式, 无法进行缩进")
+            self.nm.show_info(message="当前为只读模式, 无法进行缩进")
             return "break"
 
         try:
@@ -695,6 +695,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         except Exception as e:
             logger.error(f"更新编辑器显示时出错: {e}")
+            self.nm.show_error(message=f"更新编辑器显示时出错: {e}")
 
     def _on_cursor_move(self, event=None):
         """光标移动事件处理"""
@@ -879,7 +880,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """打开文件并加载到文本编辑区域"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
+            # messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
+            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再打开文件")
             return
 
         # 直接调用文件操作处理器的打开文件方法
@@ -889,7 +891,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """通过指定路径打开文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
+            # messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
+            self.nm.show_info(message="当前处于只读模式，无法打开新文件。")
             return
 
         # 直接调用文件操作处理器的打开文件方法
@@ -901,7 +904,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """保存当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
+            # messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
+            self.nm.show_info(message="当前为只读模式，无法保存文件")
             return False
 
         # 直接调用文件操作处理器的保存文件方法
@@ -911,7 +915,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """另存为文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
+            # messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
+            self.nm.show_info(message="当前为只读模式，无法另存为文件")
             return False
 
         # 直接调用文件操作处理器的另存为方法
@@ -926,7 +931,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """关闭当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
+            # messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
+            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再关闭文件")
             return
         # 直接调用文件操作处理器的关闭文件方法
         self.file_ops.close_file()
@@ -953,9 +959,10 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """创建新文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            messagebox.showinfo(
-                "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
-            )
+            # messagebox.showinfo(
+            #     "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
+            # )
+            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再创建新文件")
             return
 
         # 调用新建文件辅助方法
@@ -973,7 +980,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.is_read_only:
             # 设置为只读模式
             self.text_area.configure(state="disabled")
-            self.status_bar.show_notification("已切换到只读模式")
+            # self.status_bar.show_notification("已切换到只读模式")
+            self.nm.show_info(message="已切换到只读模式")
+
             # 更新工具栏按钮外观
             self.toolbar.readonly_button.configure(
                 fg_color="#FF6B6B", hover_color="#FF5252"
@@ -981,7 +990,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         else:
             # 设置为编辑模式
             self.text_area.configure(state="normal")
-            self.status_bar.show_notification("已切换到编辑模式")
+            # self.status_bar.show_notification("已切换到编辑模式")
+            self.nm.show_info(message="已切换到编辑模式")
+
             # 恢复工具栏按钮默认外观
             default_fg_color = ThemeManager.theme["CTkButton"]["fg_color"]
             default_hover_color = ThemeManager.theme["CTkButton"]["hover_color"]
@@ -999,12 +1010,15 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                     # 在Windows上使用explorer命令打开文件夹
                     os.startfile(directory)
                 else:
-                    messagebox.showerror("错误", "文件所在目录不存在")
+                    # messagebox.showerror("错误", "文件所在目录不存在")
+                    self.nm.show_error(message="文件所在目录不存在")
             except Exception as e:
                 logger.error(f"无法打开文件所在文件夹: {str(e)}")
-                messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
+                # messagebox.showerror("错误", f"无法打开文件所在文件夹: {str(e)}")
+                self.nm.show_error(message=f"无法打开文件所在文件夹: {str(e)}")
         else:
-            messagebox.showinfo("提示", "当前没有打开的文件")
+            # messagebox.showinfo("提示", "当前没有打开的文件")
+            self.nm.show_info(message="当前没有打开的文件")
 
     def get_char_count(self):
         """
