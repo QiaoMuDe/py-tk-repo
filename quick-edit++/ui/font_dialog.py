@@ -178,9 +178,7 @@ class FontDialog:
         list_container.grid_rowconfigure(0, weight=1)
 
         # 字体列表框架 - 将列表和滚动条放在同一个框架中
-        list_frame = ctk.CTkFrame(
-            list_container, fg_color="transparent"
-        )
+        list_frame = ctk.CTkFrame(list_container, fg_color="transparent")
         list_frame.grid(row=0, column=0, sticky="nsew", padx=3, pady=3)
         list_frame.grid_columnconfigure(0, weight=1)
         list_frame.grid_rowconfigure(0, weight=1)
@@ -303,9 +301,7 @@ class FontDialog:
         preview_label.grid(row=0, column=0, sticky="w", padx=10, pady=(8, 5))
 
         # 预览文本容器 - 透明背景，与窗体融为一体
-        preview_container = ctk.CTkFrame(
-            right_frame, fg_color="transparent"
-        )
+        preview_container = ctk.CTkFrame(right_frame, fg_color="transparent")
         preview_container.grid(row=1, column=0, sticky="nsew", padx=8, pady=(0, 8))
         preview_container.grid_columnconfigure(0, weight=1)
         preview_container.grid_rowconfigure(0, weight=1)
@@ -336,16 +332,12 @@ class FontDialog:
         self.preview_text.configure(state="disabled")
 
         # 按钮区域 - 透明背景，与窗体融为一体
-        button_frame = ctk.CTkFrame(
-            right_frame, fg_color="transparent"
-        )
+        button_frame = ctk.CTkFrame(right_frame, fg_color="transparent")
         button_frame.grid(row=2, column=0, sticky="ew", padx=8, pady=(0, 8))
         button_frame.grid_columnconfigure(0, weight=1)
 
         # 按钮容器，用于居中按钮
-        button_container = ctk.CTkFrame(
-            button_frame, fg_color="transparent"
-        )
+        button_container = ctk.CTkFrame(button_frame, fg_color="transparent")
         button_container.grid(row=0, column=0, pady=8)
 
         self.ok_button = ctk.CTkButton(
@@ -386,7 +378,7 @@ class FontDialog:
         try:
             # 确保字体列表框有焦点
             self.font_listbox.focus_set()
-            
+
             current_selection = self.font_listbox.curselection()
             if current_selection:
                 current_index = current_selection[0]
@@ -411,7 +403,7 @@ class FontDialog:
         try:
             # 确保字体列表框有焦点
             self.font_listbox.focus_set()
-            
+
             current_selection = self.font_listbox.curselection()
             if current_selection:
                 current_index = current_selection[0]
