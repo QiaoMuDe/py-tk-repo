@@ -532,11 +532,11 @@ class FileOperations:
         # 如果文件已修改, 提示用户
         result = messagebox.askyesnocancel(
             "文件已修改",
-            "文件已被修改，是否保存后再重命名？\n\n点击'是'保存并重命名\n点击'否'直接重命名(不保存修改)\n点击'取消'放弃重命名",
+            "是否保存后再重命名文件？",
         )
 
         if result is True:  # 用户选择保存
-            return self.save_file()
+            return self._save_file()
         elif result is False:  # 用户选择不保存
             return True
         else:  # 用户选择取消
