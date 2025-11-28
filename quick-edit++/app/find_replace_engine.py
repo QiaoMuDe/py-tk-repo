@@ -7,7 +7,6 @@
 
 import tkinter as tk
 from typing import List, Tuple, Optional
-from tkinter import messagebox
 
 
 class SearchOptions:
@@ -47,10 +46,7 @@ class SearchOptions:
                 regex = True
             elif whole_word:
                 regex = False
-            messagebox.showinfo(
-                "搜索选项提示",
-                "基础搜索模式（普通、全词匹配、正则表达式）互斥，已按优先级设置",
-            )
+
         elif base_modes == 0:
             # 如果没有设置任何基础模式，默认使用普通搜索
             normal_search = True

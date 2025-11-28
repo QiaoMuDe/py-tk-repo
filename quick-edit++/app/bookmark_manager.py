@@ -276,14 +276,17 @@ class BookmarkManager:
             except Exception as inner_e:
                 # 处理获取光标位置时的错误
                 logger.error(f"书签操作失败: {str(inner_e)}")
-                self.editor.status_bar.show_notification(
-                    f"书签操作失败: {str(inner_e)}", 1000
-                )
+                # self.editor.status_bar.show_notification(
+                #     f"书签操作失败: {str(inner_e)}", 1000
+                # )
+                self.editor.nm.show_error(message=f"书签操作失败: {str(inner_e)}")
                 return False
+
         except Exception as e:
             # 处理其他未预期的错误
             logger.error(f"书签操作失败: {str(e)}")
-            self.editor.status_bar.show_notification(f"书签操作失败: {str(e)}", 1000)
+            # self.editor.status_bar.show_notification(f"书签操作失败: {str(e)}", 1000)
+            self.editor.nm.show_error(message=f"书签操作失败: {str(e)}")
             return False
 
     def _generate_unique_tag_name(
@@ -336,6 +339,7 @@ class BookmarkManager:
 
         # 显示提示信息
         self.editor.status_bar.show_notification(f"已添加书签: 行 {line_num}", 500)
+        # self.editor.nm.show_info(message=f"已添加书签: 行 {line_num}")
 
     def _add_bookmark_range(
         self, start_line: int, start_col: int, end_line: int, end_col: int
@@ -372,10 +376,13 @@ class BookmarkManager:
             self.editor.status_bar.show_notification(
                 f"已添加书签: 行 {start_line}", 500
             )
+            # self.editor.nm.show_info(message=f"已添加书签: 行 {start_line}")
+
         else:
             self.editor.status_bar.show_notification(
                 f"已添加书签: 行 {start_line}-{end_line}", 500
             )
+            # self.editor.nm.show_info(message=f"已添加书签: 行 {start_line}-{end_line}")
 
     def _remove_bookmark_at_index(self, index: int):
         """
@@ -409,15 +416,18 @@ class BookmarkManager:
                 self.editor.status_bar.show_notification(
                     f"已删除书签: 行 {start_line}", 500
                 )
+                # self.editor.nm.show_info(message=f"已删除书签: 行 {start_line}")
             else:
                 self.editor.status_bar.show_notification(
                     f"已删除书签: 行 {start_line}-{end_line}", 500
                 )
+                # self.editor.nm.show_info(message=f"已删除书签: 行 {start_line}-{end_line}")
 
             return True
         except Exception as e:
             logger.error(f"删除书签失败: {str(e)}")
-            self.editor.status_bar.show_notification(f"删除书签失败: {str(e)}", 1000)
+            # self.editor.status_bar.show_notification(f"删除书签失败: {str(e)}", 1000)
+            self.editor.nm.show_error(message=f"删除书签失败: {str(e)}")
             return False
 
     def _find_bookmarks_on_line(self, line_num: int) -> List[Tuple[int, int, int, int]]:
@@ -516,7 +526,8 @@ class BookmarkManager:
             bool: 成功跳转返回True，否则返回False
         """
         if not self.bookmarks:
-            self.editor.status_bar.show_notification("没有书签", 500)
+            self.editor.status_bar.show_notification("没有书签可跳转", 500)
+            # self.editor.nm.show_info(message="没有书签可跳转")
             return False
 
         # 获取当前光标位置
@@ -546,7 +557,8 @@ class BookmarkManager:
             bool: 成功跳转返回True，否则返回False
         """
         if not self.bookmarks:
-            self.editor.status_bar.show_notification("没有书签", 500)
+            self.editor.status_bar.show_notification("没有书签可跳转", 500)
+            # self.editor.nm.show_info(message="没有书签可跳转")
             return False
 
         # 获取当前光标位置
@@ -572,6 +584,7 @@ class BookmarkManager:
         """清除所有书签"""
         if not self.bookmarks:
             self.editor.status_bar.show_notification("没有书签可清除", 500)
+            # self.editor.nm.show_info(message="没有书签可清除")
             return
 
         # 清除所有标签
@@ -587,6 +600,7 @@ class BookmarkManager:
 
         # 显示提示信息
         self.editor.status_bar.show_notification("已清除所有书签", 500)
+        # self.editor.nm.show_info(message="已清除所有书签")
 
     def _jump_to_position(self, line_num: int, column_num: int):
         """
@@ -606,11 +620,13 @@ class BookmarkManager:
             self.editor.status_bar.show_notification(
                 f"已跳转到书签: 行 {line_num}", 500
             )
+
         except Exception as e:
             logger.error(
                 f"跳转到位置失败: 行 {line_num}, 列 {column_num}, 错误: {str(e)}"
             )
-            self.editor.status_bar.show_notification(f"跳转到书签失败: {str(e)}", 1000)
+            # self.editor.status_bar.show_notification(f"跳转到书签失败: {str(e)}", 1000)
+            self.editor.nm.show_error(message=f"跳转到书签失败: {str(e)}")
 
     def refresh_bookmarks(self):
         """刷新书签显示（在文件内容发生变化时调用）"""
@@ -650,4 +666,5 @@ class BookmarkManager:
                         )
         except Exception as e:
             logger.error(f"刷新书签失败: {str(e)}")
-            self.editor.status_bar.show_notification(f"刷新书签失败: {str(e)}", 1000)
+            # self.editor.status_bar.show_notification(f"刷新书签失败: {str(e)}", 1000)
+            self.editor.nm.show_error(message=f"刷新书签失败: {str(e)}")

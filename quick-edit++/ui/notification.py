@@ -129,7 +129,7 @@ class Notification:
     # 类变量 - 全局配置
     _default_position = NotificationPosition.BOTTOM_RIGHT  # 默认位置
     _default_duration = 3000  # 默认持续时间 (毫秒)
-    _max_notifications = 3  # 最大同时显示的通知数量
+    _max_notifications = 5  # 最大同时显示的通知数量
     _notification_spacing = 30  # 通知之间的间距 (像素)
 
     # 类变量 - 当前活动通知
@@ -396,6 +396,9 @@ class Notification:
         self.notification = ctk.CTkToplevel(parent)
         self.notification.title(f"Notification_{self.notification_id}")  # 设置唯一标题
         self.notification.resizable(False, False)
+
+        # 立即禁用CustomTkinter的窗口标题栏颜色设置功能，避免销毁后回调错误
+        self.notification._deactivate_windows_window_header_manipulation = True
 
         # 设置窗口属性
         self.notification.overrideredirect(True)  # 移除窗口边框
@@ -754,28 +757,26 @@ class Notification:
                 pass
             self.fade_out_job = None
 
-        # 销毁窗口
+        # 直接销毁窗口
         try:
             if hasattr(self, "notification") and self.notification.winfo_exists():
+                # 完全禁用CustomTkinter的窗口标题栏颜色设置功能
+                if hasattr(
+                    self.notification, "_deactivate_windows_window_header_manipulation"
+                ):
+                    self.notification._deactivate_windows_window_header_manipulation = (
+                        True
+                    )
+
+                # 禁用CustomTkinter的标题栏颜色设置功能，避免销毁后回调错误
+                if hasattr(self.notification, "_windows_set_titlebar_color_called"):
+                    self.notification._windows_set_titlebar_color_called = False
+
                 # 先移除窗口属性, 避免回调函数访问已销毁的窗口
                 self.notification.overrideredirect(False)
                 self.notification.attributes("-topmost", False)
 
-                # 如果有复制按钮, 先销毁它
-                if hasattr(self, "copy_button"):
-                    try:
-                        self.copy_button.destroy()
-                    except:
-                        pass
-
-                # 如果有固定按钮, 先销毁它
-                if hasattr(self, "pin_button"):
-                    try:
-                        self.pin_button.destroy()
-                    except:
-                        pass
-
-                # 销毁通知窗口
+                # 直接销毁窗口，不使用延迟
                 self.notification.destroy()
         except:
             # 窗口可能已经被销毁, 忽略错误

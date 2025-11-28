@@ -9,7 +9,6 @@ import os
 import time
 import tkinter as tk
 from tkinter import messagebox
-from typing import Optional, Dict, Tuple
 from config.config_manager import config_manager
 from loguru import logger
 
@@ -237,6 +236,7 @@ class FileWatcher:
             self._reload_file()
             self.is_checking = False
             self._schedule_check()
+            self.app.nm.show_info(message="文件发生变更, 已静默重载")
             return
 
         # 检查是否处于只读模式
@@ -301,7 +301,9 @@ class FileWatcher:
                     self.app.text_area.configure(state="normal")
 
                 # 重新加载文件
-                self.app.file_ops._open_file(file_path=self.watched_file)
+                self.app.file_ops._open_file(
+                    file_path=self.watched_file, is_auto_reload=True
+                )
 
                 # 尝试恢复光标位置和滚动位置
                 try:
@@ -324,7 +326,8 @@ class FileWatcher:
                 logger.error(
                     f"重新加载文件时出错: {self.watched_file}, 错误信息: {str(e)}"
                 )
-                messagebox.showerror("错误", f"重新加载文件时出错: {str(e)}")
+                # messagebox.showerror("错误", f"重新加载文件时出错: {str(e)}")
+                self.app.nm.show_error(message=f"重新加载文件时出错: {str(e)}")
 
                 # 如果出错且原本是只读模式，确保恢复禁用状态
                 if was_read_only:

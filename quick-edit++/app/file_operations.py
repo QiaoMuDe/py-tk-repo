@@ -522,6 +522,7 @@ class FileOperations:
         check_backup=False,
         check_save=False,
         encoding=None,
+        is_auto_reload=False,
     ):
         """
         打开文件核心逻辑
@@ -532,6 +533,7 @@ class FileOperations:
             check_save (bool): 是否需要检查文件是否已保存
             check_backup (bool): 是否需要检查备份
             encoding (str, optional): 指定文件编码, 如果为None则自动检测
+            is_auto_reload (bool): 是否为自动重载模式
 
         Returns:
             bool: 如果文件成功打开返回True, 否则返回False
@@ -582,9 +584,9 @@ class FileOperations:
                 return True  # 已处理备份恢复, 无需继续打开文件
 
         # 调用核心文件打开逻辑
-        return self._open_file_core(file_path, encoding)
+        return self._open_file_core(file_path, encoding, is_auto_reload)
 
-    def _open_file_core(self, file_path, encoding=None):
+    def _open_file_core(self, file_path, encoding=None, is_auto_reload=False):
         """
         核心文件打开逻辑, 负责读取文件内容并更新编辑器状态
 
@@ -598,6 +600,7 @@ class FileOperations:
         Args:
             file_path (str): 要打开的文件的绝对路径
             encoding (str, optional): 指定文件编码, 如果为None则自动检测
+            is_auto_reload (bool): 是否为自动重载模式
 
         Returns:
             bool: 如果文件成功打开返回True, 否则返回False
@@ -657,12 +660,13 @@ class FileOperations:
                     self.root.update_char_count()
 
                     # 更新状态栏
-                    # self.root.status_bar.show_notification(
-                    #     f"已打开: {os.path.basename(file_path)}", 500
-                    # )
-                    self.root.nm.show_info(
-                        message=f"已打开: {os.path.basename(file_path)}"
-                    )
+                    if not is_auto_reload:
+                        # self.root.status_bar.show_notification(
+                        #     f"已打开: {os.path.basename(file_path)}", 500
+                        # )
+                        self.root.nm.show_info(
+                            message=f"已打开: {os.path.basename(file_path)}"
+                        )
 
                     # 更新窗口标题
                     self.root._update_window_title()
