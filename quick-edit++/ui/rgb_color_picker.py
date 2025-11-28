@@ -86,7 +86,7 @@ class RGBColorPicker:
         self.rgb_entry.bind("<Return>", self.on_rgb_entry_change)
         self.rgb_entry.bind("<FocusOut>", self.on_rgb_entry_change)
         
-        self.rgb_copy_btn = ctk.CTkButton(rgb_frame, text="复制", width=50, font=self.button_font, command=self.copy_rgb)
+        self.rgb_copy_btn = ctk.CTkButton(rgb_frame, text="复制", width=50, font=self.button_font, command=self.copy_rgb,hover=False)
         self.rgb_copy_btn.pack(side="left")
         
         # HEX代码显示和复制
@@ -100,7 +100,7 @@ class RGBColorPicker:
         self.hex_entry.bind("<Return>", self.on_hex_entry_change)
         self.hex_entry.bind("<FocusOut>", self.on_hex_entry_change)
         
-        self.hex_copy_btn = ctk.CTkButton(hex_frame, text="复制", width=50, font=self.button_font, command=self.copy_hex)
+        self.hex_copy_btn = ctk.CTkButton(hex_frame, text="复制", width=50, font=self.button_font, command=self.copy_hex,hover=False)
         self.hex_copy_btn.pack(side="left")
 
         # 2. RGB滑块调整区
