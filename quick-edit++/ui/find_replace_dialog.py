@@ -133,7 +133,13 @@ class FindReplaceDialog:
         main_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
         # 输入区域 - 使用更现代的卡片式布局
-        input_frame = ctk.CTkFrame(main_frame, fg_color="transparent", corner_radius=12, border_width=1, border_color="#444444")
+        input_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent",
+            corner_radius=12,
+            border_width=1,
+            border_color="#444444",
+        )
         input_frame.pack(fill="x", padx=15, pady=(15, 15))
 
         # 查找输入区域
@@ -181,7 +187,13 @@ class FindReplaceDialog:
         )
 
         # 选项区域 - 使用更现代的开关式设计
-        options_frame = ctk.CTkFrame(main_frame, fg_color="transparent", corner_radius=12, border_width=1, border_color="#555555")
+        options_frame = ctk.CTkFrame(
+            main_frame,
+            fg_color="transparent",
+            corner_radius=12,
+            border_width=1,
+            border_color="#555555",
+        )
         options_frame.pack(fill="x", padx=15, pady=(0, 15))
 
         options_label = ctk.CTkLabel(
@@ -231,8 +243,11 @@ class FindReplaceDialog:
             text="提示: 正则表达式为Tkinter特有语法, 非完整正则",
             font=(self.font_family, self.font_size - 3),
             text_color="#888888",
+            cursor="hand2",  # 鼠标悬停时显示手型光标
         )
         regex_hint_label.pack(side="right", padx=(10, 0))
+        # 绑定点击事件
+        regex_hint_label.bind("<Button-1>", lambda e: self._show_regex_help())
 
         # 按钮区域 - 使用更现代的布局
         button_frame = ctk.CTkFrame(main_frame)
@@ -589,7 +604,7 @@ class FindReplaceDialog:
 
         # 验证查找文本不为空
         if not find_text:
-            # self._show_message("提示", "请输入要查找的内容")    
+            # self._show_message("提示", "请输入要查找的内容")
             self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
@@ -642,6 +657,191 @@ class FindReplaceDialog:
         else:
             # self._show_message("替换结果", "未找到匹配项")
             self.parent.nm.show_info(message="未找到匹配项")
+
+    def _show_regex_help(self):
+        """显示Tkinter正则表达式帮助窗口"""
+        # 创建帮助窗口
+        help_window = ctk.CTkToplevel(self.dialog)
+        help_window.title("Tkinter正则表达式帮助")
+        help_window.resizable(True, True)
+        help_window.transient(self.dialog)
+        help_window.grab_set()
+
+        # 设置窗口大小和位置
+        width = 600
+        height = 500
+        self.parent.center_window(help_window, width, height)
+
+        # 主框架
+        main_frame = ctk.CTkFrame(help_window, corner_radius=0)
+        main_frame.pack(fill="both", expand=True, padx=0, pady=0)
+
+        # 标题区域
+        title_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        title_frame.pack(fill="x", padx=15, pady=(15, 10))
+
+        title_label = ctk.CTkLabel(
+            title_frame,
+            text="Tkinter正则表达式语法说明",
+            font=(self.font_family, self.font_size + 2, "bold"),
+        )
+        title_label.pack(anchor="center")
+
+        # 分隔线
+        separator = ctk.CTkFrame(main_frame, height=1)
+        separator.pack(fill="x", padx=15, pady=(0, 10))
+
+        # 内容区域
+        content_frame = ctk.CTkFrame(main_frame)
+        content_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+
+        # 创建滚动文本框 - 使用内置滚动条
+        text_box = ctk.CTkTextbox(
+            content_frame,
+            font=(self.font_family, self.font_size - 2),
+            activate_scrollbars=True,  # 启用内置滚动条
+        )
+        text_box.pack(fill="both", expand=True)
+
+        # 添加帮助内容
+        help_content = """
+Tkinter文本搜索正则表达式语法说明
+
+简介
+------
+Tkinter文本控件使用的正则表达式是基于Tcl的正则表达式语法，与Python标准库的re模块有所不同。
+它主要用于文本搜索和替换，支持基本的正则表达式功能。
+
+基本语法
+--------
+.       匹配任意单个字符
+^       匹配行首
+$       匹配行尾
+*       匹配前一个元素0次或多次
++       匹配前一个元素1次或多次
+?       匹配前一个元素0次或1次
+[]      字符集，匹配方括号中的任意一个字符
+[^]     否定字符集，匹配不在方括号中的任意字符
+()      分组，将多个元素组合为一个单元
+|       或操作，匹配左侧或右侧的表达式
+
+字符类
+-------
+\\d     匹配任意数字（等同于[0-9]）
+\\D     匹配任意非数字字符
+\\s     匹配任意空白字符（空格、制表符、换行符等）
+\\S     匹配任意非空白字符
+\\w     匹配任意单词字符（字母、数字、下划线）
+\\W     匹配任意非单词字符
+
+特殊匹配符
+---------
+\\y     匹配单词边界（Tkinter特有，不同于Python的\\b）
+\\Y     匹配非单词边界
+\\m     匹配单词开头
+\\M     匹配单词结尾
+\\l     匹配行开头（不同于^）
+\\L     匹配行结尾（不同于$）
+\\a     匹配任意字母字符
+\\A     匹配任意非字母字符
+\\b     在Tkinter中匹配退格字符，不是单词边界
+
+转义字符
+-------
+\\\\    匹配反斜杠字符
+\\[     匹配左方括号
+\\]     匹配右方括号
+\\(     匹配左圆括号
+\\)     匹配右圆括号
+\\{     匹配左花括号
+\\}     匹配右花括号
+\\.     匹配点号
+\\^     匹配插入符号
+\\$     匹配美元符号
+\\*     匹配星号
+\\+     匹配加号
+\\?     匹配问号
+\\|     匹配竖线
+
+Tkinter特有限制
+---------------
+1. 不支持后顾断言（?<=、?<!）
+2. 不支持条件匹配（?(id)yes|no）
+3. 不支持命名组（?P<name>）
+4. 不支持Unicode属性匹配（如\p{L}）
+5. \\b在Tkinter中表示退格字符，不是单词边界（应使用\y）
+
+实用示例
+--------
+查找以"def"开头的行：
+    ^def.*
+
+查找完整单词"function"：
+    \\yfunction\\y
+
+查找包含数字的单词：
+    \\w+\\d+\\w*
+
+查找Python风格的注释：
+    #.*$
+
+查找函数调用模式：
+    \\w+\\(.*\\)
+
+查找字符串字面量：
+    ".*"|'.*'
+
+查找空行：
+    ^\\s*$
+
+查找电子邮件地址：
+    \\w+@\\w+\\.\\w+
+
+查找IP地址（简单版）：
+    \\d+\\.\\d+\\.\\d+\\.\\d+
+
+查找HTML标签：
+    <[^>]*>
+
+查找以大写字母开头的单词：
+    \\y[A-Z]\\w*\\y
+
+使用技巧
+--------
+1. 在替换字符串中，使用\\1、\\2等引用分组内容
+2. 使用\\y匹配单词边界（不是\\b）
+3. 使用\\n匹配换行符
+4. 使用\\t匹配制表符
+5. 使用\\r匹配回车符
+6. 使用\\m和\\M匹配单词开头和结尾
+
+常见错误
+--------
+1. 使用\\d+?等非贪婪匹配（不支持）
+2. 使用(?=...)等前瞻断言（不支持）
+3. 使用\\p{L}等Unicode属性（不支持）
+4. 使用\\b匹配单词边界（在Tkinter中\\b是退格字符，应使用\\y）
+5. 忘记转义特殊字符（如\\.而不是.）
+"""
+
+        # 插入内容并设置为只读
+        text_box.insert("0.0", help_content)
+        text_box.configure(state="disabled")
+
+        # 关闭按钮 - 直接放在主框架中，不使用按钮框架
+        close_button = ctk.CTkButton(
+            main_frame,
+            text="关闭",
+            font=(self.font_family, self.font_size - 1),
+            command=help_window.destroy,
+            fg_color="#3584e4",
+            hover_color="#1c71d8",
+            width=100,
+        )
+        close_button.pack(side="right", padx=15, pady=(0, 15))
+
+        # 设置焦点到帮助窗口
+        help_window.focus_set()
 
     def _show_dialog_delayed(self):
         """延迟显示对话框，确保所有组件绘制完成"""
