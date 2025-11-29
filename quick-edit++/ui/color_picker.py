@@ -457,6 +457,12 @@ class UnifiedColorPicker:
 
         # 居中显示对话框
         self.parent.center_window(self.dialog, self.width, self.height)
+        
+        # 先隐藏窗口，200毫秒后再显示
+        self.dialog.withdraw()
+        
+        # 延迟200毫秒后显示窗口
+        self.dialog.after(200, self.dialog.deiconify)
 
     def update_color(self):
         """更新颜色预览和RGB代码"""
