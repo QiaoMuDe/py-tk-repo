@@ -3,7 +3,7 @@
 
 """
 编辑器主应用类
-该模块直接实现主窗口功能，负责组装所有UI组件和核心功能，提供统一的应用程序接口
+该模块直接实现主窗口功能, 负责组装所有UI组件和核心功能, 提供统一的应用程序接口
 """
 
 import customtkinter as ctk
@@ -68,7 +68,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         使用windnd库实现文件拖拽功能
         """
         try:
-            # 注册拖拽目标，使用编辑器的拖拽处理方法（包含只读模式检查）
+            # 注册拖拽目标, 使用编辑器的拖拽处理方法（包含只读模式检查）
             wd.hook_dropfiles(self, func=self.handle_drag_drop)
 
         except Exception as e:
@@ -77,15 +77,15 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def handle_drag_drop(self, files):
         """
-        处理文件拖拽事件，先检查是否为只读模式，再调用实际的拖拽处理方法
+        处理文件拖拽事件, 先检查是否为只读模式, 再调用实际的拖拽处理方法
 
         Args:
-            files: 拖拽的文件列表，可能是字节串或字符串
+            files: 拖拽的文件列表, 可能是字节串或字符串
         """
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("提示", "当前为只读模式，无法通过拖拽打开文件")
-            self.nm.show_info(message="当前为只读模式，无法通过拖拽打开文件")
+            # messagebox.showinfo("提示", "当前为只读模式, 无法通过拖拽打开文件")
+            self.nm.show_info(message="当前为只读模式, 无法通过拖拽打开文件")
             return
 
         # 调用实际的拖拽处理方法
@@ -125,8 +125,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         Args:
             window: 需要居中的窗口对象（可以是Toplevel、CTkToplevel等）
-            width: 窗口宽度，如果为None则使用窗口当前宽度
-            height: 窗口高度，如果为None则使用窗口当前高度
+            width: 窗口宽度, 如果为None则使用窗口当前宽度
+            height: 窗口高度, 如果为None则使用窗口当前高度
 
         Returns:
             tuple: (x坐标, y坐标) 窗口应该设置的左上角坐标
@@ -135,7 +135,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             # 获取屏幕尺寸
             screen_width, screen_height = self.get_screen_size()
 
-            # 如果未指定宽度或高度，尝试从窗口获取当前尺寸
+            # 如果未指定宽度或高度, 尝试从窗口获取当前尺寸
             if width is None or height is None:
                 width, height = window.winfo_width(), window.winfo_height()
 
@@ -170,7 +170,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 取消自动保存任务 (如果有)
         self.auto_save_manager.stop_auto_save()
 
-        # 如果启用自动保存并且有当前打开的文件，尝试自动保存
+        # 如果启用自动保存并且有当前打开的文件, 尝试自动保存
         if self.auto_save_manager.auto_save_enabled and self.current_file_path:
             self.auto_save_manager._auto_save()
 
@@ -181,7 +181,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if self.check_save_before_close():
             self.clear_memory()  # 清理内存
             self.destroy()  # 关闭窗口
-        # 如果用户取消保存，则不关闭窗口
+        # 如果用户取消保存, 则不关闭窗口
 
         logger.info("exit app...")
 
@@ -197,7 +197,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.text_area.bind("<Button-1>", self._on_cursor_move)  # 监听鼠标点击事件
         self.text_area.bind(
             "<Button-1>", self._on_mouse_left_click, add="+"
-        )  # 额外的鼠标左击事件处理器，用于清除高亮
+        )  # 额外的鼠标左击事件处理器, 用于清除高亮
         self.text_area.bind(
             "<<Selection>>", self._on_cursor_move
         )  # 监听选择内容改变事件
@@ -207,13 +207,13 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.text_area.bind("<Button-4>", self._on_cursor_move, add="+")
         self.text_area.bind("<Button-5>", self._on_cursor_move, add="+")
 
-        # 直接绑定回车键事件，确保自动递增编号功能优先级最高
+        # 直接绑定回车键事件, 确保自动递增编号功能优先级最高
         self.text_area.bind("<Return>", self._on_enter_key)  # 专门处理回车键
 
         # 绑定Tab键事件
         self.text_area.bind("<Tab>", self._on_tab_press)  # 确保Tab键被捕获
 
-        # 绑定文本框焦点离开事件，触发自动保存
+        # 绑定文本框焦点离开事件, 触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
 
         # 绑定文件操作快捷键
@@ -234,7 +234,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # self.bind("<Control-y>", lambda e: self.redo())  # 重做
         # self.bind("<Control-x>", lambda e: self.cut())  # 剪切
         # self.bind("<Control-c>", lambda e: self.copy())  # 复制
-        # 移除了Ctrl+V的绑定，使用文本框默认的粘贴行为，避免重复粘贴
+        # 移除了Ctrl+V的绑定, 使用文本框默认的粘贴行为, 避免重复粘贴
         # self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
         # self.bind("<Control-a>", lambda e: self.select_all())  # 全选
         self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
@@ -306,7 +306,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             lambda e: toggle_syntax_highlight(self, switch_state=True),
         )  # 切换语法高亮
 
-        # 禁用默认的Ctrl+H行为 (退格)，但不影响Ctrl+Shift+H
+        # 禁用默认的Ctrl+H行为 (退格), 但不影响Ctrl+Shift+H
         self.bind("<Control-h>", lambda e: "break")
 
         # 查找和替换
@@ -351,9 +351,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """获取当前选中的所有行及其索引范围
 
         Returns:
-            list: 包含元组的列表，每个元组为 (行号, 起始索引, 结束索引)
+            list: 包含元组的列表, 每个元组为 (行号, 起始索引, 结束索引)
                 例如: [(1, "1.0", "1.end"), (3, "3.0", "3.end")]
-                如果没有选中文本，返回空列表
+                如果没有选中文本, 返回空列表
         """
         selected_lines = []
 
@@ -366,8 +366,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             start_line = int(pos.split(".")[0])
             end_line = int(last_pos.split(".")[0])
 
-            # 简化逻辑：无论选择是否连续，都将范围内的所有行包含在内
-            # 这样，如果选中第2行和第5行，则会将2到5行都选中缩进
+            # 简化逻辑：无论选择是否连续, 都将范围内的所有行包含在内
+            # 这样, 如果选中第2行和第5行, 则会将2到5行都选中缩进
             for line_num in range(start_line, end_line + 1):
                 line_start = f"{line_num}.0"
                 line_end = self.text_area.index(f"{line_num}.end")
@@ -385,7 +385,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         功能:
         - 无选中文本时: 在光标位置插入指定数量的空格或制表符
         - 有选中文本时: 对选中的每一行开头添加缩进（精确处理选中行）
-        - 支持撤销操作组，确保整个缩进操作可以一次性撤销
+        - 支持撤销操作组, 确保整个缩进操作可以一次性撤销
         """
         # 检查是否为只读模式
         if self.is_read_only:
@@ -401,12 +401,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             self.text_area.edit_separator()
 
             if selected_lines:
-                # 有选中的文本，对每一个选中的行进行处理
+                # 有选中的文本, 对每一个选中的行进行处理
                 # 保存当前光标位置
                 current_pos = self.text_area.index("insert")
 
-                # 注意：需要从大到小排序行号，避免索引偏移问题
-                # 当在前面的行插入内容后，后面行的索引会变化
+                # 注意：需要从大到小排序行号, 避免索引偏移问题
+                # 当在前面的行插入内容后, 后面行的索引会变化
                 for line_num, line_start, line_end in sorted(
                     selected_lines, reverse=True, key=lambda x: x[0]
                 ):
@@ -423,7 +423,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 # 重新选择修改后的文本
                 self.text_area.tag_remove("sel", "1.0", "end")
                 for line_num, line_start, line_end in selected_lines:
-                    # 由于在每行开头插入了内容，需要重新获取行结束位置
+                    # 由于在每行开头插入了内容, 需要重新获取行结束位置
                     new_line_end = self.text_area.index(f"{line_num}.end")
                     self.text_area.tag_add("sel", f"{line_num}.0", new_line_end)
 
@@ -435,7 +435,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 self.text_area.mark_set("insert", f"{line}.{new_col}")
 
             else:
-                # 没有选中的文本，在当前位置插入指定数量的制表符或空格
+                # 没有选中的文本, 在当前位置插入指定数量的制表符或空格
                 if self.use_spaces_for_tab_var.get():
                     self.text_area.insert("insert", " " * self.tab_width_var.get())
                 else:
@@ -445,7 +445,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             self.text_area.edit_separator()
 
         except Exception as e:
-            # 错误处理，确保功能不中断
+            # 错误处理, 确保功能不中断
             logger.error(f"Tab键处理失败: {str(e)}")
             # 出现错误时至少保证默认插入行为
             try:
@@ -468,12 +468,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         Args:
             full_init (bool): 是否执行完整初始化（包括设置边距和优先级）
-                              True - 应用启动时调用，执行完整配置
+                              True - 应用启动时调用, 执行完整配置
                               False - 仅更新颜色（主题切换时调用）
         """
-        # 如果未启用高亮功能，直接返回
+        # 如果未启用高亮功能, 直接返回
         if not self.highlight_current_line_var.get():
-            # 如果之前有高亮，清除它
+            # 如果之前有高亮, 清除它
             self._clear_current_line_highlight()
             return
 
@@ -481,7 +481,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         theme_mode = config_manager.get("app.theme_mode", "light")
 
         # 根据主题模式选择高亮颜色
-        # 浅色模式使用黄色，深色模式使用深蓝色
+        # 浅色模式使用黄色, 深色模式使用深蓝色
         highlight_color = "#fcff59" if theme_mode == "light" else "#2a4b6c"
 
         if full_init:
@@ -494,7 +494,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 rmargin=0,
             )
 
-            # 设置标签优先级，确保高亮在底层
+            # 设置标签优先级, 确保高亮在底层
             self.text_area.tag_lower("current_line")
         else:
             # 仅更新颜色
@@ -507,7 +507,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         应用程序启动时的焦点设置
 
-        先让窗口获取焦点，然后设置文本区域焦点
+        先让窗口获取焦点, 然后设置文本区域焦点
         """
         # 确保窗口完全显示并获取焦点
         self.focus_force()
@@ -532,8 +532,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         文本区域失去焦点事件处理
 
-        当焦点离开文本框时，立即执行自动保存（如果文件已修改且自动保存已启用）
-        与此定时自动保存是独立的，确保在用户切换到其他应用时也能保存
+        当焦点离开文本框时, 立即执行自动保存（如果文件已修改且自动保存已启用）
+        与此定时自动保存是独立的, 确保在用户切换到其他应用时也能保存
         """
         # 使用自动保存管理器处理焦点离开事件
         self.auto_save_manager.on_text_area_focus_out(event)
@@ -542,49 +542,49 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         将焦点设置到文本编辑区域
 
-        如果文本区域可编辑（非只读模式），则将焦点设置到文本区域
+        如果文本区域可编辑（非只读模式）, 则将焦点设置到文本区域
         """
         if not self.is_read_only:
             # 设置焦点到文本区域
             self.text_area.focus_set()
             # 将光标移动到文本末尾或当前位置
             try:
-                # 如果有内容，将光标移动到末尾
+                # 如果有内容, 将光标移动到末尾
                 if self.get_char_count() > 0:
                     self.text_area.mark_set("insert", "end")
                 else:
-                    # 如果没有内容，将光标设置到开始位置
+                    # 如果没有内容, 将光标设置到开始位置
                     self.text_area.mark_set("insert", "1.0")
             except:
-                # 如果出现异常，至少确保焦点在文本区域
+                # 如果出现异常, 至少确保焦点在文本区域
                 pass
 
     def _on_enter_key(self, event=None):
-        """专门处理回车键事件，实现自动递增编号功能"""
+        """专门处理回车键事件, 实现自动递增编号功能"""
         # 检查是否启用了自动递增编号功能
         if not self.auto_increment_number_var.get():
-            # 如果功能未启用，执行默认回车行为
+            # 如果功能未启用, 执行默认回车行为
             return None
 
         # 获取当前光标位置
         cursor_pos = self.text_area.index(ctk.INSERT)
         current_line = cursor_pos.split(".", 1)[0]  # 限制分割次数
 
-        # 获取当前行的文本内容（不strip，减少操作）
+        # 获取当前行的文本内容（不strip, 减少操作）
         line_start = f"{current_line}.0"
         line_end = f"{current_line}.end"
         line_text = self.text_area.get(line_start, line_end)
 
-        # 检查当前行是否以数字编号开头（如 "1.", "2.", "1,", "2，" 等）
-        # 使用partition()方法高效分割字符串，支持多种分隔符
+        # 检查当前行是否以数字编号开头（如 "1.", "2.", "1,", "2, " 等）
+        # 使用partition()方法高效分割字符串, 支持多种分隔符
         if line_text and line_text[0].isdigit():
-            # 使用元组存储分隔符，避免重复代码
-            separators = (".", "、", ",", "，")
+            # 使用元组存储分隔符, 避免重复代码
+            separators = (".", "、", ",", ", ")
             number_str = None
             separator = None
             rest = None
 
-            # 遍历分隔符，找到第一个匹配的
+            # 遍历分隔符, 找到第一个匹配的
             for sep in separators:
                 num, found_sep, r = line_text.partition(sep)
                 if found_sep:  # 找到分隔符
@@ -599,7 +599,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 has_space = rest.startswith(" ")
 
                 # 递增编号
-                next_number = int(number_str) + 1  # 直接计算，无需中间变量
+                next_number = int(number_str) + 1  # 直接计算, 无需中间变量
 
                 # 插入新行并自动添加递增编号
                 if has_space:
@@ -624,7 +624,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                     # 检查标记后是否有空格（可选）
                     has_space = rest_content.startswith(" ")
 
-                    # 插入新行并自动添加列表标记，保持原格式
+                    # 插入新行并自动添加列表标记, 保持原格式
                     if has_space:
                         self.text_area.insert(ctk.INSERT, f"\n{marker} ")
                     else:
@@ -639,7 +639,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
             # 遍历注释标记
             for marker in comment_markers:
-                # 对于井号，需要确保它不是标题（即后面没有跟着#）
+                # 对于井号, 需要确保它不是标题（即后面没有跟着#）
                 if marker == "#" and (len(line_text) > 1 and line_text[1] == "#"):
                     continue
 
@@ -651,7 +651,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                     # 检查标记后是否有空格（可选）
                     has_space = rest_content.startswith(" ")
 
-                    # 插入新行并自动添加注释标记，保持原格式
+                    # 插入新行并自动添加注释标记, 保持原格式
                     if has_space:
                         self.text_area.insert(ctk.INSERT, f"\n{marker} ")
                     else:
@@ -659,13 +659,13 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
                     return "break"  # 阻止默认回车行为
 
-        # 如果不是特殊格式行，执行默认回车行为
+        # 如果不是特殊格式行, 执行默认回车行为
         return None
 
     def _on_key_press(self, event=None):
         """按键/键盘事件处理"""
 
-        # 检测Ctrl+H组合键（但不包括Ctrl+Shift+H），阻止默认的退格行为
+        # 检测Ctrl+H组合键（但不包括Ctrl+Shift+H）, 阻止默认的退格行为
         if (
             (event.state & 0x4)
             and not (event.state & 0x1)
@@ -673,14 +673,14 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         ):
             return "break"
 
-        # 检测Ctrl+O组合键，拦截底层行为，只执行我们的自定义实现
+        # 检测Ctrl+O组合键, 拦截底层行为, 只执行我们的自定义实现
         if (event.state & 0x4) and (event.keysym == "o"):
             self.open_file()
             return "break"
 
-        # 检测Ctrl+I组合键，拦截底层行为，只执行我们的自定义实现
+        # 检测Ctrl+I组合键, 拦截底层行为, 只执行我们的自定义实现
         if (event.state & 0x4) and (event.keysym == "i"):
-            show_file_properties_dialog(self, self.current_file_path)
+            # show_file_properties_dialog(self, self.current_file_path)
             return "break"
 
     def _on_text_change(self, event=None):
@@ -688,11 +688,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 获取当前修改状态
         is_modified = self.is_modified()
 
-        # 如果为已修改状态，更新缓存的字符数
+        # 如果为已修改状态, 更新缓存的字符数
         if is_modified:
             self.update_char_count()
 
-        # 如果是新文件或没有打开文件，且文本框内容为空，重置为未修改状态
+        # 如果是新文件或没有打开文件, 且文本框内容为空, 重置为未修改状态
         if (
             self.is_new_file or self.current_file_path is None
         ) and self.get_char_count() == 0:
@@ -706,7 +706,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         设置文本区域修改状态
 
         Args:
-            modified (bool): True表示标记为已修改，False表示标记为未修改，默认为True
+            modified (bool): True表示标记为已修改, False表示标记为未修改, 默认为True
         """
         self.text_area.edit_modified(modified)
 
@@ -715,16 +715,16 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         获取文本区域修改状态
 
         Returns:
-            bool: True表示已修改，False表示未修改
+            bool: True表示已修改, False表示未修改
         """
         status = self.text_area.edit_modified()
-        return status != 0  # CTK返回0表示未修改，非0表示已修改
+        return status != 0  # CTK返回0表示未修改, 非0表示已修改
 
     def update_editor_display(self):
         """
-        统一更新编辑器显示元素的方法，包括行号绘制、当前行高亮和语法高亮
+        统一更新编辑器显示元素的方法, 包括行号绘制、当前行高亮和语法高亮
 
-        这个方法提供了一个统一的接口来更新编辑器的各种视觉元素，避免代码重复，
+        这个方法提供了一个统一的接口来更新编辑器的各种视觉元素, 避免代码重复, 
         并确保在需要时可以一次性更新所有相关的显示组件。
         方法内部会根据当前的配置状态判断是否需要执行相应的更新。
         """
@@ -760,7 +760,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """
         清除当前光标所在行的高亮
 
-        如果存在高亮的行，则移除高亮标签并重置当前高亮行号
+        如果存在高亮的行, 则移除高亮标签并重置当前高亮行号
         """
         if self.current_highlighted_line is not None:
             self.text_area.tag_remove(
@@ -772,11 +772,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def _highlight_current_line(self):
         """
-        高亮光标所在的当前行，包括整行宽度（含右侧空白区域）
-        仅执行实际的高亮操作，标签样式配置已在初始化时完成
-        清除之前高亮的行，并高亮当前光标所在的行
+        高亮光标所在的当前行, 包括整行宽度（含右侧空白区域）
+        仅执行实际的高亮操作, 标签样式配置已在初始化时完成
+        清除之前高亮的行, 并高亮当前光标所在的行
         """
-        # 如果未启用高亮功能，直接返回
+        # 如果未启用高亮功能, 直接返回
         if not self.highlight_current_line_var.get():
             return
 
@@ -787,7 +787,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         cursor_pos = self.text_area.index(ctk.INSERT)
         current_line = int(cursor_pos.split(".")[0])
 
-        # 高亮当前行 - 使用从当前行首到下一行行首的范围，确保覆盖整行宽度
+        # 高亮当前行 - 使用从当前行首到下一行行首的范围, 确保覆盖整行宽度
         start_pos = f"{current_line}.0"
         end_pos = f"{current_line}.end+1c"  # 扩展一个字符确保右侧空白区域也被高亮
         self.text_area.tag_add("current_line", start_pos, end_pos)
@@ -802,7 +802,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         在左键点击时清除查找替换的高亮标签
 
         Args:
-            event: 事件对象，包含鼠标点击的位置信息
+            event: 事件对象, 包含鼠标点击的位置信息
         """
         # 清除查找替换的高亮
         try:
@@ -816,7 +816,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def _update_status_bar(self):
         """更新状态栏信息"""
-        # 如果当前有通知活动，不更新状态栏
+        # 如果当前有通知活动, 不更新状态栏
         if not self.status_bar.can_update_status():
             return
 
@@ -828,7 +828,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 获取选中字符数
         try:
             selected_content = self.text_area.get(ctk.SEL_FIRST, ctk.SEL_LAST)
-            # 计算选中内容的字符数，不特殊处理换行符
+            # 计算选中内容的字符数, 不特殊处理换行符
             selected_chars = len(selected_content)
 
             # 获取选中的起始和结束位置
@@ -843,13 +843,13 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             selected_lines = end_row - start_row + 1
 
             # 特殊情况处理：
-            # 1. 如果选中内容为空，不显示行数
-            # 2. 如果全选且末尾没有字符（即end_col为0），则减去一行
+            # 1. 如果选中内容为空, 不显示行数
+            # 2. 如果全选且末尾没有字符（即end_col为0）, 则减去一行
             end_col = int(end_pos.split(".")[1])
             if selected_chars == 0:
                 selected_lines = None
             elif end_col == 0 and end_row > start_row:
-                # 全选情况，末尾位置在行首，减去一行
+                # 全选情况, 末尾位置在行首, 减去一行
                 selected_lines = end_row - start_row
 
         except tk.TclError:
@@ -860,7 +860,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 根据文件修改状态确定状态文本
         status = "已修改" if self.is_modified() else "就绪"
 
-        # 更新状态栏，不再传递total_chars参数，让set_status_info内部获取
+        # 更新状态栏, 不再传递total_chars参数, 让set_status_info内部获取
         self.status_bar.set_status_info(
             status=status,
             row=row,
@@ -878,7 +878,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         切换应用程序窗口的全屏/窗口模式状态
 
         Args:
-            switch_state (bool): 是否需要翻转状态，默认为True
+            switch_state (bool): 是否需要翻转状态, 默认为True
                                 True - 切换状态（用于快捷键）
                                 False - 应用当前状态（用于菜单点击）
 
@@ -910,7 +910,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             else:  # 默认为 "filename" 模式
                 title_part = file_name
         elif self.is_new_file:
-            # 新文件状态，无论内容是否为空都显示"新文件"
+            # 新文件状态, 无论内容是否为空都显示"新文件"
             title_part = "新文件"
         else:
             # 没有文件路径的情况
@@ -934,8 +934,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """打开文件并加载到文本编辑区域"""
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再打开文件")
-            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再打开文件")
+            # messagebox.showinfo("提示", "当前为只读模式, 请先关闭只读模式后再打开文件")
+            self.nm.show_info(message="当前为只读模式, 请先关闭只读模式后再打开文件")
             return
 
         # 直接调用文件操作处理器的打开文件方法
@@ -945,8 +945,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """通过指定路径打开文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("只读模式", "当前处于只读模式，无法打开新文件。")
-            self.nm.show_info(message="当前处于只读模式，无法打开新文件。")
+            # messagebox.showinfo("只读模式", "当前处于只读模式, 无法打开新文件。")
+            self.nm.show_info(message="当前处于只读模式, 无法打开新文件。")
             return
 
         # 直接调用文件操作处理器的打开文件方法
@@ -958,8 +958,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """保存当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("提示", "当前为只读模式，无法保存文件")
-            self.nm.show_info(message="当前为只读模式，无法保存文件")
+            # messagebox.showinfo("提示", "当前为只读模式, 无法保存文件")
+            self.nm.show_info(message="当前为只读模式, 无法保存文件")
             return False
 
         # 直接调用文件操作处理器的保存文件方法
@@ -969,8 +969,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """另存为文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("提示", "当前为只读模式，无法另存为文件")
-            self.nm.show_info(message="当前为只读模式，无法另存为文件")
+            # messagebox.showinfo("提示", "当前为只读模式, 无法另存为文件")
+            self.nm.show_info(message="当前为只读模式, 无法另存为文件")
             return False
 
         # 直接调用文件操作处理器的另存为方法
@@ -990,8 +990,8 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         """关闭当前文件"""
         # 检查是否为只读模式
         if self.is_read_only:
-            # messagebox.showinfo("提示", "当前为只读模式，请先关闭只读模式后再关闭文件")
-            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再关闭文件")
+            # messagebox.showinfo("提示", "当前为只读模式, 请先关闭只读模式后再关闭文件")
+            self.nm.show_info(message="当前为只读模式, 请先关闭只读模式后再关闭文件")
             return
         # 直接调用文件操作处理器的关闭文件方法
         self.file_ops.close_file()
@@ -1001,7 +1001,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         处理书签导航的专用方法
 
         Args:
-            direction (str): 导航方向，"up" 表示上一个书签，"down" 表示下一个书签
+            direction (str): 导航方向, "up" 表示上一个书签, "down" 表示下一个书签
             event: 事件对象
         """
         if direction == "up":
@@ -1019,9 +1019,9 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 检查是否为只读模式
         if self.is_read_only:
             # messagebox.showinfo(
-            #     "提示", "当前为只读模式，请先关闭只读模式后再创建新文件"
+            #     "提示", "当前为只读模式, 请先关闭只读模式后再创建新文件"
             # )
-            self.nm.show_info(message="当前为只读模式，请先关闭只读模式后再创建新文件")
+            self.nm.show_info(message="当前为只读模式, 请先关闭只读模式后再创建新文件")
             return
 
         # 调用新建文件辅助方法
@@ -1081,7 +1081,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def get_char_count(self):
         """
-        获取文本区域的字符数，使用缓存机制提高性能
+        获取文本区域的字符数, 使用缓存机制提高性能
 
         Returns:
             int: 文本区域的字符数
@@ -1094,7 +1094,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         在文件内容发生变化时调用此方法
         """
-        # 使用end-1c获取文本，这会自动排除末尾的换行符
+        # 使用end-1c获取文本, 这会自动排除末尾的换行符
         self._total_chars = len(self.text_area.get("1.0", "end-1c"))
 
     def _reset_settings(self):
@@ -1122,18 +1122,18 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                     "设置已成功重置为默认值！\n请重启应用程序以应用所有更改。",
                 )
             else:
-                messagebox.showerror("重置失败", "设置重置失败，请检查配置文件权限。")
+                messagebox.showerror("重置失败", "设置重置失败, 请检查配置文件权限。")
 
     def update_file_menu_state(self):
         """
         更新文件菜单的打开文件相关的逻辑
         """
-        # 更新重新打开菜单状态（初始状态下没有打开文件，应该禁用）
+        # 更新重新打开菜单状态（初始状态下没有打开文件, 应该禁用）
         if self.reopen_file_menu is not None:
             self.reopen_file_menu.update_menu_state()
 
         if self.file_menu is not None:
-            # 更新文件属性菜单状态（初始状态下没有打开文件，应该禁用）
+            # 更新文件属性菜单状态（初始状态下没有打开文件, 应该禁用）
             update_file_properties_menu_state(self)
 
             # 更新保存副本菜单状态
@@ -1145,7 +1145,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 try:
                     self.file_menu.entryconfig(self.save_copy_menu_index, state=state)
                 except Exception as e:
-                    # 如果通过索引更新失败，打印错误信息
+                    # 如果通过索引更新失败, 打印错误信息
                     logger.error(
                         f"更新“保存副本”菜单状态时出错（索引 {self.save_copy_menu_index}）: {e}"
                     )
@@ -1155,7 +1155,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
                 try:
                     self.file_menu.entryconfig(self.rename_menu_index, state=state)
                 except Exception as e:
-                    # 如果通过索引更新失败，打印错误信息
+                    # 如果通过索引更新失败, 打印错误信息
                     logger.error(
                         f"更新“重命名”菜单状态时出错（索引 {self.rename_menu_index}）: {e}"
                     )
