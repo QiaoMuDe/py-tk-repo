@@ -5,6 +5,7 @@
 文件属性对话框模块
 """
 
+from email import message
 import os
 import time
 import customtkinter as ctk
@@ -512,7 +513,8 @@ def show_file_properties_dialog(parent, file_path):
         file_path: 文件路径
     """
     if not file_path or not os.path.exists(file_path):
-        messagebox.showerror("错误", "当前没有打开文件")
+        # messagebox.showerror("错误", "当前没有打开文件")
+        parent.nm.show_warning(message="当前没有打开文件")
         return
 
     dialog = FilePropertiesDialog(parent, file_path)

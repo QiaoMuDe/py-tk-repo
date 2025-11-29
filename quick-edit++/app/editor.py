@@ -296,7 +296,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 文件属性快捷键
         self.bind(
-            "<Control-i>",
+            "<F3>",
             lambda e: show_file_properties_dialog(self, self.current_file_path),
         )  # 显示文件属性
 

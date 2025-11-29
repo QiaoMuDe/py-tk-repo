@@ -249,21 +249,21 @@ def create_menu(root):
         accelerator="Ctrl+E",
     )
 
-    # 文件属性选项
-    file_menu.add_command(
-        label="文件属性",
-        command=lambda: show_file_properties_dialog(root, root.current_file_path),
-        accelerator="Ctrl+I",
-    )
-    # 获取文件属性菜单项索引，用于后续更新状态
-    root.file_properties_menu_index = file_menu.index(tk.END)
-
     # 创建文档统计信息
     file_menu.add_command(
         label="文档统计信息",
         command=lambda: show_document_stats_dialog(root),
         accelerator="F2",
     )
+
+    # 文件属性选项
+    file_menu.add_command(
+        label="文件属性",
+        command=lambda: show_file_properties_dialog(root, root.current_file_path),
+        accelerator="F3",
+    )
+    # 获取文件属性菜单项索引，用于后续更新状态
+    root.file_properties_menu_index = file_menu.index(tk.END)
 
     file_menu.add_checkbutton(
         label="只读模式", command=lambda: root.toggle_read_only(), accelerator="Ctrl+R"
