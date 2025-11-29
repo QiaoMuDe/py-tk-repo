@@ -94,6 +94,9 @@ class FindReplaceDialog:
         self.dialog.transient(parent)
         self.dialog.grab_set()
 
+        # 初始隐藏窗口，等待组件绘制完成后再显示
+        self.dialog.withdraw()  # 隐藏窗口
+
         # 设置窗口关闭协议
         self.dialog.protocol("WM_DELETE_WINDOW", self._close_dialog)
 
@@ -112,6 +115,9 @@ class FindReplaceDialog:
         # 绑定所有事件和快捷键
         self._bind_events_and_shortcuts()
 
+        # 延迟显示窗口，确保所有组件绘制完成
+        self.dialog.after(200, self._show_dialog_delayed)
+
         # 等待对话框关闭
         self.dialog.wait_window()
 
@@ -119,37 +125,20 @@ class FindReplaceDialog:
         """创建对话框UI组件"""
         # 设置对话框为更现代的尺寸
         self.width = 600
-        self.height = 420
+        self.height = 390
         self.parent.center_window(self.dialog, self.width, self.height)
 
         # 主框架 - 铺满整个窗口背景，统一颜色
         main_frame = ctk.CTkFrame(self.dialog, corner_radius=0)
         main_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
-        # 标题区域
-        title_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        title_frame.pack(fill="x", padx=15, pady=(15, 10))
-
-        title_label = ctk.CTkLabel(
-            title_frame,
-            text="查找和替换",
-            font=(self.font_family, self.font_size + 4, "bold"),
-        )
-        title_label.pack(anchor="center")
-
-        # 分隔线
-        separator = ctk.CTkFrame(main_frame, height=1)
-        separator.pack(fill="x", padx=15, pady=(0, 15))
-
-        # 输入区域 - 使用更紧凑的布局
-        input_frame = ctk.CTkFrame(main_frame)
-        input_frame.pack(fill="x", padx=15, pady=(0, 15))
+        # 输入区域 - 使用更现代的卡片式布局
+        input_frame = ctk.CTkFrame(main_frame, fg_color="transparent", corner_radius=12, border_width=1, border_color="#444444")
+        input_frame.pack(fill="x", padx=15, pady=(15, 15))
 
         # 查找输入区域
-        find_container = ctk.CTkFrame(
-            input_frame, fg_color=input_frame.cget("fg_color"), corner_radius=10
-        )
-        find_container.pack(fill="x", pady=(0, 10), padx=5)
+        find_container = ctk.CTkFrame(input_frame, fg_color="transparent")
+        find_container.pack(fill="x", pady=(10, 5), padx=10)
 
         find_label = ctk.CTkLabel(
             find_container,
@@ -158,7 +147,7 @@ class FindReplaceDialog:
             width=70,
             anchor="w",
         )
-        find_label.pack(side="left", padx=(10, 10), pady=8)
+        find_label.pack(side="left", padx=(15, 10), pady=10)
 
         self.find_entry = ctk.CTkEntry(
             find_container,
@@ -166,13 +155,11 @@ class FindReplaceDialog:
             height=32,
             placeholder_text="输入要查找的文本...",
         )
-        self.find_entry.pack(side="left", fill="x", expand=True, padx=(0, 10), pady=8)
+        self.find_entry.pack(side="left", fill="x", expand=True, padx=(0, 15), pady=10)
 
         # 替换输入区域
-        replace_container = ctk.CTkFrame(
-            input_frame, fg_color=input_frame.cget("fg_color"), corner_radius=10
-        )
-        replace_container.pack(fill="x", padx=5)
+        replace_container = ctk.CTkFrame(input_frame, fg_color="transparent")
+        replace_container.pack(fill="x", padx=10, pady=(5, 10))
 
         replace_label = ctk.CTkLabel(
             replace_container,
@@ -181,7 +168,7 @@ class FindReplaceDialog:
             width=70,
             anchor="w",
         )
-        replace_label.pack(side="left", padx=(10, 10), pady=8)
+        replace_label.pack(side="left", padx=(15, 10), pady=10)
 
         self.replace_entry = ctk.CTkEntry(
             replace_container,
@@ -190,11 +177,11 @@ class FindReplaceDialog:
             placeholder_text="输入替换的文本...",
         )
         self.replace_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 10), pady=8
+            side="left", fill="x", expand=True, padx=(0, 15), pady=10
         )
 
         # 选项区域 - 使用更现代的开关式设计
-        options_frame = ctk.CTkFrame(main_frame)
+        options_frame = ctk.CTkFrame(main_frame, fg_color="transparent", corner_radius=12, border_width=1, border_color="#555555")
         options_frame.pack(fill="x", padx=15, pady=(0, 15))
 
         options_label = ctk.CTkLabel(
@@ -222,7 +209,7 @@ class FindReplaceDialog:
         )
         mode_segmented.pack(fill="x", pady=(0, 10))
 
-        # 不区分大小写选项 - 使用开关式设计
+        # 不区分大小写选项和提示信息 - 使用水平布局
         switch_container = ctk.CTkFrame(options_container, fg_color="transparent")
         switch_container.pack(fill="x")
 
@@ -237,6 +224,15 @@ class FindReplaceDialog:
             offvalue=False,
         )
         nocase_switch.pack(side="left")
+
+        # 添加提示标签
+        regex_hint_label = ctk.CTkLabel(
+            switch_container,
+            text="提示: 正则表达式为Tkinter特有语法, 非完整正则",
+            font=(self.font_family, self.font_size - 3),
+            text_color="#888888",
+        )
+        regex_hint_label.pack(side="right", padx=(10, 0))
 
         # 按钮区域 - 使用更现代的布局
         button_frame = ctk.CTkFrame(main_frame)
@@ -485,7 +481,8 @@ class FindReplaceDialog:
         # 获取查找文本并验证
         find_text = self.get_find_text()
         if not find_text:
-            self._show_message("提示", "请输入要查找的内容")
+            # self._show_message("提示", "请输入要查找的内容")
+            self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
         # 记录搜索内容并获取搜索选项
@@ -501,9 +498,11 @@ class FindReplaceDialog:
             self._update_line_numbers_and_syntax_highlighting()
 
             # 显示查找结果
-            self._show_message("查找结果", f"找到 {len(matches)} 个匹配项")
+            # self._show_message("查找结果", f"找到 {len(matches)} 个匹配项")
+            self.parent.nm.show_info(message=f"找到 {len(matches)} 个匹配项")
         else:
-            self._show_message("查找结果", "未找到匹配项")
+            # self._show_message("查找结果", "未找到匹配项")
+            self.parent.nm.show_info(message="未找到匹配项")
 
     def _find_previous(self):
         """查找上一个匹配项
@@ -514,7 +513,8 @@ class FindReplaceDialog:
         # 获取查找文本并验证
         find_text = self.get_find_text()
         if not find_text:
-            self._show_message("提示", "请输入要查找的内容")
+            # self._show_message("提示", "请输入要查找的内容")
+            self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
         # 记录搜索内容并获取搜索选项
@@ -530,7 +530,8 @@ class FindReplaceDialog:
 
         # 如果未找到匹配项，显示提示信息
         if not found:
-            self._show_message("查找结果", "未找到匹配项")
+            # self._show_message("查找结果", "未找到匹配项")
+            self.parent.nm.show_info(message="未找到匹配项")
 
     def _find_next(self):
         """查找下一个匹配项
@@ -541,7 +542,8 @@ class FindReplaceDialog:
         # 获取查找文本并验证
         find_text = self.get_find_text()
         if not find_text:
-            self._show_message("提示", "请输入要查找的内容")
+            # self._show_message("提示", "请输入要查找的内容")
+            self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
         # 记录搜索内容并获取搜索选项
@@ -557,7 +559,8 @@ class FindReplaceDialog:
 
         # 如果未找到匹配项，显示提示信息
         if not found:
-            self._show_message("查找结果", "未找到匹配项")
+            # self._show_message("查找结果", "未找到匹配项")
+            self.parent.nm.show_info(message="未找到匹配项")
 
     def _update_line_numbers_and_syntax_highlighting(self):
         """
@@ -586,7 +589,8 @@ class FindReplaceDialog:
 
         # 验证查找文本不为空
         if not find_text:
-            self._show_message("提示", "请输入要查找的内容")
+            # self._show_message("提示", "请输入要查找的内容")    
+            self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
         # 记录搜索内容并获取搜索选项
@@ -599,9 +603,11 @@ class FindReplaceDialog:
         )
 
         if success:
-            self._show_message("替换结果", "替换成功")
+            # self._show_message("替换结果", "替换成功")
+            self.parent.nm.show_info(message="替换成功")
         else:
-            self._show_message("替换结果", "未找到匹配项")
+            # self._show_message("替换结果", "未找到匹配项")
+            self.parent.nm.show_info(message="未找到匹配项")
 
     def _replace_all(self):
         """替换文档中所有匹配项
@@ -616,7 +622,8 @@ class FindReplaceDialog:
 
         # 验证查找文本不为空
         if not find_text:
-            self._show_message("提示", "请输入要查找的内容")
+            # self._show_message("提示", "请输入要查找的内容")
+            self.parent.nm.show_info(message="请输入要查找的内容")
             return
 
         # 记录搜索内容并获取搜索选项
@@ -630,9 +637,17 @@ class FindReplaceDialog:
 
         # 显示替换结果
         if count > 0:
-            self._show_message("替换结果", f"已替换 {count} 处")
+            # self._show_message("替换结果", f"已替换 {count} 处")
+            self.parent.nm.show_info(message=f"已替换 {count} 处")
         else:
-            self._show_message("替换结果", "未找到匹配项")
+            # self._show_message("替换结果", "未找到匹配项")
+            self.parent.nm.show_info(message="未找到匹配项")
+
+    def _show_dialog_delayed(self):
+        """延迟显示对话框，确保所有组件绘制完成"""
+        self.dialog.deiconify()  # 显示窗口
+        self.dialog.lift()  # 将窗口提升到前台
+        self.dialog.focus_force()  # 强制获取焦点
 
     def _close_dialog(self):
         """关闭对话框时清理资源"""
