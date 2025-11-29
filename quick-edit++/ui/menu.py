@@ -19,7 +19,6 @@ from ui.selected_text_submenu import (
 )
 from ui.file_properties_dialog import show_file_properties_dialog
 from ui.color_picker import show_color_picker
-from ui.rgb_color_picker import show_rgb_color_picker
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
 from tkinter import messagebox
@@ -720,14 +719,8 @@ def create_menu(root):
 
     # 添加颜色选择器选项
     tools_menu.add_command(
-        label="HEX颜色选择器",
+        label="颜色选择器",
         command=lambda: show_color_picker(root),
-        font=menu_font_tuple,
-    )
-
-    tools_menu.add_command(
-        label="RGB颜色选择器",
-        command=lambda: show_rgb_color_picker(root, callback=lambda color: None),
         font=menu_font_tuple,
     )
 

@@ -6,7 +6,6 @@
 该模块实现文本编辑的基本操作，包括撤销、重做、剪切、复制、粘贴、全选和清除等功能
 """
 
-from email import message
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
@@ -14,8 +13,6 @@ from config.config_manager import config_manager
 import os
 import datetime
 import uuid
-from ui.color_picker import show_color_picker
-from ui.rgb_color_picker import show_rgb_color_picker
 from loguru import logger
 
 
@@ -2113,65 +2110,3 @@ func (s *StructName) IsValid() bool {
     def insert_capital_omega_symbol(self):
         """插入大写希腊字母 Ω"""
         self.insert_mathematical_symbol("大写希腊字母Ω", "Ω")
-
-    def insert_color_code(self, code_type, code_value):
-        """
-        插入颜色代码
-
-        Args:
-            code_type (str): 代码类型
-            code_value (str): 代码值
-        """
-        try:
-            # 检查是否为只读模式
-            if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
-                return
-
-            # 插入颜色代码
-            self.text_area.insert(tk.INSERT, code_value)
-
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
-
-            # 显示通知
-            self.status_bar.show_notification(f"已插入{code_type}: {code_value}", 500)
-        except Exception as e:
-            # 忽略插入操作异常
-            pass
-
-    def insert_hex_color_picker(self):
-        """插入HEX颜色代码选择器"""
-        # 检查是否为只读模式
-        if self.is_read_only:
-            messagebox.showinfo(
-                "提示", "当前为只读模式，请先关闭只读模式后再插入颜色代码"
-            )
-            return
-
-        # 显示颜色选择器对话框
-        color_code = show_color_picker(self)
-
-        # 如果用户选择了颜色，则插入颜色代码
-        if color_code:
-            self.insert_color_code("HEX颜色代码", color_code)
-
-    def insert_rgb_color_picker(self):
-        """插入RGB颜色代码选择器"""
-        # 检查是否为只读模式
-        if self.is_read_only:
-            messagebox.showinfo(
-                "提示", "当前为只读模式，请先关闭只读模式后再插入颜色代码"
-            )
-            return
-
-        def on_color_selected(rgb_code):
-            """颜色选择后的回调函数"""
-            self.insert_color_code("RGB颜色代码", rgb_code)
-
-        # 显示RGB颜色选择器
-        show_rgb_color_picker(self, on_color_selected)

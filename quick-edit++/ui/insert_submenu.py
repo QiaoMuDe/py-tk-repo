@@ -412,14 +412,4 @@ def create_insert_submenu(parent_menu, root, menu_font_tuple):
         label="Ω", command=lambda: root.insert_capital_omega_symbol()
     )
 
-    # 颜色代码子菜单
-    color_code_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
-    insert_submenu.add_cascade(label="颜色代码", menu=color_code_submenu)
-    color_code_submenu.add_command(
-        label="HEX颜色代码选择器", command=lambda: root.insert_hex_color_picker()
-    )
-    color_code_submenu.add_command(
-        label="RGB颜色代码选择器", command=lambda: root.insert_rgb_color_picker()
-    )
-
     return insert_submenu
