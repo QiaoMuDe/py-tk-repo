@@ -21,7 +21,7 @@ from ui.file_properties_dialog import show_file_properties_dialog
 from ui.color_picker import show_color_picker
 from config.config_manager import config_manager
 from ui.utils import get_supported_encodings
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from ui.insert_submenu import create_insert_submenu
 from ui.selected_text_submenu import create_selected_text_submenu
 
@@ -685,7 +685,14 @@ def create_menu(root):
     )
     settings_menu.add_separator()
 
-    # 第五组：配置管理
+    # 第六组：文件设置
+    settings_menu.add_command(
+        label="设置文件选择器初始路径",
+        command=lambda: set_file_dialog_initial_dir(root),
+    )
+    settings_menu.add_separator()
+
+    # 第七组：配置管理
     settings_menu.add_command(
         label="查看配置",
         command=lambda: root.file_ops.open_config_file(),
@@ -1277,3 +1284,33 @@ def toggle_silent_reload(root):
     #     f"静默重载模式已{current_state and '启用' or '禁用'}", 500
     # )
     root.nm.show_info(message=f"静默重载模式已{current_state and '启用' or '禁用'}")
+
+
+def set_file_dialog_initial_dir(root):
+    """
+    设置文件选择器的初始路径
+
+    Args:
+        root: 主窗口实例
+    """
+    # 获取当前初始路径
+    current_dir = config_manager.get_file_dialog_initial_dir()
+
+    # 打开目录选择对话框
+    selected_dir = filedialog.askdirectory(
+        title="选择文件选择器初始路径",
+        initialdir=current_dir if current_dir else os.path.expanduser("~"),
+        parent=root,
+    )
+
+    # 如果用户选择了目录
+    if selected_dir:
+        # 设置新的初始路径
+        result, msg = config_manager.set_file_dialog_initial_dir(selected_dir)
+
+        if result:
+            # 显示成功通知
+            root.nm.show_info(message=f"文件选择器初始路径已设置为: {selected_dir}")
+        else:
+            # 显示失败通知
+            root.nm.show_error(message=f"设置文件选择器初始路径失败：{msg}")

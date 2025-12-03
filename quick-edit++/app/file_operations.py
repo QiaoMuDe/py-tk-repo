@@ -3,8 +3,8 @@
 """
 
 import codecs
-from email import message
 import os
+import re
 import time
 import tkinter as tk
 import locale
@@ -88,19 +88,60 @@ class FileOperations:
             # messagebox.showerror("备份错误", f"备份处理失败: {str(e)}")
             self.root.nm.show_error(title="备份错误", message=f"备份处理失败: {str(e)}")
 
-    def _generate_default_filename(self, content_prefix):
+    def _clean_filename(self, filename):
+        """
+        清理文件名中的非法字符和特殊符号
+
+        将文件名中的非法字符和特殊符号替换为下划线，同时处理空白内容，
+        确保文件名在所有操作系统上都是有效的。
+
+        Args:
+            filename (str): 原始文件名
+
+        Returns:
+            str: 清理后的文件名
+        """
+        if not filename:
+            return filename
+
+        # 一次性定义所有需要替换的特殊字符
+        # Windows非法字符: < > : " / \ | ? *
+        # 常见特殊符号: ! @ # $ % ^ & ( ) [ ] { } + = , ; ` ~ '
+        # 问题符号: • · … — – ° § ¶ † ‡ ‰ ‱ ※
+        # 货币符号: $ € £ ¥ ₹ ₽ ₩ ₪ ₫ ₡ ₦ ₨ ₱ ₲ ₴ ₸ ₼ ₾
+        # 数学符号: ± × ÷ ≠ ≤ ≥ ∞ ∑ ∏ ∫ ∂ √ ∇ ∆ ∈ ∉ ⊂ ⊃ ⊆ ⊇ ∪ ∩
+        invalid_chars_pattern = r'[<>:"/\\|?*!@#$%^&(){}\[\]+=,;`~\'•·…—–°§¶†‡‰‱※$€£¥₹₽₩₪₫₡₦₨₱₲₴₸₼₾±×÷≠≤≥∞∑∏∫∂√∇∆∈∉⊂⊃⊆⊇∪∩]'
+
+        # 使用正则表达式一次性匹配替换所有非法字符
+        cleaned_name = re.sub(invalid_chars_pattern, "_", filename)
+
+        # 处理空白内容：将连续的空白字符替换为单个下划线
+        # 包括空格、制表符、换行符等
+        whitespace_pattern = r"\s+"
+        cleaned_name = re.sub(whitespace_pattern, "_", cleaned_name)
+
+        # 移除开头和结尾的下划线
+        cleaned_name = cleaned_name.strip("_")
+
+        # 如果处理后为空字符串，返回默认名称
+        if not cleaned_name:
+            cleaned_name = "新文件"
+
+        return cleaned_name
+
+    def _generate_default_filename(self):
         """
         根据文本内容前缀生成默认文件名
 
-        使用文本内容的前几个字符作为文件名前缀, 如果内容为空或只有空白字符,
+        从文本区域获取内容的前30个字符作为文件名前缀, 如果内容为空或只有空白字符,
         则使用"新文件"作为默认前缀
 
-        Args:
-            content_prefix: 文本内容的前缀 (已截断)
-
         Returns:
-            str: 默认文件名 (包含.txt扩展名)
+            str: 默认文件名 (包含适当的扩展名)
         """
+        # 获取文本内容的前30个字符
+        content_prefix = self.root.text_area.get("1.0", "1.0+30 chars")
+
         if not content_prefix:
             return "新文件.txt"
 
@@ -111,10 +152,28 @@ class FileOperations:
         if not prefix:
             return "新文件.txt"
 
-        # 清理文件名中的非法字符
-        invalid_chars = '<>:"/\\|?*'
-        for char in invalid_chars:
-            prefix = prefix.replace(char, "_")
+        # 处理多行文本 - 根据当前换行符类型只保留第一行内容作为文件名
+        # 获取当前换行符类型
+        line_ending = self.root.current_line_ending
+
+        # 根据换行符类型分割文本，只取第一行
+        if line_ending == "\r\n":  # Windows
+            if "\r\n" in prefix:
+                prefix = prefix.split("\r\n")[0]
+        elif line_ending == "\r":  # 旧版Mac
+            if "\r" in prefix:
+                prefix = prefix.split("\r")[0]
+        else:  # Unix/Linux (\n) 或其他
+            if "\n" in prefix:
+                prefix = prefix.split("\n")[0]
+
+        # 再次去除空白字符 (处理可能的第一行只有空白的情况)
+        prefix = prefix.strip()
+        if not prefix:
+            return "新文件.txt"
+
+        # 使用专门的清理方法清理文件名中的非法字符
+        prefix = self._clean_filename(prefix)
 
         # 如果前缀以点开头, 在前面添加下划线 (避免隐藏文件)
         if prefix.startswith("."):
@@ -124,8 +183,200 @@ class FileOperations:
         if len(prefix) > 46:  # 46 + 4 (.txt) = 50
             prefix = prefix[:46]
 
-        # 添加.txt扩展名
-        return f"{prefix}.txt"
+        # 检测文件类型并获取适当的扩展名
+        extension = self._detect_file_type(content_prefix)
+
+        # 添加扩展名
+        return f"{prefix}{extension}"
+
+    def _detect_file_type(self, content):
+        """
+        根据内容检测文件类型
+
+        Args:
+            content: 文件内容前缀
+
+        Returns:
+            str: 检测到的文件扩展名（如'.py', '.html', '.json'等）
+        """
+        if not content:
+            return ".txt"
+
+        # 转换为小写用于检测
+        content_lower = content.lower()
+        content_stripped = content.strip()
+
+        # 1. 检测Web相关文件
+        # HTML
+        if (
+            "<!doctype html" in content_lower
+            or "<html" in content_lower
+            or "<head" in content_lower
+            or "<body" in content_lower
+            or "<div" in content_lower
+        ):
+            return ".html"
+
+        # XML
+        if "<?xml" in content_lower:
+            return ".xml"
+
+        # CSS
+        if (
+            re.search(r"@[a-z-]+\s*{", content_lower)
+            or re.search(r"[.#]?[a-z-]+\s*{\s*[a-z-]+:", content_lower)
+            or (":" in content and ";" in content and "{" in content and "}" in content)
+        ):
+            return ".css"
+
+        # JavaScript/TypeScript
+        if (
+            "function " in content_lower
+            or "var " in content_lower
+            or "let " in content_lower
+            or "const " in content_lower
+            or "=>" in content
+            or "import " in content_lower
+            and (" from " in content_lower or " from " in content)
+            or "export " in content_lower
+        ):
+            # 检测TypeScript
+            if (
+                "interface " in content_lower
+                or ": string" in content_lower
+                or ": number" in content_lower
+                or ": boolean" in content_lower
+            ):
+                return ".ts"
+            return ".js"
+
+        # JSON
+        if (content_stripped.startswith("{") and content_stripped.endswith("}")) or (
+            content_stripped.startswith("[") and content_stripped.endswith("]")
+        ):
+            # 简单验证JSON格式
+            try:
+                json.loads(content_stripped)
+                return ".json"
+            except:
+                pass
+
+        # 2. 检测编程语言
+        # Python
+        if (
+            re.search(
+                r"^(import|from|def|class|if|for|while|try|with)\s+",
+                content,
+                re.MULTILINE,
+            )
+            or re.search(r"print\s*\(", content)
+            or re.search(r'if\s+__name__\s*==\s*["\']__main__["\']', content)
+            or "#!/usr/bin/env python" in content
+            or "# -*- coding:" in content
+        ):
+            return ".py"
+
+        # Go
+        if (
+            re.search(
+                r"^(package|import|func|type|var|const)\s+", content, re.MULTILINE
+            )
+            or "func main()" in content
+            or "fmt." in content
+            or "go run" in content_lower
+        ):
+            return ".go"
+
+        # Bash/Shell
+        if (
+            content_stripped.startswith("#!/bin/bash")
+            or content_stripped.startswith("#!/bin/sh")
+            or re.search(
+                r"^(export|alias|echo|if|for|while|case|function)\s+",
+                content,
+                re.MULTILINE,
+            )
+            or re.search(r"\$\{?\w+\}?", content)
+            or "&&" in content
+            and "||" in content
+        ):
+            return ".sh"
+
+        # PowerShell
+        if (
+            content_stripped.startswith("#!/usr/bin/powershell")
+            or re.search(
+                r"^(param|function|if|for|foreach|while|switch|try|catch)\s+",
+                content,
+                re.MULTILINE,
+            )
+            or re.search(r"\$\w+:\s*\w+", content)
+            or "Write-Host" in content
+            or "Get-" in content
+            or "Set-" in content
+        ):
+            return ".ps1"
+
+        # 批处理文件
+        if (
+            content_stripped.startswith("@echo")
+            or re.search(r"^(if|for|set|call|goto|echo)\s+", content, re.MULTILINE)
+            or "%1" in content
+            or "%~" in content
+            or "exit /b" in content_lower
+        ):
+            return ".bat"
+
+        # 3. 检测标记语言和配置文件
+        # Markdown
+        if (
+            re.search(r"^#{1,6}\s+", content, re.MULTILINE)
+            or re.search(r"\[.*\]\(.*\)", content)
+            or re.search(r"```", content)
+            or re.search(r"\*\*.*?\*\*", content)
+            or re.search(r"^\s*[-*+]\s+", content, re.MULTILINE)
+        ):
+            return ".md"
+
+        # YAML
+        if re.search(r"^\s*\w+\s*:", content, re.MULTILINE) and re.search(
+            r"^\s*-\s+", content, re.MULTILINE
+        ):
+            return ".yml"
+
+        # INI
+        if re.search(r"^\s*\[.*\]\s*$", content, re.MULTILINE) and re.search(
+            r"^\s*\w+\s*=\s*.*$", content, re.MULTILINE
+        ):
+            return ".ini"
+
+        # SQL
+        if (
+            re.search(
+                r"^(select|insert|update|delete|create|drop|alter)\s+",
+                content_lower,
+                re.MULTILINE,
+            )
+            or re.search(r"from\s+\w+", content_lower)
+            or re.search(r"where\s+", content_lower)
+        ):
+            return ".sql"
+
+        # Dockerfile
+        if content_stripped.startswith("FROM ") or re.search(
+            r"^(RUN|CMD|LABEL|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD)\s+",
+            content,
+            re.MULTILINE,
+        ):
+            return "Dockerfile"
+
+        # 4. 检测其他常见文本文件
+        # 证书文件
+        if content_stripped.startswith("-----BEGIN"):
+            return ".crt"
+
+        # 默认返回txt
+        return ".txt"
 
     def _save_file(self, file_path=None, force_save_as=False, is_auto_save=False):
         """
@@ -187,16 +438,16 @@ class FileOperations:
                 # 根据force_save_as参数决定标题是"保存"还是"另存为"
                 dialog_title = "另存为" if force_save_as else "保存"
 
-                # 生成默认文件名 (只传递前30个字符, 避免大数据传递)
-                default_filename = self._generate_default_filename(
-                    self.root.text_area.get("1.0", "1.0+30 chars")
-                )
+                # 生成默认文件名
+                default_filename = self._generate_default_filename()
 
+                # 打开文件保存对话框
                 final_path = filedialog.asksaveasfilename(
                     title=dialog_title,
                     defaultextension=".txt",
                     filetypes=self.FILE_TYPES,
                     initialfile=default_filename,
+                    initialdir=self.config_manager.get_file_dialog_initial_dir(),  # 设置默认目录
                 )
 
                 # 如果用户取消了选择, 返回
@@ -584,6 +835,7 @@ class FileOperations:
             file_path = filedialog.askopenfilename(
                 title="选择文件",
                 filetypes=self.FILE_TYPES,
+                initialdir=self.config_manager.get_file_dialog_initial_dir(),  # 设置默认目录
             )
 
             if not file_path:

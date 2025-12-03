@@ -41,6 +41,7 @@ DEFAULT_CONFIG = {
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
         "truncate_path_length": 50,  # 文件路径截断显示的最大字符数
+        "file_dialog_initial_dir": "",  # 文件选择器初始路径，空字符串表示使用系统默认路径
     },
     # 文件监听器配置
     "file_watcher": {
@@ -390,6 +391,82 @@ class ConfigManager:
             dict: 完整配置字典的副本
         """
         return self.config.copy()
+
+    def get_file_dialog_initial_dir(self):
+        """
+        获取文件选择器的初始路径
+
+        Returns:
+            str: 文件选择器的初始路径，如果未设置或路径不存在则返回用户家目录路径
+        """
+        initial_dir = self.get("app.file_dialog_initial_dir", "")
+        if not initial_dir:
+            # 如果配置为空，返回用户家目录
+            initial_dir = os.path.expanduser("~")
+        else:
+            # 验证路径是否存在
+            if not os.path.exists(initial_dir):
+                # 路径不存在，返回用户家目录
+                logger.warning(
+                    f"配置的文件选择器初始路径不存在: {initial_dir}，将使用用户家目录"
+                )
+                initial_dir = os.path.expanduser("~")
+            elif not os.path.isdir(initial_dir):
+                # 路径存在但不是目录，返回用户家目录
+                logger.warning(
+                    f"配置的文件选择器初始路径不是目录: {initial_dir}，将使用用户家目录"
+                )
+                initial_dir = os.path.expanduser("~")
+        return initial_dir
+
+    def set_file_dialog_initial_dir(self, dir_path):
+        """
+        设置文件选择器的初始路径
+
+        Args:
+            dir_path (str): 目录路径
+
+        Returns:
+            bool: 是否设置成功
+            msg (str): 错误信息
+
+        说明：
+            - 验证路径是否为有效目录
+            - 转换为绝对路径
+            - 更新配置并保存
+        """
+        # 验证输入参数
+        if not dir_path or not isinstance(dir_path, str):
+            logger.warning("设置文件选择器初始路径失败：路径为空或类型无效")
+            return False, "路径为空或类型无效"
+
+        # 转换为绝对路径
+        abs_path = os.path.abspath(dir_path)
+
+        # 验证目录是否存在
+        if not os.path.exists(abs_path):
+            logger.warning(f"设置文件选择器初始路径失败：目录不存在 - {abs_path}")
+            return False, f"目录不存在：{abs_path}"
+
+        # 验证路径是否为目录
+        if not os.path.isdir(abs_path):
+            logger.warning(f"设置文件选择器初始路径失败：路径不是目录 - {abs_path}")
+            return False, f"路径不是目录：{abs_path}"
+
+        # 更新配置
+        result = self.set("app.file_dialog_initial_dir", abs_path)
+        if not result:
+            logger.error("设置文件选择器初始路径失败：无法更新配置")
+            return False, "无法更新配置"
+
+        # 保存配置
+        save_result = self.save_config()
+        if not save_result:
+            logger.error("设置文件选择器初始路径失败：无法保存配置")
+            return False, "无法保存配置"
+
+        logger.info(f"文件选择器初始路径已更新为: {abs_path}")
+        return True, ""
 
     def get_recent_files(self):
         """
