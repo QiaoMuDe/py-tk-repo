@@ -34,6 +34,7 @@ class RenameDialog(ctk.CTkToplevel):
         # 设置为模态对话框
         self.transient(parent)
         self.grab_set()
+        self.attributes("-topmost", True)  # 始终置顶
 
         # 居中显示
         width = 700  # 窗口宽度

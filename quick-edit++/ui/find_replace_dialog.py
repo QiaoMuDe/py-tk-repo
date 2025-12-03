@@ -93,6 +93,7 @@ class FindReplaceDialog:
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        self.dialog.attributes("-topmost", True)  # 始终置顶
 
         # 初始隐藏窗口，等待组件绘制完成后再显示
         self.dialog.withdraw()  # 隐藏窗口

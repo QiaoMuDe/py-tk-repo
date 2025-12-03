@@ -34,6 +34,7 @@ def show_about_dialog(parent):
     # 设置窗口模态
     about_window.transient(parent)
     about_window.grab_set()
+    about_window.attributes("-topmost", True)  # 始终置顶
 
     # 居中显示
     width = 500

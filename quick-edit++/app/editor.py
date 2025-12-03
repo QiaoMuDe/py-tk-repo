@@ -292,7 +292,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         )  # 显示文档统计对话框
 
         # 字体设置快捷键
-        self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
+        # self.bind("<Control-t>", lambda e: show_font_dialog(self))  # 显示字体设置对话框
 
         # 文件属性快捷键
         self.bind(
@@ -673,14 +673,19 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         ):
             return "break"
 
-        # 检测Ctrl+O组合键, 拦截底层行为, 只执行我们的自定义实现
+        # 检测Ctrl+O组合键, 拦截底层行为
         if (event.state & 0x4) and (event.keysym == "o"):
             self.open_file()
             return "break"
 
-        # 检测Ctrl+I组合键, 拦截底层行为, 只执行我们的自定义实现
+        # 检测Ctrl+I组合键, 拦截底层行为
         if (event.state & 0x4) and (event.keysym == "i"):
             # show_file_properties_dialog(self, self.current_file_path)
+            return "break"
+
+        # 检测Ctrl+T组合键, 拦截底层行为
+        if (event.state & 0x4) and (event.keysym == "t"):
+            show_font_dialog(self)
             return "break"
 
     def _on_text_change(self, event=None):

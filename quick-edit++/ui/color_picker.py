@@ -70,6 +70,7 @@ class UnifiedColorPicker:
         # 设置窗口模态
         self.dialog.transient(self.parent)
         self.dialog.grab_set()
+        self.dialog.attributes("-topmost", True)  # 始终置顶
 
         # 创建主框架，铺满整个窗口
         main_frame = ctk.CTkFrame(self.dialog, fg_color="#FFFFFF")

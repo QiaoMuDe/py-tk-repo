@@ -672,6 +672,7 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         # 设置窗口模态
         self.transient(self.parent)
         self.grab_set()
+        self.attributes("-topmost", True)  # 始终置顶
 
         # 获取组件字体配置
         font_name = config_manager.get("components.font", "Microsoft YaHei UI")

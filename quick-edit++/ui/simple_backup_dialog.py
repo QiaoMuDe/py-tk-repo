@@ -74,6 +74,7 @@ class SimpleBackupDialog:
         self.dialog.resizable(False, False)
         self.dialog.transient(parent)
         self.dialog.grab_set()
+        self.dialog.attributes("-topmost", True)  # 始终置顶
 
         # 先隐藏窗口，避免图标闪烁
         self.dialog.withdraw()

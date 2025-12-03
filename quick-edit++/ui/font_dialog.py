@@ -5,12 +5,9 @@
 字体设置对话框模块
 """
 
-import sys
-import os
 import tkinter as tk
-from tkinter import ttk, font
+from tkinter import font
 import customtkinter as ctk
-from typing import Callable
 from config.config_manager import config_manager
 
 
@@ -46,6 +43,7 @@ class FontDialog:
 
         self.dialog.resizable(False, False)  # 固定大小，不允许调整
         self.dialog.grab_set()  # 模态窗口
+        self.dialog.attributes("-topmost", True)  # 始终置顶
 
         # 使用导入的配置管理器实例
         self.config_manager = config_manager
@@ -101,7 +99,7 @@ class FontDialog:
 
     def _init_ui(self):
         """
-        初始化用户界面（简化版）
+        初始化用户界面
         """
         # 获取组件默认字体配置
         component_font_config = self.config_manager.get_font_config("components")

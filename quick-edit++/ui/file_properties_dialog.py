@@ -48,6 +48,7 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.resizable(False, False)
         self.transient(parent)
         self.grab_set()
+        self.attributes("-topmost", True)  # 始终置顶
 
         # 设置窗口标题字体
         self.option_add(
