@@ -10,6 +10,7 @@ import os
 import tkinter as tk
 from tkinter import messagebox
 from config.config_manager import config_manager
+from ui.utils import truncate_string
 
 
 class RecentFilesMenu:
@@ -88,15 +89,14 @@ class RecentFilesMenu:
 
         # 添加最近文件项
         for i, file_path in enumerate(recent_files):
-            # 限制显示的文件名长度，过长时截断
-            display_name = os.path.basename(file_path)
-            full_display = f"{i+1}. {display_name} ({file_path})"
+            # 设置最大显示长度（考虑序号和空格）额外预留10个字符空间
+            max_display_length = self.root.truncate_path_length - len(f"{i+1}. ") - 10
 
-            # 确保文件名不超过80个字符（避免菜单过宽）
-            if len(full_display) > 80:
-                # 保留序号和文件名，截断路径部分
-                path_part = f"...{file_path[-30:]}"
-                full_display = f"{i+1}. {display_name} ({path_part})"
+            # 直接使用truncate_string函数处理完整路径
+            truncated_path = truncate_string(file_path, max_display_length)
+
+            # 构建显示文本
+            full_display = f"{i+1}. {truncated_path}"
 
             # 添加菜单项，绑定点击事件
             self.recent_menu.add_command(

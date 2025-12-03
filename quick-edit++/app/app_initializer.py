@@ -20,7 +20,7 @@ from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
 from loguru import logger
 import os
-from ui.notification import Notification, NotificationType, NotificationPosition
+from ui.notification import Notification
 
 
 class AppInitializer:
@@ -67,6 +67,11 @@ class AppInitializer:
         min_width = config_manager.get("app.min_width", 800)
         min_height = config_manager.get("app.min_height", 600)
         self.app.minsize(min_width, min_height)
+
+        # 初始化文件路径截断长度
+        self.app.truncate_path_length = config_manager.get(
+            "app.truncate_path_length", 50
+        )
 
         # 设置窗口关闭事件
         self.app.protocol("WM_DELETE_WINDOW", self.app._on_closing)

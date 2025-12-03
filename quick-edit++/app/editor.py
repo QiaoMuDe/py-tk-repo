@@ -36,6 +36,7 @@ import windnd as wd
 from ui.file_properties_dialog import update_file_properties_menu_state
 from loguru import logger
 from customtkinter import ThemeManager
+from ui.utils import truncate_string
 
 
 class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
@@ -906,14 +907,32 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
             # 根据配置的模式构建标题
             if title_mode == "filepath":
-                # 完整文件路径模式
-                title_part = file_path
+                # 完整文件路径模式 - 使用截断函数处理长路径
+                title_part = truncate_string(file_path, self.truncate_path_length)
+
             elif title_mode == "filename_and_dir":
-                # 文件名和目录模式
+                # 文件名和目录模式 - 使用截断函数处理长路径
                 dir_name = os.path.dirname(file_path)
-                title_part = f"{file_name} [{dir_name}]" if dir_name else file_name
+                # 截断目录名，但保留更多空间给文件名
+                dir_display = (
+                    truncate_string(dir_name, self.truncate_path_length // 2)
+                    if dir_name
+                    else ""
+                )
+                # 文件名也使用截断函数，但保留更多字符
+                file_display = (
+                    truncate_string(file_name, self.truncate_path_length // 2 + 20)
+                    if file_name
+                    else ""
+                )
+                title_part = (
+                    f"{file_display} [{dir_display}]" if dir_display else file_display
+                )
+
             else:  # 默认为 "filename" 模式
-                title_part = file_name
+                # 文件名模式 - 也使用截断函数处理长文件名
+                title_part = truncate_string(file_name, self.truncate_path_length)
+
         elif self.is_new_file:
             # 新文件状态, 无论内容是否为空都显示"新文件"
             title_part = "新文件"

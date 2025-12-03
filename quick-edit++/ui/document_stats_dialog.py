@@ -18,6 +18,7 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import messagebox, filedialog
 from config.config_manager import config_manager
+from ui.utils import truncate_string
 
 
 class StatsCalculator:
@@ -679,6 +680,9 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         font_size = config_manager.get("components.font_size", 13)
         font_bold = config_manager.get("components.font_bold", False)
 
+        # 初始化文件路径截断长度
+        self.truncate_path_length = config_manager.get("app.truncate_path_length", 50)
+
         # 创建主框架 - 添加圆角设计
         main_frame = ctk.CTkFrame(
             self,
@@ -718,8 +722,14 @@ class DocumentStatsDialog(ctk.CTkToplevel):
         )
         title_label.pack(side="left")
 
-        # 文件名 - 使用醒目的样式
-        file_name = os.path.basename(self.file_path) if self.file_path else "无标题"
+        # 文件名 - 使用truncate_string函数截断文件名，设置最大显示长度为配置值
+        file_name = (
+            truncate_string(
+                os.path.basename(self.file_path), self.truncate_path_length + 10
+            )
+            if self.file_path
+            else "无标题"
+        )
         self.file_name_label = ctk.CTkLabel(
             file_frame,
             text=file_name,
@@ -733,10 +743,13 @@ class DocumentStatsDialog(ctk.CTkToplevel):
             info_frame = ctk.CTkFrame(file_frame, fg_color="transparent")
             info_frame.pack(fill="x", padx=15, pady=(0, 12))
 
-            # 文件路径
+            # 文件路径 - 使用truncate_string函数截断路径，设置最大显示长度为配置值
+            truncated_path = truncate_string(
+                self.file_path, self.truncate_path_length + 30
+            )
             self.file_path_label = ctk.CTkLabel(
                 info_frame,
-                text=f"路径: {self.file_path}",
+                text=f"路径: {truncated_path}",
                 font=ctk.CTkFont(size=font_size - 1, family=font_name),
                 text_color=("#333333", "#ffffff"),
                 anchor="w",

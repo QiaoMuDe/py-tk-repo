@@ -40,6 +40,7 @@ DEFAULT_CONFIG = {
         "max_file_size": 10485760,  # 最大打开文件大小：10MB
         "show_toolbar": True,  # 是否显示工具栏
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
+        "truncate_path_length": 50,  # 文件路径截断显示的最大字符数
     },
     # 文件监听器配置
     "file_watcher": {

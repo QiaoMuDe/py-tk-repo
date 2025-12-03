@@ -13,6 +13,7 @@ from tkinter import messagebox
 from datetime import datetime
 from config.config_manager import config_manager
 from loguru import logger
+from ui.utils import truncate_string
 
 
 class FilePropertiesDialog(ctk.CTkToplevel):
@@ -35,6 +36,9 @@ class FilePropertiesDialog(ctk.CTkToplevel):
         self.font_size = config_manager.get("components.font_size", 13)
         self.font_bold = config_manager.get("components.font_bold", False)
         self.title_font_size = self.font_size + 3  # 标题字体稍大一些
+
+        # 初始化文件路径截断长度
+        self.truncate_path_length = config_manager.get("app.truncate_path_length", 50)
 
         # 设置窗口属性
         self.title("文件属性")
@@ -409,11 +413,16 @@ class FilePropertiesDialog(ctk.CTkToplevel):
     def _load_file_properties(self):
         """加载文件属性"""
         try:
-            # 文件路径
-            self.path_value.configure(text=self.file_path)
+            # 文件路径 - 使用truncate_string函数截断路径，设置最大显示长度为配置值
+            truncated_path = truncate_string(
+                self.file_path, self.truncate_path_length + 30
+            )
+            self.path_value.configure(text=truncated_path)
 
-            # 文件名
-            file_name = os.path.basename(self.file_path)
+            # 文件名 - 使用truncate_string函数截断文件名，设置最大显示长度为配置值
+            file_name = truncate_string(
+                os.path.basename(self.file_path), self.truncate_path_length + 10
+            )
             self.name_value.configure(text=file_name)
 
             # 文件类型
