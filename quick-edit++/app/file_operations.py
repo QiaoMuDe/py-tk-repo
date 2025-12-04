@@ -192,143 +192,76 @@ class FileOperations:
 
     def _detect_file_type(self, content):
         """
-        根据内容检测文件类型
+        根据内容检测文件类型，用于生成默认文件扩展名
 
         Args:
-            content: 文件内容前缀
+            content: 文件内容前缀, 通常为前200个字符
 
         Returns:
-            str: 检测到的文件扩展名（如'.py', '.html', '.json'等）
+            str: 检测到的文件扩展名（如'.json'等）
+                 如果无法识别则返回'.txt'
         """
         if not content:
             return ".txt"
 
+        # 去除首尾空白字符
         content_stripped = content.strip()
-        
-        # 1. JSON检测优先 - 格式特征明显，检测效率高
-        if ((content_stripped.startswith("{") and content_stripped.endswith("}")) or 
-            (content_stripped.startswith("[") and content_stripped.endswith("]"))):
+
+        # JSON检测优先 - 格式特征明显，检测效率高
+        if (content_stripped.startswith("{") and content_stripped.endswith("}")) or (
+            content_stripped.startswith("[") and content_stripped.endswith("]")
+        ):
             try:
                 json.loads(content_stripped)
                 return ".json"
             except json.JSONDecodeError:
-                # 检查JSONP格式
-                if re.search(r"^\s*\w+\s*\(", content_stripped) and re.search(r"\)\s*;\s*$", content_stripped):
-                    try:
-                        json_part = re.sub(r"^\s*\w+\s*\((.*)\)\s*;\s*$", r"\1", content_stripped)
-                        json.loads(json_part)
-                        return ".json"
-                    except:
-                        pass
-        
-        # 2. Shebang检测 - 脚本文件的明确标识
-        shebang_match = re.search(r"^#!\s*(?:/usr/bin/env\s+)?([^\s]+)", content_stripped, re.MULTILINE)
-        if shebang_match:
-            shebang_interpreter = shebang_match.group(1).lower()
-            if shebang_interpreter in ["bash", "sh", "zsh"]:
-                return ".sh"
-            elif shebang_interpreter in ["python", "python3", "python2"]:
-                return ".py"
-            elif shebang_interpreter == "powershell":
-                return ".ps1"
-        
-        # 3. 快速检查条件 - 避免不必要的正则匹配
-        # XML快速检查
-        if content_stripped.startswith("<?xml"):
-            return ".xml"
-            
-        # Dockerfile快速检查
-        if content_stripped.startswith("FROM "):
-            return "Dockerfile"
-            
-        # 证书文件快速检查
-        if "-----BEGIN" in content_stripped and ("CERTIFICATE" in content_stripped or "PRIVATE KEY" in content_stripped):
-            return ".crt"
-        
-        # 文件类型检测规则 - 使用字典组织，便于维护
+                # 进行后面检测
+                pass
+
+        # 文件类型检测规则 - 使用列表组织，便于维护
         detection_rules = [
-            # 4. Web相关文件 - 简化检测规则
-            (".html", [
-                # HTML特有标签 - 简化版本
-                r"<!doctype\s+html", r"<html[^>]*>", r"<head[^>]*>", 
-                r"<body[^>]*>", r"<script[^>]*>", r"<link[^>]*>"
-            ]),
-            (".xml", [
-                # XML特有结构 - 简化版本
-                r"<\?xml[^>]*\?>", 
-                r"<[a-zA-Z][^>]*>[^<]*</[a-zA-Z][^>]*>"
-            ]),
-            (".css", [
-                # CSS语法 - 简化版本
-                r"@[a-z-]+\s*{", r"[.#]?[a-z][\w-]*\s*{"
-            ]),
-            
-            # 6. 编程语言 - 简化检测规则
-            (".py", [
-                # Python语法 - 只保留最常见的特征
-                r"^(?:import|from)\s+\w+", r"^\s*def\s+\w+\s*\(",
-                r"^\s*class\s+\w+\s*:", r"print\s*\(",
-                r'if\s+__name__\s*==\s*["\']__main__["\']', r"self\.\w+\s*="
-            ]),
-            (".go", [
-                r"^package\s+\w+", r"^import\s+\(", r"^import\s+\"[^\"]+\"",
-                r"^\s*func\s+\w+\s*\(", r"fmt\.(?:Print|Println|Printf)",
-                r"func\s+main\s*\(\s*\)"
-            ]),
-            (".sh", [
-                # Shell脚本 - 简化版本
-                r"^\s*(?:export|alias)\s+\w+", r"\$\{?\w+\}?"
-            ]),
-            (".ps1", [
-                # PowerShell - 简化版本
-                r"^\s*param\s*\(", r"^\s*function\s+\w+", 
-                r"Write-(?:Host|Output|Warning)"
-            ]),
-            (".bat", [
-                # 批处理 - 简化版本
-                r"^\s*@echo\s+(?:on|off)", r"^\s*(?:if|for|set)\s+"
-            ]),
-            
-            # 7. 标记语言和配置文件 - 简化检测规则
-            (".md", [
-                # Markdown语法 - 只保留最常见的特征
-                r"^#{1,6}\s+",                    # 标题
-                r"\[([^\]]+)\]\(([^)]+)\)",       # 链接语法
-                r"```[\w]*\n",                   # 代码块
-                r"^\s*[-*+]\s+",                 # 无序列表
-                r"^\s*\d+\.\s+",                 # 有序列表
-                r"\*\*[^*]+\*\*",                # 粗体文本
-                r"^\s*>\s+"                      # 引用块
-            ]),
-            (".yml", [
-                # YAML结构 - 简化版本
-                r"^\s*\w+:\s*[^#\s]+",  # 键值对模式
-                r"^\s*-\s+"             # 列表模式
-            ]),
-            (".ini", [
-                # INI配置 - 简化版本
-                r"^\s*\[[^\]]+\]\s*$", r"^\s*\w+\s*=\s*"
-            ]),
-            (".sql", [
-                # SQL语句 - 简化版本
-                r"^\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP)\s+"
-            ]),
-            
-            # 8. 特殊文件 - 简化版本
-            ("Dockerfile", [
-                r"^FROM\s+"
-            ]),
-            (".crt", [
-                r"-----BEGIN\s+(?:CERTIFICATE|PRIVATE\s+KEY)-----"
-            ])
+            (
+                ".bat",
+                [
+                    # 批处理
+                    r"^\s*@echo\s+(?:on|off)",
+                    r"^\s*(?:if|for|set)\s+",
+                ],
+            ),
+            # 标记语言和配置文件
+            (
+                ".md",
+                [
+                    # Markdown语法 - 只保留最常见的特征
+                    r"^#{1,6}\s+",  # 标题
+                    r"\[([^\]]+)\]\(([^)]+)\)",  # 链接语法
+                    r"^\s*[-*+]\s+",  # 无序列表
+                    r"^\s*\d+\.\s+",  # 有序列表
+                    r"\*\*[^*]+\*\*",  # 粗体文本
+                ],
+            ),
+            (
+                ".sql",
+                [
+                    # SQL语句
+                    r"^\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP)\s+"
+                ],
+            ),
+            (
+                ".crt",
+                [
+                    # 证书文件
+                    r"-----BEGIN\s+(?:CERTIFICATE|PRIVATE\s+KEY)-----"
+                ],
+            ),
         ]
-        
+
         # 应用检测规则
         for file_type, patterns in detection_rules:
             for pattern in patterns:
                 if re.search(pattern, content, re.IGNORECASE | re.MULTILINE):
                     return file_type
-        
+
         # 默认返回txt
         return ".txt"
 
