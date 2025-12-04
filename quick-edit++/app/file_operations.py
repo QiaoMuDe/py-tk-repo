@@ -14,6 +14,7 @@ from .file_operation_core import FileOperationCore
 from ui.simple_backup_dialog import SimpleBackupDialog, BackupActions
 from ui.rename_dialog import show_rename_dialog
 import shutil
+import json
 from config.config_manager import CONFIG_PATH
 from loguru import logger
 
@@ -133,14 +134,14 @@ class FileOperations:
         """
         根据文本内容前缀生成默认文件名
 
-        从文本区域获取内容的前30个字符作为文件名前缀, 如果内容为空或只有空白字符,
+        从文本区域获取内容的前200个字符作为文件名前缀, 如果内容为空或只有空白字符,
         则使用"新文件"作为默认前缀
 
         Returns:
             str: 默认文件名 (包含适当的扩展名)
         """
-        # 获取文本内容的前30个字符
-        content_prefix = self.root.text_area.get("1.0", "1.0+30 chars")
+        # 获取文本内容的前200个字符
+        content_prefix = self.root.text_area.get("1.0", "1.0+200 chars")
 
         if not content_prefix:
             return "新文件.txt"
@@ -202,179 +203,132 @@ class FileOperations:
         if not content:
             return ".txt"
 
-        # 转换为小写用于检测
-        content_lower = content.lower()
         content_stripped = content.strip()
-
-        # 1. 检测Web相关文件
-        # HTML
-        if (
-            "<!doctype html" in content_lower
-            or "<html" in content_lower
-            or "<head" in content_lower
-            or "<body" in content_lower
-            or "<div" in content_lower
-        ):
-            return ".html"
-
-        # XML
-        if "<?xml" in content_lower:
-            return ".xml"
-
-        # CSS
-        if (
-            re.search(r"@[a-z-]+\s*{", content_lower)
-            or re.search(r"[.#]?[a-z-]+\s*{\s*[a-z-]+:", content_lower)
-            or (":" in content and ";" in content and "{" in content and "}" in content)
-        ):
-            return ".css"
-
-        # JavaScript/TypeScript
-        if (
-            "function " in content_lower
-            or "var " in content_lower
-            or "let " in content_lower
-            or "const " in content_lower
-            or "=>" in content
-            or "import " in content_lower
-            and (" from " in content_lower or " from " in content)
-            or "export " in content_lower
-        ):
-            # 检测TypeScript
-            if (
-                "interface " in content_lower
-                or ": string" in content_lower
-                or ": number" in content_lower
-                or ": boolean" in content_lower
-            ):
-                return ".ts"
-            return ".js"
-
-        # JSON
-        if (content_stripped.startswith("{") and content_stripped.endswith("}")) or (
-            content_stripped.startswith("[") and content_stripped.endswith("]")
-        ):
-            # 简单验证JSON格式
+        
+        # 1. JSON检测优先 - 格式特征明显，检测效率高
+        if ((content_stripped.startswith("{") and content_stripped.endswith("}")) or 
+            (content_stripped.startswith("[") and content_stripped.endswith("]"))):
             try:
                 json.loads(content_stripped)
                 return ".json"
-            except:
-                pass
-
-        # 2. 检测编程语言
-        # Python
-        if (
-            re.search(
-                r"^(import|from|def|class|if|for|while|try|with)\s+",
-                content,
-                re.MULTILINE,
-            )
-            or re.search(r"print\s*\(", content)
-            or re.search(r'if\s+__name__\s*==\s*["\']__main__["\']', content)
-            or "#!/usr/bin/env python" in content
-            or "# -*- coding:" in content
-        ):
-            return ".py"
-
-        # Go
-        if (
-            re.search(
-                r"^(package|import|func|type|var|const)\s+", content, re.MULTILINE
-            )
-            or "func main()" in content
-            or "fmt." in content
-            or "go run" in content_lower
-        ):
-            return ".go"
-
-        # Bash/Shell
-        if (
-            content_stripped.startswith("#!/bin/bash")
-            or content_stripped.startswith("#!/bin/sh")
-            or re.search(
-                r"^(export|alias|echo|if|for|while|case|function)\s+",
-                content,
-                re.MULTILINE,
-            )
-            or re.search(r"\$\{?\w+\}?", content)
-            or "&&" in content
-            and "||" in content
-        ):
-            return ".sh"
-
-        # PowerShell
-        if (
-            content_stripped.startswith("#!/usr/bin/powershell")
-            or re.search(
-                r"^(param|function|if|for|foreach|while|switch|try|catch)\s+",
-                content,
-                re.MULTILINE,
-            )
-            or re.search(r"\$\w+:\s*\w+", content)
-            or "Write-Host" in content
-            or "Get-" in content
-            or "Set-" in content
-        ):
-            return ".ps1"
-
-        # 批处理文件
-        if (
-            content_stripped.startswith("@echo")
-            or re.search(r"^(if|for|set|call|goto|echo)\s+", content, re.MULTILINE)
-            or "%1" in content
-            or "%~" in content
-            or "exit /b" in content_lower
-        ):
-            return ".bat"
-
-        # 3. 检测标记语言和配置文件
-        # Markdown
-        if (
-            re.search(r"^#{1,6}\s+", content, re.MULTILINE)
-            or re.search(r"\[.*\]\(.*\)", content)
-            or re.search(r"```", content)
-            or re.search(r"\*\*.*?\*\*", content)
-            or re.search(r"^\s*[-*+]\s+", content, re.MULTILINE)
-        ):
-            return ".md"
-
-        # YAML
-        if re.search(r"^\s*\w+\s*:", content, re.MULTILINE) and re.search(
-            r"^\s*-\s+", content, re.MULTILINE
-        ):
-            return ".yml"
-
-        # INI
-        if re.search(r"^\s*\[.*\]\s*$", content, re.MULTILINE) and re.search(
-            r"^\s*\w+\s*=\s*.*$", content, re.MULTILINE
-        ):
-            return ".ini"
-
-        # SQL
-        if (
-            re.search(
-                r"^(select|insert|update|delete|create|drop|alter)\s+",
-                content_lower,
-                re.MULTILINE,
-            )
-            or re.search(r"from\s+\w+", content_lower)
-            or re.search(r"where\s+", content_lower)
-        ):
-            return ".sql"
-
-        # Dockerfile
-        if content_stripped.startswith("FROM ") or re.search(
-            r"^(RUN|CMD|LABEL|EXPOSE|ENV|ADD|COPY|ENTRYPOINT|VOLUME|USER|WORKDIR|ARG|ONBUILD)\s+",
-            content,
-            re.MULTILINE,
-        ):
+            except json.JSONDecodeError:
+                # 检查JSONP格式
+                if re.search(r"^\s*\w+\s*\(", content_stripped) and re.search(r"\)\s*;\s*$", content_stripped):
+                    try:
+                        json_part = re.sub(r"^\s*\w+\s*\((.*)\)\s*;\s*$", r"\1", content_stripped)
+                        json.loads(json_part)
+                        return ".json"
+                    except:
+                        pass
+        
+        # 2. Shebang检测 - 脚本文件的明确标识
+        shebang_match = re.search(r"^#!\s*(?:/usr/bin/env\s+)?([^\s]+)", content_stripped, re.MULTILINE)
+        if shebang_match:
+            shebang_interpreter = shebang_match.group(1).lower()
+            if shebang_interpreter in ["bash", "sh", "zsh"]:
+                return ".sh"
+            elif shebang_interpreter in ["python", "python3", "python2"]:
+                return ".py"
+            elif shebang_interpreter == "powershell":
+                return ".ps1"
+        
+        # 3. 快速检查条件 - 避免不必要的正则匹配
+        # XML快速检查
+        if content_stripped.startswith("<?xml"):
+            return ".xml"
+            
+        # Dockerfile快速检查
+        if content_stripped.startswith("FROM "):
             return "Dockerfile"
-
-        # 4. 检测其他常见文本文件
-        # 证书文件
-        if content_stripped.startswith("-----BEGIN"):
+            
+        # 证书文件快速检查
+        if "-----BEGIN" in content_stripped and ("CERTIFICATE" in content_stripped or "PRIVATE KEY" in content_stripped):
             return ".crt"
-
+        
+        # 文件类型检测规则 - 使用字典组织，便于维护
+        detection_rules = [
+            # 4. Web相关文件 - 简化检测规则
+            (".html", [
+                # HTML特有标签 - 简化版本
+                r"<!doctype\s+html", r"<html[^>]*>", r"<head[^>]*>", 
+                r"<body[^>]*>", r"<script[^>]*>", r"<link[^>]*>"
+            ]),
+            (".xml", [
+                # XML特有结构 - 简化版本
+                r"<\?xml[^>]*\?>", 
+                r"<[a-zA-Z][^>]*>[^<]*</[a-zA-Z][^>]*>"
+            ]),
+            (".css", [
+                # CSS语法 - 简化版本
+                r"@[a-z-]+\s*{", r"[.#]?[a-z][\w-]*\s*{"
+            ]),
+            
+            # 6. 编程语言 - 简化检测规则
+            (".py", [
+                # Python语法 - 只保留最常见的特征
+                r"^(?:import|from)\s+\w+", r"^\s*def\s+\w+\s*\(",
+                r"^\s*class\s+\w+\s*:", r"print\s*\(",
+                r'if\s+__name__\s*==\s*["\']__main__["\']', r"self\.\w+\s*="
+            ]),
+            (".go", [
+                r"^package\s+\w+", r"^import\s+\(", r"^import\s+\"[^\"]+\"",
+                r"^\s*func\s+\w+\s*\(", r"fmt\.(?:Print|Println|Printf)",
+                r"func\s+main\s*\(\s*\)"
+            ]),
+            (".sh", [
+                # Shell脚本 - 简化版本
+                r"^\s*(?:export|alias)\s+\w+", r"\$\{?\w+\}?"
+            ]),
+            (".ps1", [
+                # PowerShell - 简化版本
+                r"^\s*param\s*\(", r"^\s*function\s+\w+", 
+                r"Write-(?:Host|Output|Warning)"
+            ]),
+            (".bat", [
+                # 批处理 - 简化版本
+                r"^\s*@echo\s+(?:on|off)", r"^\s*(?:if|for|set)\s+"
+            ]),
+            
+            # 7. 标记语言和配置文件 - 简化检测规则
+            (".md", [
+                # Markdown语法 - 只保留最常见的特征
+                r"^#{1,6}\s+",                    # 标题
+                r"\[([^\]]+)\]\(([^)]+)\)",       # 链接语法
+                r"```[\w]*\n",                   # 代码块
+                r"^\s*[-*+]\s+",                 # 无序列表
+                r"^\s*\d+\.\s+",                 # 有序列表
+                r"\*\*[^*]+\*\*",                # 粗体文本
+                r"^\s*>\s+"                      # 引用块
+            ]),
+            (".yml", [
+                # YAML结构 - 简化版本
+                r"^\s*\w+:\s*[^#\s]+",  # 键值对模式
+                r"^\s*-\s+"             # 列表模式
+            ]),
+            (".ini", [
+                # INI配置 - 简化版本
+                r"^\s*\[[^\]]+\]\s*$", r"^\s*\w+\s*=\s*"
+            ]),
+            (".sql", [
+                # SQL语句 - 简化版本
+                r"^\s*(?:SELECT|INSERT|UPDATE|DELETE|CREATE|DROP)\s+"
+            ]),
+            
+            # 8. 特殊文件 - 简化版本
+            ("Dockerfile", [
+                r"^FROM\s+"
+            ]),
+            (".crt", [
+                r"-----BEGIN\s+(?:CERTIFICATE|PRIVATE\s+KEY)-----"
+            ])
+        ]
+        
+        # 应用检测规则
+        for file_type, patterns in detection_rules:
+            for pattern in patterns:
+                if re.search(pattern, content, re.IGNORECASE | re.MULTILINE):
+                    return file_type
+        
         # 默认返回txt
         return ".txt"
 
