@@ -251,7 +251,7 @@ class AppInitializer:
         # 设置网格权重，确保子组件能够正确填充
         self.app.text_frame.grid_columnconfigure(1, weight=1)  # 文本区域列可扩展
         self.app.text_frame.grid_columnconfigure(0, weight=0)  # 行号列固定
-        self.app.text_frame.grid_rowconfigure(0, weight=1)
+        self.app.text_frame.grid_rowconfigure(0, weight=1)  # 文本区域行可扩展
 
         # 获取自动换行设置
         auto_wrap = config_manager.get("text_editor.auto_wrap", True)
@@ -263,7 +263,7 @@ class AppInitializer:
             wrap=wrap_mode,  # 换行模式
             undo=True,  # 启用撤销功能
             font=self.app.current_font,  # 字体设置
-            border_spacing=3,  # 边框间距
+            border_spacing=5,  # 边框间距
             maxundo=config_manager.get("text_editor.max_undo", 50),  # 最大撤销次数
             spacing1=5,  # 第一行上方的额外间距
             spacing2=3,  # 行之间的额外间距
