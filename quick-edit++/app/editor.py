@@ -214,6 +214,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 绑定Tab键事件
         self.text_area.bind("<Tab>", self._on_tab_press)  # 确保Tab键被捕获
 
+        # 绑定文本修改事件（粘贴、剪切等）
+        self.text_area.bind("<<Paste>>", self._on_text_change)  # 粘贴事件
+        self.text_area.bind("<<Cut>>", self._on_text_change)  # 剪切事件
+        self.text_area.bind("<<Modified>>", self._on_text_change)  # 文本修改事件
+
         # 绑定文本框焦点离开事件, 触发自动保存
         self.text_area.bind("<FocusOut>", self._on_text_area_focus_out)
 
@@ -737,7 +742,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         try:
             # 更新行号绘制 - 只有在启用行号显示时才执行
             if self.line_numbers_var.get():
-                self.line_number_canvas.draw_line_numbers()
+                self.after_idle(self.line_number_canvas.draw_line_numbers)
 
             # 更新当前行高亮 - 只有在启用当前行高亮时才执行
             if self.highlight_current_line_var.get():

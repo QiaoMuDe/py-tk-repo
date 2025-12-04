@@ -624,10 +624,9 @@ class FontDialog:
         self.text_widget.configure(font=text_font)
 
         # 更新行号栏字体
-        if hasattr(self.root, "line_number_canvas"):
-            self.root.line_number_canvas.update_font(
-                font_family=self.temp_font["family"], font_size=self.temp_font["size"]
-            )
+        self.root.line_number_canvas.update_font(
+            font_family=self.temp_font["family"], font_size=self.temp_font["size"]
+        )
 
         # 显示通知
         font_weight_text = "加粗" if self.temp_font["weight"] == "bold" else "常规"
