@@ -32,19 +32,17 @@ class EditOperations:
                 self.nm.show_warning(message="当前为只读模式，无法撤销")
                 return
             
-            # 检查是否可以撤销
-            if self.text_area.edit_undo():
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 应用语法高亮
-                self.syntax_highlighter.apply_highlighting(self.current_file_path)
-            else:
-                self.status_bar.show_notification("没有可撤销的操作", 500)
+            # 执行撤销操作
+            self.text_area.edit_undo()
+            # 更新编辑器显示和字符计数
+            self.update_editor_display()
+            self.update_char_count()
+            # 应用语法高亮
+            self.syntax_highlighter.apply_highlighting(self.current_file_path)
+                
         except Exception as e:
-            # 忽略撤销操作异常
-            pass
+            # 当无法撤销时显示提示
+            self.nm.show_info(message="没有可撤销的操作")
 
     def redo(self):
         """重做上一步撤销的操作"""
@@ -54,19 +52,17 @@ class EditOperations:
                 self.nm.show_warning(message="当前为只读模式，无法重做")
                 return
             
-            # 检查是否可以重做
-            if self.text_area.edit_redo():
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 应用语法高亮
-                self.syntax_highlighter.apply_highlighting(self.current_file_path)
-            else:
-                self.status_bar.show_notification("没有可重做的操作", 500)
+            # 执行重做操作
+            self.text_area.edit_redo()
+            # 更新编辑器显示和字符计数
+            self.update_editor_display()
+            self.update_char_count()
+            # 应用语法高亮
+            self.syntax_highlighter.apply_highlighting(self.current_file_path)
+            
         except Exception as e:
-            # 忽略重做操作异常
-            pass
+            # 当无法重做时显示提示
+            self.status_bar.show_notification("没有可重做的操作", 500)
 
     def cut(self):
         """剪切选中的文本"""
@@ -85,10 +81,8 @@ class EditOperations:
                     self.clipboard_append(selected_text)
                     # 删除选中的文本
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
-                    # 更新状态栏
-                    self.update_editor_display()
-                    # 更新字符计数
-                    self.update_char_count()
+                    # 更新编辑器状态
+                    self.update_editor_state()
                     # 显示通知
                     self.status_bar.show_notification(
                         f"已剪切 {len(selected_text)} 个字符", 500
@@ -146,10 +140,8 @@ class EditOperations:
                         # 没有选中文本，在当前位置插入
                         self.text_area.insert(tk.INSERT, clipboard_text)
 
-                    # 更新状态栏
-                    self.update_editor_display()
-                    # 更新字符计数
-                    self.update_char_count()
+                    # 更新编辑器状态
+                    self.update_editor_state()
                     # 显示通知
                     self.status_bar.show_notification(
                         f"已粘贴 {len(clipboard_text)} 个字符", 500
