@@ -6,6 +6,7 @@
 该模块实现文本编辑的基本操作，包括撤销、重做、剪切、复制、粘贴、全选和清除等功能
 """
 
+from email import message
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
@@ -245,7 +246,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文本时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入文本失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入文本失败: {str(e)}")
 
     def insert_shebang(self):
         """脚本的shebang行"""
@@ -266,7 +267,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入脚本shebang行时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入脚本shebang行失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入脚本shebang行失败: {str(e)}")
 
     def insert_encoding(self):
         """插入Python脚本的编码声明"""
@@ -287,7 +288,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入编码声明时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入编码声明失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入编码声明失败: {str(e)}")
 
     def insert_go_basic(self):
         """插入Go语言基本结构"""
@@ -309,7 +310,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Go语言基本结构时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入Go语言基本结构失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入Go语言基本结构失败: {str(e)}")
 
     def insert_python_function_template(self):
         """插入Python函数模板"""
@@ -344,7 +345,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Python函数模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入Python函数模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入Python函数模板失败: {str(e)}")
 
     def insert_python_class_template(self):
         """插入Python类模板"""
@@ -398,7 +399,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Python类模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入Python类模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入Python类模板失败: {str(e)}")
 
     def insert_html_basic_structure(self):
         """插入HTML基本结构"""
@@ -446,7 +447,7 @@ class EditOperations:
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入HTML基本结构时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入HTML基本结构失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入HTML基本结构失败: {str(e)}")
 
     def insert_css_basic_structure(self):
         """插入CSS基本结构"""
@@ -527,7 +528,7 @@ footer {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入CSS基本结构时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入CSS基本结构失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入CSS基本结构失败: {str(e)}")
 
     def insert_javascript_function_template(self):
         """插入JavaScript函数模板"""
@@ -584,9 +585,7 @@ const arrowFunction = (param1, param2) => {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入JavaScript函数模板时出错: {str(e)}")
-            self.status_bar.show_notification(
-                f"插入JavaScript函数模板失败: {str(e)}", 2000
-            )
+            self.nm.show_error(message=f"插入JavaScript函数模板失败: {str(e)}")
 
     def insert_sql_query_template(self):
         """插入SQL查询模板"""
@@ -672,7 +671,7 @@ HAVING
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入SQL查询模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入SQL查询模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入SQL查询模板失败: {str(e)}")
 
     def insert_go_function_template(self):
         """插入GO函数模板"""
@@ -754,7 +753,7 @@ func closureFunction() func(int) int {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入GO函数模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入GO函数模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入GO函数模板失败: {str(e)}")
 
     def insert_go_struct_template(self):
         """插入GO结构体模板"""
@@ -883,7 +882,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入GO结构体模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入GO结构体模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入GO结构体模板失败: {str(e)}")
 
     def insert_filename(self):
         """插入当前文件名"""
@@ -908,7 +907,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文件名时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入文件名失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入文件名失败: {str(e)}")
 
     def insert_filepath(self):
         """插入当前文件路径"""
@@ -934,7 +933,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文件路径时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入文件路径失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入文件路径失败: {str(e)}")
 
     def insert_directory(self):
         """插入当前文件所在目录路径"""
@@ -959,7 +958,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入目录路径时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入目录路径失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入目录路径失败: {str(e)}")
 
     def insert_date(self, format_type="ymd"):
         """插入当前日期"""
@@ -997,7 +996,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入日期时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入日期失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入日期失败: {str(e)}")
 
     def insert_time(self, format_type="24h"):
         """插入当前时间"""
@@ -1031,7 +1030,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入时间时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入时间失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入时间失败: {str(e)}")
 
     def insert_datetime(self, format_type="ymd_24h"):
         """插入当前日期和时间"""
@@ -1065,7 +1064,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入日期时间时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入日期时间失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入日期时间失败: {str(e)}")
 
     def insert_timestamp(self):
         """插入当前时间戳"""
@@ -1089,7 +1088,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入时间戳时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入时间戳失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入时间戳失败: {str(e)}")
 
     def insert_uuid_v4(self):
         """插入UUID v4"""
@@ -1113,7 +1112,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入UUID v4时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入UUID v4失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入UUID v4失败: {str(e)}")
 
     def insert_uuid_no_hyphens(self):
         """插入无连字符的UUID"""
@@ -1137,7 +1136,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入无连字符UUID时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入无连字符UUID失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入无连字符UUID失败: {str(e)}")
 
     def insert_uuid_uppercase(self):
         """插入大写UUID"""
@@ -1161,7 +1160,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入大写UUID时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入大写UUID失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入大写UUID失败: {str(e)}")
 
     def insert_uuid_uppercase_no_hyphens(self):
         """插入大写无连字符UUID"""
@@ -1187,9 +1186,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入大写无连字符UUID时出错: {str(e)}")
-            self.status_bar.show_notification(
-                f"插入大写无连字符UUID失败: {str(e)}", 2000
-            )
+            self.nm.show_error(message=f"插入大写无连字符UUID失败: {str(e)}")
 
     def insert_uuid_with_braces(self):
         """插入带花括号的UUID"""
@@ -1213,7 +1210,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入带花括号的UUID时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入带花括号的UUID失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入带花括号的UUID失败: {str(e)}")
 
     def insert_uuid_uppercase_with_braces(self):
         """插入带花括号的大写UUID"""
@@ -1239,9 +1236,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入带花括号的大写UUID时出错: {str(e)}")
-            self.status_bar.show_notification(
-                f"插入带花括号的大写UUID失败: {str(e)}", 2000
-            )
+            self.nm.show_error(message=f"插入带花括号的大写UUID失败: {str(e)}")
 
     def insert_uuid_base64(self):
         """插入Base64编码的UUID"""
@@ -1270,9 +1265,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Base64编码的UUID时出错: {str(e)}")
-            self.status_bar.show_notification(
-                f"插入Base64编码的UUID失败: {str(e)}", 2000
-            )
+            self.nm.show_error(message=f"插入Base64编码的UUID失败: {str(e)}")
 
     def insert_uuid_urn(self):
         """插入URN格式UUID"""
@@ -1296,7 +1289,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入URN格式UUID时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入URN格式UUID失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入URN格式UUID失败: {str(e)}")
 
     def insert_uuid_v1(self):
         """插入UUID v1（基于时间）"""
@@ -1320,7 +1313,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入UUID v1时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入UUID v1失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入UUID v1失败: {str(e)}")
 
     def goto_top(self):
         """转到文件顶部"""
@@ -1336,7 +1329,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录转到顶部操作异常
             logger.error(f"转到文件顶部时出错: {str(e)}")
-            self.status_bar.show_notification(f"转到文件顶部失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"转到文件顶部失败: {str(e)}")
 
     def goto_bottom(self):
         """转到文件底部"""
@@ -1352,7 +1345,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录转到底部操作异常
             logger.error(f"转到文件底部时出错: {str(e)}")
-            self.status_bar.show_notification(f"转到文件底部失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"转到文件底部失败: {str(e)}")
 
     def goto_line_start(self):
         """转到当前行首"""
@@ -1371,7 +1364,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录转到行首操作异常
             logger.error(f"转到行首时出错: {str(e)}")
-            self.status_bar.show_notification(f"转到行首失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"转到行首失败: {str(e)}")
 
     def goto_line_end(self):
         """转到当前行尾"""
@@ -1390,7 +1383,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录转到行尾操作异常
             logger.error(f"转到行尾时出错: {str(e)}")
-            self.status_bar.show_notification(f"转到行尾失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"转到行尾失败: {str(e)}")
 
     def page_up(self):
         """向上翻页"""
@@ -1403,7 +1396,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录向上翻页操作异常
             logger.error(f"向上翻页时出错: {str(e)}")
-            self.status_bar.show_notification(f"向上翻页失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"向上翻页失败: {str(e)}")
 
     def page_down(self):
         """向下翻页"""
@@ -1416,7 +1409,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录向下翻页操作异常
             logger.error(f"向下翻页时出错: {str(e)}")
-            self.status_bar.show_notification(f"向下翻页失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"向下翻页失败: {str(e)}")
 
     def clear_clipboard(self):
         """清空剪贴板"""
@@ -1428,7 +1421,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录清空剪贴板操作异常
             logger.error(f"清空剪贴板时出错: {str(e)}")
-            self.status_bar.show_notification(f"清空剪贴板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"清空剪贴板失败: {str(e)}")
 
     def copy_filename_to_clipboard(self):
         """复制文件名到剪贴板"""
@@ -1447,7 +1440,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录复制文件名操作异常
             logger.error(f"复制文件名到剪贴板时出错: {str(e)}")
-            self.status_bar.show_notification(f"复制文件名失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"复制文件名失败: {str(e)}")
 
     def copy_filepath_to_clipboard(self):
         """复制文件路径到剪贴板"""
@@ -1466,7 +1459,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录复制文件路径操作异常
             logger.error(f"复制文件路径到剪贴板时出错: {str(e)}")
-            self.status_bar.show_notification(f"复制文件路径失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"复制文件路径失败: {str(e)}")
 
     def copy_directory_to_clipboard(self):
         """复制文件所在目录路径到剪贴板"""
@@ -1487,7 +1480,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录复制目录路径操作异常
             logger.error(f"复制目录路径到剪贴板时出错: {str(e)}")
-            self.status_bar.show_notification(f"复制目录路径失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"复制目录路径失败: {str(e)}")
 
     def copy_selected_text_info(self):
         """复制选中文本的信息（字符数、行数）"""
@@ -1520,7 +1513,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录复制选中文本信息操作异常
             logger.error(f"复制选中文本信息时出错: {str(e)}")
-            self.status_bar.show_notification(f"复制选中文本信息失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"复制选中文本信息失败: {str(e)}")
 
     def goto_line(self):
         """
@@ -1655,7 +1648,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入特殊字符时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入特殊字符失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入特殊字符失败: {str(e)}")
 
     def insert_copyright_symbol(self):
         """插入版权符号 ©"""
@@ -1724,6 +1717,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录更新状态异常
             logger.error(f"更新编辑器状态时出错: {str(e)}")
+            self.nm.show_error(message=f"更新编辑器状态失败: {str(e)}")
 
     def insert_mathematical_symbol(self, symbol_type, symbol_value):
         """
@@ -1752,7 +1746,7 @@ func (s *StructName) IsValid() bool {
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入数学符号时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入数学符号失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入数学符号失败: {str(e)}")
 
     def insert_plus_minus_symbol(self):
         """插入正负号 ±"""
@@ -2030,7 +2024,8 @@ func (s *StructName) IsValid() bool {
 
             # 显示通知
             self.status_bar.show_notification("已插入便签模板", 500)
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入便签模板时出错: {str(e)}")
-            self.status_bar.show_notification(f"插入便签模板失败: {str(e)}", 2000)
+            self.nm.show_error(message=f"插入便签模板失败: {str(e)}")

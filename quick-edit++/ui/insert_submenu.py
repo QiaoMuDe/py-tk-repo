@@ -373,8 +373,8 @@ def create_insert_submenu(parent_menu, root, menu_font_tuple):
     greek_upper_submenu.add_command(
         label="Ω", command=lambda: root.insert_capital_omega_symbol()
     )
-    
-     # 其他插入
+
+    # 其他插入
     other_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
     insert_submenu.add_cascade(label="其他", menu=other_submenu)
     other_submenu.add_command(label="时间戳", command=lambda: root.insert_timestamp())
