@@ -110,6 +110,36 @@ class NotificationPosition:
     TOP_CENTER = "top_center"  # 屏幕上方居中显示
     CENTER = "center"  # 屏幕居中显示
 
+    # 位置选项列表 - 用于菜单显示
+    OPTIONS = [
+        ("左上角", TOP_LEFT),
+        ("右上角", TOP_RIGHT),
+        ("左下角", BOTTOM_LEFT),
+        ("右下角", BOTTOM_RIGHT),
+        ("上方居中", TOP_CENTER),
+        ("屏幕居中", CENTER),
+    ]
+
+    # 位置名称映射 - 用于显示
+    NAMES = {
+        TOP_LEFT: "左上角",
+        TOP_RIGHT: "右上角",
+        BOTTOM_LEFT: "左下角",
+        BOTTOM_RIGHT: "右下角",
+        TOP_CENTER: "上方居中",
+        CENTER: "屏幕居中",
+    }
+
+    # 位置映射 - 用于字符串转换
+    MAP = {
+        "top_left": TOP_LEFT,
+        "top_right": TOP_RIGHT,
+        "bottom_left": BOTTOM_LEFT,
+        "bottom_right": BOTTOM_RIGHT,
+        "top_center": TOP_CENTER,
+        "center": CENTER,
+    }
+
     @classmethod
     def get_all_positions(cls):
         """获取所有可用的通知位置"""
@@ -126,27 +156,18 @@ class NotificationPosition:
     def from_string(cls, position_str):
         """
         将字符串转换为通知位置枚举值
-        
+
         Args:
             position_str: 位置字符串，如 "top_left", "top_right" 等
-            
+
         Returns:
             对应的NotificationPosition枚举值，如果字符串不匹配则返回默认值BOTTOM_RIGHT
         """
-        position_map = {
-            "top_left": cls.TOP_LEFT,
-            "top_right": cls.TOP_RIGHT,
-            "bottom_left": cls.BOTTOM_LEFT,
-            "bottom_right": cls.BOTTOM_RIGHT,
-            "top_center": cls.TOP_CENTER,
-            "center": cls.CENTER
-        }
-        
         # 转换为小写并去除前后空格
         position_str = str(position_str).strip().lower()
-        
-        # 返回匹配的位置，如果不匹配则返回默认值
-        return position_map.get(position_str, cls.BOTTOM_RIGHT)
+
+        # 使用位置映射
+        return cls.MAP.get(position_str, cls.BOTTOM_RIGHT)
 
 
 class Notification:

@@ -24,6 +24,7 @@ from ui.utils import get_supported_encodings
 from tkinter import messagebox, filedialog
 from ui.insert_submenu import create_insert_submenu
 from ui.selected_text_submenu import create_selected_text_submenu
+from ui.notification import NotificationPosition
 
 
 def create_encoding_submenu(parent_menu, root, show_common_only=False, font_tuple=None):
@@ -712,41 +713,26 @@ def create_menu(root):
 
     # 第八组：通知设置
     # 创建通知位置子菜单
-    notification_position_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
-    
-    # 获取当前通知位置
-    current_notification_position = config_manager.get("notification.position", "bottom_right")
-    
-    # 定义可用的通知位置选项
-    notification_position_options = [
-        ("左上角", "top_left"),
-        ("右上角", "top_right"),
-        ("左下角", "bottom_left"),
-        ("右下角", "bottom_right"),
-        ("上方居中", "top_center"),
-        ("屏幕居中", "center"),
-    ]
-    
-    # 创建通知位置变量
-    notification_position_var = tk.StringVar(value=current_notification_position)
-    
-    # 创建通知位置菜单项
-    for label, value in notification_position_options:
+    notification_position_submenu = tk.Menu(
+        settings_menu, tearoff=0, font=menu_font_tuple
+    )
+
+    # 使用NotificationPosition中的位置选项配置
+    for label, value in NotificationPosition.OPTIONS:
         notification_position_submenu.add_radiobutton(
             label=label,
-            variable=notification_position_var,
+            variable=root.notification_position_var,
             value=value,
             command=lambda pos=value: set_notification_position(pos, root),
         )
-    
+
     settings_menu.add_cascade(label="通知位置", menu=notification_position_submenu)
-    
+
     # 创建通知持续时间子菜单
-    notification_duration_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
-    
-    # 获取当前通知持续时间
-    current_notification_duration = config_manager.get("notification.duration", 3000)
-    
+    notification_duration_submenu = tk.Menu(
+        settings_menu, tearoff=0, font=menu_font_tuple
+    )
+
     # 定义可用的通知持续时间选项（毫秒）
     notification_duration_options = [
         ("2秒", 2000),
@@ -758,19 +744,16 @@ def create_menu(root):
         ("20秒", 20000),
         ("30秒", 30000),
     ]
-    
-    # 创建通知持续时间变量
-    notification_duration_var = tk.StringVar(value=str(current_notification_duration))
-    
+
     # 创建通知持续时间菜单项
     for label, value in notification_duration_options:
         notification_duration_submenu.add_radiobutton(
             label=label,
-            variable=notification_duration_var,
-            value=str(value),
+            variable=root.notification_duration_var,
+            value=value,
             command=lambda dur=value: set_notification_duration(dur, root),
         )
-    
+
     settings_menu.add_cascade(label="通知持续时间", menu=notification_duration_submenu)
 
     # 将设置菜单添加到主菜单
@@ -1393,19 +1376,10 @@ def set_notification_position(position, root):
     config_manager.save_config()
 
     # 更新通知管理器的默认位置
-    from ui.notification import NotificationPosition
     root.nm.set_default_position(NotificationPosition.from_string(position))
 
-    # 位置名称映射
-    position_names = {
-        "top_left": "左上角",
-        "top_right": "右上角",
-        "bottom_left": "左下角",
-        "bottom_right": "右下角",
-        "top_center": "上方居中",
-        "center": "屏幕居中",
-    }
-    position_name = position_names.get(position, position)
+    # 使用NotificationPosition中的位置名称映射
+    position_name = NotificationPosition.NAMES.get(position, position)
 
     # 显示通知
     root.nm.show_info(message=f"通知位置已设置为: {position_name}")

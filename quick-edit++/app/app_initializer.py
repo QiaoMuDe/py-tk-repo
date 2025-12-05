@@ -20,7 +20,7 @@ from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
 from loguru import logger
 import os
-from ui.notification import Notification,NotificationPosition
+from ui.notification import Notification, NotificationPosition
 
 
 class AppInitializer:
@@ -216,6 +216,22 @@ class AppInitializer:
         # 创建重命名菜单项索引，用于更新菜单项状态
         self.app.rename_menu_index = None
 
+        # 初始化通知位置状态变量
+        current_notification_position = config_manager.get(
+            "notification.position", "bottom_right"
+        )
+        self.app.notification_position_var = tk.StringVar(
+            value=current_notification_position
+        )
+
+        # 初始化通知持续时间状态变量
+        current_notification_duration = config_manager.get(
+            "notification.duration", 3000
+        )
+        self.app.notification_duration_var = tk.IntVar(
+            value=current_notification_duration
+        )
+
     def init_window_layout(self):
         """初始化窗口布局配置"""
         # 配置主窗口的网格布局
@@ -395,15 +411,17 @@ class AppInitializer:
 
         # 初始化通知组件，设置为编辑器的属性
         self.app.nm = Notification
-        
+
         # 从配置管理器获取通知配置并应用到通知组件
         notification_config = config_manager.get_component_config("notification")
         if notification_config:
             # 设置通知位置
             position = notification_config.get("position", "bottom_right")
             # 使用NotificationPosition.from_string方法将字符串转换为枚举值
-            Notification.set_default_position(NotificationPosition.from_string(position))
-            
+            Notification.set_default_position(
+                NotificationPosition.from_string(position)
+            )
+
             # 设置通知持续时间
             duration = notification_config.get("duration", 3000)
             Notification.set_default_duration(duration)
