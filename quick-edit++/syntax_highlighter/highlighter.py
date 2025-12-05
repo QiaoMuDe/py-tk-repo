@@ -514,7 +514,7 @@ class SyntaxHighlighter:
                     start_pos, end_pos = self._get_text_position_range(
                         start_index, match.start(), match.end()
                     )
-                    
+
                     # 直接添加所有匹配的高亮范围，不进行重叠检查
                     tag_ranges[full_tag_name].append((start_pos, end_pos))
 

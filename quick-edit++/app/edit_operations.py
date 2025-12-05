@@ -6,7 +6,6 @@
 该模块实现文本编辑的基本操作，包括撤销、重做、剪切、复制、粘贴、全选和清除等功能
 """
 
-from email import message
 import tkinter as tk
 from tkinter import messagebox
 import customtkinter as ctk
@@ -31,7 +30,7 @@ class EditOperations:
             if self.is_read_only:
                 self.nm.show_warning(message="当前为只读模式，无法撤销")
                 return
-            
+
             # 执行撤销操作
             self.text_area.edit_undo()
             # 更新编辑器显示和字符计数
@@ -39,7 +38,7 @@ class EditOperations:
             self.update_char_count()
             # 应用语法高亮
             self.syntax_highlighter.apply_highlighting(self.current_file_path)
-                
+
         except Exception as e:
             # 当无法撤销时显示提示
             self.nm.show_info(message="没有可撤销的操作")
@@ -51,7 +50,7 @@ class EditOperations:
             if self.is_read_only:
                 self.nm.show_warning(message="当前为只读模式，无法重做")
                 return
-            
+
             # 执行重做操作
             self.text_area.edit_redo()
             # 更新编辑器显示和字符计数
@@ -59,10 +58,10 @@ class EditOperations:
             self.update_char_count()
             # 应用语法高亮
             self.syntax_highlighter.apply_highlighting(self.current_file_path)
-            
+
         except Exception as e:
             # 当无法重做时显示提示
-            self.status_bar.show_notification("没有可重做的操作", 500)
+            self.nm.show_info(message="没有可重做的操作")
 
     def cut(self):
         """剪切选中的文本"""
@@ -73,7 +72,7 @@ class EditOperations:
                 if self.is_read_only:
                     self.nm.show_warning(message="当前为只读模式，无法剪切")
                     return
-                
+
                 selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
                 if selected_text:
                     # 将选中的文本复制到剪贴板
@@ -84,14 +83,15 @@ class EditOperations:
                     # 更新编辑器状态
                     self.update_editor_state()
                     # 显示通知
-                    self.status_bar.show_notification(
-                        f"已剪切 {len(selected_text)} 个字符", 500
-                    )
+                    self.nm.show_info(message=f"已剪切 {len(selected_text)} 个字符")
+
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 500)
+                    self.nm.show_info(message="没有选中的文本")
+
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 500)
+                self.nm.show_info(message="没有选中的文本")
+
         except Exception as e:
             # 忽略剪切操作异常
             pass
@@ -107,14 +107,15 @@ class EditOperations:
                     self.clipboard_clear()
                     self.clipboard_append(selected_text)
                     # 显示通知
-                    self.status_bar.show_notification(
-                        f"已复制 {len(selected_text)} 个字符", 500
-                    )
+                    self.nm.show_info(message=f"已复制 {len(selected_text)} 个字符")
+
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 500)
+                    self.nm.show_info(message="没有选中的文本")
+
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 500)
+                self.nm.show_info(message="没有选中的文本")
+                return
         except Exception as e:
             # 忽略复制操作异常
             pass
@@ -143,14 +144,14 @@ class EditOperations:
                     # 更新编辑器状态
                     self.update_editor_state()
                     # 显示通知
-                    self.status_bar.show_notification(
-                        f"已粘贴 {len(clipboard_text)} 个字符", 500
-                    )
+                    self.nm.show_info(message=f"已粘贴 {len(clipboard_text)} 个字符")
+
                 else:
-                    self.status_bar.show_notification("剪贴板为空", 500)
+                    self.nm.show_info(message="剪贴板为空")
+
             except tk.TclError:
                 # 剪贴板为空
-                self.status_bar.show_notification("剪贴板为空", 500)
+                self.nm.show_info(message="剪贴板为空")
         except Exception as e:
             # 忽略粘贴操作异常
             pass
@@ -168,7 +169,8 @@ class EditOperations:
             self.update_editor_display()
             # 显示通知
             total_chars = self.get_char_count()
-            self.status_bar.show_notification(f"已选择全部 {total_chars} 个字符", 500)
+            self.nm.show_info(message=f"已选择全部 {total_chars} 个字符")
+
         except Exception as e:
             # 忽略全选操作异常
             pass
@@ -186,7 +188,7 @@ class EditOperations:
 
             # 如果没有内容，直接返回
             if total_chars == 0:
-                self.status_bar.show_notification("文本区域已经为空", 500)
+                self.nm.show_info(message="文本区域已经为空")
                 return
 
             # 确认是否清除所有文本
@@ -200,7 +202,8 @@ class EditOperations:
                 # 更新编辑器状态
                 self.update_editor_state()
                 # 显示通知
-                self.status_bar.show_notification(f"已清除 {total_chars} 个字符", 500)
+                self.nm.show_info(message=f"已清除 {total_chars} 个字符")
+
         except Exception as e:
             # 忽略清除操作异常
             pass
@@ -222,14 +225,14 @@ class EditOperations:
                     # 更新编辑器状态
                     self.update_editor_state()
                     # 显示通知
-                    self.status_bar.show_notification(
-                        f"已清除 {len(selected_text)} 个字符", 500
-                    )
+                    self.nm.show_info(message=f"已清除 {len(selected_text)} 个字符")
+
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 500)
+                    self.nm.show_info(message="没有选中的文本")
+
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 500)
+                self.nm.show_info(message="没有选中的文本")
         except Exception as e:
             # 忽略清除操作异常
             pass
@@ -249,7 +252,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 500)
+            self.nm.show_info(message=f"已插入 {len(text)} 个字符")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文本时出错: {str(e)}")
@@ -270,7 +274,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入脚本 shebang 行", 500)
+            self.nm.show_info(message="已插入脚本 shebang 行")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入脚本shebang行时出错: {str(e)}")
@@ -291,7 +296,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入编码声明", 500)
+            self.nm.show_info(message="已插入编码声明")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入编码声明时出错: {str(e)}")
@@ -313,7 +319,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入Go语言基本结构", 500)
+            self.nm.show_info(message="已插入Go语言基本结构")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Go语言基本结构时出错: {str(e)}")
@@ -348,7 +355,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入Python函数模板", 500)
+            self.nm.show_info(message="已插入Python函数模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Python函数模板时出错: {str(e)}")
@@ -402,7 +410,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入Python类模板", 500)
+            self.nm.show_info(message="已插入Python类模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Python类模板时出错: {str(e)}")
@@ -450,7 +459,8 @@ class EditOperations:
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入HTML基本结构", 500)
+            self.nm.show_info(message="已插入HTML基本结构")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入HTML基本结构时出错: {str(e)}")
@@ -531,7 +541,8 @@ footer {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入CSS基本结构", 500)
+            self.nm.show_info(message="已插入CSS基本结构")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入CSS基本结构时出错: {str(e)}")
@@ -588,7 +599,8 @@ const arrowFunction = (param1, param2) => {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入JavaScript函数模板", 500)
+            self.nm.show_info(message="已插入JavaScript函数模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入JavaScript函数模板时出错: {str(e)}")
@@ -674,7 +686,8 @@ HAVING
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入SQL查询模板", 500)
+            self.nm.show_info(message="已插入SQL查询模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入SQL查询模板时出错: {str(e)}")
@@ -756,7 +769,8 @@ func closureFunction() func(int) int {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入GO函数模板", 500)
+            self.nm.show_info(message="已插入GO函数模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入GO函数模板时出错: {str(e)}")
@@ -885,7 +899,8 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入GO结构体模板", 500)
+            self.nm.show_info(message="已插入GO结构体模板")
+
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入GO结构体模板时出错: {str(e)}")
@@ -908,9 +923,9 @@ func (s *StructName) IsValid() bool {
                 self.update_editor_state()
 
                 # 显示通知
-                self.status_bar.show_notification(f"已插入文件名: {filename}", 500)
+                self.nm.show_info(message=f"已插入文件名: {filename}")
             else:
-                self.status_bar.show_notification("没有当前文件", 500)
+                self.nm.show_info(message="没有当前文件")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文件名时出错: {str(e)}")
@@ -932,11 +947,9 @@ func (s *StructName) IsValid() bool {
                 self.update_editor_state()
 
                 # 显示通知
-                self.status_bar.show_notification(
-                    f"已插入文件路径: {self.current_file_path}", 500
-                )
+                self.nm.show_info(message=f"已插入文件路径: {self.current_file_path}")
             else:
-                self.status_bar.show_notification("没有当前文件", 500)
+                self.nm.show_info(message="没有当前文件")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入文件路径时出错: {str(e)}")
@@ -959,9 +972,9 @@ func (s *StructName) IsValid() bool {
                 self.update_editor_state()
 
                 # 显示通知
-                self.status_bar.show_notification(f"已插入目录路径: {directory}", 500)
+                self.nm.show_info(message=f"已插入目录路径: {directory}")
             else:
-                self.status_bar.show_notification("没有当前文件", 500)
+                self.nm.show_info(message="没有当前文件")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入目录路径时出错: {str(e)}")
@@ -999,7 +1012,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入日期: {date_str}", 500)
+            self.nm.show_info(message=f"已插入日期: {date_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入日期时出错: {str(e)}")
@@ -1033,7 +1046,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入时间: {time_str}", 500)
+            self.nm.show_info(message=f"已插入时间: {time_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入时间时出错: {str(e)}")
@@ -1067,7 +1080,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 500)
+            self.nm.show_info(message=f"已插入日期时间: {datetime_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入日期时间时出错: {str(e)}")
@@ -1115,7 +1128,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入UUID v4: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入UUID v4时出错: {str(e)}")
@@ -1139,7 +1152,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入无连字符UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入无连字符UUID时出错: {str(e)}")
@@ -1163,7 +1176,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入大写UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入大写UUID时出错: {str(e)}")
@@ -1187,9 +1200,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(
-                f"已插入大写无连字符UUID: {uuid_str}", 500
-            )
+            self.nm.show_info(message=f"已插入大写无连字符UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入大写无连字符UUID时出错: {str(e)}")
@@ -1213,7 +1224,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入带花括号的UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入带花括号的UUID时出错: {str(e)}")
@@ -1237,9 +1248,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(
-                f"已插入带花括号的大写UUID: {uuid_str}", 500
-            )
+            self.nm.show_info(message=f"已插入带花括号的大写UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入带花括号的大写UUID时出错: {str(e)}")
@@ -1266,9 +1275,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(
-                f"已插入Base64编码的UUID: {uuid_str}", 500
-            )
+            self.nm.show_info(message=f"已插入Base64编码的UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入Base64编码的UUID时出错: {str(e)}")
@@ -1292,7 +1299,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入URN格式UUID: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入URN格式UUID时出错: {str(e)}")
@@ -1316,7 +1323,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 500)
+            self.nm.show_info(message=f"已插入UUID v1: {uuid_str}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入UUID v1时出错: {str(e)}")
@@ -1424,7 +1431,7 @@ func (s *StructName) IsValid() bool {
             # 清空剪贴板
             self.clipboard_clear()
             # 显示通知
-            self.status_bar.show_notification("剪贴板已清空", 500)
+            self.nm.show_info(message="剪贴板已清空")
         except Exception as e:
             # 记录清空剪贴板操作异常
             logger.error(f"清空剪贴板时出错: {str(e)}")
@@ -1441,9 +1448,9 @@ func (s *StructName) IsValid() bool {
                 # 添加文件名到剪贴板
                 self.clipboard_append(filename)
                 # 显示通知
-                self.status_bar.show_notification(f"已复制文件名: {filename}", 500)
+                self.nm.show_info(message=f"已复制文件名: {filename}")
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 500)
+                self.nm.show_info(message="当前没有打开的文件")
         except Exception as e:
             # 记录复制文件名操作异常
             logger.error(f"复制文件名到剪贴板时出错: {str(e)}")
@@ -1458,11 +1465,9 @@ func (s *StructName) IsValid() bool {
                 # 添加文件路径到剪贴板
                 self.clipboard_append(self.current_file_path)
                 # 显示通知
-                self.status_bar.show_notification(
-                    f"已复制文件路径: {self.current_file_path}", 500
-                )
+                self.nm.show_info(message=f"已复制文件路径: {self.current_file_path}")
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 500)
+                self.nm.show_info(message="当前没有打开的文件")
         except Exception as e:
             # 记录复制文件路径操作异常
             logger.error(f"复制文件路径到剪贴板时出错: {str(e)}")
@@ -1479,11 +1484,9 @@ func (s *StructName) IsValid() bool {
                 # 添加目录路径到剪贴板
                 self.clipboard_append(directory_path)
                 # 显示通知
-                self.status_bar.show_notification(
-                    f"已复制目录路径: {directory_path}", 500
-                )
+                self.nm.show_info(message=f"已复制目录路径: {directory_path}")
             else:
-                self.status_bar.show_notification("当前没有打开的文件", 500)
+                self.nm.show_info(message="当前没有打开的文件")
         except Exception as e:
             # 记录复制目录路径操作异常
             logger.error(f"复制目录路径到剪贴板时出错: {str(e)}")
@@ -1508,15 +1511,14 @@ func (s *StructName) IsValid() bool {
                     # 添加信息到剪贴板
                     self.clipboard_append(info_text)
                     # 显示通知
-                    self.status_bar.show_notification(
-                        f"已复制选中文本信息: {char_count} 个字符, {line_count} 行",
-                        500,
+                    self.nm.show_info(
+                        message=f"已复制选中文本信息: {char_count} 个字符, {line_count} 行"
                     )
                 else:
-                    self.status_bar.show_notification("没有选中的文本", 500)
+                    self.nm.show_info(message="没有选中的文本")
             except tk.TclError:
                 # 没有选中文本
-                self.status_bar.show_notification("没有选中的文本", 500)
+                self.nm.show_info(message="没有选中的文本")
         except Exception as e:
             # 记录复制选中文本信息操作异常
             logger.error(f"复制选中文本信息时出错: {str(e)}")
@@ -1651,7 +1653,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification(f"已插入{char_type}: {char_value}", 500)
+            self.nm.show_info(message=f"已插入{char_type}: {char_value}")
         except Exception as e:
             # 记录插入操作异常
             logger.error(f"插入特殊字符时出错: {str(e)}")
@@ -2030,7 +2032,7 @@ func (s *StructName) IsValid() bool {
             self.update_editor_state()
 
             # 显示通知
-            self.status_bar.show_notification("已插入便签模板", 500)
+            self.nm.show_info(message="已插入便签模板")
 
         except Exception as e:
             # 记录插入操作异常
