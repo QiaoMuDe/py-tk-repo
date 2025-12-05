@@ -71,7 +71,6 @@ class EditOperations:
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
                     # 更新状态栏
                     self.update_editor_display()
-                    # 更新
                     # 更新字符计数
                     self.update_char_count()
                     # 显示通知
@@ -190,12 +189,8 @@ class EditOperations:
             if confirmed:
                 # 清除所有文本
                 self.text_area.delete("1.0", tk.END)
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 更新修改状态
-                self.set_modified(True)
+                # 更新编辑器状态
+                self.update_editor_state()
                 # 显示通知
                 self.status_bar.show_notification(f"已清除 {total_chars} 个字符", 500)
         except Exception as e:
@@ -216,12 +211,8 @@ class EditOperations:
                 if selected_text:
                     # 删除选中的文本
                     self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
-                    # 更新状态栏
-                    self.update_editor_display()
-                    # 更新字符计数
-                    self.update_char_count()
-                    # 更新修改状态
-                    self.set_modified(True)
+                    # 更新编辑器状态
+                    self.update_editor_state()
                     # 显示通知
                     self.status_bar.show_notification(
                         f"已清除 {len(selected_text)} 个字符", 500
@@ -246,12 +237,8 @@ class EditOperations:
             # 在光标位置插入文本
             self.text_area.insert(tk.INSERT, text)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入 {len(text)} 个字符", 500)
@@ -271,12 +258,8 @@ class EditOperations:
             # 在光标位置插入shebang行
             self.text_area.insert(tk.INSERT, "#!/usr/bin/env ")
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入脚本 shebang 行", 500)
@@ -296,12 +279,8 @@ class EditOperations:
             # 在光标位置插入编码声明
             self.text_area.insert(tk.INSERT, "# -*- coding: utf-8 -*-\n")
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入编码声明", 500)
@@ -322,12 +301,8 @@ class EditOperations:
             go_code = """package main\n\nimport "fmt"\n\nfunc main() {\n\tfmt.Println("Hello, World!")\n}"""
             self.text_area.insert(tk.INSERT, go_code)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入Go语言基本结构", 500)
@@ -361,12 +336,8 @@ class EditOperations:
 """
             self.text_area.insert(tk.INSERT, python_function)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入Python函数模板", 500)
@@ -419,12 +390,8 @@ class EditOperations:
 """
             self.text_area.insert(tk.INSERT, python_class)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入Python类模板", 500)
@@ -471,12 +438,8 @@ class EditOperations:
 </html>"""
             self.text_area.insert(tk.INSERT, html_structure)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入HTML基本结构", 500)
@@ -556,12 +519,8 @@ footer {
 }"""
             self.text_area.insert(tk.INSERT, css_structure)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入CSS基本结构", 500)
@@ -617,12 +576,8 @@ const arrowFunction = (param1, param2) => {
 };"""
             self.text_area.insert(tk.INSERT, js_function)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入JavaScript函数模板", 500)
@@ -709,12 +664,8 @@ HAVING
     COUNT(*) > 1;"""
             self.text_area.insert(tk.INSERT, sql_query)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入SQL查询模板", 500)
@@ -795,12 +746,8 @@ func closureFunction() func(int) int {
 }"""
             self.text_area.insert(tk.INSERT, go_function)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入GO函数模板", 500)
@@ -928,12 +875,8 @@ func (s *StructName) IsValid() bool {
 }"""
             self.text_area.insert(tk.INSERT, go_struct)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification("已插入GO结构体模板", 500)
@@ -955,12 +898,8 @@ func (s *StructName) IsValid() bool {
                 filename = os.path.basename(self.current_file_path)
                 self.text_area.insert(tk.INSERT, filename)
 
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 更新修改状态
-                self.set_modified(True)
+                # 更新编辑器状态
+                self.update_editor_state()
 
                 # 显示通知
                 self.status_bar.show_notification(f"已插入文件名: {filename}", 500)
@@ -983,12 +922,8 @@ func (s *StructName) IsValid() bool {
             if hasattr(self, "current_file_path") and self.current_file_path:
                 self.text_area.insert(tk.INSERT, self.current_file_path)
 
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 更新修改状态
-                self.set_modified(True)
+                # 更新编辑器状态
+                self.update_editor_state()
 
                 # 显示通知
                 self.status_bar.show_notification(
@@ -1014,12 +949,8 @@ func (s *StructName) IsValid() bool {
                 directory = os.path.dirname(self.current_file_path)
                 self.text_area.insert(tk.INSERT, directory)
 
-                # 更新状态栏
-                self.update_editor_display()
-                # 更新字符计数
-                self.update_char_count()
-                # 更新修改状态
-                self.set_modified(True)
+                # 更新编辑器状态
+                self.update_editor_state()
 
                 # 显示通知
                 self.status_bar.show_notification(f"已插入目录路径: {directory}", 500)
@@ -1058,12 +989,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入日期
             self.text_area.insert(tk.INSERT, date_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入日期: {date_str}", 500)
@@ -1096,12 +1023,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入时间
             self.text_area.insert(tk.INSERT, time_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入时间: {time_str}", 500)
@@ -1134,12 +1057,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入日期时间
             self.text_area.insert(tk.INSERT, datetime_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入日期时间: {datetime_str}", 500)
@@ -1162,12 +1081,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入时间戳
             self.text_area.insert(tk.INSERT, timestamp)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入时间戳: {timestamp}", 500)
@@ -1190,12 +1105,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入UUID v4: {uuid_str}", 500)
@@ -1218,12 +1129,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入无连字符UUID: {uuid_str}", 500)
@@ -1246,12 +1153,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入大写UUID: {uuid_str}", 500)
@@ -1274,12 +1177,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(
@@ -1306,12 +1205,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入带花括号的UUID: {uuid_str}", 500)
@@ -1334,12 +1229,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(
@@ -1369,12 +1260,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(
@@ -1401,12 +1288,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入URN格式UUID: {uuid_str}", 500)
@@ -1429,12 +1312,8 @@ func (s *StructName) IsValid() bool {
             # 在光标位置插入UUID
             self.text_area.insert(tk.INSERT, uuid_str)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入UUID v1: {uuid_str}", 500)
@@ -1768,12 +1647,8 @@ func (s *StructName) IsValid() bool {
             # 插入特殊字符
             self.text_area.insert(tk.INSERT, char_value)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(f"已插入{char_type}: {char_value}", 500)
@@ -1834,6 +1709,22 @@ func (s *StructName) IsValid() bool {
         """插入圆点符号 •"""
         self.insert_special_character("圆点符号", "•")
 
+    def update_editor_state(self):
+        """
+        更新编辑器状态
+        包括更新编辑器显示、字符计数和修改状态
+        """
+        try:
+            # 更新状态栏
+            self.update_editor_display()
+            # 更新字符计数
+            self.update_char_count()
+            # 更新修改状态
+            self.set_modified(True)
+        except Exception as e:
+            # 记录更新状态异常
+            logger.error(f"更新编辑器状态时出错: {str(e)}")
+
     def insert_mathematical_symbol(self, symbol_type, symbol_value):
         """
         插入数学符号
@@ -1851,12 +1742,8 @@ func (s *StructName) IsValid() bool {
             # 插入数学符号
             self.text_area.insert(tk.INSERT, symbol_value)
 
-            # 更新状态栏
-            self.update_editor_display()
-            # 更新字符计数
-            self.update_char_count()
-            # 更新修改状态
-            self.set_modified(True)
+            # 更新编辑器状态
+            self.update_editor_state()
 
             # 显示通知
             self.status_bar.show_notification(
@@ -2110,3 +1997,40 @@ func (s *StructName) IsValid() bool {
     def insert_capital_omega_symbol(self):
         """插入大写希腊字母 Ω"""
         self.insert_mathematical_symbol("大写希腊字母Ω", "Ω")
+
+    def insert_note_template(self):
+        """插入便签基本结构"""
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                return
+
+            # 便签基本结构
+            note_template = """# 便签
+
+[TOC]
+
+------
+
+## 紧急重要
+
+## 紧急不重要
+
+## 重要不紧急
+
+## 不重要不紧急
+"""
+
+            # 插入便签模板
+            self.text_area.insert(tk.INSERT, note_template)
+
+            # 更新编辑器状态
+            self.update_editor_state()
+
+            # 显示通知
+            self.status_bar.show_notification("已插入便签模板", 500)
+        except Exception as e:
+            # 记录插入操作异常
+            logger.error(f"插入便签模板时出错: {str(e)}")
+            self.status_bar.show_notification(f"插入便签模板失败: {str(e)}", 2000)

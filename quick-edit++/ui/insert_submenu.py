@@ -125,44 +125,6 @@ def create_insert_submenu(parent_menu, root, menu_font_tuple):
         command=lambda: root.insert_datetime("ymd_slash_12h"),
     )
 
-    # 其他插入
-    other_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
-    insert_submenu.add_cascade(label="其他", menu=other_submenu)
-    other_submenu.add_command(label="时间戳", command=lambda: root.insert_timestamp())
-
-    # UUID子菜单
-    uuid_submenu = tk.Menu(other_submenu, tearoff=0, font=menu_font_tuple)
-    other_submenu.add_cascade(label="UUID", menu=uuid_submenu)
-    uuid_submenu.add_command(
-        label="UUID v4 (标准格式)", command=lambda: root.insert_uuid_v4()
-    )
-    uuid_submenu.add_command(
-        label="无连字符UUID", command=lambda: root.insert_uuid_no_hyphens()
-    )
-    uuid_submenu.add_command(
-        label="大写UUID", command=lambda: root.insert_uuid_uppercase()
-    )
-    uuid_submenu.add_command(
-        label="大写无连字符UUID",
-        command=lambda: root.insert_uuid_uppercase_no_hyphens(),
-    )
-    uuid_submenu.add_command(
-        label="带花括号的UUID", command=lambda: root.insert_uuid_with_braces()
-    )
-    uuid_submenu.add_command(
-        label="带花括号的大写UUID",
-        command=lambda: root.insert_uuid_uppercase_with_braces(),
-    )
-    uuid_submenu.add_command(
-        label="Base64编码UUID", command=lambda: root.insert_uuid_base64()
-    )
-    uuid_submenu.add_command(
-        label="URN格式UUID", command=lambda: root.insert_uuid_urn()
-    )
-    uuid_submenu.add_command(
-        label="UUID v1 (基于时间)", command=lambda: root.insert_uuid_v1()
-    )
-
     # 特殊字符子菜单
     special_char_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
     insert_submenu.add_cascade(label="特殊字符", menu=special_char_submenu)
@@ -410,6 +372,47 @@ def create_insert_submenu(parent_menu, root, menu_font_tuple):
     )
     greek_upper_submenu.add_command(
         label="Ω", command=lambda: root.insert_capital_omega_symbol()
+    )
+    
+     # 其他插入
+    other_submenu = tk.Menu(insert_submenu, tearoff=0, font=menu_font_tuple)
+    insert_submenu.add_cascade(label="其他", menu=other_submenu)
+    other_submenu.add_command(label="时间戳", command=lambda: root.insert_timestamp())
+    other_submenu.add_command(
+        label="便签模板", command=lambda: root.insert_note_template()
+    )
+
+    # UUID子菜单
+    uuid_submenu = tk.Menu(other_submenu, tearoff=0, font=menu_font_tuple)
+    other_submenu.add_cascade(label="UUID", menu=uuid_submenu)
+    uuid_submenu.add_command(
+        label="UUID v4 (标准格式)", command=lambda: root.insert_uuid_v4()
+    )
+    uuid_submenu.add_command(
+        label="无连字符UUID", command=lambda: root.insert_uuid_no_hyphens()
+    )
+    uuid_submenu.add_command(
+        label="大写UUID", command=lambda: root.insert_uuid_uppercase()
+    )
+    uuid_submenu.add_command(
+        label="大写无连字符UUID",
+        command=lambda: root.insert_uuid_uppercase_no_hyphens(),
+    )
+    uuid_submenu.add_command(
+        label="带花括号的UUID", command=lambda: root.insert_uuid_with_braces()
+    )
+    uuid_submenu.add_command(
+        label="带花括号的大写UUID",
+        command=lambda: root.insert_uuid_uppercase_with_braces(),
+    )
+    uuid_submenu.add_command(
+        label="Base64编码UUID", command=lambda: root.insert_uuid_base64()
+    )
+    uuid_submenu.add_command(
+        label="URN格式UUID", command=lambda: root.insert_uuid_urn()
+    )
+    uuid_submenu.add_command(
+        label="UUID v1 (基于时间)", command=lambda: root.insert_uuid_v1()
     )
 
     return insert_submenu
