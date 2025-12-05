@@ -1108,6 +1108,18 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             # messagebox.showinfo("提示", "当前没有打开的文件")
             self.nm.show_info(message="当前没有打开的文件")
 
+    def open_program_directory(self):
+        """打开程序所在的目录"""
+        try:
+            # 获取程序所在的目录
+            program_dir = os.path.dirname(os.path.abspath(__file__))
+            # 在Windows上使用explorer命令打开文件夹
+            os.startfile(program_dir)
+
+        except Exception as e:
+            logger.error(f"无法打开程序所在目录: {str(e)}")
+            self.nm.show_error(message=f"无法打开程序所在目录: {str(e)}")
+
     def get_char_count(self):
         """
         获取文本区域的字符数, 使用缓存机制提高性能

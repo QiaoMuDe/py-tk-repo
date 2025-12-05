@@ -466,15 +466,11 @@ def create_menu(root):
     settings_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
 
     # 第一组：界面设置
-    # 获取工具栏显示状态
-    show_toolbar = config_manager.get("app.show_toolbar", True)
-    # 初始化或更新APP类中的变量
-    if root.toolbar_var is None:
-        root.toolbar_var = tk.BooleanVar(value=show_toolbar)
-    else:
-        root.toolbar_var.set(show_toolbar)
+    # 创建界面设置子菜单
+    interface_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
 
-    settings_menu.add_checkbutton(
+    # 工具栏显示设置
+    interface_settings_submenu.add_checkbutton(
         label="显示工具栏",
         command=lambda: toggle_toolbar_visibility(root, switch_state=False),
         variable=root.toolbar_var,
@@ -482,7 +478,7 @@ def create_menu(root):
     )
 
     # 行号显示设置
-    settings_menu.add_checkbutton(
+    interface_settings_submenu.add_checkbutton(
         label="显示行号",
         command=lambda: toggle_line_numbers(root, switch_state=False),
         variable=root.line_numbers_var,
@@ -490,7 +486,7 @@ def create_menu(root):
     )
 
     # 全屏模式设置
-    settings_menu.add_checkbutton(
+    interface_settings_submenu.add_checkbutton(
         label="全屏模式",
         command=lambda: root.toggle_fullscreen(switch_state=False),
         variable=root.fullscreen_var,
@@ -498,7 +494,9 @@ def create_menu(root):
     )
 
     # 创建窗口标题显示子菜单
-    title_display_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+    title_display_submenu = tk.Menu(
+        interface_settings_submenu, tearoff=0, font=menu_font_tuple
+    )
 
     # 添加标题显示选项
     title_display_submenu.add_radiobutton(
@@ -520,17 +518,17 @@ def create_menu(root):
         command=lambda: set_window_title_mode(root.title_mode_var.get(), root),
     )
 
-    settings_menu.add_cascade(label="窗口标题显示", menu=title_display_submenu)
-    settings_menu.add_separator()
+    interface_settings_submenu.add_cascade(
+        label="窗口标题显示", menu=title_display_submenu
+    )
+    settings_menu.add_cascade(label="界面设置", menu=interface_settings_submenu)
 
     # 第二组：编辑设置
-    # 获取自动换行设置
-    auto_wrap = config_manager.get("text_editor.auto_wrap", True)
-    if root.auto_wrap_var is None:
-        root.auto_wrap_var = tk.BooleanVar(value=auto_wrap)
-    else:
-        root.auto_wrap_var.set(auto_wrap)
-    settings_menu.add_checkbutton(
+    # 创建编辑设置子菜单
+    editor_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 自动换行设置
+    editor_settings_submenu.add_checkbutton(
         label="启用自动换行",
         command=lambda: toggle_auto_wrap(root, switch_state=False),
         variable=root.auto_wrap_var,
@@ -538,7 +536,7 @@ def create_menu(root):
     )
 
     # 语法高亮设置
-    settings_menu.add_checkbutton(
+    editor_settings_submenu.add_checkbutton(
         label="启用语法高亮",
         command=lambda: toggle_syntax_highlight(root, switch_state=False),
         variable=root.syntax_highlight_var,
@@ -546,7 +544,9 @@ def create_menu(root):
     )
 
     # 创建语法高亮模式子菜单
-    highlight_mode_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+    highlight_mode_submenu = tk.Menu(
+        editor_settings_submenu, tearoff=0, font=menu_font_tuple
+    )
 
     # 添加语法高亮模式选项
     highlight_mode_submenu.add_radiobutton(
@@ -561,48 +561,34 @@ def create_menu(root):
         value=False,
         command=lambda: set_syntax_highlight_mode(False, root),
     )
-    settings_menu.add_cascade(label="高亮模式", menu=highlight_mode_submenu)
+    editor_settings_submenu.add_cascade(label="高亮模式", menu=highlight_mode_submenu)
 
     # 自动递增编号设置
-    settings_menu.add_checkbutton(
+    editor_settings_submenu.add_checkbutton(
         label="启用自动递增编号",
         command=lambda: toggle_auto_increment_number(root),
         variable=root.auto_increment_number_var,
     )
 
     # 光标所在行高亮设置
-    settings_menu.add_checkbutton(
+    editor_settings_submenu.add_checkbutton(
         label="启用光标所在行高亮",
         command=lambda: toggle_highlight_current_line(root, switch_state=False),
         variable=root.highlight_current_line_var,
         accelerator="Ctrl+Shift+H",
     )
-    settings_menu.add_separator()
-
-    # 第三组：文件与编辑器设置
-    # 文件变更监控设置
-    settings_menu.add_checkbutton(
-        label="启用文件变更监控",
-        command=lambda: toggle_file_monitoring(root),
-        variable=root.file_monitoring_var,
-    )
-
-    # 静默重载模式设置
-    settings_menu.add_checkbutton(
-        label="文件变更时静默重载",
-        command=lambda: toggle_silent_reload(root),
-        variable=root.silent_reload_var,
-    )
 
     # 制表符设置
-    settings_menu.add_checkbutton(
+    editor_settings_submenu.add_checkbutton(
         label="使用空格代替制表符",
         command=lambda: toggle_use_spaces_for_tab(root),
         variable=root.use_spaces_for_tab_var,
     )
 
     # 创建制表符宽度子菜单
-    tab_width_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+    tab_width_submenu = tk.Menu(
+        editor_settings_submenu, tearoff=0, font=menu_font_tuple
+    )
 
     # 定义可用的制表符宽度选项
     tab_width_options = [
@@ -628,19 +614,47 @@ def create_menu(root):
             command=lambda: set_tab_width(root),
         )
 
-    settings_menu.add_cascade(label="制表符宽度", menu=tab_width_submenu)
-    settings_menu.add_separator()
+    editor_settings_submenu.add_cascade(label="制表符宽度", menu=tab_width_submenu)
+    settings_menu.add_cascade(label="编辑设置", menu=editor_settings_submenu)
+
+    # 第三组：文件设置
+    # 创建文件设置子菜单
+    file_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 文件变更监控设置
+    file_settings_submenu.add_checkbutton(
+        label="启用文件变更监控",
+        command=lambda: toggle_file_monitoring(root),
+        variable=root.file_monitoring_var,
+    )
+
+    # 静默重载模式设置
+    file_settings_submenu.add_checkbutton(
+        label="文件变更时静默重载",
+        command=lambda: toggle_silent_reload(root),
+        variable=root.silent_reload_var,
+    )
+
+    # 设置文件选择器初始路径
+    file_settings_submenu.add_command(
+        label="设置文件选择器初始路径",
+        command=lambda: set_file_dialog_initial_dir(root),
+    )
+    settings_menu.add_cascade(label="文件设置", menu=file_settings_submenu)
 
     # 第四组：保存设置
-    # 获取自动保存设置
-    settings_menu.add_checkbutton(
+    # 创建保存设置子菜单
+    save_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 自动保存设置
+    save_settings_submenu.add_checkbutton(
         label="启用自动保存",
         command=lambda: toggle_auto_save(root),
         variable=root.auto_save_var,
     )
 
     # 创建自动保存间隔子菜单
-    autosave_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+    autosave_submenu = tk.Menu(save_settings_submenu, tearoff=0, font=menu_font_tuple)
 
     # 获取当前自动保存间隔
     auto_save_interval = config_manager.get("app.auto_save_interval", 5)
@@ -676,45 +690,25 @@ def create_menu(root):
             command=lambda interval=value: set_auto_save_interval(interval, root),
         )
 
-    settings_menu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
+    save_settings_submenu.add_cascade(label="自动保存间隔", menu=autosave_submenu)
 
-    # 获取备份设置
-    settings_menu.add_checkbutton(
+    # 备份设置
+    save_settings_submenu.add_checkbutton(
         label="启用副本备份",
         command=lambda: toggle_backup(root),
         variable=root.backup_var,
     )
-    settings_menu.add_separator()
+    settings_menu.add_cascade(label="保存设置", menu=save_settings_submenu)
 
-    # 第六组：文件设置
-    settings_menu.add_command(
-        label="设置文件选择器初始路径",
-        command=lambda: set_file_dialog_initial_dir(root),
+    # 第五组：通知设置
+    # 创建通知设置子菜单
+    notification_settings_submenu = tk.Menu(
+        settings_menu, tearoff=0, font=menu_font_tuple
     )
-    settings_menu.add_separator()
 
-    # 第七组：配置管理
-    settings_menu.add_command(
-        label="查看配置",
-        command=lambda: root.file_ops.open_config_file(),
-        accelerator="Ctrl+Shift+C",
-    )
-    settings_menu.add_command(
-        label="查看日志",
-        command=lambda: root.file_ops.open_log_file(),
-        accelerator="Ctrl+Shift+L",
-    )
-    settings_menu.add_command(
-        label="重置设置",
-        command=lambda: root._reset_settings(),
-        accelerator="Ctrl+Shift+R",
-    )
-    settings_menu.add_separator()
-
-    # 第八组：通知设置
     # 创建通知位置子菜单
     notification_position_submenu = tk.Menu(
-        settings_menu, tearoff=0, font=menu_font_tuple
+        notification_settings_submenu, tearoff=0, font=menu_font_tuple
     )
 
     # 使用NotificationPosition中的位置选项配置
@@ -726,11 +720,13 @@ def create_menu(root):
             command=lambda pos=value: set_notification_position(pos, root),
         )
 
-    settings_menu.add_cascade(label="通知位置", menu=notification_position_submenu)
+    notification_settings_submenu.add_cascade(
+        label="通知位置", menu=notification_position_submenu
+    )
 
     # 创建通知持续时间子菜单
     notification_duration_submenu = tk.Menu(
-        settings_menu, tearoff=0, font=menu_font_tuple
+        notification_settings_submenu, tearoff=0, font=menu_font_tuple
     )
 
     # 定义可用的通知持续时间选项（毫秒）
@@ -754,7 +750,36 @@ def create_menu(root):
             command=lambda dur=value: set_notification_duration(dur, root),
         )
 
-    settings_menu.add_cascade(label="通知持续时间", menu=notification_duration_submenu)
+    notification_settings_submenu.add_cascade(
+        label="通知持续时间", menu=notification_duration_submenu
+    )
+    settings_menu.add_cascade(label="通知设置", menu=notification_settings_submenu)
+
+    # 第六组：配置管理
+    # 创建配置管理子菜单
+    config_settings_submenu = tk.Menu(settings_menu, tearoff=0, font=menu_font_tuple)
+
+    # 查看配置
+    config_settings_submenu.add_command(
+        label="查看配置",
+        command=lambda: root.file_ops.open_config_file(),
+        accelerator="Ctrl+Shift+C",
+    )
+
+    # 查看日志
+    config_settings_submenu.add_command(
+        label="查看日志",
+        command=lambda: root.file_ops.open_log_file(),
+        accelerator="Ctrl+Shift+L",
+    )
+
+    # 重置设置
+    config_settings_submenu.add_command(
+        label="重置设置",
+        command=lambda: root._reset_settings(),
+        accelerator="Ctrl+Shift+R",
+    )
+    settings_menu.add_cascade(label="配置管理", menu=config_settings_submenu)
 
     # 将设置菜单添加到主菜单
     main_menu.add_cascade(label="设置", menu=settings_menu)
@@ -784,7 +809,11 @@ def create_menu(root):
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     help_menu.add_command(
-        label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
+        label="关于程序", command=lambda: show_about_dialog(root), accelerator="F1"
+    )
+    help_menu.add_separator()
+    help_menu.add_command(
+        label="程序目录", command=lambda: root.open_program_directory()
     )
 
     # 将帮助菜单添加到主菜单
