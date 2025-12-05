@@ -20,7 +20,7 @@ from .find_replace_engine import FindReplaceEngine
 from ctypes import windll
 from loguru import logger
 import os
-from ui.notification import Notification
+from ui.notification import Notification,NotificationPosition
 
 
 class AppInitializer:
@@ -395,6 +395,18 @@ class AppInitializer:
 
         # 初始化通知组件，设置为编辑器的属性
         self.app.nm = Notification
+        
+        # 从配置管理器获取通知配置并应用到通知组件
+        notification_config = config_manager.get_component_config("notification")
+        if notification_config:
+            # 设置通知位置
+            position = notification_config.get("position", "bottom_right")
+            # 使用NotificationPosition.from_string方法将字符串转换为枚举值
+            Notification.set_default_position(NotificationPosition.from_string(position))
+            
+            # 设置通知持续时间
+            duration = notification_config.get("duration", 3000)
+            Notification.set_default_duration(duration)
 
     def initialize_app(self):
         """执行完整的应用初始化流程"""

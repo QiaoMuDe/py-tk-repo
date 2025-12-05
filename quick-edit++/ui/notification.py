@@ -122,6 +122,32 @@ class NotificationPosition:
             cls.CENTER,
         ]
 
+    @classmethod
+    def from_string(cls, position_str):
+        """
+        将字符串转换为通知位置枚举值
+        
+        Args:
+            position_str: 位置字符串，如 "top_left", "top_right" 等
+            
+        Returns:
+            对应的NotificationPosition枚举值，如果字符串不匹配则返回默认值BOTTOM_RIGHT
+        """
+        position_map = {
+            "top_left": cls.TOP_LEFT,
+            "top_right": cls.TOP_RIGHT,
+            "bottom_left": cls.BOTTOM_LEFT,
+            "bottom_right": cls.BOTTOM_RIGHT,
+            "top_center": cls.TOP_CENTER,
+            "center": cls.CENTER
+        }
+        
+        # 转换为小写并去除前后空格
+        position_str = str(position_str).strip().lower()
+        
+        # 返回匹配的位置，如果不匹配则返回默认值
+        return position_map.get(position_str, cls.BOTTOM_RIGHT)
+
 
 class Notification:
     """通知类 - 负责创建和管理通知窗口"""

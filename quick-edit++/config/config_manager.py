@@ -119,6 +119,11 @@ DEFAULT_CONFIG = {
         "rotation_size": "5 MB",  # 日志文件旋转大小
         "retention_time": "7 days",  # 日志文件保留时间
     },
+    # 通知配置
+    "notification": {
+        "position": "bottom_right",  # 通知窗口位置: top_left, top_right, bottom_left, bottom_right, top_center, center
+        "duration": 3000,  # 通知显示持续时间（毫秒）
+    },
 }
 
 
