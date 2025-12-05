@@ -27,6 +27,11 @@ class EditOperations:
     def undo(self):
         """撤销上一步操作"""
         try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.nm.show_warning(message="当前为只读模式，无法撤销")
+                return
+            
             # 检查是否可以撤销
             if self.text_area.edit_undo():
                 # 更新状态栏
@@ -44,6 +49,11 @@ class EditOperations:
     def redo(self):
         """重做上一步撤销的操作"""
         try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.nm.show_warning(message="当前为只读模式，无法重做")
+                return
+            
             # 检查是否可以重做
             if self.text_area.edit_redo():
                 # 更新状态栏
@@ -63,6 +73,11 @@ class EditOperations:
         try:
             # 检查是否有选中的文本
             try:
+                # 检查是否为只读模式
+                if self.is_read_only:
+                    self.nm.show_warning(message="当前为只读模式，无法剪切")
+                    return
+                
                 selected_text = self.text_area.get(tk.SEL_FIRST, tk.SEL_LAST)
                 if selected_text:
                     # 将选中的文本复制到剪贴板
@@ -115,7 +130,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法粘贴", 500)
+                self.nm.show_warning(message="当前为只读模式，无法粘贴")
                 return
 
             # 获取剪贴板内容
@@ -171,7 +186,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法清除", 500)
+                self.nm.show_warning(message="当前为只读模式，无法清除")
                 return
 
             # 获取当前字符数
@@ -203,7 +218,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法清除", 500)
+                self.nm.show_warning(message="当前为只读模式，无法清除")
                 return
 
             # 检查是否有选中的文本
@@ -232,7 +247,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入文本
@@ -253,7 +268,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入shebang行
@@ -274,7 +289,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入编码声明
@@ -295,7 +310,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入Go语言基本结构
@@ -317,7 +332,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入Python函数模板
@@ -352,7 +367,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入Python类模板
@@ -406,7 +421,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入HTML基本结构
@@ -454,7 +469,7 @@ class EditOperations:
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入CSS基本结构
@@ -535,7 +550,7 @@ footer {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入JavaScript函数模板
@@ -592,7 +607,7 @@ const arrowFunction = (param1, param2) => {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入SQL查询模板
@@ -678,7 +693,7 @@ HAVING
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入GO函数模板
@@ -760,7 +775,7 @@ func closureFunction() func(int) int {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 在光标位置插入GO结构体模板
@@ -889,7 +904,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 获取当前文件名
@@ -914,7 +929,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 获取当前文件路径
@@ -940,7 +955,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 获取当前文件所在目录
@@ -965,7 +980,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 根据格式类型获取日期
@@ -1003,7 +1018,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 根据格式类型获取时间
@@ -1037,7 +1052,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 根据格式类型获取日期时间
@@ -1071,7 +1086,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 获取当前时间戳
@@ -1095,7 +1110,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4
@@ -1119,7 +1134,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4并移除连字符
@@ -1143,7 +1158,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4并转换为大写
@@ -1167,7 +1182,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4，移除连字符并转换为大写
@@ -1193,7 +1208,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4并添加花括号
@@ -1217,7 +1232,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4，转换为大写并添加花括号
@@ -1243,7 +1258,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v4并转换为Base64编码
@@ -1272,7 +1287,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成URN格式的UUID v4
@@ -1296,7 +1311,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 生成UUID v1
@@ -1634,7 +1649,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 插入特殊字符
@@ -1730,7 +1745,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 插入数学符号
@@ -1997,7 +2012,7 @@ func (s *StructName) IsValid() bool {
         try:
             # 检查是否为只读模式
             if self.is_read_only:
-                self.status_bar.show_notification("当前为只读模式，无法插入", 500)
+                self.nm.show_warning(message="当前为只读模式，无法插入")
                 return
 
             # 便签基本结构
