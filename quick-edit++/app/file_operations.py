@@ -221,6 +221,20 @@ class FileOperations:
         # 文件类型检测规则 - 使用列表组织，便于维护
         detection_rules = [
             (
+                ".py",
+                [
+                    # Python语法 - 检测常见Python特征
+                    r"^\s*import\s+\w+",  # import语句
+                    r"^\s*from\s+\w+\s+import",  # from...import语句
+                    r"^\s*def\s+\w+\s*\(",  # 函数定义
+                    r"^\s*class\s+\w+\s*:",  # 类定义
+                    r"^\s*if\s+__name__\s*==\s*['\"]__main__['\"]\s*:",  # 主程序入口
+                    r"^\s*(?:try|except|finally|with|for|while)\s+",  # 控制流语句
+                    r"^\s*print\s*\(",  # print函数
+                    r"\w+\s*=\s*.*",  # 赋值语句
+                ],
+            ),
+            (
                 ".bat",
                 [
                     # 批处理
