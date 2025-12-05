@@ -341,11 +341,16 @@ class FileOperations:
 
                 # 生成默认文件名
                 default_filename = self._generate_default_filename()
+                
+                # 从默认文件名中提取扩展名，用于设置保存对话框的默认扩展名
+                default_extension = os.path.splitext(default_filename)[1]
+                if not default_extension:  # 如果没有扩展名，使用.txt
+                    default_extension = ".txt"
 
                 # 打开文件保存对话框
                 final_path = filedialog.asksaveasfilename(
                     title=dialog_title,
-                    defaultextension=".txt",
+                    defaultextension=default_extension,
                     filetypes=self.FILE_TYPES,
                     initialfile=default_filename,
                     initialdir=self.config_manager.get_file_dialog_initial_dir(),  # 设置默认目录
