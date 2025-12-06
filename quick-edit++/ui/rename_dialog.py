@@ -34,18 +34,20 @@ class RenameDialog(ctk.CTkToplevel):
         # 设置为模态对话框
         self.transient(parent)
         self.grab_set()
-        self.attributes("-topmost", True)  # 始终置顶
+        # self.attributes("-topmost", True)  # 始终置顶
 
         # 居中显示
-        width = 700  # 窗口宽度
-        height = 380  # 窗口高度
+        width = 650  # 窗口宽度
+        height = 460  # 窗口高度
         self.master.center_window(self, width, height)
+
+        # 设置窗口背景色为浅灰色
+        self.configure(fg_color="#f0f2f5")
 
         # 保存当前文件路径
         self.current_file_path = current_file_path
         self.directory = os.path.dirname(current_file_path)
         self.current_name = os.path.basename(current_file_path)
-        self.name_without_ext, self.extension = os.path.splitext(self.current_name)
 
         # 结果变量
         self.result = None
@@ -53,15 +55,12 @@ class RenameDialog(ctk.CTkToplevel):
         # 创建UI组件
         self._create_widgets()
 
-        # 设置焦点到输入框
-        self.name_entry.focus_set()
-
-        # 选中文件名（不含扩展名）
-        self.name_entry.select_range(0, len(self.name_without_ext))
-
         # 绑定回车键和ESC键
         self.bind("<Return>", lambda e: self._on_confirm())
         self.bind("<Escape>", lambda e: self._on_cancel())
+
+        # 延迟设置焦点，确保窗口完全显示后再执行
+        self.after(150, lambda: self.name_entry.focus_set())
 
     def _setup_fonts(self):
         """设置对话框中使用的各种字体样式"""
@@ -73,107 +72,99 @@ class RenameDialog(ctk.CTkToplevel):
         self.font_bold = ctk.CTkFont(
             family="Microsoft YaHei UI", size=15, weight="bold"
         )
+        # 标题字体
+        self.font_title = ctk.CTkFont(
+            family="Microsoft YaHei UI", size=22, weight="bold"
+        )
+        # 输入框字体
+        self.font_entry = ctk.CTkFont(family="Microsoft YaHei UI", size=16)
 
     def _create_widgets(self):
         """创建对话框UI组件"""
-        # 主框架 - 使用更现代的圆角设计和透明背景
-        main_frame = ctk.CTkFrame(self, corner_radius=15, fg_color="transparent")
-        main_frame.pack(fill="both", expand=True, padx=25, pady=25)
+        # 主框架 - 使用现代化的白色背景
+        main_frame = ctk.CTkFrame(self, corner_radius=20, fg_color="#f8f9fa")
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
-        # 内容卡片 - 添加轻微的背景色和圆角
-        content_card = ctk.CTkFrame(
-            main_frame, corner_radius=12, fg_color=("gray95", "gray10")
+        # 标题区域
+        title_frame = ctk.CTkFrame(main_frame, corner_radius=0, fg_color="transparent")
+        title_frame.pack(fill="x", padx=25, pady=(25, 15))
+
+        title_label = ctk.CTkLabel(
+            title_frame, text="重命名文件", font=self.font_title, text_color="#2c3e50"
         )
-        content_card.pack(fill="both", expand=True)
+        title_label.pack(anchor="w")
 
-        # 当前文件信息
-        info_frame = ctk.CTkFrame(
-            content_card, corner_radius=8, fg_color=("gray90", "gray15")
+        # 当前文件信息卡片
+        info_card = ctk.CTkFrame(
+            main_frame,
+            corner_radius=12,
+            fg_color="white",
+            border_width=1,
+            border_color="#e9ecef",
         )
-        info_frame.pack(fill="x", padx=15, pady=(15, 10))
+        info_card.pack(fill="x", padx=25, pady=(0, 20))
 
-        ctk.CTkLabel(
-            info_frame,
-            text="当前文件:",
-            font=self.font_bold,
-            text_color=("gray10", "gray90"),
-        ).pack(anchor="w", padx=15, pady=(12, 0))
+        info_title = ctk.CTkLabel(
+            info_card, text="当前文件", font=self.font_bold, text_color="#6c757d"
+        )
+        info_title.pack(anchor="w", padx=20, pady=(20, 5))
 
-        ctk.CTkLabel(
-            info_frame,
+        info_value = ctk.CTkLabel(
+            info_card,
             text=self.current_name,
-            font=self.font_small,
-            text_color=("gray30", "gray70"),
-        ).pack(anchor="w", padx=15, pady=(5, 12))
-
-        # 新文件名输入区域
-        input_frame = ctk.CTkFrame(
-            content_card, corner_radius=8, fg_color=("gray90", "gray15")
-        )
-        input_frame.pack(fill="x", padx=15, pady=(5, 10))
-
-        ctk.CTkLabel(
-            input_frame,
-            text="新文件名:",
-            font=self.font_bold,
-            text_color=("gray10", "gray90"),
-        ).pack(anchor="w", padx=15, pady=(12, 10))
-
-        # 输入框框架 - 使用透明背景
-        entry_frame = ctk.CTkFrame(input_frame, corner_radius=6, fg_color="transparent")
-        entry_frame.pack(fill="x", padx=15, pady=(0, 20))
-
-        # 文件名输入框
-        self.name_entry = ctk.CTkEntry(
-            entry_frame,
             font=self.font_normal,
-            placeholder_text="请输入新的文件名",
-            corner_radius=6,
-            height=36,
+            text_color="#212529",
+            wraplength=600,
         )
-        self.name_entry.pack(side="left", fill="x", expand=True, padx=(0, 5), pady=8)
-        self.name_entry.insert(0, self.name_without_ext)
+        info_value.pack(anchor="w", padx=20, pady=(0, 20))
 
-        # 扩展名标签
-        if self.extension:
-            self.extension_label = ctk.CTkLabel(
-                entry_frame,
-                text=self.extension,
-                font=self.font_normal,
-                text_color=("gray40", "gray60"),
-            )
-            self.extension_label.pack(side="right", padx=(0, 0), pady=8)
+        # 新文件名输入卡片
+        input_card = ctk.CTkFrame(
+            main_frame,
+            corner_radius=12,
+            fg_color="white",
+            border_width=1,
+            border_color="#e9ecef",
+        )
+        input_card.pack(fill="x", padx=25, pady=(0, 20))
+
+        input_title = ctk.CTkLabel(
+            input_card, text="新文件名", font=self.font_bold, text_color="#6c757d"
+        )
+        input_title.pack(anchor="w", padx=20, pady=(20, 10))
+
+        # 完整文件名输入框
+        self.name_entry = ctk.CTkEntry(
+            input_card,
+            font=self.font_entry,
+            placeholder_text="请输入新的文件名（包含扩展名）",
+            corner_radius=8,
+            height=42,
+            border_width=1,
+            border_color="#ced4da",
+            fg_color="white",
+            text_color="#212529",
+            placeholder_text_color="#6c757d",
+        )
+        self.name_entry.pack(fill="x", padx=20, pady=(0, 20))
+        self.name_entry.insert(0, self.current_name)
 
         # 按钮区域
-        button_frame = ctk.CTkFrame(
-            content_card, corner_radius=8, fg_color=("gray90", "gray15")
-        )
-        button_frame.pack(fill="x", padx=15, pady=(5, 15))
+        button_frame = ctk.CTkFrame(main_frame, corner_radius=0, fg_color="transparent")
+        button_frame.pack(fill="x", padx=25, pady=(10, 25))
 
         # 提示标签
         hint_label = ctk.CTkLabel(
             button_frame,
-            text="提示: 文件名不能包含特殊字符",
+            text="提示: 文件名不能包含特殊字符，可以修改扩展名",
             font=self.font_small,
-            text_color=("gray50", "gray60"),
+            text_color="#6c757d",
         )
-        hint_label.pack(side="left", padx=(15, 0), pady=12)
+        hint_label.pack(side="left", pady=10)
 
         # 按钮容器
         button_container = ctk.CTkFrame(button_frame, fg_color="transparent")
         button_container.pack(side="right")
-
-        # 确认按钮
-        confirm_button = ctk.CTkButton(
-            button_container,
-            text="确认",
-            command=self._on_confirm,
-            width=100,
-            font=self.font_bold,
-            corner_radius=6,
-            height=32,
-        )
-        confirm_button.pack(side="right", padx=(10, 0), pady=12)
 
         # 取消按钮
         cancel_button = ctk.CTkButton(
@@ -182,13 +173,30 @@ class RenameDialog(ctk.CTkToplevel):
             command=self._on_cancel,
             width=100,
             fg_color="transparent",
+            text_color="#6c757d",
+            hover_color="#e9ecef",
             border_width=1,
-            text_color=("gray10", "gray90"),
+            border_color="#ced4da",
             font=self.font_bold,
-            corner_radius=6,
-            height=32,
+            corner_radius=8,
+            height=38,
         )
-        cancel_button.pack(side="right", pady=12)
+        cancel_button.pack(side="right", padx=(10, 0), pady=10)
+
+        # 确认按钮
+        confirm_button = ctk.CTkButton(
+            button_container,
+            text="确认",
+            command=self._on_confirm,
+            width=100,
+            fg_color="#007bff",
+            hover_color="#0056b3",
+            text_color="white",
+            font=self.font_bold,
+            corner_radius=8,
+            height=38,
+        )
+        confirm_button.pack(side="right", pady=10)
 
     def _on_confirm(self):
         """确认按钮点击事件"""
@@ -198,10 +206,6 @@ class RenameDialog(ctk.CTkToplevel):
         if not new_name:
             messagebox.showerror("错误", "文件名不能为空")
             return
-
-        # 添加扩展名（如果有）
-        if self.extension and not new_name.endswith(self.extension):
-            new_name += self.extension
 
         # 检查是否与当前文件名相同
         if new_name == self.current_name:

@@ -351,7 +351,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         )
 
         # 设置应用程序启动后获取焦点
-        self.after(100, self._on_app_startup)
+        self.after(200, self._on_app_startup)
 
     def _get_selected_lines(self):
         """获取当前选中的所有行及其索引范围

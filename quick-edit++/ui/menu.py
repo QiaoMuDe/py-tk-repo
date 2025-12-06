@@ -809,12 +809,10 @@ def create_menu(root):
     # 创建帮助菜单
     help_menu = tk.Menu(main_menu, tearoff=0, font=menu_font_tuple)
     help_menu.add_command(
-        label="关于程序", command=lambda: show_about_dialog(root), accelerator="F1"
+        label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
     )
     help_menu.add_separator()
-    help_menu.add_command(
-        label="程序目录", command=lambda: root.open_program_directory()
-    )
+    help_menu.add_command(label="程序", command=lambda: root.open_program_directory())
 
     # 将帮助菜单添加到主菜单
     main_menu.add_cascade(label="帮助", menu=help_menu)
