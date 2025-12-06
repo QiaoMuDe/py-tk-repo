@@ -75,6 +75,8 @@ DEFAULT_CONFIG = {
         "cursor_width": 5,  # 光标宽度（像素）
         "tab_width": 1,  # 制表符宽度（空格数）
         "use_spaces_for_tab": False,  # 是否使用空格代替制表符
+        "vertical_scrollbar_width": 15,  # 垂直滚动条宽度（像素）
+        "horizontal_scrollbar_height": 15,  # 水平滚动条高度（像素）
     },
     # 工具栏配置
     "toolbar": {

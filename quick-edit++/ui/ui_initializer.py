@@ -28,18 +28,16 @@ class UIInitializer:
         """
         self.app = app
 
-    def init_app_theme(self):
-        """初始化应用主题和外观设置"""
-        # 设置应用外观模式
+    def init_theme_and_window(self):
+        """初始化应用主题和窗口基本属性"""
+        # 设置应用主题
         theme_mode = config_manager.get("app.theme_mode", "light")
         ctk.set_appearance_mode(theme_mode)  # 可选: "light", "dark", "system"
 
         color_theme = config_manager.get("app.color_theme", "blue")
         ctk.set_default_color_theme(color_theme)  # 可选: "blue", "green", "dark-blue"
 
-    def init_window_properties(self):
-        """初始化窗口基本属性"""
-        # 设置窗口标题
+        # 设置窗口基本属性
         self.app.title("QuickEdit++")
 
         # 获取窗口大小配置
@@ -57,8 +55,7 @@ class UIInitializer:
         # 设置窗口关闭事件
         self.app.protocol("WM_DELETE_WINDOW", self.app._on_closing)
 
-    def init_font_settings(self):
-        """初始化字体设置"""
+        # 初始化字体设置
         font_config = config_manager.get_font_config("text_editor")
         self.app.current_font = ctk.CTkFont(
             family=font_config.get("font", "Microsoft YaHei UI"),
@@ -66,8 +63,8 @@ class UIInitializer:
             weight="bold" if font_config.get("font_bold", False) else "normal",
         )
 
-    def init_window_layout(self):
-        """初始化窗口布局配置"""
+    def init_layout_and_bars(self):
+        """初始化窗口布局和工具栏/状态栏"""
         # 配置主窗口的网格布局
         self.app.grid_columnconfigure(0, weight=1)
         self.app.grid_rowconfigure(1, weight=1)  # 文本区域所在行可扩展
@@ -75,8 +72,6 @@ class UIInitializer:
         # 防止窗口大小变化时的重新计算，减少闪烁
         self.app.grid_propagate(False)
 
-    def init_toolbar(self):
-        """初始化工具栏"""
         # 创建工具栏
         if config_manager.get("app.show_toolbar", True):
             self.app.toolbar = Toolbar(self.app)
@@ -86,15 +81,13 @@ class UIInitializer:
             self.app.toolbar = Toolbar(self.app)
             # 不调用grid，因此工具栏不会显示
 
-    def init_status_bar(self):
-        """初始化状态栏"""
         # 创建状态栏并放置在主窗口底部，传入APP实例
         self.app.status_bar = StatusBar(self.app)
         if config_manager.get("status_bar.show_status_bar", True):
             self.app.status_bar.grid(row=2, column=0, sticky="ew")
 
-    def init_text_area(self):
-        """初始化文本编辑区域 - 使用内部滚动条"""
+    def init_text_editor(self):
+        """初始化文本编辑区域及相关组件"""
         # 创建文本编辑区域框架
         self.app.text_frame = ctk.CTkFrame(self.app)
         self.app.text_frame.grid(row=1, column=0, sticky="nsew")
@@ -126,10 +119,18 @@ class UIInitializer:
         # 设置初始滚动条检查更新显示时间为50毫秒
         self.app.text_area._scrollbar_update_time = 50
 
-        # 设置内部垂直滚动条的宽度为20像素
-        self.app.text_area._y_scrollbar.configure(width=20)
-        # 设置内部水平滚动条的高度为15像素
-        self.app.text_area._x_scrollbar.configure(height=15)
+        # 从配置管理器获取滚动条尺寸设置
+        vertical_scrollbar_width = config_manager.get(
+            "text_editor.vertical_scrollbar_width", 15
+        )
+        horizontal_scrollbar_height = config_manager.get(
+            "text_editor.horizontal_scrollbar_height", 15
+        )
+
+        # 设置内部垂直滚动条的宽度
+        self.app.text_area._y_scrollbar.configure(width=vertical_scrollbar_width)
+        # 设置内部水平滚动条的高度
+        self.app.text_area._x_scrollbar.configure(height=horizontal_scrollbar_height)
 
         # 光标行高亮相关变量
         self.app.current_highlighted_line = None
@@ -178,14 +179,7 @@ class UIInitializer:
         else:
             self.app.line_number_canvas.grid_forget()
 
-    def init_menu_bar(self):
-        """初始化菜单栏"""
-        # 创建菜单栏
-        self.app.menu_bar = create_menu(self.app)
-        self.app.config(menu=self.app.menu_bar)
-
-    def init_read_only_mode(self):
-        """设置初始只读模式状态"""
+        # 设置初始只读模式状态
         if self.app.is_read_only:
             # 设置为只读模式
             self.app.text_area.configure(state="disabled")
@@ -194,8 +188,12 @@ class UIInitializer:
                 fg_color="#FF6B6B", hover_color="#FF5252"
             )
 
-    def init_notification(self):
-        """初始化通知组件"""
+    def init_menu_and_notification(self):
+        """初始化菜单栏和通知组件"""
+        # 创建菜单栏
+        self.app.menu_bar = create_menu(self.app)
+        self.app.config(menu=self.app.menu_bar)
+
         # 初始化通知组件，设置为编辑器的属性
         self.app.nm = Notification
 
@@ -216,16 +214,10 @@ class UIInitializer:
     def initialize_ui(self):
         """执行完整的UI初始化流程"""
         # 按顺序执行UI初始化步骤
-        self.init_app_theme()
-        self.init_window_properties()
-        self.init_font_settings()
-        self.init_window_layout()
-        self.init_toolbar()
-        self.init_status_bar()
-        self.init_text_area()
-        self.init_menu_bar()
-        self.init_read_only_mode()
-        self.init_notification()
+        self.init_theme_and_window()
+        self.init_layout_and_bars()
+        self.init_text_editor()
+        self.init_menu_and_notification()
 
         # 初始化后300ms绘制行号
         self.app.after(300, self.app.line_number_canvas.draw_line_numbers)
