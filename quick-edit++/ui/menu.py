@@ -661,6 +661,7 @@ def create_menu(root):
 
     # 定义可用的间隔选项
     interval_options = [
+        ("1秒", 1),
         ("3秒", 3),
         ("5秒", 5),
         ("10秒", 10),
@@ -675,7 +676,7 @@ def create_menu(root):
     # 检查配置文件中的值是否在选项列表中
     interval_values = [value for _, value in interval_options]
     if auto_save_interval not in interval_values:
-        # 如果不在列表中，使用默认值5秒
+        # 如果不在列表中, 使用默认值5秒
         auto_save_interval = 5
 
     # 设置当前选中的间隔
@@ -731,6 +732,7 @@ def create_menu(root):
 
     # 定义可用的通知持续时间选项（毫秒）
     notification_duration_options = [
+        ("1秒", 1000),
         ("2秒", 2000),
         ("3秒", 3000),
         ("5秒", 5000),

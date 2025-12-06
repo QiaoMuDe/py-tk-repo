@@ -6,7 +6,6 @@
 负责处理应用程序的自动保存功能，包括定时保存、焦点离开保存等
 """
 
-from email import message
 import time
 import tkinter as tk
 from config.config_manager import config_manager
