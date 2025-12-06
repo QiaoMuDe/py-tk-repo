@@ -18,10 +18,10 @@ from core.pyinstaller_config import PyInstallerConfig
 
 class ProcessTab:
     """打包过程标签页类"""
-    
+
     def __init__(self, parent, main_window, font_family="Microsoft YaHei UI"):
         """初始化打包过程标签页
-        
+
         Args:
             parent: 父容器
             main_window: 主窗口引用
@@ -30,92 +30,86 @@ class ProcessTab:
         self.parent = parent
         self.main_window = main_window
         self.font_family = font_family
-        
+
         # 设置字体
         self.default_font = ctk.CTkFont(family=self.font_family, size=12)
         self.title_font = ctk.CTkFont(family=self.font_family, size=14, weight="bold")
         self.output_font = ctk.CTkFont(family=self.font_family, size=10)
-        
+
         # 进程相关变量
         self.process = None
         self.output_queue = queue.Queue()
         self.is_running = False
-        
+
         # 初始化打包执行器
         self.executor = PackExecutor()
         self.executor.set_output_callback(self.append_output)
         self.executor.set_status_callback(self.update_status)
         self.executor.set_finish_callback(self.on_build_finished)
         self.executor.set_lock_tab_callback(self.lock_tabs)
-        
+
         # 创建界面
         self.create_ui()
-        
+
         # 启动输出队列监控
         self.monitor_output_queue()
-    
+
     def create_ui(self):
         """创建用户界面"""
         # 创建主框架
         self.main_frame = ctk.CTkFrame(self.parent)
         self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-        
+
         # 创建顶部信息框架
         self.create_info_frame()
-        
+
         # 创建输出文本框
         self.create_output_frame()
-        
+
         # 创建控制按钮框架
         self.create_button_frame()
-    
+
     def create_info_frame(self):
         """创建顶部信息框架"""
         self.info_frame = ctk.CTkFrame(self.main_frame)
         self.info_frame.pack(fill="x", pady=(0, 10))
-        
+
         # 当前操作标签
         self.operation_label = ctk.CTkLabel(
-            self.info_frame,
-            text="当前操作: 无",
-            font=self.title_font
+            self.info_frame, text="当前操作: 无", font=self.title_font
         )
         self.operation_label.pack(side="left", padx=10, pady=10)
-        
+
         # 状态标签
         self.status_label = ctk.CTkLabel(
-            self.info_frame,
-            text="状态: 就绪",
-            font=self.default_font
+            self.info_frame, text="状态: 就绪", font=self.default_font
         )
         self.status_label.pack(side="right", padx=10, pady=10)
-    
+
     def create_output_frame(self):
         """创建输出文本框框架"""
         self.output_frame = ctk.CTkFrame(self.main_frame)
         self.output_frame.pack(fill="both", expand=True, pady=(0, 10))
-        
+
         # 输出文本框标题
         output_title = ctk.CTkLabel(
             self.output_frame,
             text="打包输出:",
-            font=ctk.CTkFont(family=self.font_family, size=16, weight="bold")
+            font=ctk.CTkFont(family=self.font_family, size=16, weight="bold"),
         )
         output_title.pack(anchor="w", padx=10, pady=(10, 5))
-        
+
         # 输出文本框
         self.output_text = ctk.CTkTextbox(
-            self.output_frame,
-            wrap=tk.WORD,
-            font=self.output_font
+            self.output_frame, wrap=tk.WORD, font=self.output_font
         )
         self.output_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
-    
+
     def create_button_frame(self):
         """创建控制按钮框架"""
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.pack(fill="x")
-        
+
         # 清空输出按钮 - 浅蓝色
         self.clear_btn = ctk.CTkButton(
             self.button_frame,
@@ -124,10 +118,10 @@ class ProcessTab:
             width=100,
             font=self.default_font,
             fg_color="#3b8ed0",
-            hover_color="#2c79b0"
+            hover_color="#2c79b0",
         )
         self.clear_btn.pack(side="left", padx=10, pady=10)
-        
+
         # 复制输出按钮 - 浅蓝色
         self.copy_btn = ctk.CTkButton(
             self.button_frame,
@@ -136,10 +130,10 @@ class ProcessTab:
             width=100,
             font=self.default_font,
             fg_color="#3b8ed0",
-            hover_color="#2c79b0"
+            hover_color="#2c79b0",
         )
         self.copy_btn.pack(side="left", padx=10, pady=10)
-        
+
         # 保存日志按钮 - 浅蓝色
         self.save_btn = ctk.CTkButton(
             self.button_frame,
@@ -148,10 +142,10 @@ class ProcessTab:
             width=100,
             font=self.default_font,
             fg_color="#3b8ed0",
-            hover_color="#2c79b0"
+            hover_color="#2c79b0",
         )
         self.save_btn.pack(side="left", padx=10, pady=10)
-        
+
         # 打开输出目录按钮 - 绿色
         self.open_output_btn = ctk.CTkButton(
             self.button_frame,
@@ -160,10 +154,10 @@ class ProcessTab:
             width=150,
             font=self.default_font,
             fg_color="#4CAF50",
-            hover_color="#3d8b40"
+            hover_color="#3d8b40",
         )
         self.open_output_btn.pack(side="left", padx=10, pady=10)
-        
+
         # 停止打包按钮 - 红色
         self.stop_btn = ctk.CTkButton(
             self.button_frame,
@@ -172,21 +166,21 @@ class ProcessTab:
             width=100,
             font=self.default_font,
             fg_color="red",
-            hover_color="darkred"
+            hover_color="darkred",
         )
         self.stop_btn.pack(side="right", padx=10, pady=10)
-    
+
     def append_output(self, text: str):
         """添加输出文本到输出框
-        
+
         Args:
             text: 要添加的文本
         """
         self.output_queue.put(text)
-    
+
     def lock_tabs(self, locked: bool):
         """锁定或解锁标签页切换
-        
+
         Args:
             locked: 是否锁定
         """
@@ -196,10 +190,10 @@ class ProcessTab:
         else:
             # 启用标签页切换
             self.main_window.tab_view._segmented_button.configure(state="normal")
-    
+
     def on_build_finished(self, success: bool, message: str):
         """打包完成回调
-        
+
         Args:
             success: 是否成功
             message: 完成消息
@@ -210,87 +204,89 @@ class ProcessTab:
         else:
             self.update_operation("打包失败")
             messagebox.showerror("错误", message)
-        
+
         # 启用停止按钮
         self.stop_btn.configure(state="disabled")
         self.is_running = False
-    
+
     def start_pyinstaller_build(self, config: PyInstallerConfig):
         """开始PyInstaller打包
-        
+
         Args:
             config: PyInstaller配置对象
         """
         self.update_operation("PyInstaller打包")
         self.update_status("准备中")
         self.clear_output()
-        
+
         # 使用执行器执行命令
         self.is_running = True
         self.stop_btn.configure(state="normal")
-        
+
         # 执行打包命令
         self.executor.execute(config)
-    
+
     def start_nuitka_build(self, config):
         """开始Nuitka打包
-        
+
         Args:
             config: Nuitka配置参数
         """
         self.update_operation("Nuitka打包")
         self.update_status("运行中")
         self.clear_output()
-        
+
         # 构建Nuitka命令
         cmd = [sys.executable, "-m", "nuitka"]
-        
+
         # 添加独立可执行文件参数
         if config["standalone"]:
             cmd.append("--standalone")
-        
+
         # 添加控制台参数
         if not config["console"]:
             cmd.append("--windowed")
-        
+
         # 添加输出目录
         if config["output"]:
             cmd.extend(["--output-dir", config["output"]])
-        
+
         # 添加应用名称
         if config["name"]:
             cmd.extend(["--output-filename", config["name"] + ".exe"])
-        
+
         # 添加图标
         if config["icon"]:
             cmd.extend(["--windows-icon-from-ico", config["icon"]])
-        
+
         # 添加包含模块
         for include in config["include_modules"]:
             cmd.extend(["--include-module", include])
-        
+
         # 添加数据文件
         for data_file in config["data_files"]:
             cmd.extend(["--include-data-file", data_file])
-        
+
         # 添加优化选项
         cmd.extend(["--python-flag", config["optimize"]])
-        
+
         # 添加附加参数
         if config["extra_args"]:
             cmd.extend(config["extra_args"].split())
-        
+
         # 添加脚本文件
         cmd.append(config["script"])
-        
+
         # 在新线程中执行打包命令
         self.is_running = True
         self.stop_btn.configure(state="normal")
-        threading.Thread(target=self.run_build_command, args=(cmd, "Nuitka"), daemon=True).start()
-    
+        threading.Thread(
+            target=self.run_build_command, args=(cmd, "Nuitka"), daemon=True
+        ).start()
+
     def run_build_command(self, cmd, tool_name):
         """执行打包命令
-        
+
         Args:
             cmd: 要执行的命令
             tool_name: 工具名称
@@ -298,42 +294,42 @@ class ProcessTab:
         try:
             # 记录开始时间
             start_time = time.time()
-            
+
             # 输出命令信息
             self.output_queue.put(f"开始执行 {tool_name} 打包命令...\n")
             self.output_queue.put(f"命令: {' '.join(cmd)}\n")
             self.output_queue.put(f"工作目录: {os.getcwd()}\n")
             self.output_queue.put("-" * 50 + "\n")
-            
+
             # 执行命令
             self.process = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 universal_newlines=True,
-                bufsize=1
+                bufsize=1,
             )
-            
+
             # 读取输出
             for line in self.process.stdout:
                 self.output_queue.put(line)
-            
+
             # 等待进程结束
             self.process.wait()
             exit_code = self.process.returncode
-            
+
             # 记录结束时间
             end_time = time.time()
             elapsed_time = end_time - start_time
-            
+
             # 输出结果信息
             self.output_queue.put("-" * 50 + "\n")
-            
+
             if exit_code == 0:
                 self.output_queue.put(f"{tool_name} 打包成功完成!\n")
                 self.output_queue.put(f"耗时: {elapsed_time:.2f} 秒\n")
                 self.output_queue.put(f"退出代码: {exit_code}\n")
-                
+
                 # 在主线程中更新状态
                 self.output_queue.put(("status", "完成"))
                 self.output_queue.put(("success", f"{tool_name} 打包成功完成!"))
@@ -341,31 +337,33 @@ class ProcessTab:
                 self.output_queue.put(f"{tool_name} 打包失败!\n")
                 self.output_queue.put(f"耗时: {elapsed_time:.2f} 秒\n")
                 self.output_queue.put(f"退出代码: {exit_code}\n")
-                
+
                 # 在主线程中更新状态
                 self.output_queue.put(("status", "失败"))
                 self.output_queue.put(("error", f"{tool_name} 打包失败!"))
-            
+
         except Exception as e:
             self.output_queue.put(f"执行 {tool_name} 打包命令时出错: {str(e)}\n")
             self.output_queue.put(("status", "错误"))
-            self.output_queue.put(("error", f"执行 {tool_name} 打包命令时出错: {str(e)}"))
+            self.output_queue.put(
+                ("error", f"执行 {tool_name} 打包命令时出错: {str(e)}")
+            )
         finally:
             self.is_running = False
             self.output_queue.put(("stop", None))
-    
+
     def monitor_output_queue(self):
         """监控输出队列并更新UI"""
         try:
             while True:
                 # 从队列获取消息
                 item = self.output_queue.get_nowait()
-                
+
                 # 处理不同类型的消息
                 if isinstance(item, tuple):
                     # 元组类型的消息是控制命令
                     command, value = item
-                    
+
                     if command == "status":
                         self.update_status(value)
                     elif command == "success":
@@ -382,10 +380,10 @@ class ProcessTab:
                     self.output_text.see(tk.END)
         except queue.Empty:
             pass
-        
+
         # 继续监控
         self.parent.after(100, self.monitor_output_queue)
-    
+
     def stop_build(self):
         """停止打包过程"""
         if self.executor.is_executing():
@@ -393,11 +391,11 @@ class ProcessTab:
             self.update_operation("打包已停止")
             self.is_running = False
             self.stop_btn.configure(state="disabled")
-    
+
     def clear_output(self):
         """清空输出"""
         self.output_text.delete("1.0", tk.END)
-    
+
     def copy_output(self):
         """复制输出到剪贴板"""
         try:
@@ -407,18 +405,22 @@ class ProcessTab:
             messagebox.showinfo("成功", "输出已复制到剪贴板")
         except Exception as e:
             messagebox.showerror("错误", f"复制输出时出错: {str(e)}")
-    
+
     def save_log(self):
         """保存日志到文件"""
         try:
             from tkinter import filedialog
-            
+
             file_path = filedialog.asksaveasfilename(
                 title="保存日志文件",
                 defaultextension=".log",
-                filetypes=[("日志文件", "*.log"), ("文本文件", "*.txt"), ("所有文件", "*.*")]
+                filetypes=[
+                    ("日志文件", "*.log"),
+                    ("文本文件", "*.txt"),
+                    ("所有文件", "*.*"),
+                ],
             )
-            
+
             if file_path:
                 output = self.output_text.get("1.0", tk.END)
                 with open(file_path, "w", encoding="utf-8") as f:
@@ -426,32 +428,35 @@ class ProcessTab:
                 messagebox.showinfo("成功", f"日志已保存到: {file_path}")
         except Exception as e:
             messagebox.showerror("错误", f"保存日志时出错: {str(e)}")
-    
+
     def update_operation(self, operation):
         """更新当前操作
-        
+
         Args:
             operation: 操作描述
         """
         self.operation_label.configure(text=f"当前操作: {operation}")
-    
+
     def update_status(self, status):
         """更新状态
-        
+
         Args:
             status: 状态描述
         """
         self.status_label.configure(text=f"状态: {status}")
-    
+
     def open_output_directory(self):
         """打开输出目录"""
-        if not hasattr(self.executor, 'current_config') or self.executor.current_config is None:
+        if (
+            not hasattr(self.executor, "current_config")
+            or self.executor.current_config is None
+        ):
             messagebox.showerror("错误", "没有可用的打包配置")
             return
-        
+
         config = self.executor.current_config
         script_dir = os.path.dirname(os.path.abspath(config.script))
-        
+
         # 计算输出目录
         if config.output_dir:
             # 如果指定了输出目录，直接使用
@@ -459,17 +464,17 @@ class ProcessTab:
         else:
             # 默认输出目录是脚本所在目录的dist子目录
             output_dir = os.path.join(script_dir, "dist")
-        
+
         # 确保输出目录是一个目录，而不是文件
         # 如果是文件，取其所在目录
         if os.path.isfile(output_dir):
             output_dir = os.path.dirname(output_dir)
-        
+
         # 检查目录是否存在
         if not os.path.exists(output_dir):
             messagebox.showerror("错误", f"输出目录不存在: {output_dir}")
             return
-        
+
         # 打开目录
         try:
             if sys.platform == "win32":
