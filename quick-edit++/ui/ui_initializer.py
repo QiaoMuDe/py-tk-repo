@@ -38,7 +38,7 @@ class UIInitializer:
         ctk.set_default_color_theme(color_theme)  # 可选: "blue", "green", "dark-blue"
 
         # 设置窗口基本属性
-        self.app.title("QuickEdit++")
+        self.app.title(self.app.app_name)
 
         # 获取窗口大小配置
         window_width = config_manager.get("app.window_width", 1000)

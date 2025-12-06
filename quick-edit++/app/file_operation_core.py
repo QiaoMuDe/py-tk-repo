@@ -13,6 +13,15 @@ from loguru import logger
 class FileOperationCore:
     """文件操作核心功能类，提供基础的文件操作功能"""
 
+    def __init__(self, app=None):
+        """
+        初始化文件操作核心
+
+        Args:
+            app: 应用程序实例，用于获取配置信息
+        """
+        self.app = app
+
     def is_binary_file(self, file_path=None, sample_data=None, sample_size=4096):
         """
         检测文件是否为二进制文件（简化版）
@@ -220,7 +229,7 @@ class FileOperationCore:
                 result["title"] = "无法打开二进制文件"
                 result["message"] = (
                     f"检测到二进制文件: {os.path.basename(file_path)}\n\n"
-                    f"QuickEdit++ 是专为文本文件设计的编辑器，不支持编辑二进制文件。\n\n"
+                    f"{self.app.app_name} 是专为文本文件设计的编辑器，不支持编辑二进制文件。\n\n"
                     f"建议：\n"
                     f"• 使用专业的二进制/十六进制编辑器（如 HxD、WinHex）\n"
                     f"• 或使用对应文件类型的专用软件打开此文件"

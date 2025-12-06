@@ -44,8 +44,11 @@ def main():
     # 设置全局异常处理
     sys.excepthook = handle_exception
 
+    # 获取运行时程序名（去掉扩展名）
+    program_name = os.path.splitext(os.path.basename(sys.argv[0]))[0]
+
     # 创建命令行参数解析器
-    parser = argparse.ArgumentParser(description="QuickEdit++ - 轻量级文本编辑器")
+    parser = argparse.ArgumentParser(description=f"{program_name} - 轻量级文本编辑器")
     parser.add_argument("file", nargs="?", help="要打开的文件路径")
 
     # 解析命令行参数

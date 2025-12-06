@@ -42,6 +42,7 @@ DEFAULT_CONFIG = {
         "window_title_mode": "filename",  # 窗口标题显示模式：filename, filepath, filename_and_dir
         "truncate_path_length": 50,  # 文件路径截断显示的最大字符数
         "file_dialog_initial_dir": "",  # 文件选择器初始路径，空字符串表示使用系统默认路径
+        "app_name": "QuickEdit++",  # 应用程序名称
     },
     # 文件监听器配置
     "file_watcher": {

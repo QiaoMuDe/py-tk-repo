@@ -49,7 +49,7 @@ class FileOperations:
         """
         self.root = root  # 保存app实例引用
         self.config_manager = config_manager  # 保存配置管理器引用
-        self.file_core = FileOperationCore()  # 初始化文件操作核心
+        self.file_core = FileOperationCore(root)  # 初始化文件操作核心，传入app实例
 
     def _create_backup_copy(self, file_path):
         """
@@ -471,7 +471,8 @@ class FileOperations:
         self.root.is_new_file = True
 
         # 更新窗口标题为新文件
-        self.root.title(f"{filename} - QuickEdit++")
+        app_name = self.root.app_name
+        self.root.title(f"{filename} - {app_name}")
 
     def handle_dropped_files(self, files):
         """

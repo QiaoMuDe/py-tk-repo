@@ -952,10 +952,10 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if title_part:
             # 根据修改状态添加星号
             prefix = "*" if self.is_modified() else ""
-            title = f"{prefix}{title_part} - QuickEdit++"
+            title = f"{prefix}{title_part} - {self.app_name}"
         else:
             # 没有内容时只显示程序名
-            title = "QuickEdit++"
+            title = self.app_name
 
         self.title(title)
 

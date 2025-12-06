@@ -42,6 +42,9 @@ class AppInitializer:
 
     def init_file_attributes(self):
         """初始化文件相关属性"""
+        # 初始化程序名称属性
+        self.app.app_name = config_manager.get("app.app_name", "QuickEdit++")
+
         # 初始化文件操作处理器
         self.app.file_ops = FileOperations(self.app)
 
@@ -267,4 +270,4 @@ class AppInitializer:
         # 初始化文件菜单部分项的状态
         self.app.update_file_menu_state()
 
-        logger.info("QuickEdit++ initialized successfully!")
+        logger.info(f"{self.app.app_name} initialized successfully!")

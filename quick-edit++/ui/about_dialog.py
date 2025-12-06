@@ -28,7 +28,7 @@ def show_about_dialog(parent):
 
     # 创建关于对话框窗口
     about_window = ctk.CTkToplevel(parent)
-    about_window.title("关于 QuickEdit++")
+    about_window.title(f"关于 {parent.app_name}")
     about_window.resizable(False, False)
 
     # 设置窗口模态
@@ -48,7 +48,7 @@ def show_about_dialog(parent):
     # 应用标题
     title_label = ctk.CTkLabel(
         main_frame,
-        text="QuickEdit++",
+        text=parent.app_name,
         font=ctk.CTkFont(size=font_size + 11, weight="bold", family=font_name),
     )
     title_label.pack(pady=(20, 10))
@@ -66,7 +66,7 @@ def show_about_dialog(parent):
     separator.pack(fill="x", padx=40, pady=(0, 20))
 
     # 程序简介
-    intro_text = """QuickEdit++ 是一款轻量级、功能丰富的文本编辑器，
+    intro_text = f"""{parent.app_name} 是一款轻量级、功能丰富的文本编辑器，
 专为提高编程和文本编辑效率而设计。
 
 主要功能：
@@ -118,7 +118,7 @@ def show_about_dialog(parent):
     # 版权信息
     copyright_label = ctk.CTkLabel(
         main_frame,
-        text="© 2025 QuickEdit++ 开发团队",
+        text=f"© 2025 {parent.app_name} 开发团队",
         font=ctk.CTkFont(size=font_size - 3, family=font_name),
     )
     copyright_label.pack(pady=(10, 0))
