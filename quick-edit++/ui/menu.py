@@ -811,8 +811,6 @@ def create_menu(root):
     help_menu.add_command(
         label="关于", command=lambda: show_about_dialog(root), accelerator="F1"
     )
-    help_menu.add_separator()
-    help_menu.add_command(label="程序", command=lambda: root.open_program_directory())
 
     # 将帮助菜单添加到主菜单
     main_menu.add_cascade(label="帮助", menu=help_menu)
