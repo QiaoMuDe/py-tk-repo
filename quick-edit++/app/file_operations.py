@@ -279,7 +279,7 @@ class FileOperations:
         # 默认返回txt
         return ".txt"
 
-    def _save_file(self, file_path=None, force_save_as=False, is_auto_save=False):
+    def _save_file(self, force_save_as=False, is_auto_save=False):
         """
         统一的文件保存方法, 整合保存和另存为功能
 
@@ -290,7 +290,6 @@ class FileOperations:
         4. 更新编辑器状态和界面
 
         Args:
-            file_path (str, optional): 要保存的文件路径。如果为None且当前有文件路径, 则使用当前路径
             force_save_as (bool): 是否强制执行另存为操作, 即使已有文件路径
             is_auto_save (bool): 是否是自动保存操作, 自动保存时不显示"文件已保存"通知
 
@@ -298,7 +297,6 @@ class FileOperations:
             bool: 保存是否成功
 
         Note:
-            - 当file_path为None且当前没有文件路径时, 会显示另存为对话框
             - 当force_save_as为True时, 即使有当前文件路径也会显示另存为对话框
             - 如果文件内容为空且没有文件路径, 会提示"没有内容可保存"
             - 如果文件未修改且不是强制另存为, 会提示"文件未修改, 无需保存"
@@ -306,59 +304,58 @@ class FileOperations:
         # 获取文本框内容 (只获取一次)
         content = self.root.text_area.get("1.0", tk.END).rstrip("\n")
 
-        # 检查是否有文件路径
-        has_current_path = self.root.current_file_path is not None
-
         # 情况1: 没有打开文件且文本框没有内容
-        if not has_current_path and not content:
+        if not self.root.current_file_path and not content:
             info_text = "没有内容可另存为" if force_save_as else "没有内容可保存"
             # messagebox.showinfo("提示", info_text)
             self.root.nm.show_info(message=info_text)
             return False
 
         # 情况2: 已经打开文件, 检查是否修改 (除非是强制另存为)
-        if has_current_path and not self.root.is_modified() and not force_save_as:
+        if (
+            self.root.current_file_path
+            and not self.root.is_modified()
+            and not force_save_as
+        ):
             # messagebox.showinfo("提示", "文件未修改, 无需保存")
             self.root.nm.show_info(message="文件未修改, 无需保存")
             return True
 
         # 确定最终保存路径
-        final_path = file_path
+        final_path = None
         need_to_update_current_info = True  # 是否需要更新当前文件信息
 
-        if final_path is None:
-            # 没有指定路径, 使用当前路径或显示另存为对话框
-            if has_current_path and not force_save_as:
-                # 使用当前文件路径, 不更新文件信息
-                final_path = self.root.current_file_path
-                need_to_update_current_info = False
-            else:
-                # 没有当前路径或强制另存为, 显示另存为对话框
+        # 检查执行保存逻辑
+        if not force_save_as and self.root.current_file_path:
+            # 没有强制另存为, 且有当前文件路径, 则直接使用当前文件路径
+            final_path = self.root.current_file_path
+            need_to_update_current_info = False
 
-                # 显示保存对话框
-                # 根据force_save_as参数决定标题是"保存"还是"另存为"
-                dialog_title = "另存为" if force_save_as else "保存"
+        else:
+            # 没有当前路径或强制另存为, 显示另存为对话框
+            # 根据force_save_as参数决定标题是"保存"还是"另存为"
+            dialog_title = "另存为" if force_save_as else "保存"
 
-                # 生成默认文件名
-                default_filename = self._generate_default_filename()
+            # 生成默认文件名
+            default_filename = self._generate_default_filename()
 
-                # 从默认文件名中提取扩展名，用于设置保存对话框的默认扩展名
-                default_extension = os.path.splitext(default_filename)[1]
-                if not default_extension:  # 如果没有扩展名，使用.txt
-                    default_extension = ".txt"
+            # 从默认文件名中提取扩展名，用于设置保存对话框的默认扩展名
+            default_extension = os.path.splitext(default_filename)[1]
+            if not default_extension:  # 如果没有扩展名，使用.txt
+                default_extension = ".txt"
 
-                # 打开文件保存对话框
-                final_path = filedialog.asksaveasfilename(
-                    title=dialog_title,
-                    defaultextension=default_extension,
-                    filetypes=self.FILE_TYPES,
-                    initialfile=default_filename,
-                    initialdir=self.config_manager.get_file_dialog_initial_dir(),  # 设置默认目录
-                )
+            # 打开文件保存对话框
+            final_path = filedialog.asksaveasfilename(
+                title=dialog_title,  # 保存对话框的标题
+                defaultextension=default_extension,  # 默认扩展名
+                filetypes=self.FILE_TYPES,  # 文件类型列表
+                initialfile=default_filename,  # 默认文件名
+                initialdir=self.config_manager.get_file_dialog_initial_dir(),  # 设置默认目录
+            )
 
-                # 如果用户取消了选择, 返回
-                if not final_path:
-                    return False
+            # 如果用户取消了选择, 返回
+            if not final_path:
+                return False
 
         # 实际的保存逻辑操作
         try:
@@ -375,6 +372,7 @@ class FileOperations:
             try:
                 with codecs.open(final_path, "w", encoding=encoding) as f:
                     f.write(content)
+
             except (IOError, OSError, PermissionError) as e:
                 logger.error(f"无法写入文件: {final_path}, 错误信息: {str(e)}")
                 # messagebox.showerror("保存错误", f"无法写入文件: {str(e)}")
@@ -403,15 +401,21 @@ class FileOperations:
             if final_path and os.path.exists(final_path):
                 self.root.file_watcher.update_cache_after_save(final_path)
 
+            # 如果保存的是配置文件，需要重新加载配置以更新内存中的配置
+            if final_path == CONFIG_PATH:
+                logger.debug("检测到保存的是配置文件, 触发读取配置")
+                # 重新加载配置
+                self.config_manager.load_config()
+
             # 如果启用了副本备份功能, 则创建副本备份
             if self.config_manager.get("app.backup_enabled", False):
                 self._create_backup_copy(final_path)
 
             # 如果需要, 更新当前文件信息
             if need_to_update_current_info:
-                self.root.current_file_path = final_path
-                self.root.current_encoding = encoding
-                self.root.current_line_ending = line_ending
+                self.root.current_file_path = final_path  # 更新当前文件路径
+                self.root.current_encoding = encoding  # 更新当前编码
+                self.root.current_line_ending = line_ending  # 更新当前换行符类型
 
             # 重置修改状态
             self.root.set_modified(False)  # 清除修改状态标志
@@ -426,6 +430,7 @@ class FileOperations:
 
                 # 更新状态栏状态信息 (从"已修改"改为"就绪")
                 self.root.status_bar.set_status_info(status="就绪", row=row, col=col)
+
             except Exception as e:
                 logger.error(f"获取当前光标位置时出错: {str(e)}")
                 # 如果获取位置失败, 使用默认值

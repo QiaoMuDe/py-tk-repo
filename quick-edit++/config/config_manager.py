@@ -7,6 +7,7 @@
 
 import os
 import json
+import copy
 from tkinter import messagebox
 from pathlib import Path
 from loguru import logger
@@ -130,9 +131,9 @@ DEFAULT_CONFIG = {
 }
 
 
-def merge_configs(default, custom):
+def merge_configs(default: dict, custom: dict) -> dict:
     """
-    合并默认配置和自定义配置
+    合并默认配置和自定义配置（优化版本）
 
     Args:
         default (dict): 默认配置字典
@@ -144,21 +145,45 @@ def merge_configs(default, custom):
     说明：
         - 递归合并嵌套字典
         - 只保留自定义配置中存在的键
+        - 使用深拷贝避免修改原始配置
+        - 优化了合并速度和错误处理
+        - 添加了异常捕获确保合并过程不会中断
+        - 递归调用中精细化异常处理，避免部分失败影响整体
     """
-    if not isinstance(custom, dict):
-        return default
+    try:
+        # 参数类型检查 - 只检查custom参数，default已知为字典
+        if not isinstance(custom, dict):
+            return copy.deepcopy(default)
 
-    result = default.copy()
+        # 使用字典推导式预先过滤出存在的键，减少后续判断
+        existing_keys = {key for key in custom.keys() if key in default}
 
-    for key, value in custom.items():
-        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-            # 递归合并嵌套字典
-            result[key] = merge_configs(result[key], value)
-        elif key in result:
-            # 更新已存在的键
-            result[key] = value
+        # 创建结果字典的深拷贝，避免修改原始配置
+        result = copy.deepcopy(default)
 
-    return result
+        # 只处理存在于默认配置中的键
+        for key in existing_keys:
+            custom_value = custom.get(key)  # 使用get方法减少字典查找
+            default_value = result.get(key)  # 使用get方法减少字典查找
+
+            try:
+                # 如果两边都是字典，递归合并
+                if isinstance(default_value, dict) and isinstance(custom_value, dict):
+                    result[key] = merge_configs(default_value, custom_value)
+                else:
+                    # 直接替换值
+                    result[key] = custom_value
+
+            except Exception as e:
+                # 单个键合并失败时，记录错误但保留默认值
+                logger.warning(f"配置项 '{key}' 合并失败: {str(e)}，使用默认值")
+                # result[key] 已经是默认值，无需修改
+
+        return result
+    except Exception as e:
+        # 顶层合并失败时，返回默认配置的副本
+        logger.error(f"配置合并失败: {str(e)}，使用默认配置")
+        return copy.deepcopy(default)
 
 
 class ConfigManager:
@@ -169,22 +194,19 @@ class ConfigManager:
     def __init__(self):
         """初始化配置管理器"""
         # 加载配置文件
-        self.config = self.load_config()
+        self.load_config()
 
         logger.info("config manager initialized successfully!")
         logger.info(f"config file path: {CONFIG_PATH}")
 
     def load_config(self):
         """
-        加载配置文件
-
-        Returns:
-            dict: 配置字典
+        加载配置文件并更新内部配置
 
         说明：
             - 如果配置目录不存在，先创建配置目录
-            - 如果配置文件不存在，先保存默认配置，然后返回默认配置
-            - 如果配置文件存在但解析失败，返回默认配置
+            - 如果配置文件不存在，先保存默认配置，然后使用默认配置
+            - 如果配置文件存在但解析失败，使用默认配置
         """
         # 确保配置目录存在
         if not os.path.exists(APP_CONFIG_DIR):
@@ -194,23 +216,26 @@ class ConfigManager:
         if not os.path.exists(CONFIG_PATH):
             # 保存默认配置
             self.save_config(DEFAULT_CONFIG)
-            return DEFAULT_CONFIG.copy()
+            self.config = copy.deepcopy(DEFAULT_CONFIG)
+            return
 
         try:
             # 读取配置文件
             with open(CONFIG_PATH, "r", encoding="utf-8") as f:
                 config = json.load(f)
 
-            # 合并默认配置，确保所有必要字段都存在
-            return merge_configs(DEFAULT_CONFIG, config)
+            # 合并默认配置, 并更新内部配置
+            self.config = merge_configs(DEFAULT_CONFIG, config)
 
         except (json.JSONDecodeError, IOError) as e:
-            # 配置文件解析失败或读取错误，返回默认配置
+            # 使用默认配置，更新内部配置
+            self.config = copy.deepcopy(DEFAULT_CONFIG)
+
+            # 配置文件解析失败或读取错误，使用默认配置
             logger.error(f"配置文件加载失败: {str(e)}，使用默认配置")
             messagebox.showerror(
                 "配置文件错误", f"配置文件读取失败，已返回默认配置\n错误信息: {str(e)}"
             )
-            return DEFAULT_CONFIG.copy()
 
     def save_config(self, config=None):
         """
@@ -262,13 +287,17 @@ class ConfigManager:
         keys = key_path.split(".")
         value = self.config
 
-        for key in keys:
-            if isinstance(value, dict) and key in value:
-                value = value[key]
-            else:
-                return default
+        # 使用字典的 get 方法逐级获取配置值
+        try:
+            for key in keys:
+                value = value.get(key)  # 获取当前键对应的值
+                if value is None:
+                    return default  # 如果值为None, 返回默认值
+            return value
 
-        return value
+        except AttributeError:
+            # 如果配置结构不符合预期（例如中间节点不是字典），返回默认值
+            return default
 
     def set(self, key_path, value):
         """
@@ -284,28 +313,28 @@ class ConfigManager:
         keys = key_path.split(".")
         config = self.config
 
-        # 遍历除最后一个键外的所有键
-        for key in keys[:-1]:
-            if key not in config:
-                config[key] = {}
-            elif not isinstance(config[key], dict):
-                logger.warning(
-                    f"配置路径 {key_path} 中间节点 {key} 不是字典类型，设置失败"
-                )
-                return False
-            config = config[key]
+        # 遍历除最后一个键外的所有键，确保路径存在
+        try:
+            for key in keys[:-1]:
+                if key not in config:  # 如果当前键不存在, 创建一个空字典
+                    config[key] = {}
+                config = config[key]
 
-        # 设置最后一个键的值
-        old_value = config.get(keys[-1]) if keys[-1] in config else None
-        config[keys[-1]] = value
+            # 设置最后一个键的值(设置或新增, 用户指定的配置项)
+            old_value = config.get(keys[-1])  # 获取旧值用于记录变更
+            config[keys[-1]] = value
 
-        # 记录配置变更
-        if old_value is None:
-            logger.debug(f"新增配置项 {key_path} = {value}")
-        else:
-            logger.debug(f"更新配置项 {key_path}: {old_value} -> {value}")
+            # 记录配置变更
+            if old_value is None:
+                logger.debug(f"新增配置项 {key_path} = {value}")
+            else:
+                logger.debug(f"更新配置项 {key_path}: {old_value} -> {value}")
 
-        return True
+            return True
+        except Exception as e:
+            logger.error(f"设置配置项 {key_path} 失败: {str(e)}")
+            messagebox.showerror("错误", f"设置配置项 {key_path} 失败: {str(e)}")
+            return False
 
     def get_component_config(self, component_name):
         """
@@ -381,7 +410,7 @@ class ConfigManager:
             bool: 是否重置成功
         """
         logger.info("开始重置配置为默认值")
-        self.config = DEFAULT_CONFIG.copy()
+        self.config = copy.deepcopy(DEFAULT_CONFIG)  # 创建默认配置的深拷贝
         result = self.save_config()
 
         if result:
@@ -398,7 +427,7 @@ class ConfigManager:
         Returns:
             dict: 完整配置字典的副本
         """
-        return self.config.copy()
+        return copy.deepcopy(self.config)
 
     def get_file_dialog_initial_dir(self):
         """
