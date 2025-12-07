@@ -53,6 +53,40 @@ class NuitkaTab:
             family=self.font_family, size=18, weight="bold"
         )
 
+        # 预定义的Nuitka插件列表 (包含名称和说明)
+        self.available_plugins = [
+            "anti-bloat - 从广泛使用的库模块源代码中剔除愚蠢的导入",
+            "data-files - 包含由包配置文件指定的数据文件",
+            "delvewheel - 独立模式下支持使用 'delvewheel' 的包所需",
+            "dill-compat - 为 'dill' 包和 'cloudpickle' 兼容性所需",
+            "dll-files - 根据包配置文件包含 DLL 文件",
+            "enum-compat - 为 Python2 和 'enum' 包所需",
+            "eventlet - 支持包含 'eventlet' 依赖项及其对 'dns' 包猴子补丁的需求",
+            "gevent - 由 'gevent' 包所需",
+            "gi - 支持 GI 包 typelib 依赖项",
+            "glfw - 独立模式下为 'OpenGL' (PyOpenGL) 和 'glfw' 包所需",
+            "implicit-imports - 根据包配置文件提供包的隐式导入",
+            "kivy - 由 'kivy' 包所需",
+            "matplotlib - 为 'matplotlib' 模块所需",
+            "multiprocessing - 由 Python 的 'multiprocessing' 模块所需",
+            "no-qt - 禁用所有 Qt 绑定的包含",
+            "options-nanny - 根据包配置文件向用户通知潜在问题",
+            "pbr-compat - 独立模式下由 'pbr' 包所需",
+            "pkg-resources - 为 'pkg_resources' 提供变通方法",
+            "playwright - 由 'playwright' 包所需",
+            "pmw-freezer - 由 'Pmw' 包所需",
+            "pylint-warnings - 支持 PyLint / PyDev 源代码标记检查",
+            "pyqt5 - 由 PyQt5 包所需",
+            "pyqt6 - 由 PyQt6 包在独立模式下所需",
+            "pyside2 - 由 PySide2 包所需",
+            "pyside6 - 由 PySide6 包在独立模式下所需",
+            "pywebview - 由 'webview' 包 (PyPI 上的 pywebview) 所需",
+            "spacy - 由 'spacy' 包所需",
+            "tk-inter - 由 Python 的 Tk 模块所需",
+            "transformers - 为 transformers 包提供隐式导入",
+            "upx - 自动使用 UPX 压缩创建的二进制文件",
+        ]
+
         # 初始化配置
         self.config = NuitkaConfig()
 
@@ -250,7 +284,7 @@ class NuitkaTab:
 
         self.name_entry = ctk.CTkEntry(
             name_frame,
-            placeholder_text="打包后的应用名称（可选）",
+            placeholder_text="打包后的应用名称 (可选) ",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
@@ -258,6 +292,38 @@ class NuitkaTab:
             font=self.entry_font,
         )
         self.name_entry.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 图标文件
+        icon_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color="#F9FAFB",
+            corner_radius=10,
+            border_width=1,
+            border_color="#E5E7EB",
+        )
+        icon_frame.pack(fill="x", pady=(0, 15))
+
+        icon_label = ctk.CTkLabel(icon_frame, text="图标文件:", font=self.title_font)
+        icon_label.pack(anchor="w", padx=15, pady=(15, 8))
+
+        icon_input_frame = ctk.CTkFrame(icon_frame, fg_color="#F9FAFB", corner_radius=8)
+        icon_input_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        self.icon_entry = ctk.CTkEntry(
+            icon_input_frame,
+            placeholder_text="应用图标文件 (可选) ",
+            fg_color=self.entry_fg_color,
+            border_color=self.entry_border_color,
+            border_width=self.entry_border_width,
+            corner_radius=self.entry_corner_radius,
+            font=self.entry_font,
+        )
+        self.icon_entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
+
+        icon_browse_btn = self.create_browse_button(
+            icon_input_frame, "浏览", self.browse_icon
+        )
+        icon_browse_btn.pack(side="right", padx=(0, 10), pady=10)
 
         # 编译模式
         mode_frame = ctk.CTkFrame(
@@ -328,7 +394,7 @@ class NuitkaTab:
         self.console_var = tk.StringVar(value="force")
         force_radio = ctk.CTkRadioButton(
             console_options_frame,
-            text="强制创建控制台",
+            text="启用控制台",
             variable=self.console_var,
             value="force",
             font=ctk.CTkFont(family=self.font_family, size=12),
@@ -337,7 +403,7 @@ class NuitkaTab:
 
         disable_radio = ctk.CTkRadioButton(
             console_options_frame,
-            text="不创建控制台",
+            text="禁用控制台",
             variable=self.console_var,
             value="disable",
             font=ctk.CTkFont(family=self.font_family, size=12),
@@ -362,6 +428,14 @@ class NuitkaTab:
         )
         hide_radio.pack(anchor="w", padx=15, pady=(5, 10))
 
+    def create_advanced_tab_content(self):
+        """创建高级设置标签页内容"""
+        # 创建滚动框架，设置为透明背景以与内容区域融合
+        scroll_frame = ctk.CTkScrollableFrame(
+            self.advanced_frame, fg_color="transparent"
+        )
+        scroll_frame.pack(fill="both", expand=True, padx=0, pady=0)
+
         # 输出目录
         output_frame = ctk.CTkFrame(
             scroll_frame,
@@ -373,7 +447,9 @@ class NuitkaTab:
         output_frame.pack(fill="x", pady=(0, 15))
 
         output_label = ctk.CTkLabel(
-            output_frame, text="输出目录:", font=self.title_font
+            output_frame,
+            text="输出目录 (所有输出文件的顶级目录):",
+            font=self.title_font,
         )
         output_label.pack(anchor="w", padx=15, pady=(15, 8))
 
@@ -384,7 +460,7 @@ class NuitkaTab:
 
         self.output_entry = ctk.CTkEntry(
             output_input_frame,
-            placeholder_text="打包后应用的输出目录（默认：当前目录）",
+            placeholder_text="指定中间及最终输出位置 (默认：当前目录) ",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
@@ -400,45 +476,33 @@ class NuitkaTab:
         )
         output_browse_btn.pack(side="right", padx=(0, 10), pady=10)
 
-        # 图标文件
-        icon_frame = ctk.CTkFrame(
+        # 输出文件夹名称
+        folder_name_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color="#F9FAFB",
             corner_radius=10,
             border_width=1,
             border_color="#E5E7EB",
         )
-        icon_frame.pack(fill="x")
+        folder_name_frame.pack(fill="x", pady=(0, 15))
 
-        icon_label = ctk.CTkLabel(icon_frame, text="图标文件:", font=self.title_font)
-        icon_label.pack(anchor="w", padx=15, pady=(15, 8))
+        folder_name_label = ctk.CTkLabel(
+            folder_name_frame,
+            text="输出文件夹名称 (实际编译结果所在子文件夹):",
+            font=self.title_font,
+        )
+        folder_name_label.pack(anchor="w", padx=15, pady=(15, 8))
 
-        icon_input_frame = ctk.CTkFrame(icon_frame, fg_color="#F9FAFB", corner_radius=8)
-        icon_input_frame.pack(fill="x", padx=15, pady=(0, 15))
-
-        self.icon_entry = ctk.CTkEntry(
-            icon_input_frame,
-            placeholder_text="应用图标文件（可选）",
+        self.folder_name_entry = ctk.CTkEntry(
+            folder_name_frame,
+            placeholder_text="指定发布文件夹 (standalone) 或 app 包 (macOS) 名称。默认主模块基名加 '.dist' 或 '.app'",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
             corner_radius=self.entry_corner_radius,
             font=self.entry_font,
         )
-        self.icon_entry.pack(side="left", fill="x", expand=True, padx=(10, 8), pady=10)
-
-        icon_browse_btn = self.create_browse_button(
-            icon_input_frame, "浏览", self.browse_icon
-        )
-        icon_browse_btn.pack(side="right", padx=(0, 10), pady=10)
-
-    def create_advanced_tab_content(self):
-        """创建高级设置标签页内容"""
-        # 创建滚动框架，设置为透明背景以与内容区域融合
-        scroll_frame = ctk.CTkScrollableFrame(
-            self.advanced_frame, fg_color="transparent"
-        )
-        scroll_frame.pack(fill="both", expand=True, padx=0, pady=0)
+        self.folder_name_entry.pack(fill="x", padx=15, pady=(0, 15))
 
         # 进度条模式
         progress_frame = ctk.CTkFrame(
@@ -551,7 +615,7 @@ class NuitkaTab:
 
         self.jobs_entry = ctk.CTkEntry(
             jobs_input_frame,
-            placeholder_text="并行C编译任务数（0表示自动，负值表示CPU核数减去N）",
+            placeholder_text="并行C编译任务数 (0表示自动，负值表示CPU核数减去N) ",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
@@ -652,254 +716,6 @@ class NuitkaTab:
         )
         static_no_radio.pack(anchor="w", padx=15, pady=(5, 10))
 
-        # 编译器选择
-        compiler_frame = ctk.CTkFrame(
-            scroll_frame,
-            fg_color="#F9FAFB",
-            corner_radius=10,
-            border_width=1,
-            border_color="#E5E7EB",
-        )
-        compiler_frame.pack(fill="x", pady=(0, 15))
-
-        compiler_label = ctk.CTkLabel(
-            compiler_frame, text="编译器选择:", font=self.title_font
-        )
-        compiler_label.pack(anchor="w", padx=15, pady=(15, 8))
-
-        compiler_options_frame = ctk.CTkFrame(
-            compiler_frame, fg_color="#F9FAFB", corner_radius=8
-        )
-        compiler_options_frame.pack(fill="x", padx=15, pady=(0, 15))
-
-        self.clang_var = tk.BooleanVar(value=False)
-        clang_check = ctk.CTkCheckBox(
-            compiler_options_frame,
-            text="强制使用clang",
-            variable=self.clang_var,
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        clang_check.pack(anchor="w", padx=15, pady=(10, 5))
-
-        self.mingw64_var = tk.BooleanVar(value=False)
-        mingw64_check = ctk.CTkCheckBox(
-            compiler_options_frame,
-            text="在Windows使用MinGW64",
-            variable=self.mingw64_var,
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        mingw64_check.pack(anchor="w", padx=15, pady=(5, 10))
-
-        msvc_frame = ctk.CTkFrame(compiler_options_frame, fg_color="#F9FAFB")
-        msvc_frame.pack(fill="x", padx=15, pady=(0, 10))
-
-        msvc_label = ctk.CTkLabel(
-            msvc_frame,
-            text="MSVC版本:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        msvc_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.msvc_entry = ctk.CTkEntry(
-            msvc_frame,
-            placeholder_text="如'14.3'(VS2022)、'latest'或'list'",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-            width=200,
-        )
-        self.msvc_entry.pack(side="left", padx=(0, 15), pady=10)
-
-        # 版本信息
-        version_frame = ctk.CTkFrame(
-            scroll_frame,
-            fg_color="#F9FAFB",
-            corner_radius=10,
-            border_width=1,
-            border_color="#E5E7EB",
-        )
-        version_frame.pack(fill="x", pady=(0, 15))
-
-        version_label = ctk.CTkLabel(
-            version_frame, text="版本信息:", font=self.title_font
-        )
-        version_label.pack(anchor="w", padx=15, pady=(15, 8))
-
-        version_options_frame = ctk.CTkFrame(
-            version_frame, fg_color="#F9FAFB", corner_radius=8
-        )
-        version_options_frame.pack(fill="x", padx=15, pady=(0, 15))
-
-        # 公司名称
-        company_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        company_frame.pack(fill="x", pady=(0, 10))
-
-        company_label = ctk.CTkLabel(
-            company_frame,
-            text="公司名称:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        company_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.company_entry = ctk.CTkEntry(
-            company_frame,
-            placeholder_text="版本信息中的公司名",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.company_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 产品名称
-        product_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        product_frame.pack(fill="x", pady=(0, 10))
-
-        product_label = ctk.CTkLabel(
-            product_frame,
-            text="产品名称:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        product_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.product_entry = ctk.CTkEntry(
-            product_frame,
-            placeholder_text="版本信息中的产品名",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.product_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 文件版本
-        file_version_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        file_version_frame.pack(fill="x", pady=(0, 10))
-
-        file_version_label = ctk.CTkLabel(
-            file_version_frame,
-            text="文件版本:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        file_version_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.file_version_entry = ctk.CTkEntry(
-            file_version_frame,
-            placeholder_text="如 1.0 或 1.0.0.0",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.file_version_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 产品版本
-        product_version_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        product_version_frame.pack(fill="x", pady=(0, 10))
-
-        product_version_label = ctk.CTkLabel(
-            product_version_frame,
-            text="产品版本:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        product_version_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.product_version_entry = ctk.CTkEntry(
-            product_version_frame,
-            placeholder_text="如 1.0 或 1.0.0.0",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.product_version_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 文件描述
-        description_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        description_frame.pack(fill="x", pady=(0, 10))
-
-        description_label = ctk.CTkLabel(
-            description_frame,
-            text="文件描述:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        description_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.description_entry = ctk.CTkEntry(
-            description_frame,
-            placeholder_text="文件描述",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.description_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 版权信息
-        copyright_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        copyright_frame.pack(fill="x", pady=(0, 10))
-
-        copyright_label = ctk.CTkLabel(
-            copyright_frame,
-            text="版权信息:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        copyright_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.copyright_entry = ctk.CTkEntry(
-            copyright_frame,
-            placeholder_text="版权信息",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.copyright_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
-        # 商标信息
-        trademarks_frame = ctk.CTkFrame(version_options_frame, fg_color="#F9FAFB")
-        trademarks_frame.pack(fill="x", pady=(0, 10))
-
-        trademarks_label = ctk.CTkLabel(
-            trademarks_frame,
-            text="商标信息:",
-            font=ctk.CTkFont(family=self.font_family, size=12),
-        )
-        trademarks_label.pack(side="left", padx=(0, 10), pady=10)
-
-        self.trademarks_entry = ctk.CTkEntry(
-            trademarks_frame,
-            placeholder_text="商标信息",
-            fg_color=self.entry_fg_color,
-            border_color=self.entry_border_color,
-            border_width=self.entry_border_width,
-            corner_radius=self.entry_corner_radius,
-            font=self.entry_font,
-        )
-        self.trademarks_entry.pack(
-            side="left", fill="x", expand=True, padx=(0, 15), pady=10
-        )
-
         # Onefile选项
         onefile_frame = ctk.CTkFrame(
             scroll_frame,
@@ -989,33 +805,107 @@ class NuitkaTab:
         )
         no_dll_check.pack(anchor="w", padx=15, pady=(5, 10))
 
-        # 额外参数
-        extra_frame = ctk.CTkFrame(
+        # 警告控制
+        warnings_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color="#F9FAFB",
             corner_radius=10,
             border_width=1,
             border_color="#E5E7EB",
         )
-        extra_frame.pack(fill="x", pady=(0, 15))
+        warnings_frame.pack(fill="x", pady=(0, 15))
 
-        extra_label = ctk.CTkLabel(extra_frame, text="额外参数:", font=self.title_font)
-        extra_label.pack(anchor="w", padx=15, pady=(15, 8))
+        warnings_label = ctk.CTkLabel(
+            warnings_frame, text="警告控制:", font=self.title_font
+        )
+        warnings_label.pack(anchor="w", padx=15, pady=(15, 8))
 
-        self.extra_entry = ctk.CTkTextbox(
-            extra_frame,
-            height=80,
+        warnings_options_frame = ctk.CTkFrame(
+            warnings_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        warnings_options_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        self.warn_implicit_exceptions_var = tk.BooleanVar(value=False)
+        warn_implicit_exceptions_check = ctk.CTkCheckBox(
+            warnings_options_frame,
+            text="对隐式异常发出警告",
+            variable=self.warn_implicit_exceptions_var,
+            font=ctk.CTkFont(family=self.font_family, size=12),
+        )
+        warn_implicit_exceptions_check.pack(anchor="w", padx=15, pady=(10, 5))
+
+        self.warn_unusual_code_var = tk.BooleanVar(value=False)
+        warn_unusual_code_check = ctk.CTkCheckBox(
+            warnings_options_frame,
+            text="对异常代码发出警告",
+            variable=self.warn_unusual_code_var,
+            font=ctk.CTkFont(family=self.font_family, size=12),
+        )
+        warn_unusual_code_check.pack(anchor="w", padx=15, pady=(5, 5))
+
+        self.assume_yes_for_downloads_var = tk.BooleanVar(value=False)
+        assume_yes_for_downloads_check = ctk.CTkCheckBox(
+            warnings_options_frame,
+            text="允许自动下载外部代码",
+            variable=self.assume_yes_for_downloads_var,
+            font=ctk.CTkFont(family=self.font_family, size=12),
+        )
+        assume_yes_for_downloads_check.pack(anchor="w", padx=15, pady=(5, 10))
+
+        # 缓存控制
+        cache_control_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color="#F9FAFB",
+            corner_radius=10,
+            border_width=1,
+            border_color="#E5E7EB",
+        )
+        cache_control_frame.pack(fill="x", pady=(0, 15))
+
+        cache_control_label = ctk.CTkLabel(
+            cache_control_frame, text="缓存控制:", font=self.title_font
+        )
+        cache_control_label.pack(anchor="w", padx=15, pady=(15, 8))
+
+        cache_control_options_frame = ctk.CTkFrame(
+            cache_control_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        cache_control_options_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 清理缓存
+        clean_cache_frame = ctk.CTkFrame(
+            cache_control_options_frame, fg_color="#F9FAFB"
+        )
+        clean_cache_frame.pack(fill="x", pady=(0, 10))
+
+        clean_cache_label = ctk.CTkLabel(
+            clean_cache_frame,
+            text="清理缓存:",
+            font=ctk.CTkFont(family=self.font_family, size=12),
+        )
+        clean_cache_label.pack(side="left", padx=(0, 10), pady=10)
+
+        self.clean_cache_entry = ctk.CTkEntry(
+            clean_cache_frame,
+            placeholder_text="要清理的缓存名 (可选) ",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
             corner_radius=self.entry_corner_radius,
             font=self.entry_font,
         )
-        self.extra_entry.pack(fill="x", padx=15, pady=(0, 15))
-        self.extra_entry.insert(
-            "0.0",
-            "# 在此输入额外的Nuitka参数，每行一个\n# 例如: --msvc=14.3",
+        self.clean_cache_entry.pack(
+            side="left", fill="x", expand=True, padx=(0, 15), pady=10
         )
+
+        self.force_dll_dependency_cache_update_var = tk.BooleanVar(value=False)
+        force_dll_dependency_cache_update_check = ctk.CTkCheckBox(
+            cache_control_options_frame,
+            text="强制更新DLL依赖缓存",
+            variable=self.force_dll_dependency_cache_update_var,
+            font=ctk.CTkFont(family=self.font_family, size=12),
+        )
+        force_dll_dependency_cache_update_check.pack(anchor="w", padx=15, pady=(5, 10))
 
     def create_files_tab_content(self):
         """创建文件设置标签页内容"""
@@ -1179,56 +1069,56 @@ class NuitkaTab:
         )
         include_modules_clear_btn.pack(side="left", padx=8, pady=10)
 
-        # 排除的模块
-        exclude_modules_frame = ctk.CTkFrame(
+        # 包含的插件目录
+        include_plugin_dirs_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color="#F9FAFB",
             corner_radius=10,
             border_width=1,
             border_color="#E5E7EB",
         )
-        exclude_modules_frame.pack(fill="x", pady=(0, 15))
+        include_plugin_dirs_frame.pack(fill="x", pady=(0, 15))
 
-        exclude_modules_label = ctk.CTkLabel(
-            exclude_modules_frame, text="排除的模块:", font=self.title_font
+        include_plugin_dirs_label = ctk.CTkLabel(
+            include_plugin_dirs_frame, text="包含的插件目录:", font=self.title_font
         )
-        exclude_modules_label.pack(anchor="w", padx=15, pady=(15, 8))
+        include_plugin_dirs_label.pack(anchor="w", padx=15, pady=(15, 8))
 
-        exclude_modules_input_frame = ctk.CTkFrame(
-            exclude_modules_frame, fg_color="#F9FAFB", corner_radius=8
+        include_plugin_dirs_input_frame = ctk.CTkFrame(
+            include_plugin_dirs_frame, fg_color="#F9FAFB", corner_radius=8
         )
-        exclude_modules_input_frame.pack(fill="x", padx=15, pady=(0, 15))
+        include_plugin_dirs_input_frame.pack(fill="x", padx=15, pady=(0, 15))
 
-        self.exclude_modules_entry = ctk.CTkEntry(
-            exclude_modules_input_frame,
-            placeholder_text="输入要排除的模块名",
+        self.include_plugin_dirs_entry = ctk.CTkEntry(
+            include_plugin_dirs_input_frame,
+            placeholder_text="输入要包含的插件目录路径",
             fg_color=self.entry_fg_color,
             border_color=self.entry_border_color,
             border_width=self.entry_border_width,
             corner_radius=self.entry_corner_radius,
             font=self.entry_font,
         )
-        self.exclude_modules_entry.pack(
+        self.include_plugin_dirs_entry.pack(
             side="left", fill="x", expand=True, padx=(10, 8), pady=10
         )
 
-        exclude_modules_add_btn = self.create_add_button(
-            exclude_modules_input_frame, "添加", self.add_exclude_module
+        include_plugin_dirs_add_btn = self.create_add_button(
+            include_plugin_dirs_input_frame, "添加", self.add_include_plugin_dir
         )
-        exclude_modules_add_btn.pack(side="right", padx=(0, 10), pady=10)
+        include_plugin_dirs_add_btn.pack(side="right", padx=(0, 10), pady=10)
 
-        # 排除的模块列表
-        exclude_modules_list_container = ctk.CTkFrame(
-            exclude_modules_frame,
+        # 包含的插件目录列表
+        include_plugin_dirs_list_container = ctk.CTkFrame(
+            include_plugin_dirs_frame,
             fg_color="#FFFFFF",
             corner_radius=8,
             border_width=1,
             border_color="#D1D5DB",
         )
-        exclude_modules_list_container.pack(fill="x", padx=15, pady=(0, 15))
+        include_plugin_dirs_list_container.pack(fill="x", padx=15, pady=(0, 15))
 
-        self.exclude_modules_listbox = tk.Listbox(
-            exclude_modules_list_container,
+        self.include_plugin_dirs_listbox = tk.Listbox(
+            include_plugin_dirs_list_container,
             height=6,
             font=self.listbox_font,
             bg="#FFFFFF",
@@ -1240,22 +1130,184 @@ class NuitkaTab:
             highlightthickness=0,
             exportselection=False,
         )
-        self.exclude_modules_listbox.pack(fill="both", expand=True, padx=8, pady=8)
+        self.include_plugin_dirs_listbox.pack(fill="both", expand=True, padx=8, pady=8)
 
-        exclude_modules_list_frame = ctk.CTkFrame(
-            exclude_modules_frame, fg_color="#F9FAFB", corner_radius=8
+        include_plugin_dirs_list_frame = ctk.CTkFrame(
+            include_plugin_dirs_frame, fg_color="#F9FAFB", corner_radius=8
         )
-        exclude_modules_list_frame.pack(fill="x", padx=15, pady=(0, 15))
+        include_plugin_dirs_list_frame.pack(fill="x", padx=15, pady=(0, 15))
 
-        exclude_modules_remove_btn = self.create_remove_button(
-            exclude_modules_list_frame, "移除选中", self.remove_exclude_module
+        include_plugin_dirs_remove_btn = self.create_remove_button(
+            include_plugin_dirs_list_frame, "移除选中", self.remove_include_plugin_dir
         )
-        exclude_modules_remove_btn.pack(side="left", padx=15, pady=10)
+        include_plugin_dirs_remove_btn.pack(side="left", padx=15, pady=10)
 
-        exclude_modules_clear_btn = self.create_clear_button(
-            exclude_modules_list_frame, "清空全部", self.clear_exclude_modules
+        include_plugin_dirs_clear_btn = self.create_clear_button(
+            include_plugin_dirs_list_frame, "清空全部", self.clear_include_plugin_dirs
         )
-        exclude_modules_clear_btn.pack(side="left", padx=8, pady=10)
+        include_plugin_dirs_clear_btn.pack(side="left", padx=8, pady=10)
+
+        # 启用的插件
+        enable_plugins_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color="#F9FAFB",
+            corner_radius=10,
+            border_width=1,
+            border_color="#E5E7EB",
+        )
+        enable_plugins_frame.pack(fill="x", pady=(0, 15))
+
+        enable_plugins_label = ctk.CTkLabel(
+            enable_plugins_frame, text="启用的插件:", font=self.title_font
+        )
+        enable_plugins_label.pack(anchor="w", padx=15, pady=(15, 8))
+
+        enable_plugins_input_frame = ctk.CTkFrame(
+            enable_plugins_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        enable_plugins_input_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 创建插件下拉菜单
+        self.enable_plugins_combobox = ctk.CTkComboBox(
+            enable_plugins_input_frame,
+            values=self.available_plugins,
+            fg_color=self.entry_fg_color,
+            border_color=self.entry_border_color,
+            border_width=self.entry_border_width,
+            corner_radius=self.entry_corner_radius,
+            font=self.entry_font,
+            dropdown_font=self.entry_font,
+        )
+        self.enable_plugins_combobox.pack(
+            side="left", fill="x", expand=True, padx=(10, 8), pady=10
+        )
+        self.enable_plugins_combobox.set("选择要启用的插件")
+
+        enable_plugins_add_btn = self.create_add_button(
+            enable_plugins_input_frame, "添加", self.add_enable_plugin
+        )
+        enable_plugins_add_btn.pack(side="right", padx=(0, 10), pady=10)
+
+        # 启用的插件列表
+        enable_plugins_list_container = ctk.CTkFrame(
+            enable_plugins_frame,
+            fg_color="#FFFFFF",
+            corner_radius=8,
+            border_width=1,
+            border_color="#D1D5DB",
+        )
+        enable_plugins_list_container.pack(fill="x", padx=15, pady=(0, 15))
+
+        self.enable_plugins_listbox = tk.Listbox(
+            enable_plugins_list_container,
+            height=6,
+            font=self.listbox_font,
+            bg="#FFFFFF",
+            fg="#1F2937",
+            selectbackground="#3B82F6",
+            selectforeground="#FFFFFF",
+            borderwidth=0,
+            relief="flat",
+            highlightthickness=0,
+            exportselection=False,
+        )
+        self.enable_plugins_listbox.pack(fill="both", expand=True, padx=8, pady=8)
+
+        enable_plugins_list_frame = ctk.CTkFrame(
+            enable_plugins_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        enable_plugins_list_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        enable_plugins_remove_btn = self.create_remove_button(
+            enable_plugins_list_frame, "移除选中", self.remove_enable_plugin
+        )
+        enable_plugins_remove_btn.pack(side="left", padx=15, pady=10)
+
+        enable_plugins_clear_btn = self.create_clear_button(
+            enable_plugins_list_frame, "清空全部", self.clear_enable_plugins
+        )
+        enable_plugins_clear_btn.pack(side="left", padx=8, pady=10)
+
+        # 禁用的插件
+        disable_plugins_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color="#F9FAFB",
+            corner_radius=10,
+            border_width=1,
+            border_color="#E5E7EB",
+        )
+        disable_plugins_frame.pack(fill="x", pady=(0, 15))
+
+        disable_plugins_label = ctk.CTkLabel(
+            disable_plugins_frame, text="禁用的插件:", font=self.title_font
+        )
+        disable_plugins_label.pack(anchor="w", padx=15, pady=(15, 8))
+
+        disable_plugins_input_frame = ctk.CTkFrame(
+            disable_plugins_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        disable_plugins_input_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        # 创建插件下拉菜单
+        self.disable_plugins_combobox = ctk.CTkComboBox(
+            disable_plugins_input_frame,
+            values=self.available_plugins,
+            fg_color=self.entry_fg_color,
+            border_color=self.entry_border_color,
+            border_width=self.entry_border_width,
+            corner_radius=self.entry_corner_radius,
+            font=self.entry_font,
+            dropdown_font=self.entry_font,
+        )
+        self.disable_plugins_combobox.pack(
+            side="left", fill="x", expand=True, padx=(10, 8), pady=10
+        )
+        self.disable_plugins_combobox.set("选择要禁用的插件")
+
+        disable_plugins_add_btn = self.create_add_button(
+            disable_plugins_input_frame, "添加", self.add_disable_plugin
+        )
+        disable_plugins_add_btn.pack(side="right", padx=(0, 10), pady=10)
+
+        # 禁用的插件列表
+        disable_plugins_list_container = ctk.CTkFrame(
+            disable_plugins_frame,
+            fg_color="#FFFFFF",
+            corner_radius=8,
+            border_width=1,
+            border_color="#D1D5DB",
+        )
+        disable_plugins_list_container.pack(fill="x", padx=15, pady=(0, 15))
+
+        self.disable_plugins_listbox = tk.Listbox(
+            disable_plugins_list_container,
+            height=6,
+            font=self.listbox_font,
+            bg="#FFFFFF",
+            fg="#1F2937",
+            selectbackground="#3B82F6",
+            selectforeground="#FFFFFF",
+            borderwidth=0,
+            relief="flat",
+            highlightthickness=0,
+            exportselection=False,
+        )
+        self.disable_plugins_listbox.pack(fill="both", expand=True, padx=8, pady=8)
+
+        disable_plugins_list_frame = ctk.CTkFrame(
+            disable_plugins_frame, fg_color="#F9FAFB", corner_radius=8
+        )
+        disable_plugins_list_frame.pack(fill="x", padx=15, pady=(0, 15))
+
+        disable_plugins_remove_btn = self.create_remove_button(
+            disable_plugins_list_frame, "移除选中", self.remove_disable_plugin
+        )
+        disable_plugins_remove_btn.pack(side="left", padx=15, pady=10)
+
+        disable_plugins_clear_btn = self.create_clear_button(
+            disable_plugins_list_frame, "清空全部", self.clear_disable_plugins
+        )
+        disable_plugins_clear_btn.pack(side="left", padx=8, pady=10)
 
     def create_build_tab_content(self):
         """创建构建标签页内容"""
@@ -1317,7 +1369,7 @@ class NuitkaTab:
         self.build_btn.pack(fill="x", padx=15, pady=15)
 
     def create_browse_button(self, parent, text, command, width=80):
-        """创建浏览按钮（次要功能）
+        """创建浏览按钮 (次要功能)
 
         Args:
             parent: 父容器
@@ -1342,7 +1394,7 @@ class NuitkaTab:
         )
 
     def create_add_button(self, parent, text, command, width=80):
-        """创建添加按钮（一般功能）
+        """创建添加按钮 (一般功能)
 
         Args:
             parent: 父容器
@@ -1367,7 +1419,7 @@ class NuitkaTab:
         )
 
     def create_remove_button(self, parent, text, command, width=100):
-        """创建移除按钮（警告功能）
+        """创建移除按钮 (警告功能)
 
         Args:
             parent: 父容器
@@ -1392,7 +1444,7 @@ class NuitkaTab:
         )
 
     def create_clear_button(self, parent, text, command, width=100):
-        """创建清空按钮（危险功能）
+        """创建清空按钮 (危险功能)
 
         Args:
             parent: 父容器
@@ -1417,14 +1469,14 @@ class NuitkaTab:
         )
 
     def create_primary_button(self, parent, text, command, width=200, height=None):
-        """创建主要按钮（最重要功能）
+        """创建主要按钮 (最重要功能)
 
         Args:
             parent: 父容器
             text: 按钮文本
             command: 按钮命令
             width: 按钮宽度
-            height: 按钮高度（可选）
+            height: 按钮高度 (可选)
 
         Returns:
             创建的按钮组件
@@ -1506,23 +1558,71 @@ class NuitkaTab:
         """清空所有包含的模块"""
         self.include_modules_listbox.delete(0, tk.END)
 
-    # 排除的模块方法
-    def add_exclude_module(self):
-        """添加排除的模块"""
-        module_name = self.exclude_modules_entry.get().strip()
-        if module_name:
-            self.exclude_modules_listbox.insert(tk.END, module_name)
-            self.exclude_modules_entry.delete(0, tk.END)
+    # 包含的插件目录方法
+    def add_include_plugin_dir(self):
+        """添加包含的插件目录"""
+        plugin_dir = self.include_plugin_dirs_entry.get().strip()
+        if plugin_dir:
+            self.include_plugin_dirs_listbox.insert(tk.END, plugin_dir)
+            self.include_plugin_dirs_entry.delete(0, tk.END)
 
-    def remove_exclude_module(self):
-        """移除选中的排除模块"""
-        selection = self.exclude_modules_listbox.curselection()
+    def remove_include_plugin_dir(self):
+        """移除选中的包含的插件目录"""
+        selection = self.include_plugin_dirs_listbox.curselection()
         if selection:
-            self.exclude_modules_listbox.delete(selection[0])
+            self.include_plugin_dirs_listbox.delete(selection[0])
 
-    def clear_exclude_modules(self):
-        """清空所有排除模块"""
-        self.exclude_modules_listbox.delete(0, tk.END)
+    def clear_include_plugin_dirs(self):
+        """清空所有包含的插件目录"""
+        self.include_plugin_dirs_listbox.delete(0, tk.END)
+
+    # 启用的插件方法
+    def add_enable_plugin(self):
+        """添加启用的插件"""
+        plugin_full_name = self.enable_plugins_combobox.get().strip()
+        if plugin_full_name and plugin_full_name != "选择要启用的插件":
+            # 从完整字符串中提取插件名称（" - "前面的部分）
+            plugin_name = plugin_full_name.split(" - ")[0]
+            # 检查是否已存在
+            existing_items = self.enable_plugins_listbox.get(0, tk.END)
+            if plugin_name not in existing_items:
+                self.enable_plugins_listbox.insert(tk.END, plugin_name)
+            # 重置下拉菜单
+            self.enable_plugins_combobox.set("选择要启用的插件")
+
+    def remove_enable_plugin(self):
+        """移除选中的启用的插件"""
+        selection = self.enable_plugins_listbox.curselection()
+        if selection:
+            self.enable_plugins_listbox.delete(selection[0])
+
+    def clear_enable_plugins(self):
+        """清空所有启用的插件"""
+        self.enable_plugins_listbox.delete(0, tk.END)
+
+    # 禁用的插件方法
+    def add_disable_plugin(self):
+        """添加禁用的插件"""
+        plugin_full_name = self.disable_plugins_combobox.get().strip()
+        if plugin_full_name and plugin_full_name != "选择要禁用的插件":
+            # 从完整字符串中提取插件名称（" - "前面的部分）
+            plugin_name = plugin_full_name.split(" - ")[0]
+            # 检查是否已存在
+            existing_items = self.disable_plugins_listbox.get(0, tk.END)
+            if plugin_name not in existing_items:
+                self.disable_plugins_listbox.insert(tk.END, plugin_name)
+            # 重置下拉菜单
+            self.disable_plugins_combobox.set("选择要禁用的插件")
+
+    def remove_disable_plugin(self):
+        """移除选中的禁用的插件"""
+        selection = self.disable_plugins_listbox.curselection()
+        if selection:
+            self.disable_plugins_listbox.delete(selection[0])
+
+    def clear_disable_plugins(self):
+        """清空所有禁用的插件"""
+        self.disable_plugins_listbox.delete(0, tk.END)
 
     # 获取配置方法
     def get_include_packages(self):
@@ -1533,9 +1633,17 @@ class NuitkaTab:
         """获取包含的模块列表"""
         return list(self.include_modules_listbox.get(0, tk.END))
 
-    def get_exclude_modules(self):
-        """获取排除的模块列表"""
-        return list(self.exclude_modules_listbox.get(0, tk.END))
+    def get_include_plugin_dirs(self):
+        """获取包含的插件目录列表"""
+        return list(self.include_plugin_dirs_listbox.get(0, tk.END))
+
+    def get_enable_plugins(self):
+        """获取启用的插件列表"""
+        return list(self.enable_plugins_listbox.get(0, tk.END))
+
+    def get_disable_plugins(self):
+        """获取禁用的插件列表"""
+        return list(self.disable_plugins_listbox.get(0, tk.END))
 
     # 配置相关方法
     def update_config(self):
@@ -1543,6 +1651,7 @@ class NuitkaTab:
         self.config.script = self.script_entry.get()
         self.config.output_dir = self.output_entry.get()
         self.config.output_filename = self.name_entry.get()
+        self.config.output_folder_name = self.folder_name_entry.get()
         self.config.icon = self.icon_entry.get()
         self.config.mode = self.mode_var.get()
         self.config.console_mode = self.console_var.get()
@@ -1556,23 +1665,13 @@ class NuitkaTab:
 
         self.config.lto = self.lto_var.get()
         self.config.static_libpython = self.static_libpython_var.get()
-        self.config.clang = self.clang_var.get()
-        self.config.mingw64 = self.mingw64_var.get()
-        self.config.msvc = self.msvc_entry.get()
 
-        # 版本信息
-        self.config.company_name = self.company_entry.get()
-        self.config.product_name = self.product_entry.get()
-        self.config.file_version = self.file_version_entry.get()
-        self.config.product_version = self.product_version_entry.get()
-        self.config.file_description = self.description_entry.get()
-        self.config.copyright = self.copyright_entry.get()
-        self.config.trademarks = self.trademarks_entry.get()
-
-        # 包含和排除
+        # 包含
         self.config.include_packages = self.get_include_packages()
         self.config.include_modules = self.get_include_modules()
-        self.config.exclude_modules = self.get_exclude_modules()
+        self.config.include_plugin_dirs = self.get_include_plugin_dirs()
+        self.config.enable_plugins = self.get_enable_plugins()
+        self.config.disable_plugins = self.get_disable_plugins()
 
         # onefile选项
         self.config.onefile_tempdir_spec = self.tempdir_entry.get()
@@ -1580,8 +1679,16 @@ class NuitkaTab:
         self.config.onefile_as_archive = self.archive_var.get()
         self.config.onefile_no_dll = self.no_dll_var.get()
 
-        # 额外参数
-        self.config.extra_args = self.extra_entry.get("1.0", tk.END).strip()
+        # 警告控制
+        self.config.warn_implicit_exceptions = self.warn_implicit_exceptions_var.get()
+        self.config.warn_unusual_code = self.warn_unusual_code_var.get()
+        self.config.assume_yes_for_downloads = self.assume_yes_for_downloads_var.get()
+
+        # 缓存控制
+        self.config.clean_cache = self.clean_cache_entry.get()
+        self.config.force_dll_dependency_cache_update = (
+            self.force_dll_dependency_cache_update_var.get()
+        )
 
     def update_summary(self):
         """更新配置摘要"""
@@ -1632,6 +1739,9 @@ class NuitkaTab:
         self.name_entry.delete(0, tk.END)
         self.name_entry.insert(0, config.output_filename)
 
+        self.folder_name_entry.delete(0, tk.END)
+        self.folder_name_entry.insert(0, config.output_folder_name)
+
         self.output_entry.delete(0, tk.END)
         self.output_entry.insert(0, config.output_dir)
 
@@ -1651,35 +1761,8 @@ class NuitkaTab:
 
         self.lto_var.set(config.lto)
         self.static_libpython_var.set(config.static_libpython)
-        self.clang_var.set(config.clang)
-        self.mingw64_var.set(config.mingw64)
 
-        self.msvc_entry.delete(0, tk.END)
-        self.msvc_entry.insert(0, config.msvc)
-
-        # 版本信息
-        self.company_entry.delete(0, tk.END)
-        self.company_entry.insert(0, config.company_name)
-
-        self.product_entry.delete(0, tk.END)
-        self.product_entry.insert(0, config.product_name)
-
-        self.file_version_entry.delete(0, tk.END)
-        self.file_version_entry.insert(0, config.file_version)
-
-        self.product_version_entry.delete(0, tk.END)
-        self.product_version_entry.insert(0, config.product_version)
-
-        self.description_entry.delete(0, tk.END)
-        self.description_entry.insert(0, config.file_description)
-
-        self.copyright_entry.delete(0, tk.END)
-        self.copyright_entry.insert(0, config.copyright)
-
-        self.trademarks_entry.delete(0, tk.END)
-        self.trademarks_entry.insert(0, config.trademarks)
-
-        # 包含和排除
+        # 包含
         self.include_packages_listbox.delete(0, tk.END)
         for package in config.include_packages:
             self.include_packages_listbox.insert(tk.END, package)
@@ -1688,9 +1771,17 @@ class NuitkaTab:
         for module in config.include_modules:
             self.include_modules_listbox.insert(tk.END, module)
 
-        self.exclude_modules_listbox.delete(0, tk.END)
-        for module in config.exclude_modules:
-            self.exclude_modules_listbox.insert(tk.END, module)
+        self.include_plugin_dirs_listbox.delete(0, tk.END)
+        for plugin_dir in config.include_plugin_dirs:
+            self.include_plugin_dirs_listbox.insert(tk.END, plugin_dir)
+
+        self.enable_plugins_listbox.delete(0, tk.END)
+        for plugin in config.enable_plugins:
+            self.enable_plugins_listbox.insert(tk.END, plugin)
+
+        self.disable_plugins_listbox.delete(0, tk.END)
+        for plugin in config.disable_plugins:
+            self.disable_plugins_listbox.insert(tk.END, plugin)
 
         # onefile选项
         self.tempdir_entry.delete(0, tk.END)
@@ -1702,9 +1793,18 @@ class NuitkaTab:
         self.archive_var.set(config.onefile_as_archive)
         self.no_dll_var.set(config.onefile_no_dll)
 
-        # 额外参数
-        self.extra_entry.delete("1.0", tk.END)
-        self.extra_entry.insert("1.0", config.extra_args)
+        # 警告控制
+        self.warn_implicit_exceptions_var.set(config.warn_implicit_exceptions)
+        self.warn_unusual_code_var.set(config.warn_unusual_code)
+        self.assume_yes_for_downloads_var.set(config.assume_yes_for_downloads)
+
+        # 缓存控制
+        self.clean_cache_entry.delete(0, tk.END)
+        self.clean_cache_entry.insert(0, config.clean_cache)
+
+        self.force_dll_dependency_cache_update_var.set(
+            config.force_dll_dependency_cache_update
+        )
 
         # 更新摘要
         self.update_summary()

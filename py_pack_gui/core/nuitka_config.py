@@ -19,10 +19,13 @@ class NuitkaConfig:
     def reset_config(self):
         """重置配置为默认值"""
         self.script = ""  # 脚本路径
-        self.output_dir = ""  # 输出目录
+        self.mode = "accelerated"  # 编译模式: accelerated, standalone, onefile, app, app-dist, module, package
+        self.output_dir = ""  # 输出目录：指定中间及最终输出位置（默认：当前目录）
         self.output_filename = ""  # 输出文件名
+        self.output_folder_name = (
+            ""  # 输出文件夹名称：指定发布文件夹（standalone）或app包（macOS）名称
+        )
         self.icon = ""  # 图标文件
-        self.mode = "standalone"  # 编译模式: accelerated, standalone, onefile, app, app-dist, module, package
         self.console_mode = "force"  # Windows控制台模式: force, disable, attach, hide
         self.remove_output = False  # 是否删除build目录
         self.progress_bar = "auto"  # 进度条模式: auto, tqdm, rich, none
@@ -30,23 +33,11 @@ class NuitkaConfig:
         self.jobs = 0  # 并行C编译任务数，0表示自动
         self.lto = "auto"  # 链接时优化: yes, no, auto
         self.static_libpython = "auto"  # 静态链接Python库: yes, no, auto
-        self.clang = False  # 是否强制使用clang
-        self.mingw64 = False  # 是否在Windows使用MinGW64
-        self.msvc = ""  # 强制使用的MSVC版本
-        self.company_name = ""  # 公司名称
-        self.product_name = ""  # 产品名称
-        self.file_version = ""  # 文件版本
-        self.product_version = ""  # 产品版本
-        self.file_description = ""  # 文件描述
-        self.copyright = ""  # 版权信息
-        self.trademarks = ""  # 商标信息
         self.include_packages = []  # 包含的包列表
         self.include_modules = []  # 包含的模块列表
         self.include_plugin_dirs = []  # 包含的插件目录列表
-        self.exclude_modules = []  # 排除的模块列表
         self.enable_plugins = []  # 启用的插件列表
         self.disable_plugins = []  # 禁用的插件列表
-        self.user_plugins = []  # 用户插件列表
         self.onefile_tempdir_spec = ""  # onefile模式下解压目录规范
         self.onefile_cache_mode = ""  # onefile缓存模式
         self.onefile_as_archive = False  # 是否使用归档格式
@@ -56,7 +47,6 @@ class NuitkaConfig:
         self.assume_yes_for_downloads = False  # 是否允许自动下载外部代码
         self.clean_cache = ""  # 清理的缓存名
         self.force_dll_dependency_cache_update = False  # 是否强制更新DLL依赖缓存
-        self.extra_args = ""  # 额外参数
 
     def get_command(self):
         """获取Nuitka命令
@@ -78,6 +68,10 @@ class NuitkaConfig:
         if self.output_filename:
             cmd.extend(["--output-filename", self.output_filename])
 
+        # 添加输出文件夹名称
+        if self.output_folder_name:
+            cmd.extend(["--output-folder-name", self.output_folder_name])
+
         # 添加图标
         if self.icon:
             cmd.extend(["--windows-icon-from-ico", self.icon])
@@ -98,28 +92,6 @@ class NuitkaConfig:
         if self.console_mode != "force":
             cmd.extend(["--windows-console-mode", self.console_mode])
 
-        # 添加版本信息
-        if self.company_name:
-            cmd.extend(["--company-name", self.company_name])
-
-        if self.product_name:
-            cmd.extend(["--product-name", self.product_name])
-
-        if self.file_version:
-            cmd.extend(["--file-version", self.file_version])
-
-        if self.product_version:
-            cmd.extend(["--product-version", self.product_version])
-
-        if self.file_description:
-            cmd.extend(["--file-description", self.file_description])
-
-        if self.copyright:
-            cmd.extend(["--copyright", self.copyright])
-
-        if self.trademarks:
-            cmd.extend(["--trademarks", self.trademarks])
-
         # 添加包含的包
         for package in self.include_packages:
             cmd.extend(["--include-package", package])
@@ -132,10 +104,6 @@ class NuitkaConfig:
         for plugin_dir in self.include_plugin_dirs:
             cmd.extend(["--include-plugin-directory", plugin_dir])
 
-        # 添加排除的模块
-        for module in self.exclude_modules:
-            cmd.extend(["--nofollow-import-to", module])
-
         # 添加启用的插件
         for plugin in self.enable_plugins:
             cmd.extend(["--enable-plugins", plugin])
@@ -143,10 +111,6 @@ class NuitkaConfig:
         # 添加禁用的插件
         for plugin in self.disable_plugins:
             cmd.extend(["--disable-plugins", plugin])
-
-        # 添加用户插件
-        for plugin in self.user_plugins:
-            cmd.extend(["--user-plugin", plugin])
 
         # 添加编译选项
         if self.jobs != 0:
@@ -187,25 +151,6 @@ class NuitkaConfig:
 
         if self.force_dll_dependency_cache_update:
             cmd.append("--force-dll-dependency-cache-update")
-
-        # 添加编译器选择
-        if self.clang:
-            cmd.append("--clang")
-
-        if self.mingw64:
-            cmd.append("--mingw64")
-
-        if self.msvc:
-            cmd.extend(["--msvc", self.msvc])
-
-        # 添加额外参数
-        if self.extra_args:
-            # 处理额外参数，移除注释行和空行
-            for line in self.extra_args.splitlines():
-                # 移除注释和空白字符
-                line = line.split("#")[0].strip()
-                if line:
-                    cmd.extend(line.split())
 
         # 添加脚本文件
         cmd.append(self.script)
@@ -265,11 +210,6 @@ class NuitkaConfig:
             if not os.path.exists(plugin_dir):
                 return False, f"插件目录不存在: {plugin_dir}"
 
-        # 验证用户插件
-        for plugin in self.user_plugins:
-            if not os.path.exists(plugin):
-                return False, f"用户插件文件不存在: {plugin}"
-
         return True, ""
 
     def get_summary(self):
@@ -310,6 +250,9 @@ class NuitkaConfig:
         if self.output_filename:
             summary += f"输出文件名: {self.output_filename}\n"
 
+        if self.output_folder_name:
+            summary += f"输出文件夹名称: {self.output_folder_name}\n"
+
         if self.icon:
             summary += f"图标: {self.icon}\n"
 
@@ -323,37 +266,6 @@ class NuitkaConfig:
         if self.static_libpython != "auto":
             summary += f"静态链接Python库: {self.static_libpython}\n"
 
-        if self.clang:
-            summary += "使用Clang编译器: 是\n"
-
-        if self.mingw64:
-            summary += "使用MinGW64: 是\n"
-
-        if self.msvc:
-            summary += f"MSVC版本: {self.msvc}\n"
-
-        # 版本信息
-        if self.company_name:
-            summary += f"公司名称: {self.company_name}\n"
-
-        if self.product_name:
-            summary += f"产品名称: {self.product_name}\n"
-
-        if self.file_version:
-            summary += f"文件版本: {self.file_version}\n"
-
-        if self.product_version:
-            summary += f"产品版本: {self.product_version}\n"
-
-        if self.file_description:
-            summary += f"文件描述: {self.file_description}\n"
-
-        if self.copyright:
-            summary += f"版权信息: {self.copyright}\n"
-
-        if self.trademarks:
-            summary += f"商标信息: {self.trademarks}\n"
-
         # 包含和排除
         if self.include_packages:
             summary += f"包含的包: {', '.join(self.include_packages)}\n"
@@ -364,18 +276,12 @@ class NuitkaConfig:
         if self.include_plugin_dirs:
             summary += f"包含的插件目录: {', '.join(self.include_plugin_dirs)}\n"
 
-        if self.exclude_modules:
-            summary += f"排除的模块: {', '.join(self.exclude_modules)}\n"
-
         # 插件
         if self.enable_plugins:
             summary += f"启用的插件: {', '.join(self.enable_plugins)}\n"
 
         if self.disable_plugins:
             summary += f"禁用的插件: {', '.join(self.disable_plugins)}\n"
-
-        if self.user_plugins:
-            summary += f"用户插件: {', '.join(self.user_plugins)}\n"
 
         # onefile选项
         if self.onefile_tempdir_spec:
@@ -389,5 +295,22 @@ class NuitkaConfig:
 
         if self.onefile_no_dll:
             summary += "强制使用可执行文件: 是\n"
+
+        # 警告控制
+        if self.warn_implicit_exceptions:
+            summary += "对隐式异常发出警告: 是\n"
+
+        if self.warn_unusual_code:
+            summary += "对异常代码发出警告: 是\n"
+
+        if self.assume_yes_for_downloads:
+            summary += "允许自动下载外部代码: 是\n"
+
+        # 缓存控制
+        if self.clean_cache:
+            summary += f"清理的缓存: {self.clean_cache}\n"
+
+        if self.force_dll_dependency_cache_update:
+            summary += "强制更新DLL依赖缓存: 是\n"
 
         return summary
