@@ -14,6 +14,8 @@ from utils.window_utils import center_window
 from ctypes import windll
 import tkinter.messagebox as messagebox
 
+# 版本号
+VERSION = "v1.0.0"
 
 class MainWindow:
     """主窗口类"""
@@ -34,7 +36,7 @@ class MainWindow:
         self.root.minsize(1000, 600)
 
         # 设置字体（必须在CTk()创建之后）
-        self.default_font = ctk.CTkFont(family=self.font_family, size=12)
+        self.default_font = ctk.CTkFont(family=self.font_family, size=13)
         self.title_font = ctk.CTkFont(family=self.font_family, size=16, weight="bold")
 
         """启用DPI缩放支持"""
@@ -160,13 +162,13 @@ class MainWindow:
         self.status_bar = ctk.CTkFrame(self.root, height=30, fg_color="transparent")
         self.status_bar.pack(fill="x", side="bottom", padx=5, pady=5)
         self.status_bar.pack_propagate(False)
-
+        
         # 状态标签
-        self.status_label = ctk.CTkLabel(self.status_bar, text="就绪")
+        self.status_label = ctk.CTkLabel(self.status_bar, text="就绪", font=self.default_font)
         self.status_label.pack(side="left", padx=10, pady=5)
-
+        
         # 版本标签
-        self.version_label = ctk.CTkLabel(self.status_bar, text="v1.0.0")
+        self.version_label = ctk.CTkLabel(self.status_bar, text=VERSION, font=self.default_font)
         self.version_label.pack(side="right", padx=10, pady=5)
 
     def switch_to_process_tab(self):
