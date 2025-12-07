@@ -479,7 +479,7 @@ class ProcessTab:
             if config.output_dir:
                 # 如果指定了输出目录，直接使用
                 output_dir = config.output_dir
-                
+
                 # 如果有输出文件夹名称，需要考虑它
                 if config.output_folder_name:
                     # 对于standalone模式，输出文件夹名称是最终目录的一部分
@@ -492,7 +492,7 @@ class ProcessTab:
             else:
                 # 默认输出目录是脚本所在目录
                 output_dir = script_dir
-                
+
                 # 如果有输出文件夹名称，需要考虑它
                 if config.output_folder_name:
                     output_dir = os.path.join(output_dir, config.output_folder_name)

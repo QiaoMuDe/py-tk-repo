@@ -391,7 +391,7 @@ class NuitkaTab:
         )
         console_options_frame.pack(fill="x", padx=15, pady=(0, 15))
 
-        self.console_var = tk.StringVar(value="disable") # 默认禁用控制台
+        self.console_var = tk.StringVar(value="disable")  # 默认禁用控制台
         force_radio = ctk.CTkRadioButton(
             console_options_frame,
             text="启用控制台",

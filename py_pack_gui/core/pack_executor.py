@@ -210,26 +210,10 @@ class PackExecutor:
                 # 终止进程
                 self.process.terminate()
 
-                # 等待进程结束，超时5秒
-                try:
-                    self.process.wait(timeout=5)
-                except subprocess.TimeoutExpired:
-                    # 超时后强制终止
-                    self.process.kill()
-
-                self.is_running = False
-
-                # 解锁标签页
-                if self.lock_tab_callback:
-                    self.lock_tab_callback(False)
-
-                # 更新状态
-                if self.status_callback:
-                    self.status_callback("已停止")
-
-                # 输出停止信息
-                if self.output_callback:
-                    self.output_callback("\n用户中断了打包过程\n")
+                # 在新线程中等待进程结束，避免阻塞UI
+                threading.Thread(
+                    target=self._wait_for_process_stop, daemon=True
+                ).start()
 
                 return True
             except Exception as e:
@@ -244,6 +228,36 @@ class PackExecutor:
                     self.status_callback("已停止")
                 return False
         return False
+
+    def _wait_for_process_stop(self) -> None:
+        """等待进程结束的内部方法，在单独线程中执行"""
+        try:
+            # 等待进程结束，超时5秒
+            self.process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            # 超时后强制终止
+            try:
+                self.process.kill()
+                if self.output_callback:
+                    self.output_callback("进程未响应，已强制终止\n")
+            except Exception as e:
+                if self.output_callback:
+                    self.output_callback(f"强制终止进程时出错: {str(e)}\n")
+        finally:
+            # 确保状态正确更新
+            self.is_running = False
+
+            # 解锁标签页
+            if self.lock_tab_callback:
+                self.lock_tab_callback(False)
+
+            # 更新状态
+            if self.status_callback:
+                self.status_callback("已停止")
+
+            # 输出停止信息
+            if self.output_callback:
+                self.output_callback("\n用户中断了打包过程\n")
 
     def is_executing(self) -> bool:
         """检查是否正在执行命令
