@@ -101,7 +101,7 @@ class ProcessTab:
 
         # 输出文本框
         self.output_text = ctk.CTkTextbox(
-            self.output_frame, wrap=tk.WORD, font=self.output_font
+            self.output_frame, wrap="none", font=self.output_font
         )
         self.output_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
 
@@ -185,11 +185,13 @@ class ProcessTab:
             locked: 是否锁定
         """
         if locked:
-            # 禁用标签页切换
-            self.main_window.tab_view._segmented_button.configure(state="disabled")
+            # 禁用所有标签页按钮
+            for tab_info in self.main_window.tabs.values():
+                tab_info["button"].configure(state="disabled")
         else:
-            # 启用标签页切换
-            self.main_window.tab_view._segmented_button.configure(state="normal")
+            # 启用所有标签页按钮
+            for tab_info in self.main_window.tabs.values():
+                tab_info["button"].configure(state="normal")
 
     def on_build_finished(self, success: bool, message: str):
         """打包完成回调

@@ -17,6 +17,7 @@ import tkinter.messagebox as messagebox
 # 版本号
 VERSION = "v1.0.0"
 
+
 class MainWindow:
     """主窗口类"""
 
@@ -38,6 +39,7 @@ class MainWindow:
         # 设置字体（必须在CTk()创建之后）
         self.default_font = ctk.CTkFont(family=self.font_family, size=13)
         self.title_font = ctk.CTkFont(family=self.font_family, size=16, weight="bold")
+        self.tab_font = ctk.CTkFont(family=self.font_family, size=15, weight="bold")
 
         """启用DPI缩放支持"""
         try:
@@ -49,14 +51,14 @@ class MainWindow:
         center_window(self.root, 1200, 800)
 
         # 创建主框架
-        self.main_frame = ctk.CTkFrame(self.root, fg_color="transparent")
+        self.main_frame = ctk.CTkFrame(self.root, fg_color="#F8FAFC", corner_radius=0)
         self.main_frame.pack(fill="both", expand=True)
-
-        # 创建主要内容区域
-        self.create_main_content()
 
         # 创建状态栏
         self.create_status_bar()
+
+        # 创建主要内容区域
+        self.create_main_content()
 
         # 当前标签页
         self.current_tab = None
@@ -71,7 +73,8 @@ class MainWindow:
             wd.hook_dropfiles(self.root, func=self.handle_drag_drop)
         except Exception as e:
             print(f"拖拽功能初始化失败: {e}")
-            self.status_label.configure(text=f"拖拽功能初始化失败: {str(e)}")
+            if hasattr(self, "status_label"):
+                self.status_label.configure(text=f"拖拽功能初始化失败: {str(e)}")
 
     def handle_drag_drop(self, files):
         """处理拖拽文件
@@ -114,9 +117,10 @@ class MainWindow:
             self.nuitka_ui.name_entry.insert(0, app_name)
 
             # 更新状态栏
-            self.status_label.configure(
-                text=f"已加载Python脚本: {os.path.basename(file_path)}"
-            )
+            if hasattr(self, "status_label"):
+                self.status_label.configure(
+                    text=f"已加载Python脚本: {os.path.basename(file_path)}"
+                )
 
             # 显示成功提示
             messagebox.showinfo(
@@ -126,55 +130,195 @@ class MainWindow:
         except Exception as e:
             error_msg = f"处理拖拽文件时出错: {str(e)}"
             print(error_msg)
-            self.status_label.configure(text=f"加载脚本失败: {str(e)}")
+            if hasattr(self, "status_label"):
+                self.status_label.configure(text=f"加载脚本失败: {str(e)}")
             messagebox.showerror("错误", error_msg)
 
     def create_main_content(self):
         """创建主要内容区域"""
         # 创建内容框架
-        self.content_frame = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        self.content_frame.pack(fill="both", expand=True, padx=5, pady=5)
+        self.content_frame = ctk.CTkFrame(self.main_frame, fg_color="#F8FAFC")
+        self.content_frame.pack(fill="both", expand=True, padx=0, pady=0)
 
-        # 创建标签页控件
-        self.tab_view = ctk.CTkTabview(self.content_frame)
-        self.tab_view.pack(fill="both", expand=True, padx=5, pady=5)
-
-        # 创建三个标签页
-        self.pyinstaller_tab = self.tab_view.add("PyInstaller")
-        self.nuitka_tab = self.tab_view.add("Nuitka")
-        self.process_tab = self.tab_view.add("打包过程")
-
-        # 设置标签页标题字体
-        self.tab_view._segmented_button.configure(font=self.title_font)
-
-        # 初始化标签页内容
-        self.pyinstaller_ui = PyInstallerTab(
-            self.pyinstaller_tab, self, self.font_family
+        # 创建顶部导航栏
+        self.navbar = ctk.CTkFrame(
+            self.content_frame, fg_color="#1F2937", height=60, corner_radius=0
         )
-        self.nuitka_ui = NuitkaTab(self.nuitka_tab, self, self.font_family)
-        self.process_ui = ProcessTab(self.process_tab, self, self.font_family)
+        self.navbar.pack(fill="x", padx=0, pady=(0, 10))
+        self.navbar.pack_propagate(False)  # 防止导航栏被内容撑大
+
+        # 创建导航栏标题
+        nav_title = ctk.CTkLabel(
+            self.navbar,
+            text="Python GUI 打包编译工具",
+            font=ctk.CTkFont(family=self.font_family, size=18, weight="bold"),
+            text_color="#F9FAFB",
+        )
+        nav_title.pack(side="left", padx=20, pady=15)
+
+        # 创建标签页按钮容器
+        self.tabs_container = ctk.CTkFrame(self.navbar, fg_color="transparent")
+        self.tabs_container.pack(
+            side="right", fill="both", expand=True, padx=(0, 20), pady=10
+        )
+
+        # 存储标签按钮和对应内容的映射
+        self.tabs = {}
+        self.active_tab = None
+
+        # 创建水平排列的标签页按钮
+        self.create_modern_tab_buttons()
+
+        # 创建标签页内容区域
+        self.tabs_content_area = ctk.CTkFrame(
+            self.content_frame,
+            fg_color="#FFFFFF",
+            corner_radius=12,
+            border_width=1,
+            border_color="#E5E7EB",
+        )
+        self.tabs_content_area.pack(fill="both", expand=True, padx=15, pady=(0, 15))
+
+        # 创建各个标签页内容
+        self.create_all_tabs_content()
 
         # 默认显示第一个标签页
-        self.tab_view.set("PyInstaller")
+        self.switch_tab("pyinstaller")
 
-    def create_status_bar(self):
-        """创建状态栏"""
-        self.status_bar = ctk.CTkFrame(self.root, height=30, fg_color="transparent")
-        self.status_bar.pack(fill="x", side="bottom", padx=5, pady=5)
-        self.status_bar.pack_propagate(False)
-        
-        # 状态标签
-        self.status_label = ctk.CTkLabel(self.status_bar, text="就绪", font=self.default_font)
-        self.status_label.pack(side="left", padx=10, pady=5)
-        
-        # 版本标签
-        self.version_label = ctk.CTkLabel(self.status_bar, text=VERSION, font=self.default_font)
-        self.version_label.pack(side="right", padx=10, pady=5)
+    def create_modern_tab_buttons(self):
+        """创建现代化的水平标签页按钮"""
+        tab_configs = [
+            ("pyinstaller", "PyInstaller", "🔧"),
+            ("nuitka", "Nuitka", "⚡"),
+            ("process", "打包过程", "📦"),
+        ]
+
+        # 创建按钮容器框架，水平排列
+        buttons_frame = ctk.CTkFrame(self.tabs_container, fg_color="transparent")
+        buttons_frame.pack(fill="both", expand=True)
+
+        for i, (tab_id, tab_name, tab_icon) in enumerate(tab_configs):
+            # 创建现代化标签页按钮
+            button = ctk.CTkButton(
+                buttons_frame,
+                text=f"{tab_icon} {tab_name}",
+                font=self.tab_font,
+                command=lambda id=tab_id: self.switch_tab(id),
+                fg_color="transparent",
+                hover_color="#374151",
+                text_color="#D1D5DB",
+                width=120,
+                height=40,
+                corner_radius=8,
+                border_width=0,
+            )
+
+            # 使用grid布局水平排列按钮
+            button.grid(row=0, column=i, padx=5, pady=5, sticky="ew")
+
+            # 设置列权重，使按钮均匀分布
+            buttons_frame.grid_columnconfigure(i, weight=1)
+
+            # 存储按钮引用
+            self.tabs[tab_id] = {"button": button, "frame": None}
+
+    def create_all_tabs_content(self):
+        """创建所有标签页内容"""
+        # 创建PyInstaller标签页
+        self.pyinstaller_frame = ctk.CTkFrame(
+            self.tabs_content_area, fg_color="transparent"
+        )
+        self.tabs["pyinstaller"]["frame"] = self.pyinstaller_frame
+        self.pyinstaller_ui = PyInstallerTab(
+            self.pyinstaller_frame, self, self.font_family
+        )
+
+        # 创建Nuitka标签页
+        self.nuitka_frame = ctk.CTkFrame(self.tabs_content_area, fg_color="transparent")
+        self.tabs["nuitka"]["frame"] = self.nuitka_frame
+        self.nuitka_ui = NuitkaTab(self.nuitka_frame, self, self.font_family)
+
+        # 创建打包过程标签页
+        self.process_frame = ctk.CTkFrame(
+            self.tabs_content_area, fg_color="transparent"
+        )
+        self.tabs["process"]["frame"] = self.process_frame
+        self.process_ui = ProcessTab(self.process_frame, self, self.font_family)
+
+    def switch_tab(self, tab_id):
+        """切换标签页
+
+        Args:
+            tab_id: 要切换的标签页ID
+        """
+        # 隐藏所有标签页内容
+        for tab_info in self.tabs.values():
+            tab_info["frame"].pack_forget()
+            # 重置所有按钮为未选中状态
+            tab_info["button"].configure(
+                fg_color="transparent",
+                hover_color="#374151",
+                text_color="#D1D5DB",
+                font=ctk.CTkFont(family=self.font_family, size=13, weight="normal"),
+            )
+
+        # 显示选中的标签页内容
+        self.tabs[tab_id]["frame"].pack(fill="both", expand=True)
+        # 高亮选中的标签页按钮
+        self.tabs[tab_id]["button"].configure(
+            fg_color="#3B82F6",
+            hover_color="#2563EB",
+            text_color="white",
+            font=ctk.CTkFont(family=self.font_family, size=13, weight="bold"),
+        )
+        self.active_tab = tab_id
+
+        # 更新状态栏（如果状态标签已初始化）
+        if hasattr(self, "status_label"):
+            if tab_id == "pyinstaller":
+                self.status_label.configure(text="PyInstaller 打包配置")
+            elif tab_id == "nuitka":
+                self.status_label.configure(text="Nuitka 编译配置")
+            elif tab_id == "process":
+                self.status_label.configure(text="打包过程")
 
     def switch_to_process_tab(self):
         """切换到打包过程标签页"""
-        self.tab_view.set("打包过程")
-        self.status_label.configure(text="打包过程")
+        self.switch_tab("process")
+
+    def create_status_bar(self):
+        """创建状态栏"""
+        self.status_bar = ctk.CTkFrame(
+            self.root, height=40, fg_color="#F8FAFC", corner_radius=0
+        )
+        self.status_bar.pack(fill="x", side="bottom", padx=0, pady=0)
+        self.status_bar.pack_propagate(False)
+
+        # 添加分隔线
+        separator = ctk.CTkFrame(self.status_bar, height=1, fg_color="#E5E7EB")
+        separator.pack(fill="x", side="top", padx=0, pady=0)
+
+        # 状态标签
+        self.status_label = ctk.CTkLabel(
+            self.status_bar,
+            text="就绪",
+            font=ctk.CTkFont(family=self.font_family, size=12),
+            text_color="#6B7280",
+        )
+        self.status_label.pack(side="left", padx=20, pady=10)
+
+        # 版本标签
+        self.version_label = ctk.CTkLabel(
+            self.status_bar,
+            text=VERSION,
+            font=ctk.CTkFont(family=self.font_family, size=12),
+            text_color="#9CA3AF",
+        )
+        self.version_label.pack(side="right", padx=20, pady=10)
+
+    def switch_to_process_tab(self):
+        """切换到打包过程标签页"""
+        self.switch_tab("process")
 
     def run(self):
         """运行主窗口"""

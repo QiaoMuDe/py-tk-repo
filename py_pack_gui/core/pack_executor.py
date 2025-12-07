@@ -125,10 +125,10 @@ class PackExecutor:
 
             # 执行命令
             self.process = subprocess.Popen(
-                cmd, # 命令
+                cmd,  # 命令
                 stdout=subprocess.PIPE,  # 标准输出重定向到管道
                 stderr=subprocess.STDOUT,  # 标准错误重定向到标准输出
-                universal_newlines=True,    # 以文本模式读取输出
+                universal_newlines=True,  # 以文本模式读取输出
                 bufsize=1,  # 缓冲区大小为1
             )
 
