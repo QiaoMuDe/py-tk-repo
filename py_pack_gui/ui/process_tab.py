@@ -35,6 +35,14 @@ class ProcessTab:
         self.default_font = ctk.CTkFont(family=self.font_family, size=12)
         self.title_font = ctk.CTkFont(family=self.font_family, size=14, weight="bold")
         self.output_font = ctk.CTkFont(family=self.font_family, size=10)
+        
+        # 设置统一的颜色样式
+        self.bg_color = "#F8FAFC"  # 主背景色
+        self.card_bg_color = "#F9FAFB"  # 卡片背景色
+        self.card_border_color = "#E5E7EB"  # 卡片边框色
+        self.accent_color = "#3B82F6"  # 强调色
+        self.text_color = "#1F2937"  # 文本颜色
+        self.text_secondary_color = "#6B7280"  # 次要文本颜色
 
         # 进程相关变量
         self.process = None
@@ -56,10 +64,10 @@ class ProcessTab:
 
     def create_ui(self):
         """创建用户界面"""
-        # 创建主框架
-        self.main_frame = ctk.CTkFrame(self.parent)
-        self.main_frame.pack(fill="both", expand=True, padx=10, pady=10)
-
+        # 创建主容器，使用浅色背景
+        self.main_container = ctk.CTkFrame(self.parent, fg_color=self.bg_color, corner_radius=0)
+        self.main_container.pack(fill="both", expand=True, padx=0, pady=0)
+        
         # 创建顶部信息框架
         self.create_info_frame()
 
@@ -71,44 +79,78 @@ class ProcessTab:
 
     def create_info_frame(self):
         """创建顶部信息框架"""
-        self.info_frame = ctk.CTkFrame(self.main_frame)
-        self.info_frame.pack(fill="x", pady=(0, 10))
+        # 创建信息卡片
+        self.info_frame = ctk.CTkFrame(
+            self.main_container,
+            fg_color="#FFFFFF",
+            corner_radius=10,
+            border_width=1,
+            border_color=self.card_border_color
+        )
+        self.info_frame.pack(fill="x", padx=15, pady=(15, 10))
 
         # 当前操作标签
         self.operation_label = ctk.CTkLabel(
-            self.info_frame, text="当前操作: 无", font=self.title_font
+            self.info_frame, 
+            text="当前操作: 无", 
+            font=self.title_font,
+            text_color=self.text_color
         )
-        self.operation_label.pack(side="left", padx=10, pady=10)
+        self.operation_label.pack(side="left", padx=15, pady=15)
 
         # 状态标签
         self.status_label = ctk.CTkLabel(
-            self.info_frame, text="状态: 就绪", font=self.default_font
+            self.info_frame, 
+            text="状态: 就绪", 
+            font=self.default_font,
+            text_color=self.text_secondary_color
         )
-        self.status_label.pack(side="right", padx=10, pady=10)
+        self.status_label.pack(side="right", padx=15, pady=15)
 
     def create_output_frame(self):
         """创建输出文本框框架"""
-        self.output_frame = ctk.CTkFrame(self.main_frame)
-        self.output_frame.pack(fill="both", expand=True, pady=(0, 10))
+        # 创建输出区域卡片
+        self.output_frame = ctk.CTkFrame(
+            self.main_container,
+            fg_color="#FFFFFF",
+            corner_radius=10,
+            border_width=1,
+            border_color=self.card_border_color
+        )
+        self.output_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
         # 输出文本框标题
         output_title = ctk.CTkLabel(
             self.output_frame,
             text="打包输出:",
             font=ctk.CTkFont(family=self.font_family, size=16, weight="bold"),
+            text_color=self.text_color
         )
-        output_title.pack(anchor="w", padx=10, pady=(10, 5))
+        output_title.pack(anchor="w", padx=15, pady=(15, 10))
 
         # 输出文本框
         self.output_text = ctk.CTkTextbox(
-            self.output_frame, wrap="none", font=self.output_font
+            self.output_frame, 
+            wrap="none", 
+            font=self.output_font,
+            fg_color="#F8FAFC",
+            border_width=1,
+            border_color=self.card_border_color,
+            corner_radius=6
         )
-        self.output_text.pack(fill="both", expand=True, padx=10, pady=(0, 10))
+        self.output_text.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
     def create_button_frame(self):
         """创建控制按钮框架"""
-        self.button_frame = ctk.CTkFrame(self.main_frame)
-        self.button_frame.pack(fill="x")
+        # 创建按钮区域卡片
+        self.button_frame = ctk.CTkFrame(
+            self.main_container,
+            fg_color="#FFFFFF",
+            corner_radius=10,
+            border_width=1,
+            border_color=self.card_border_color
+        )
+        self.button_frame.pack(fill="x", padx=15, pady=(0, 15))
 
         # 清空输出按钮 - 浅蓝色
         self.clear_btn = ctk.CTkButton(
@@ -119,8 +161,10 @@ class ProcessTab:
             font=self.default_font,
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
+            corner_radius=6,
+            height=32
         )
-        self.clear_btn.pack(side="left", padx=10, pady=10)
+        self.clear_btn.pack(side="left", padx=15, pady=15)
 
         # 复制输出按钮 - 浅蓝色
         self.copy_btn = ctk.CTkButton(
@@ -131,8 +175,10 @@ class ProcessTab:
             font=self.default_font,
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
+            corner_radius=6,
+            height=32
         )
-        self.copy_btn.pack(side="left", padx=10, pady=10)
+        self.copy_btn.pack(side="left", padx=(0, 10), pady=15)
 
         # 保存日志按钮 - 浅蓝色
         self.save_btn = ctk.CTkButton(
@@ -143,8 +189,10 @@ class ProcessTab:
             font=self.default_font,
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
+            corner_radius=6,
+            height=32
         )
-        self.save_btn.pack(side="left", padx=10, pady=10)
+        self.save_btn.pack(side="left", padx=10, pady=15)
 
         # 打开输出目录按钮 - 绿色
         self.open_output_btn = ctk.CTkButton(
@@ -155,8 +203,10 @@ class ProcessTab:
             font=self.default_font,
             fg_color="#4CAF50",
             hover_color="#3d8b40",
+            corner_radius=6,
+            height=32
         )
-        self.open_output_btn.pack(side="left", padx=10, pady=10)
+        self.open_output_btn.pack(side="left", padx=10, pady=15)
 
         # 停止打包按钮 - 红色
         self.stop_btn = ctk.CTkButton(
@@ -165,10 +215,13 @@ class ProcessTab:
             command=self.stop_build,
             width=100,
             font=self.default_font,
-            fg_color="red",
-            hover_color="darkred",
+            fg_color="#EF4444",
+            hover_color="#DC2626",
+            corner_radius=6,
+            height=32,
+            state="disabled"
         )
-        self.stop_btn.pack(side="right", padx=10, pady=10)
+        self.stop_btn.pack(side="right", padx=15, pady=15)
 
     def append_output(self, text: str):
         """添加输出文本到输出框
