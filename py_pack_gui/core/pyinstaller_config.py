@@ -115,26 +115,31 @@ class PyInstallerConfig:
         """
         # 验证Python环境
         try:
-            result = subprocess.run([sys.executable, "--version"], 
-                                  capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "--version"], capture_output=True, text=True
+            )
             if result.returncode != 0:
                 return False, "Python环境不可用"
         except Exception:
             return False, "无法验证Python环境"
-        
+
         # 验证PyInstaller模块
         try:
-            result = subprocess.run([sys.executable, "-m", "pip", "list"], 
-                                  capture_output=True, text=True)
+            result = subprocess.run(
+                [sys.executable, "-m", "pip", "list"], capture_output=True, text=True
+            )
             if result.returncode == 0:
                 # 检查输出中是否包含pyinstaller (不区分大小写)
                 if "pyinstaller" not in result.stdout.lower():
-                    return False, "PyInstaller模块未安装, 请使用 pip install pyinstaller 安装"
+                    return (
+                        False,
+                        "PyInstaller模块未安装, 请使用 pip install pyinstaller 安装",
+                    )
             else:
                 return False, "无法获取已安装的Python包列表"
         except Exception:
             return False, "无法验证PyInstaller模块"
-        
+
         # 验证脚本文件
         if not self.script:
             return False, "请选择要打包的文件"

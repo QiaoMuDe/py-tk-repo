@@ -35,7 +35,7 @@ class ProcessTab:
         self.default_font = ctk.CTkFont(family=self.font_family, size=12)
         self.title_font = ctk.CTkFont(family=self.font_family, size=14, weight="bold")
         self.output_font = ctk.CTkFont(family=self.font_family, size=10)
-        
+
         # 设置统一的颜色样式
         self.bg_color = "#F8FAFC"  # 主背景色
         self.card_bg_color = "#F9FAFB"  # 卡片背景色
@@ -65,9 +65,11 @@ class ProcessTab:
     def create_ui(self):
         """创建用户界面"""
         # 创建主容器，使用浅色背景
-        self.main_container = ctk.CTkFrame(self.parent, fg_color=self.bg_color, corner_radius=0)
+        self.main_container = ctk.CTkFrame(
+            self.parent, fg_color=self.bg_color, corner_radius=0
+        )
         self.main_container.pack(fill="both", expand=True, padx=0, pady=0)
-        
+
         # 创建顶部信息框架
         self.create_info_frame()
 
@@ -85,25 +87,25 @@ class ProcessTab:
             fg_color="#FFFFFF",
             corner_radius=10,
             border_width=1,
-            border_color=self.card_border_color
+            border_color=self.card_border_color,
         )
         self.info_frame.pack(fill="x", padx=15, pady=(15, 10))
 
         # 当前操作标签
         self.operation_label = ctk.CTkLabel(
-            self.info_frame, 
-            text="当前操作: 无", 
+            self.info_frame,
+            text="当前操作: 无",
             font=self.title_font,
-            text_color=self.text_color
+            text_color=self.text_color,
         )
         self.operation_label.pack(side="left", padx=15, pady=15)
 
         # 状态标签
         self.status_label = ctk.CTkLabel(
-            self.info_frame, 
-            text="状态: 就绪", 
+            self.info_frame,
+            text="状态: 就绪",
             font=self.default_font,
-            text_color=self.text_secondary_color
+            text_color=self.text_secondary_color,
         )
         self.status_label.pack(side="right", padx=15, pady=15)
 
@@ -115,7 +117,7 @@ class ProcessTab:
             fg_color="#FFFFFF",
             corner_radius=10,
             border_width=1,
-            border_color=self.card_border_color
+            border_color=self.card_border_color,
         )
         self.output_frame.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
@@ -124,19 +126,19 @@ class ProcessTab:
             self.output_frame,
             text="打包输出:",
             font=ctk.CTkFont(family=self.font_family, size=16, weight="bold"),
-            text_color=self.text_color
+            text_color=self.text_color,
         )
         output_title.pack(anchor="w", padx=15, pady=(15, 10))
 
         # 输出文本框
         self.output_text = ctk.CTkTextbox(
-            self.output_frame, 
-            wrap="none", 
+            self.output_frame,
+            wrap="none",
             font=self.output_font,
             fg_color="#F8FAFC",
             border_width=1,
             border_color=self.card_border_color,
-            corner_radius=6
+            corner_radius=6,
         )
         self.output_text.pack(fill="both", expand=True, padx=15, pady=(0, 15))
 
@@ -148,7 +150,7 @@ class ProcessTab:
             fg_color="#FFFFFF",
             corner_radius=10,
             border_width=1,
-            border_color=self.card_border_color
+            border_color=self.card_border_color,
         )
         self.button_frame.pack(fill="x", padx=15, pady=(0, 15))
 
@@ -162,7 +164,7 @@ class ProcessTab:
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
             corner_radius=6,
-            height=32
+            height=32,
         )
         self.clear_btn.pack(side="left", padx=15, pady=15)
 
@@ -176,7 +178,7 @@ class ProcessTab:
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
             corner_radius=6,
-            height=32
+            height=32,
         )
         self.copy_btn.pack(side="left", padx=(0, 10), pady=15)
 
@@ -190,7 +192,7 @@ class ProcessTab:
             fg_color="#3b8ed0",
             hover_color="#2c79b0",
             corner_radius=6,
-            height=32
+            height=32,
         )
         self.save_btn.pack(side="left", padx=10, pady=15)
 
@@ -204,7 +206,7 @@ class ProcessTab:
             fg_color="#4CAF50",
             hover_color="#3d8b40",
             corner_radius=6,
-            height=32
+            height=32,
         )
         self.open_output_btn.pack(side="left", padx=10, pady=15)
 
@@ -219,7 +221,7 @@ class ProcessTab:
             hover_color="#DC2626",
             corner_radius=6,
             height=32,
-            state="disabled"
+            state="disabled",
         )
         self.stop_btn.pack(side="right", padx=15, pady=15)
 
