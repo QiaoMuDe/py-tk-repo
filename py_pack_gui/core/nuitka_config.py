@@ -26,7 +26,7 @@ class NuitkaConfig:
             ""  # 输出文件夹名称：指定发布文件夹（standalone）或app包（macOS）名称
         )
         self.icon = ""  # 图标文件
-        self.console_mode = "force"  # Windows控制台模式: force, disable, attach, hide
+        self.console_mode = "disable"  # Windows控制台模式: force, disable, attach, hide
         self.remove_output = False  # 是否删除build目录
         self.progress_bar = "auto"  # 进度条模式: auto, tqdm, rich, none
         self.show_memory = False  # 是否显示内存使用信息
@@ -58,23 +58,23 @@ class NuitkaConfig:
 
         # 添加编译模式
         if self.mode != "accelerated":
-            cmd.extend(["--mode", self.mode])
+            cmd.append(f"--mode={self.mode}")
 
         # 添加输出目录
         if self.output_dir:
-            cmd.extend(["--output-dir", self.output_dir])
+            cmd.append(f"--output-dir={self.output_dir}")
 
         # 添加输出文件名
         if self.output_filename:
-            cmd.extend(["--output-filename", self.output_filename])
+            cmd.append(f"--output-filename={self.output_filename}")
 
         # 添加输出文件夹名称
         if self.output_folder_name:
-            cmd.extend(["--output-folder-name", self.output_folder_name])
+            cmd.append(f"--output-folder-name={self.output_folder_name}")
 
         # 添加图标
         if self.icon:
-            cmd.extend(["--windows-icon-from-ico", self.icon])
+            cmd.append(f"--windows-icon-from-ico={self.icon}")
 
         # 添加删除build目录选项
         if self.remove_output:
@@ -82,7 +82,7 @@ class NuitkaConfig:
 
         # 添加进度条模式
         if self.progress_bar != "auto":
-            cmd.extend(["--progress-bar", self.progress_bar])
+            cmd.append(f"--progress-bar={self.progress_bar}")
 
         # 添加内存使用信息
         if self.show_memory:
@@ -90,44 +90,44 @@ class NuitkaConfig:
 
         # 添加Windows控制台模式
         if self.console_mode != "force":
-            cmd.extend(["--windows-console-mode", self.console_mode])
+            cmd.append(f"--windows-console-mode={self.console_mode}")
 
         # 添加包含的包
         for package in self.include_packages:
-            cmd.extend(["--include-package", package])
+            cmd.append(f"--include-package={package}")
 
         # 添加包含的模块
         for module in self.include_modules:
-            cmd.extend(["--include-module", module])
+            cmd.append(f"--include-module={module}")
 
         # 添加包含的插件目录
         for plugin_dir in self.include_plugin_dirs:
-            cmd.extend(["--include-plugin-directory", plugin_dir])
+            cmd.append(f"--include-plugin-directory={plugin_dir}")
 
         # 添加启用的插件
         for plugin in self.enable_plugins:
-            cmd.extend(["--enable-plugins", plugin])
+            cmd.append(f"--enable-plugins={plugin}")
 
         # 添加禁用的插件
         for plugin in self.disable_plugins:
-            cmd.extend(["--disable-plugins", plugin])
+            cmd.append(f"--disable-plugins={plugin}")
 
         # 添加编译选项
         if self.jobs != 0:
-            cmd.extend(["--jobs", str(self.jobs)])
+            cmd.append(f"--jobs={self.jobs}")
 
         if self.lto != "auto":
-            cmd.extend(["--lto", self.lto])
+            cmd.append(f"--lto={self.lto}")
 
         if self.static_libpython != "auto":
-            cmd.extend(["--static-libpython", self.static_libpython])
+            cmd.append(f"--static-libpython={self.static_libpython}")
 
         # 添加onefile选项
         if self.onefile_tempdir_spec:
-            cmd.extend(["--onefile-tempdir-spec", self.onefile_tempdir_spec])
+            cmd.append(f"--onefile-tempdir-spec={self.onefile_tempdir_spec}")
 
         if self.onefile_cache_mode:
-            cmd.extend(["--onefile-cache-mode", self.onefile_cache_mode])
+            cmd.append(f"--onefile-cache-mode={self.onefile_cache_mode}")
 
         if self.onefile_as_archive:
             cmd.append("--onefile-as-archive")
@@ -147,7 +147,7 @@ class NuitkaConfig:
 
         # 添加缓存控制
         if self.clean_cache:
-            cmd.extend(["--clean-cache", self.clean_cache])
+            cmd.append(f"--clean-cache={self.clean_cache}")
 
         if self.force_dll_dependency_cache_update:
             cmd.append("--force-dll-dependency-cache-update")

@@ -7,8 +7,9 @@ import os
 import sys
 import subprocess
 import threading
-from typing import Optional, Callable, Any
+from typing import Optional, Callable, Any, Union
 from core.pyinstaller_config import PyInstallerConfig
+from core.nuitka_config import NuitkaConfig
 
 
 class PackExecutor:
@@ -59,11 +60,11 @@ class PackExecutor:
         """
         self.lock_tab_callback = callback
 
-    def execute(self, config: PyInstallerConfig) -> bool:
+    def execute(self, config: Union[PyInstallerConfig, NuitkaConfig]) -> bool:
         """执行打包命令
 
         Args:
-            config: PyInstaller配置对象
+            config: PyInstaller或Nuitka配置对象
 
         Returns:
             bool: 是否成功启动执行
@@ -92,11 +93,11 @@ class PackExecutor:
         threading.Thread(target=self._run_command, args=(config,), daemon=True).start()
         return True
 
-    def _run_command(self, config: PyInstallerConfig) -> None:
+    def _run_command(self, config: Union[PyInstallerConfig, NuitkaConfig]) -> None:
         """执行打包命令的内部方法
 
         Args:
-            config: PyInstaller配置对象
+            config: PyInstaller或Nuitka配置对象
         """
         try:
             # 获取脚本目录并切换
