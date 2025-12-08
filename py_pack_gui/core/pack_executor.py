@@ -9,7 +9,6 @@ import subprocess
 import threading
 from typing import Optional, Callable, Any, Union
 from core.pyinstaller_config import PyInstallerConfig
-from core.nuitka_config import NuitkaConfig
 
 
 class PackExecutor:
@@ -60,7 +59,7 @@ class PackExecutor:
         """
         self.lock_tab_callback = callback
 
-    def execute(self, config: Union[PyInstallerConfig, NuitkaConfig]) -> bool:
+    def execute(self, config: Union[PyInstallerConfig]) -> bool:
         """执行打包命令
 
         Args:
@@ -93,7 +92,7 @@ class PackExecutor:
         threading.Thread(target=self._run_command, args=(config,), daemon=True).start()
         return True
 
-    def _run_command(self, config: Union[PyInstallerConfig, NuitkaConfig]) -> None:
+    def _run_command(self, config: Union[PyInstallerConfig]) -> None:
         """执行打包命令的内部方法
 
         Args:

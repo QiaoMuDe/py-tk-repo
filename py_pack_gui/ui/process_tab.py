@@ -283,23 +283,6 @@ class ProcessTab:
         # 执行打包命令
         self.executor.execute(config)
 
-    def start_nuitka_build(self, config):
-        """开始Nuitka打包
-
-        Args:
-            config: Nuitka配置对象
-        """
-        self.update_operation("Nuitka打包")
-        self.update_status("准备中")
-        self.clear_output()
-
-        # 使用执行器执行命令
-        self.is_running = True
-        self.stop_btn.configure(state="normal")
-
-        # 执行打包命令
-        self.executor.execute(config)
-
     def run_build_command(self, cmd, tool_name):
         """执行打包命令
 
@@ -473,37 +456,13 @@ class ProcessTab:
         config = self.executor.current_config
         script_dir = os.path.dirname(os.path.abspath(config.script))
 
-        # 根据配置类型计算输出目录
-        if hasattr(config, "mode"):  # Nuitka配置
-            # Nuitka的输出目录处理
-            if config.output_dir:
-                # 如果指定了输出目录，直接使用
-                output_dir = config.output_dir
-
-                # 如果有输出文件夹名称，需要考虑它
-                if config.output_folder_name:
-                    # 对于standalone模式，输出文件夹名称是最终目录的一部分
-                    if config.mode == "standalone":
-                        output_dir = os.path.join(output_dir, config.output_folder_name)
-                    # 对于onefile模式，输出文件名可能包含在output_dir中
-                    elif config.mode == "onefile":
-                        # onefile模式通常直接输出到output_dir，不需要额外处理
-                        pass
-            else:
-                # 默认输出目录是脚本所在目录
-                output_dir = script_dir
-
-                # 如果有输出文件夹名称，需要考虑它
-                if config.output_folder_name:
-                    output_dir = os.path.join(output_dir, config.output_folder_name)
-        else:  # PyInstaller配置
-            # PyInstaller的输出目录处理
-            if config.output_dir:
-                # 如果指定了输出目录，直接使用
-                output_dir = config.output_dir
-            else:
-                # 默认输出目录是脚本所在目录的dist子目录
-                output_dir = os.path.join(script_dir, "dist")
+        # PyInstaller的输出目录处理
+        if config.output_dir:
+            # 如果指定了输出目录，直接使用
+            output_dir = config.output_dir
+        else:
+            # 默认输出目录是脚本所在目录的dist子目录
+            output_dir = os.path.join(script_dir, "dist")
 
         # 确保输出目录是一个目录，而不是文件
         # 如果是文件，取其所在目录

@@ -8,7 +8,6 @@ import os
 import customtkinter as ctk
 import windnd as wd
 from ui.pyinstaller_tab import PyInstallerTab
-from ui.nuitka_tab import NuitkaTab
 from ui.process_tab import ProcessTab
 from utils.window_utils import center_window
 from ctypes import windll
@@ -110,12 +109,6 @@ class MainWindow:
             self.pyinstaller_ui.name_entry.delete(0, tk.END)
             self.pyinstaller_ui.name_entry.insert(0, app_name)
 
-            # 设置到Nuitka配置
-            self.nuitka_ui.script_entry.delete(0, tk.END)
-            self.nuitka_ui.script_entry.insert(0, file_path)
-            self.nuitka_ui.name_entry.delete(0, tk.END)
-            self.nuitka_ui.name_entry.insert(0, app_name)
-
             # 更新状态栏
             if hasattr(self, "status_label"):
                 self.status_label.configure(
@@ -189,7 +182,6 @@ class MainWindow:
         """创建现代化的水平标签页按钮"""
         tab_configs = [
             ("pyinstaller", "PyInstaller", "🔧"),
-            ("nuitka", "Nuitka", "⚡"),
             ("process", "打包过程", "📦"),
         ]
 
@@ -233,11 +225,6 @@ class MainWindow:
             self.pyinstaller_frame, self, self.font_family
         )
 
-        # 创建Nuitka标签页
-        self.nuitka_frame = ctk.CTkFrame(self.tabs_content_area, fg_color="transparent")
-        self.tabs["nuitka"]["frame"] = self.nuitka_frame
-        self.nuitka_ui = NuitkaTab(self.nuitka_frame, self, self.font_family)
-
         # 创建打包过程标签页
         self.process_frame = ctk.CTkFrame(
             self.tabs_content_area, fg_color="transparent"
@@ -277,8 +264,7 @@ class MainWindow:
         if hasattr(self, "status_label"):
             if tab_id == "pyinstaller":
                 self.status_label.configure(text="PyInstaller 打包配置")
-            elif tab_id == "nuitka":
-                self.status_label.configure(text="Nuitka 编译配置")
+
             elif tab_id == "process":
                 self.status_label.configure(text="打包过程")
 
