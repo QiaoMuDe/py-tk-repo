@@ -65,6 +65,14 @@ class MainWindow:
         # 注册拖拽事件
         self.register_drag_events()
 
+        # 绑定快捷键
+        self.root.bind(
+            "<Control-o>", lambda event: self.pyinstaller_ui.browse_script()
+        )  # 打开脚本文件
+        self.root.bind(
+            "<Control-b>", lambda event: self.pyinstaller_ui.start_build()
+        )  # 构建打包
+
     def register_drag_events(self):
         """注册拖拽事件"""
         try:
