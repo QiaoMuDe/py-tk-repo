@@ -2039,11 +2039,13 @@ func (s *StructName) IsValid() bool {
             logger.error(f"插入便签模板时出错: {str(e)}")
             self.nm.show_error(message=f"插入便签模板失败: {str(e)}")
 
-    def _process_text(self, process_func):
-        """通用文本处理方法
+    def _process_text(self, process_func, prefix=None, suffix=None):
+        """通用文本处理方法，支持"有就去除，没有就添加"的功能
 
         Args:
             process_func: 处理函数，接收原始文本并返回处理后的文本
+            prefix: 可选参数，格式的前缀字符串
+            suffix: 可选参数，格式的后缀字符串
         """
         try:
             # 检查是否为只读模式
@@ -2052,57 +2054,100 @@ func (s *StructName) IsValid() bool {
                 return
 
             # 获取选中文本
-            selected_text = self.text_area.selection_get() if self.text_area.tag_ranges(tk.SEL) else None
+            selected_text = (
+                self.text_area.selection_get()
+                if self.text_area.tag_ranges(tk.SEL)
+                else None
+            )
+
+            def is_formatted(text):
+                """检查文本是否已经应用了特定格式"""
+                if prefix and suffix:
+                    # 同时有前缀和后缀的情况（如粗体、删除线等）
+                    return text.startswith(prefix) and text.endswith(suffix)
+                elif prefix:
+                    # 只有前缀的情况（如引用、标题等）
+                    return text.startswith(prefix)
+                elif suffix:
+                    # 只有后缀的情况（很少见）
+                    return text.endswith(suffix)
+                return False
+
+            def remove_format(text):
+                """去除文本的格式"""
+                if not is_formatted(text):
+                    return text
+
+                result = text
+                if prefix and text.startswith(prefix):
+                    result = result[len(prefix) :]
+                if suffix and text.endswith(suffix):
+                    result = result[: -len(suffix)]
+                return result
 
             if selected_text:
-                # 如果有选中文本，处理选中文本
-                processed_text = process_func(selected_text)
-                
+                # 检查是否已经格式化
+                if is_formatted(selected_text):
+                    # 如果已经格式化，去除格式
+                    processed_text = remove_format(selected_text)
+                else:
+                    # 如果没有格式化，应用格式
+                    processed_text = process_func(selected_text)
+
                 # 替换选中文本
                 self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
                 self.text_area.insert(tk.SEL_FIRST, processed_text)
-                
+
                 # 重新选中处理后的文本
-                self.text_area.tag_add(tk.SEL, tk.SEL_FIRST, f"{tk.SEL_FIRST}+{len(processed_text)}c")
+                self.text_area.tag_add(
+                    tk.SEL, tk.SEL_FIRST, f"{tk.SEL_FIRST}+{len(processed_text)}c"
+                )
             else:
                 # 如果没有选中文本，处理当前行
                 current_index = self.text_area.index(tk.INSERT)
                 line_start = self.text_area.index(f"{current_index} linestart")
                 line_end = self.text_area.index(f"{current_index} lineend")
-                
+
                 line_text = self.text_area.get(line_start, line_end)
-                processed_line = process_func(line_text)
-                
+
+                # 检查是否已经格式化
+                if is_formatted(line_text):
+                    # 如果已经格式化，去除格式
+                    processed_line = remove_format(line_text)
+                else:
+                    # 如果没有格式化，应用格式
+                    processed_line = process_func(line_text)
+
                 # 替换当前行
                 self.text_area.delete(line_start, line_end)
                 self.text_area.insert(line_start, processed_line)
-                
+
                 # 重新定位光标到行末尾
                 self.text_area.mark_set(tk.INSERT, line_end)
 
             # 更新编辑器状态
             self.update_editor_state()
-            
+
         except Exception as e:
             # 记录异常
             logger.error(f"处理文本时出错: {str(e)}")
             self.nm.show_error(message=f"处理文本失败: {str(e)}")
 
     def markdown_bold(self):
-        """将选中文本或当前行转换为粗体格式"""
-        self._process_text(lambda text: f"**{text}**")
+        """将选中文本或当前行转换为粗体格式（支持切换）"""
+        self._process_text(lambda text: f"**{text}**", prefix="**", suffix="**")
 
     def markdown_strikethrough(self):
-        """将选中文本或当前行转换为删除线格式"""
-        self._process_text(lambda text: f"~~{text}~~")
+        """将选中文本或当前行转换为删除线格式（支持切换）"""
+        self._process_text(lambda text: f"~~{text}~~", prefix="~~", suffix="~~")
 
     def markdown_highlight(self):
-        """将选中文本或当前行转换为高亮格式"""
-        self._process_text(lambda text: f"=={text}==")
+        """将选中文本或当前行转换为高亮格式（支持切换）"""
+        self._process_text(lambda text: f"=={text}==", prefix="==", suffix="==")
 
     def markdown_inline_code(self):
-        """将选中文本或当前行转换为行内代码格式"""
-        self._process_text(lambda text: f"`{text}`")
+        """将选中文本或当前行转换为行内代码格式（支持切换）"""
+        self._process_text(lambda text: f"`{text}`", prefix="`", suffix="`")
 
     def markdown_link(self):
         """将选中文本或当前行转换为链接格式"""
@@ -2113,33 +2158,33 @@ func (s *StructName) IsValid() bool {
         self._process_text(lambda text: f"![{text}](image_url)")
 
     def markdown_quote(self):
-        """将选中文本或当前行转换为引用格式"""
-        self._process_text(lambda text: f"> {text}")
+        """将选中文本或当前行转换为引用格式（支持切换）"""
+        self._process_text(lambda text: f"> {text}", prefix="> ")
 
     def markdown_code_block(self):
         """将选中文本或当前行转换为代码块格式"""
-        self._process_text(lambda text: f"```\n{text}\n```")
+        self._process_text(lambda text: f"```\n {text}\n```")
 
     def markdown_heading_1(self):
-        """将选中文本或当前行转换为一级标题格式"""
-        self._process_text(lambda text: f"# {text}")
+        """将选中文本或当前行转换为一级标题格式（支持切换）"""
+        self._process_text(lambda text: f"# {text}", prefix="# ")
 
     def markdown_heading_2(self):
-        """将选中文本或当前行转换为二级标题格式"""
-        self._process_text(lambda text: f"## {text}")
+        """将选中文本或当前行转换为二级标题格式（支持切换）"""
+        self._process_text(lambda text: f"## {text}", prefix="## ")
 
     def markdown_heading_3(self):
-        """将选中文本或当前行转换为三级标题格式"""
-        self._process_text(lambda text: f"### {text}")
+        """将选中文本或当前行转换为三级标题格式（支持切换）"""
+        self._process_text(lambda text: f"### {text}", prefix="### ")
 
     def markdown_heading_4(self):
-        """将选中文本或当前行转换为四级标题格式"""
-        self._process_text(lambda text: f"#### {text}")
+        """将选中文本或当前行转换为四级标题格式（支持切换）"""
+        self._process_text(lambda text: f"#### {text}", prefix="#### ")
 
     def markdown_heading_5(self):
-        """将选中文本或当前行转换为五级标题格式"""
-        self._process_text(lambda text: f"##### {text}")
+        """将选中文本或当前行转换为五级标题格式（支持切换）"""
+        self._process_text(lambda text: f"##### {text}", prefix="##### ")
 
     def markdown_heading_6(self):
-        """将选中文本或当前行转换为六级标题格式"""
-        self._process_text(lambda text: f"###### {text}")
+        """将选中文本或当前行转换为六级标题格式（支持切换）"""
+        self._process_text(lambda text: f"###### {text}", prefix="###### ")
