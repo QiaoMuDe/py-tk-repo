@@ -13,7 +13,7 @@ from pathlib import Path
 from loguru import logger
 
 # 应用程序常量
-APP_VERSION = "v0.0.35"  # 版本号
+APP_VERSION = "v0.0.36"  # 版本号
 PROJECT_URL = "https://gitee.com/MM-Q/py-tk-repo.git"  # 项目地址
 
 # 创建应用程序配置目录
