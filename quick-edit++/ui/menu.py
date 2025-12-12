@@ -342,6 +342,45 @@ def create_menu(root):
     # 创建插入子菜单
     insert_submenu = create_insert_submenu(edit_menu, root, menu_font_tuple)
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
+    
+    # 创建Markdown语法子菜单
+    markdown_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
+    
+    # 文本格式
+    markdown_submenu.add_command(label="粗体", command=lambda: root.markdown_bold())
+    markdown_submenu.add_command(label="删除线", command=lambda: root.markdown_strikethrough())
+    markdown_submenu.add_command(label="高亮", command=lambda: root.markdown_highlight())
+    markdown_submenu.add_separator()
+    
+    # 代码格式
+    markdown_submenu.add_command(label="行内代码", command=lambda: root.markdown_inline_code())
+    markdown_submenu.add_separator()
+    
+    # 链接和图片
+    markdown_submenu.add_command(label="链接", command=lambda: root.markdown_link())
+    markdown_submenu.add_command(label="图片", command=lambda: root.markdown_image())
+    markdown_submenu.add_separator()
+    
+    # 结构元素
+    markdown_submenu.add_command(label="引用", command=lambda: root.markdown_quote())
+    markdown_submenu.add_separator()
+    
+    # 标题
+    markdown_submenu.add_command(label="一级标题", command=lambda: root.markdown_heading_1())
+    markdown_submenu.add_command(label="二级标题", command=lambda: root.markdown_heading_2())
+    markdown_submenu.add_command(label="三级标题", command=lambda: root.markdown_heading_3())
+    markdown_submenu.add_command(label="四级标题", command=lambda: root.markdown_heading_4())
+    markdown_submenu.add_command(label="五级标题", command=lambda: root.markdown_heading_5())
+    markdown_submenu.add_command(label="六级标题", command=lambda: root.markdown_heading_6())
+    markdown_submenu.add_separator()
+    
+    # 列表
+    markdown_submenu.add_command(label="无序列表", command=lambda: root.markdown_unordered_list())
+    markdown_submenu.add_command(label="有序列表", command=lambda: root.markdown_ordered_list())
+    markdown_submenu.add_command(label="任务列表", command=lambda: root.markdown_task_list())
+    markdown_submenu.add_command(label="已完成任务", command=lambda: root.markdown_task_list_completed())
+    
+    edit_menu.add_cascade(label="Markdown语法", menu=markdown_submenu)
 
     # 将编辑菜单添加到主菜单
     main_menu.add_cascade(label="编辑", menu=edit_menu)
@@ -387,7 +426,7 @@ def create_menu(root):
     navigate_menu.add_command(
         label="添加/删除书签",
         command=lambda: root.toggle_bookmark(),
-        accelerator="Ctrl+B",
+        accelerator="Alt+B",
     )
     navigate_menu.add_command(
         label="上一个书签",
@@ -474,7 +513,7 @@ def create_menu(root):
         label="显示工具栏",
         command=lambda: toggle_toolbar_visibility(root, switch_state=False),
         variable=root.toolbar_var,
-        accelerator="Ctrl+Shift+T",
+        accelerator="Alt+T",
     )
 
     # 行号显示设置
@@ -482,7 +521,7 @@ def create_menu(root):
         label="显示行号",
         command=lambda: toggle_line_numbers(root, switch_state=False),
         variable=root.line_numbers_var,
-        accelerator="Ctrl+Shift+N",
+        accelerator="Alt+N",
     )
 
     # 全屏模式设置
@@ -771,15 +810,13 @@ def create_menu(root):
     # 查看日志
     config_settings_submenu.add_command(
         label="查看日志",
-        command=lambda: root.file_ops.open_log_file(),
-        accelerator="Ctrl+Shift+L",
+        command=lambda: root.file_ops.open_log_file()
     )
 
     # 重置设置
     config_settings_submenu.add_command(
         label="重置设置",
-        command=lambda: root._reset_settings(),
-        accelerator="Ctrl+Shift+R",
+        command=lambda: root._reset_settings()
     )
     settings_menu.add_cascade(label="配置管理", menu=config_settings_submenu)
 

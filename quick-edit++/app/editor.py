@@ -264,7 +264,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 书签功能快捷键
         self.bind(
-            "<Control-b>", lambda e: self.bookmark_manager.toggle_bookmark()
+            "<Alt-b>", lambda e: self.bookmark_manager.toggle_bookmark()
         )  # 添加/删除书签
         self.bind_all(
             "<Control-bracketleft>", lambda e: self.handle_bookmark_navigation("up", e)
@@ -286,10 +286,6 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.bind(
             "<Control-Shift-C>", lambda e: self.file_ops.open_config_file()
         )  # 查看配置
-        self.bind(
-            "<Control-Shift-L>", lambda e: self.file_ops.open_log_file()
-        )  # 打开日志文件
-        self.bind("<Control-Shift-R>", lambda e: self._reset_settings())  # 重置配置
 
         # 帮助快捷键
         self.bind("<F1>", lambda e: show_about_dialog(self))  # 显示关于对话框
@@ -322,11 +318,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
         # 绑定设置快捷键
         self.bind(
-            "<Control-Shift-T>",
+            "<Alt-t>",
             lambda e: toggle_toolbar_visibility(self, switch_state=True),
         )  # 切换工具栏显示
         self.bind(
-            "<Control-Shift-N>", lambda e: toggle_line_numbers(self, switch_state=True)
+            "<Alt-n>", lambda e: toggle_line_numbers(self, switch_state=True)
         )  # 切换行号显示
         self.bind(
             "<Control-Shift-W>", lambda e: toggle_auto_wrap(self, switch_state=True)

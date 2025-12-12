@@ -2038,3 +2038,124 @@ func (s *StructName) IsValid() bool {
             # 记录插入操作异常
             logger.error(f"插入便签模板时出错: {str(e)}")
             self.nm.show_error(message=f"插入便签模板失败: {str(e)}")
+
+    def _process_text(self, process_func):
+        """通用文本处理方法
+
+        Args:
+            process_func: 处理函数，接收原始文本并返回处理后的文本
+        """
+        try:
+            # 检查是否为只读模式
+            if self.is_read_only:
+                self.nm.show_warning(message="当前为只读模式，无法编辑")
+                return
+
+            # 获取选中文本
+            selected_text = self.text_area.selection_get() if self.text_area.tag_ranges(tk.SEL) else None
+
+            if selected_text:
+                # 如果有选中文本，处理选中文本
+                processed_text = process_func(selected_text)
+                
+                # 替换选中文本
+                self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+                self.text_area.insert(tk.SEL_FIRST, processed_text)
+                
+                # 重新选中处理后的文本
+                self.text_area.tag_add(tk.SEL, tk.SEL_FIRST, f"{tk.SEL_FIRST}+{len(processed_text)}c")
+            else:
+                # 如果没有选中文本，处理当前行
+                current_index = self.text_area.index(tk.INSERT)
+                line_start = self.text_area.index(f"{current_index} linestart")
+                line_end = self.text_area.index(f"{current_index} lineend")
+                
+                line_text = self.text_area.get(line_start, line_end)
+                processed_line = process_func(line_text)
+                
+                # 替换当前行
+                self.text_area.delete(line_start, line_end)
+                self.text_area.insert(line_start, processed_line)
+                
+                # 重新定位光标到行末尾
+                self.text_area.mark_set(tk.INSERT, line_end)
+
+            # 更新编辑器状态
+            self.update_editor_state()
+            
+        except Exception as e:
+            # 记录异常
+            logger.error(f"处理文本时出错: {str(e)}")
+            self.nm.show_error(message=f"处理文本失败: {str(e)}")
+
+    def markdown_bold(self):
+        """将选中文本或当前行转换为粗体格式"""
+        self._process_text(lambda text: f"**{text}**")
+
+    def markdown_strikethrough(self):
+        """将选中文本或当前行转换为删除线格式"""
+        self._process_text(lambda text: f"~~{text}~~")
+
+    def markdown_highlight(self):
+        """将选中文本或当前行转换为高亮格式"""
+        self._process_text(lambda text: f"=={text}==")
+
+    def markdown_inline_code(self):
+        """将选中文本或当前行转换为行内代码格式"""
+        self._process_text(lambda text: f"`{text}`")
+
+    def markdown_link(self):
+        """将选中文本或当前行转换为链接格式"""
+        self._process_text(lambda text: f"[{text}](url)")
+
+    def markdown_image(self):
+        """将选中文本或当前行转换为图片格式"""
+        self._process_text(lambda text: f"![{text}](image_url)")
+
+    def markdown_quote(self):
+        """将选中文本或当前行转换为引用格式"""
+        self._process_text(lambda text: f"> {text}")
+
+    def markdown_code_block(self):
+        """将选中文本或当前行转换为代码块格式"""
+        self._process_text(lambda text: f"```\n{text}\n```")
+
+    def markdown_heading_1(self):
+        """将选中文本或当前行转换为一级标题格式"""
+        self._process_text(lambda text: f"# {text}")
+
+    def markdown_heading_2(self):
+        """将选中文本或当前行转换为二级标题格式"""
+        self._process_text(lambda text: f"## {text}")
+
+    def markdown_heading_3(self):
+        """将选中文本或当前行转换为三级标题格式"""
+        self._process_text(lambda text: f"### {text}")
+
+    def markdown_heading_4(self):
+        """将选中文本或当前行转换为四级标题格式"""
+        self._process_text(lambda text: f"#### {text}")
+
+    def markdown_heading_5(self):
+        """将选中文本或当前行转换为五级标题格式"""
+        self._process_text(lambda text: f"##### {text}")
+
+    def markdown_heading_6(self):
+        """将选中文本或当前行转换为六级标题格式"""
+        self._process_text(lambda text: f"###### {text}")
+
+    def markdown_unordered_list(self):
+        """将选中文本或当前行转换为无序列表格式"""
+        self._process_text(lambda text: f"- {text}")
+
+    def markdown_ordered_list(self):
+        """将选中文本或当前行转换为有序列表格式"""
+        self._process_text(lambda text: f"1. {text}")
+
+    def markdown_task_list(self):
+        """将选中文本或当前行转换为任务列表格式"""
+        self._process_text(lambda text: f"- [ ] {text}")
+
+    def markdown_task_list_completed(self):
+        """将选中文本或当前行转换为已完成任务列表格式"""
+        self._process_text(lambda text: f"- [x] {text}")
