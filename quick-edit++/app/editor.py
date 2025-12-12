@@ -215,8 +215,12 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         self.text_area.bind("<Tab>", self._on_tab_press)  # 确保Tab键被捕获
 
         # 绑定文本修改事件（粘贴、剪切等）
-        self.text_area.bind("<<Paste>>", self._on_text_change, add="+")  # 粘贴事件，使用add="+"保留默认行为
-        self.text_area.bind("<<Cut>>", self._on_text_change, add="+")  # 剪切事件，使用add="+"保留默认行为
+        self.text_area.bind(
+            "<<Paste>>", self._on_text_change, add="+"
+        )  # 粘贴事件，使用add="+"保留默认行为
+        self.text_area.bind(
+            "<<Cut>>", self._on_text_change, add="+"
+        )  # 剪切事件，使用add="+"保留默认行为
         self.text_area.bind("<<Modified>>", self._on_text_change)  # 文本修改事件
 
         # 绑定文本框焦点离开事件, 触发自动保存

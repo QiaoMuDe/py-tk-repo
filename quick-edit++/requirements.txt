@@ -7,6 +7,7 @@ argcomplete==3.6.2
 async-timeout==5.0.1
 autopep8==2.3.2
 Babel==2.13.0
+beautifulsoup4==4.12.3
 black==24.10.0
 browser-cookie3==0.20.1
 certifi==2025.4.26
@@ -16,9 +17,12 @@ click==8.1.7
 colorama==0.4.6
 configobj==5.0.9
 cryptography==44.0.0
-#customtkinter==5.2.2
+cssutils==2.11.1
 darkdetect==0.8.0
+EditorConfig==0.17.1
 f2==0.0.1.7
+fasteners==0.19
+filetype==1.2.0
 gmssl==3.2.2
 h11==0.16.0
 httpcore==1.0.9
@@ -27,14 +31,14 @@ idna==3.10
 importlib_resources==6.4.5
 iniconfig==2.3.0
 iso8601==2.1.0
+jsbeautifier==1.15.1
 jsonpath-ng==1.6.1
-fasteners==0.19
-filetype==1.2.0
 loguru==0.7.3
 lz4==4.4.4
 m3u8==3.6.0
 markdown-it-py==3.0.0
 mdurl==0.1.2
+more-itertools==10.8.0
 mypy-extensions==1.0.0
 Nuitka==2.8.4
 ordered-set==4.1.0
@@ -53,6 +57,7 @@ pycryptodomex==3.23.0
 pydantic==2.9.2
 pydantic_core==2.23.4
 PyExecJS==1.5.1
+pygame==2.6.1
 Pygments==2.19.1
 pyinstaller==6.16.0
 pyinstaller-hooks-contrib==2025.9
@@ -70,6 +75,7 @@ ruamel.yaml.clib==0.2.14
 shadowcopy==0.0.4
 six==1.16.0
 sniffio==1.3.1
+soupsieve==2.8
 sqlparse==0.5.3
 tabulate==0.9.0
 tkinterdnd2==0.4.3
@@ -85,8 +91,3 @@ WMI==1.5.1
 yt-dlp==2025.1.26
 zipp==3.20.2
 zstandard==0.25.0
-loguru==0.7.3
-# Web开发格式化依赖
-beautifulsoup4==4.12.3
-jsbeautifier==1.15.1
-cssutils==2.11.1

@@ -2054,11 +2054,15 @@ func (s *StructName) IsValid() bool {
                 return
 
             # 获取选中文本
-            selected_text = (
-                self.text_area.selection_get()
-                if self.text_area.tag_ranges(tk.SEL)
-                else None
-            )
+            try:
+                selected_text = (
+                    self.text_area.selection_get()
+                    if self.text_area.tag_ranges(tk.SEL)
+                    else None
+                )
+            except tk.TclError:
+                # 处理选区可能已失效的情况
+                selected_text = None
 
             def is_formatted(text):
                 """检查文本是否已经应用了特定格式"""
@@ -2094,36 +2098,51 @@ func (s *StructName) IsValid() bool {
                     # 如果没有格式化，应用格式
                     processed_text = process_func(selected_text)
 
-                # 替换选中文本
-                self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
-                self.text_area.insert(tk.SEL_FIRST, processed_text)
+                # 安全地替换选中文本
+                try:
+                    # 确保选区仍然有效
+                    if self.text_area.tag_ranges(tk.SEL):
+                        self.text_area.delete(tk.SEL_FIRST, tk.SEL_LAST)
+                        self.text_area.insert(tk.SEL_FIRST, processed_text)
 
-                # 重新选中处理后的文本
-                self.text_area.tag_add(
-                    tk.SEL, tk.SEL_FIRST, f"{tk.SEL_FIRST}+{len(processed_text)}c"
-                )
+                        # 重新选中处理后的文本
+                        self.text_area.tag_add(
+                            tk.SEL,
+                            tk.SEL_FIRST,
+                            f"{tk.SEL_FIRST}+{len(processed_text)}c",
+                        )
+                    else:
+                        # 选区已失效，在当前光标位置插入
+                        self.text_area.insert(tk.INSERT, processed_text)
+                except tk.TclError:
+                    # 如果操作失败，在当前光标位置插入
+                    self.text_area.insert(tk.INSERT, processed_text)
             else:
                 # 如果没有选中文本，处理当前行
-                current_index = self.text_area.index(tk.INSERT)
-                line_start = self.text_area.index(f"{current_index} linestart")
-                line_end = self.text_area.index(f"{current_index} lineend")
+                try:
+                    current_index = self.text_area.index(tk.INSERT)
+                    line_start = self.text_area.index(f"{current_index} linestart")
+                    line_end = self.text_area.index(f"{current_index} lineend")
 
-                line_text = self.text_area.get(line_start, line_end)
+                    line_text = self.text_area.get(line_start, line_end)
 
-                # 检查是否已经格式化
-                if is_formatted(line_text):
-                    # 如果已经格式化，去除格式
-                    processed_line = remove_format(line_text)
-                else:
-                    # 如果没有格式化，应用格式
-                    processed_line = process_func(line_text)
+                    # 检查是否已经格式化
+                    if is_formatted(line_text):
+                        # 如果已经格式化，去除格式
+                        processed_line = remove_format(line_text)
+                    else:
+                        # 如果没有格式化，应用格式
+                        processed_line = process_func(line_text)
 
-                # 替换当前行
-                self.text_area.delete(line_start, line_end)
-                self.text_area.insert(line_start, processed_line)
+                    # 替换当前行
+                    self.text_area.delete(line_start, line_end)
+                    self.text_area.insert(line_start, processed_line)
 
-                # 重新定位光标到行末尾
-                self.text_area.mark_set(tk.INSERT, line_end)
+                    # 重新定位光标到行末尾
+                    self.text_area.mark_set(tk.INSERT, line_end)
+                except tk.TclError:
+                    # 如果获取行信息失败，尝试在当前光标位置插入格式化标记
+                    self.text_area.insert(tk.INSERT, process_func(""))
 
             # 更新编辑器状态
             self.update_editor_state()
