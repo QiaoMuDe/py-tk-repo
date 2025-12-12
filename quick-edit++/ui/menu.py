@@ -310,7 +310,7 @@ def create_menu(root):
         label="全选", command=lambda: root.select_all(), accelerator="Ctrl+A"
     )
     edit_menu.add_command(
-        label="清除", command=lambda: root.clear_all(), accelerator="Ctrl+Shift+D"
+        label="清除", command=lambda: root.clear_all(), accelerator="Ctrl+D"
     )
     edit_menu.add_separator()
 
@@ -343,42 +343,38 @@ def create_menu(root):
     insert_submenu = create_insert_submenu(edit_menu, root, menu_font_tuple)
     edit_menu.add_cascade(label="插入", menu=insert_submenu)
     
+    # 分隔符
+    edit_menu.add_separator()
+    
     # 创建Markdown语法子菜单
     markdown_submenu = tk.Menu(edit_menu, tearoff=0, font=menu_font_tuple)
     
     # 文本格式
-    markdown_submenu.add_command(label="粗体", command=lambda: root.markdown_bold())
-    markdown_submenu.add_command(label="删除线", command=lambda: root.markdown_strikethrough())
-    markdown_submenu.add_command(label="高亮", command=lambda: root.markdown_highlight())
+    markdown_submenu.add_command(label="粗体", command=lambda: root.markdown_bold(), accelerator="Ctrl+B")
+    markdown_submenu.add_command(label="删除线", command=lambda: root.markdown_strikethrough(), accelerator="Ctrl+Shift+-")
+    markdown_submenu.add_command(label="高亮", command=lambda: root.markdown_highlight(), accelerator="Ctrl+Shift+L")
     markdown_submenu.add_separator()
     
     # 代码格式
-    markdown_submenu.add_command(label="行内代码", command=lambda: root.markdown_inline_code())
+    markdown_submenu.add_command(label="行内代码", command=lambda: root.markdown_inline_code(), accelerator="Ctrl+Shift+`")
     markdown_submenu.add_separator()
     
     # 链接和图片
-    markdown_submenu.add_command(label="链接", command=lambda: root.markdown_link())
-    markdown_submenu.add_command(label="图片", command=lambda: root.markdown_image())
+    markdown_submenu.add_command(label="链接", command=lambda: root.markdown_link(), accelerator="Ctrl+Shift+K")
+    markdown_submenu.add_command(label="图片", command=lambda: root.markdown_image(), accelerator="Ctrl+Shift+I")
     markdown_submenu.add_separator()
     
     # 结构元素
-    markdown_submenu.add_command(label="引用", command=lambda: root.markdown_quote())
+    markdown_submenu.add_command(label="引用", command=lambda: root.markdown_quote(), accelerator="Ctrl+Shift+Q")
     markdown_submenu.add_separator()
     
     # 标题
-    markdown_submenu.add_command(label="一级标题", command=lambda: root.markdown_heading_1())
-    markdown_submenu.add_command(label="二级标题", command=lambda: root.markdown_heading_2())
-    markdown_submenu.add_command(label="三级标题", command=lambda: root.markdown_heading_3())
-    markdown_submenu.add_command(label="四级标题", command=lambda: root.markdown_heading_4())
-    markdown_submenu.add_command(label="五级标题", command=lambda: root.markdown_heading_5())
-    markdown_submenu.add_command(label="六级标题", command=lambda: root.markdown_heading_6())
-    markdown_submenu.add_separator()
-    
-    # 列表
-    markdown_submenu.add_command(label="无序列表", command=lambda: root.markdown_unordered_list())
-    markdown_submenu.add_command(label="有序列表", command=lambda: root.markdown_ordered_list())
-    markdown_submenu.add_command(label="任务列表", command=lambda: root.markdown_task_list())
-    markdown_submenu.add_command(label="已完成任务", command=lambda: root.markdown_task_list_completed())
+    markdown_submenu.add_command(label="一级标题", command=lambda: root.markdown_heading_1(), accelerator="Ctrl+1")
+    markdown_submenu.add_command(label="二级标题", command=lambda: root.markdown_heading_2(), accelerator="Ctrl+2")
+    markdown_submenu.add_command(label="三级标题", command=lambda: root.markdown_heading_3(), accelerator="Ctrl+3")
+    markdown_submenu.add_command(label="四级标题", command=lambda: root.markdown_heading_4(), accelerator="Ctrl+4")
+    markdown_submenu.add_command(label="五级标题", command=lambda: root.markdown_heading_5(), accelerator="Ctrl+5")
+    markdown_submenu.add_command(label="六级标题", command=lambda: root.markdown_heading_6(), accelerator="Ctrl+6")
     
     edit_menu.add_cascade(label="Markdown语法", menu=markdown_submenu)
 

@@ -2143,19 +2143,3 @@ func (s *StructName) IsValid() bool {
     def markdown_heading_6(self):
         """将选中文本或当前行转换为六级标题格式"""
         self._process_text(lambda text: f"###### {text}")
-
-    def markdown_unordered_list(self):
-        """将选中文本或当前行转换为无序列表格式"""
-        self._process_text(lambda text: f"- {text}")
-
-    def markdown_ordered_list(self):
-        """将选中文本或当前行转换为有序列表格式"""
-        self._process_text(lambda text: f"1. {text}")
-
-    def markdown_task_list(self):
-        """将选中文本或当前行转换为任务列表格式"""
-        self._process_text(lambda text: f"- [ ] {text}")
-
-    def markdown_task_list_completed(self):
-        """将选中文本或当前行转换为已完成任务列表格式"""
-        self._process_text(lambda text: f"- [x] {text}")

@@ -243,7 +243,7 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         # 移除了Ctrl+V的绑定, 使用文本框默认的粘贴行为, 避免重复粘贴
         # self.bind("<Control-v>", lambda e: self.paste())  # 粘贴
         # self.bind("<Control-a>", lambda e: self.select_all())  # 全选
-        self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
+        # self.bind("<Control-Shift-D>", lambda e: self.clear_all())  # 清除
 
         # 绑定导航快捷键
         self.bind("<Home>", lambda e: self.goto_top())  # 转到文件顶部
@@ -331,6 +331,21 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
             "<Control-Shift-H>",
             lambda e: toggle_highlight_current_line(self, switch_state=True),
         )  # 切换光标所在行高亮
+
+        # 绑定Markdown语法操作快捷键
+        self.bind("<Control-b>", lambda e: self.markdown_bold())  # 粗体
+        self.bind("<Control-Shift-minus>", lambda e: self.markdown_strikethrough())  # 删除线
+        self.bind("<Control-Shift-L>", lambda e: self.markdown_highlight())  # 高亮
+        self.bind("<Control-Shift-grave>", lambda e: self.markdown_inline_code())  # 行内代码
+        self.bind("<Control-Shift-K>", lambda e: self.markdown_link())  # 链接
+        self.bind("<Control-Shift-I>", lambda e: self.markdown_image())  # 图片
+        self.bind("<Control-Shift-Q>", lambda e: self.markdown_quote())  # 引用
+        self.bind("<Control-1>", lambda e: self.markdown_heading_1())  # 一级标题
+        self.bind("<Control-2>", lambda e: self.markdown_heading_2())  # 二级标题
+        self.bind("<Control-3>", lambda e: self.markdown_heading_3())  # 三级标题
+        self.bind("<Control-4>", lambda e: self.markdown_heading_4())  # 四级标题
+        self.bind("<Control-5>", lambda e: self.markdown_heading_5())  # 五级标题
+        self.bind("<Control-6>", lambda e: self.markdown_heading_6())  # 六级标题
 
         # 绑定文本框的水平/垂直滚动条的鼠标点击和拖动事件
         self.text_area._y_scrollbar._canvas.bind(
@@ -666,6 +681,11 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
 
     def _on_key_press(self, event=None):
         """按键/键盘事件处理"""
+        
+        # 添加调试信息，输出按键事件的详细信息
+        if event:
+            # print(f"Key Press Event - state: {event.state}, keysym: {event.keysym}, keysym_num: {event.keysym_num}, char: '{event.char}'")
+            logger.debug(f"Key Press Event - state: {event.state}, keysym: {event.keysym}, keysym_num: {event.keysym_num}, char: '{event.char}'")
 
         # 检测Ctrl+H组合键（但不包括Ctrl+Shift+H）, 阻止默认的退格行为
         if (
@@ -689,6 +709,39 @@ class QuickEditApp(EditOperations, SelectionOperations, ctk.CTk):
         if (event.state & 0x4) and (event.keysym == "t"):
             show_font_dialog(self)
             return "break"
+        
+        # 检测Ctrl+D组合键, 拦截底层行为
+        if (event.state & 0x4) and (event.keysym == "d"):
+            self.clear_all()
+            return "break"
+        
+        # 手动处理Markdown快捷键
+        # 检测Ctrl+数字组合键（标题）
+        if (event.state & 0x4) and event.keysym in ["1", "2", "3", "4", "5", "6"]:
+            # 根据不同的数字调用不同的标题方法
+            title_methods = {
+                "1": self.markdown_heading_1,
+                "2": self.markdown_heading_2,
+                "3": self.markdown_heading_3,
+                "4": self.markdown_heading_4,
+                "5": self.markdown_heading_5,
+                "6": self.markdown_heading_6
+            }
+            title_methods[event.keysym]()
+            return "break"
+        
+        # 根据终端输出的实际状态值检测Ctrl+Shift组合键
+        # state=13是Windows下Ctrl+Shift的实际状态值
+        if event.state == 13:
+            # 检测Ctrl+Shift+`组合键（行内代码）- Windows下实际产生asciitilde(126)
+            if event.keysym == "asciitilde" or event.keysym_num == 126:
+                self.markdown_inline_code()
+                return "break"
+            
+            # 检测Ctrl+Shift+-组合键（删除线）- Windows下实际产生underscore(95)
+            if event.keysym == "underscore" or event.keysym_num == 95:
+                self.markdown_strikethrough()
+                return "break"
 
     def _on_text_change(self, event=None):
         """文本改变事件处理"""
